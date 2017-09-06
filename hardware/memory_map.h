@@ -11,29 +11,17 @@
 #pragma once
 
 #include "integrated_circuit.h"
-#include "memory.h"
 
 namespace ryu::hardware {
 
-    class rom : public integrated_circuit,
-                public memory {
+    class memory_map : public hardware::integrated_circuit {
     public:
-        rom(
+        memory_map(
                 int id,
                 const std::string& name,
-                uint8_t* buffer,
-                size_t size,
-                uint32_t address);
-
-        ~rom() override;
+                uint32_t address_space);
 
         void zero() override;
-
-        bool write_latch() const;
-
-        size_t size() const override;
-
-        void write_latch(bool enabled);
 
         void fill(uint8_t value) override;
 
@@ -44,9 +32,7 @@ namespace ryu::hardware {
         void write_byte(uint32_t address, uint8_t value) override;
 
     private:
-        size_t _size;
-        bool _write_latch = false;
-        uint8_t* _buffer = nullptr;
+        uint32_t _address_space = 0;
     };
 
 };

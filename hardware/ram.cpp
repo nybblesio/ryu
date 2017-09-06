@@ -17,9 +17,9 @@ namespace ryu::hardware {
             const std::string& name,
             size_t size,
             uint32_t address) : integrated_circuit(id, name),
-                                _size(size),
-                                _address(address) {
+                                _size(size) {
         _buffer = new uint8_t[size];
+        this->address(address);
     }
 
     ram::~ram() {
@@ -35,12 +35,13 @@ namespace ryu::hardware {
         return _size;
     }
 
-    uint32_t ram::address() const {
-        return _address;
-    }
-
     void ram::fill(uint8_t value) {
         std::memset(_buffer, value, _size);
+    }
+
+    uint32_t ram::address_space() const {
+        // max 256MB of RAM per instance
+        return 256 * (1024 * 1024);
     }
 
     uint8_t ram::read_byte(uint32_t address) const {

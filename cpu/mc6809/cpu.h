@@ -18,6 +18,8 @@ namespace ryu::cpu::mc6809 {
 
         cpu(int id, const std::string& name);
 
+        uint32_t address_space() const override;
+
     private:
         static opcode_dictionary _opcodes;
     };

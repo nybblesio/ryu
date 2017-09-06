@@ -10,13 +10,18 @@
 
 #pragma once
 
+#include <cstdint>
+
 namespace ryu::hardware {
 
-    class memory {
+    class memory_map_entry {
     public:
-        virtual ~memory() = default;
+        memory_map_entry(uint32_t address, uint32_t size);
 
-        virtual size_t size() const = 0;
+    private:
+        uint32_t _size = 0;
+        uint32_t _address = 0;
     };
 
-}
+};
+

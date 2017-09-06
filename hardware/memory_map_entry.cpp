@@ -8,15 +8,15 @@
 // this source code file.
 //
 
-#pragma once
+#include "memory_map_entry.h"
 
 namespace ryu::hardware {
 
-    class memory {
-    public:
-        virtual ~memory() = default;
+    memory_map_entry::memory_map_entry(
+            uint32_t address,
+            uint32_t size) : _size(size),
+                             _address(address) {
+    }
 
-        virtual size_t size() const = 0;
-    };
 
 }

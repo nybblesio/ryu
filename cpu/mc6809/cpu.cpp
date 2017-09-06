@@ -255,6 +255,9 @@ namespace ryu::cpu::mc6809 {
     cpu::cpu(int id, const std::string& name) : hardware::cpu(id, name) {
     }
 
+    uint32_t cpu::address_space() const {
+        return 0xffff;
+    }
 
     void cpu::init() {
         _opcodes[0x003a] = opcode(

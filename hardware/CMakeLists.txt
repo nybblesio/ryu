@@ -1,9 +1,11 @@
 add_library(hardware
-        hardware_types.h
-        machine.cpp machine.h
-        display.cpp display.h
-        integrated_circuit.cpp integrated_circuit.h
+        memory.h
         cpu.cpp cpu.h
         ram.cpp ram.h
         rom.cpp rom.h
-        memory.h)
+        hardware_types.h
+        machine.cpp machine.h
+        display.cpp display.h
+        memory_map.cpp memory_map.h
+        memory_map_entry.cpp memory_map_entry.h
+        integrated_circuit.cpp integrated_circuit.h)

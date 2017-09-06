@@ -26,13 +26,13 @@ namespace ryu::hardware {
 
         ~ram() override;
 
-        void zero();
-
-        uint32_t address() const;
-
-        void fill(uint8_t value);
+        void zero() override;
 
         size_t size() const override;
+
+        void fill(uint8_t value) override;
+
+        uint32_t address_space() const override;
 
         uint8_t read_byte(uint32_t address) const override;
 
@@ -40,7 +40,6 @@ namespace ryu::hardware {
 
     private:
         size_t _size;
-        uint32_t _address;
         uint8_t* _buffer = nullptr;
     };
 
