@@ -8,14 +8,14 @@
 // this source code file.
 //
 
+
 #pragma once
 
 #include <core/state.h>
-#include <core/caret.h>
 
-namespace ryu::ide::hex_editor {
+namespace ryu::ide::machine_editor {
 
-    class controller : public core::state {
+    class controller : public ryu::core::state {
     public:
         enum ids {
         };

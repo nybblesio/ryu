@@ -8,12 +8,9 @@
 // this source code file.
 //
 
-#include <core/engine.h>
-#include <ide/context.h>
-#include <common/string_support.h>
 #include "controller.h"
 
-namespace ryu::ide::hex_editor {
+namespace ryu::ide::machine_editor {
 
     controller::controller(
             core::context* context,

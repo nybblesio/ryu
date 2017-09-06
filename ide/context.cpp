@@ -15,7 +15,9 @@ namespace ryu::ide {
     context::context(int id, std::string name) : core::context(id, name),
                                                  _palette(),
                                                  _console_state(this, states::console, "console"),
-                                                 _text_editor_state(this, states::text_editor, "text editor") {
+                                                 _hex_editor_state(this, states::hex_editor, "hex editor"),
+                                                 _text_editor_state(this, states::text_editor, "text editor"),
+                                                 _machine_editor_state(this, states::machine_editor, "machine editor") {
         add_state(
                 &_console_state,
                 [this](auto state, auto& command) {
@@ -26,7 +28,9 @@ namespace ryu::ide {
                     return false;
                 });
 
+        add_state(&_hex_editor_state);
         add_state(&_text_editor_state);
+        add_state(&_machine_editor_state);
 
         auto& black = _palette[colors::black];
         black.red(0x00);
