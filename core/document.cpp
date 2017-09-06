@@ -36,17 +36,6 @@ namespace ryu::core {
         return spaces;
     }
 
-    document::document(
-            int rows,
-            int columns,
-            int page_width,
-            int page_height) : _rows(rows),
-                               _columns(columns),
-                               _page_width(page_width),
-                               _page_height(page_height),
-                               _data(new uint8_t[rows * columns]) {
-    }
-
     document::~document() {
         delete[] _data;
         _data = nullptr;
@@ -54,6 +43,18 @@ namespace ryu::core {
 
     void document::clear() {
         std::memset(_data, 0, _rows * _columns);
+    }
+
+    void document::initialize(
+            int rows,
+            int columns,
+            int page_width,
+            int page_height) {
+        _rows = rows;
+        _columns = columns;
+        _page_width = page_width;
+        _page_height = page_height;
+        _data = new uint8_t[_rows * _columns];
     }
 
     void document::load(const fs::path& path) {

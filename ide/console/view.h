@@ -66,10 +66,10 @@ namespace ryu::ide::console {
     private:
         short _page_width;
         short _page_height;
-        core::caret* _caret = nullptr;
-        core::label* _header = nullptr;
-        core::label* _footer = nullptr;
-        core::document* _document = nullptr;
+        core::caret _caret;
+        core::label _header;
+        core::label _footer;
+        core::document _document;
         transition_to_callable _transition_to_callback;
         execute_command_callable _execute_command_callback;
     };

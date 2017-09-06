@@ -25,27 +25,19 @@ namespace ryu::core {
 
         virtual ~state() = default;
 
-        int id() const {
-            return _id;
-        }
+        int id() const;
 
         void update(uint32_t dt);
 
-        std::string name() const {
-            return _name;
-        }
+        std::string name() const;
 
-        bool render_parent() const {
-            return _render_parent;
-        }
+        bool render_parent() const;
 
-        bool is_initialized() const {
-            return _initialized;
-        }
+        core::engine* engine() const;
 
-        core::context* context() const {
-            return _context;
-        }
+        bool is_initialized() const;
+
+        core::context* context() const;
 
         void init(SDL_Renderer* renderer);
 
@@ -61,15 +53,9 @@ namespace ryu::core {
             return _id == rhs._id;
         }
 
-        bool transition_to(const std::string& name) {
-            if (_callback)
-                return _callback(this, name);
-            return false;
-        }
+        bool transition_to(const std::string& name);
 
-        void transition_callback(const state_transition_callable& callback) {
-            _callback = callback;
-        }
+        void transition_callback(const state_transition_callable& callback);
 
     protected:
         void end_state();

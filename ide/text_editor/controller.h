@@ -41,7 +41,7 @@ namespace ryu::ide::text_editor {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        editor_view* _view = nullptr;
+        editor_view _view;
         command_factory _command_factory;
     };
 

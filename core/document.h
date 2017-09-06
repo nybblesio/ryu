@@ -24,17 +24,19 @@ namespace ryu::core {
 
         static int spaces_to_next_tabstop(int column, int tabsize);
 
-        document(
-                int rows,
-                int columns,
-                int page_width,
-                int page_height);
+        document() = default;
 
         ~document();
 
         void clear();
 
         void shift_up();
+
+        void initialize(
+                int rows,
+                int columns,
+                int page_width,
+                int page_height);
 
         inline void home() {
             _column = 0;

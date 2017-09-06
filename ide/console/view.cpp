@@ -20,37 +20,34 @@ namespace ryu::ide::console {
             core::context* context,
             core::view* parent,
             int id,
-            const std::string& name) : core::view(context,
-                                                  parent,
-                                                  core::view::types::custom,
-                                                  id,
-                                                  name) {
+            const std::string& name) : core::view(context, parent, core::view::types::custom, id, name),
+                                       _header(context, this, ids::header_label, "header-label"),
+                                       _footer(context, this, ids::footer_label, "footer-label"),
+                                       _caret(context, this, ids::caret, "console-caret") {
     }
 
     view::~view() {
-        delete _document;
-        delete _caret;
     }
 
     void view::caret_end() {
-        _caret->column(_page_width);
+        _caret.column(_page_width);
     }
 
     void view::caret_home() {
-        _caret->column(0);
+        _caret.column(0);
     }
 
     void view::caret_up(int rows) {
-        _caret->up(rows);
+        _caret.up(rows);
     }
 
     void view::caret_down(int rows) {
-        if (_caret->down(rows))
-            _document->shift_up();
+        if (_caret.down(rows))
+            _document.shift_up();
     }
 
     bool view::caret_left(int columns) {
-        if (_caret->left(columns)) {
+        if (_caret.left(columns)) {
             caret_up();
             caret_end();
             return true;
@@ -59,7 +56,7 @@ namespace ryu::ide::console {
     }
 
     bool view::caret_right(int columns) {
-        if (_caret->right(columns)) {
+        if (_caret.right(columns)) {
             caret_down();
             caret_home();
             return true;
@@ -78,31 +75,28 @@ namespace ryu::ide::console {
         _page_width = static_cast<short>((clip_rect.w - (left_padding + right_padding)) / font()->width);
         _page_height = static_cast<short>((clip_rect.h - (header_padding + footer_padding + 20)) / font()->line_height);
 
-        _document = new core::document(_page_height, _page_width, _page_width, _page_height);
-        _document->clear();
+        _document.initialize(_page_height, _page_width, _page_width, _page_height);
+        _document.clear();
 
-        _header = new core::label(context(), this, ids::header_label, "header-label");
-        _header->rect()
+        _header.rect()
                 .pos(0, 0)
                 .size(clip_rect.w, header_padding);
-        _header->font(font());
-        _header->bg_color(ide::context::colors::fill_color);
-        _header->fg_color(ide::context::colors::info_text);
-        _header->padding({left_padding, right_padding, 5, 0});
+        _header.font(font());
+        _header.bg_color(ide::context::colors::fill_color);
+        _header.fg_color(ide::context::colors::info_text);
+        _header.padding({left_padding, right_padding, 5, 0});
 
-        _footer = new core::label(context(), this, ids::footer_label, "footer-label");
-        _footer->rect()
+        _footer.rect()
                 .pos(0, clip_rect.h - (footer_padding + 10))
                 .size(clip_rect.w, footer_padding);
-        _footer->font(font());
-        _footer->bg_color(ide::context::colors::fill_color);
-        _footer->fg_color(ide::context::colors::info_text);
-        _footer->padding({left_padding, right_padding, 0, 0});
+        _footer.font(font());
+        _footer.bg_color(ide::context::colors::fill_color);
+        _footer.fg_color(ide::context::colors::info_text);
+        _footer.padding({left_padding, right_padding, 0, 0});
 
-        _caret = new core::caret(context(), this, ids::caret, "console-caret");
-        _caret->initialize(0, 0, _page_width, _page_height);
-        _caret->fg_color(ide::context::colors::caret);
-        _caret->font(font());
+        _caret.initialize(0, 0, _page_width, _page_height);
+        _caret.fg_color(ide::context::colors::caret);
+        _caret.font(font());
 
         rect({0, 0, clip_rect.w, clip_rect.h});
         padding({left_padding, right_padding, header_padding + 5, footer_padding});
@@ -122,17 +116,17 @@ namespace ryu::ide::console {
             project_name = project->name();
             machine_name = project->machine()->name();
         }
-        _header->value(fmt::format("project: {0} | machine: {1}", project_name, machine_name));
-        _footer->value(fmt::format(
+        _header.value(fmt::format("project: {0} | machine: {1}", project_name, machine_name));
+        _footer.value(fmt::format(
                 "X:{0:03d} Y:{1:02d} | {2}",
-                _caret->column() + 1,
-                _caret->row() + 1,
-                _caret->mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
+                _caret.column() + 1,
+                _caret.row() + 1,
+                _caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
 
         auto y = bounds.top();
         for (auto row = 0; row < _page_height; row++) {
             std::stringstream stream;
-            _document->write_line(stream, row, 0, _page_width);
+            _document.write_line(stream, row, 0, _page_width);
 
             FC_DrawColor(
                     font()->glyph,
@@ -149,15 +143,15 @@ namespace ryu::ide::console {
     bool view::on_process_event(const SDL_Event* e) {
         auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
         auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
-        auto mode = _caret->mode();
+        auto mode = _caret.mode();
 
         if (e->type == SDL_TEXTINPUT) {
             if (mode == core::caret::mode::insert) {
-                _document->shift_right(_caret->row(), _caret->column());
+                _document.shift_right(_caret.row(), _caret.column());
             }
             const char* c = &e->text.text[0];
             while (*c != '\0') {
-                _document->put(_caret->row(), _caret->column(), static_cast<uint8_t>(*c));
+                _document.put(_caret.row(), _caret.column(), static_cast<uint8_t>(*c));
                 if (caret_right()) {
                     caret_right();
                 }
@@ -177,9 +171,9 @@ namespace ryu::ide::console {
                         // first, seek backwards to a null value
                         while (true) {
                             caret_left();
-                            if (_caret->row() == 0 && _caret->column() == 0)
+                            if (_caret.row() == 0 && _caret.column() == 0)
                                 break;
-                            auto value = _document->get(_caret->row(), _caret->column());
+                            auto value = _document.get(_caret.row(), _caret.column());
                             if (value == 0)
                                 break;
                         }
@@ -188,7 +182,7 @@ namespace ryu::ide::console {
                         caret_right();
                         while (true) {
                             caret_right();
-                            auto value = _document->get(_caret->row(), _caret->column());
+                            auto value = _document.get(_caret.row(), _caret.column());
                             if (value == 0)
                                 break;
                             cmd << value;
@@ -216,9 +210,9 @@ namespace ryu::ide::console {
                                     consumed = _transition_to_callback("text_editor");
                             }
                             else if (result.has_code("C004")) {
-                                _document->clear();
+                                _document.clear();
                                 caret_home();
-                                _caret->row(0);
+                                _caret.row(0);
                             }
 
                             write_message("Ready.");
@@ -232,13 +226,13 @@ namespace ryu::ide::console {
                     return true;
                 }
                 case SDLK_DELETE:
-                    _document->shift_left(_caret->row(), _caret->column());
+                    _document.shift_left(_caret.row(), _caret.column());
                     return true;
 
                 case SDLK_BACKSPACE: {
                     if (caret_left())
                         caret_left();
-                    _document->shift_left(_caret->row(), _caret->column());
+                    _document.shift_left(_caret.row(), _caret.column());
                     return true;
                 }
                 case SDLK_UP:
@@ -259,23 +253,23 @@ namespace ryu::ide::console {
 
                 case SDLK_HOME:
                     if (ctrl_pressed) {
-                        _caret->row(0);
+                        _caret.row(0);
                     }
                     caret_home();
                     return true;
 
                 case SDLK_END:
                     if (ctrl_pressed) {
-                        _caret->row(_page_height - 1);
+                        _caret.row(_page_height - 1);
                     }
                     caret_end();
                     return true;
 
                 case SDLK_INSERT:
                     if (mode == core::caret::mode::insert)
-                        _caret->overwrite();
+                        _caret.overwrite();
                     else
-                        _caret->insert();
+                        _caret.insert();
                     return true;
             }
         }
@@ -290,7 +284,7 @@ namespace ryu::ide::console {
                 caret_home();
                 continue;
             }
-            _document->put(_caret->row(), _caret->column(), static_cast<uint8_t>(c));
+            _document.put(_caret.row(), _caret.column(), static_cast<uint8_t>(c));
             caret_right();
         }
         caret_down();

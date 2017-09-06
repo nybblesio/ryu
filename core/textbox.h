@@ -28,7 +28,7 @@ namespace ryu::core {
 
         void clear();
 
-        std::string value() const;
+        std::string value();
 
         void value(const std::string& value);
 
@@ -52,9 +52,9 @@ namespace ryu::core {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        core::caret* _caret = nullptr;
+        core::caret _caret;
+        core::document _document;
         on_key_down_callable _on_key_down;
-        core::document* _document = nullptr;
     };
 
 };

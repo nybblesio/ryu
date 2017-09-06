@@ -103,12 +103,12 @@ namespace ryu::ide::text_editor {
         int _vrow;
         int _page_width;
         int _page_height;
+        core::caret _caret;
+        core::label _header;
+        core::label _footer;
+        core::document _document;
         core::selection _selection;
-        core::caret* _caret = nullptr;
-        core::label* _header = nullptr;
-        core::label* _footer = nullptr;
-        core::document* _document = nullptr;
-        core::textbox* _command_line = nullptr;
+        core::textbox _command_line;
         transition_to_callable _transition_callable;
         execute_command_callable _execute_command_callable;
     };

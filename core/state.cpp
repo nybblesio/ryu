@@ -21,12 +21,36 @@ namespace ryu::core {
                                   _context(context) {
     }
 
+    int state::id() const {
+        return _id;
+    }
+
     void state::end_state() {
         _context->pop_state();
     }
 
     void state::update(uint32_t dt) {
         on_update(dt);
+    }
+
+    std::string state::name() const {
+        return _name;
+    }
+
+    bool state::render_parent() const {
+        return _render_parent;
+    }
+
+    bool state::is_initialized() const {
+        return _initialized;
+    }
+
+    core::engine* state::engine() const {
+        return _context->engine();
+    }
+
+    core::context* state::context() const {
+        return _context;
     }
 
     void state::init(SDL_Renderer* renderer) {
@@ -44,6 +68,12 @@ namespace ryu::core {
         return on_process_event(e);
     }
 
+    bool state::transition_to(const std::string& name) {
+        if (_callback)
+            return _callback(this, name);
+        return false;
+    }
+
     void state::erase_blackboard(const std::string& name) {
         _context->erase_blackboard(name);
     }
@@ -54,6 +84,10 @@ namespace ryu::core {
 
     void state::blackboard(const std::string& name, const std::string& value) {
         _context->blackboard(name, value);
+    }
+
+    void state::transition_callback(const state_transition_callable& callback) {
+        _callback = callback;
     }
 
 }

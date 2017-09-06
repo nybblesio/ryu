@@ -15,4 +15,9 @@ namespace ryu::machine {
     bool registry::load(core::result& result, const fs::path& path) {
         return false;
     }
+
+    bool registry::save(core::result& result, const fs::path& path) {
+        return false;
+    }
+
 }

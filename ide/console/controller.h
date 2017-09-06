@@ -42,11 +42,7 @@ namespace ryu::ide::console {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        int _top;
-        int _left;
-        short _page_width;
-        short _page_height;
-        console::view* _view = nullptr;
+        console::view _view;
         command_factory _command_factory;
     };
 

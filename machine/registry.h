@@ -22,6 +22,8 @@ namespace ryu::machine {
     public:
         registry() = default;
 
+        bool save(core::result& result, const fs::path& path);
+
         bool load(core::result& result, const fs::path& path);
 
     private:
