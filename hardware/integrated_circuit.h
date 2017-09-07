@@ -25,6 +25,8 @@ namespace ryu::hardware {
 
         std::string name() const;
 
+        uint32_t last_address() const;
+
         void address(uint32_t address);
 
         virtual void fill(uint8_t value);
@@ -34,8 +36,6 @@ namespace ryu::hardware {
         virtual uint8_t read_byte(uint32_t address) const;
 
         virtual void write_byte(uint32_t address, uint8_t value);
-
-        virtual void reserve_memory_map(hardware::memory_map* map);
 
     private:
         int _id = -1;

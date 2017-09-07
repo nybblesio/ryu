@@ -7,5 +7,4 @@ add_library(hardware
         machine.cpp machine.h
         display.cpp display.h
         memory_map.cpp memory_map.h
-        memory_map_entry.cpp memory_map_entry.h
         integrated_circuit.cpp integrated_circuit.h)

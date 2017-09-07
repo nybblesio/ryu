@@ -10,9 +10,12 @@
 
 #pragma once
 
+#include <common/IntervalTree.h>
 #include "integrated_circuit.h"
 
 namespace ryu::hardware {
+
+    typedef std::vector<Interval<hardware::integrated_circuit*>> component_interval_list;
 
     class memory_map : public hardware::integrated_circuit {
     public:
@@ -20,6 +23,12 @@ namespace ryu::hardware {
                 int id,
                 const std::string& name,
                 uint32_t address_space);
+
+        void clear();
+
+        void reserve(
+                uint32_t address,
+                hardware::integrated_circuit* component);
 
         void zero() override;
 
@@ -31,8 +40,11 @@ namespace ryu::hardware {
 
         void write_byte(uint32_t address, uint8_t value) override;
 
+        component_interval_list components_at_address(uint32_t address);
+
     private:
         uint32_t _address_space = 0;
+        component_interval_list _components;
     };
 
 };

@@ -31,6 +31,10 @@ namespace ryu::hardware {
         return _name;
     }
 
+    uint32_t integrated_circuit::last_address() const {
+        return _address + address_space();
+    }
+
     uint32_t integrated_circuit::address_space() const {
         return 0;
     }
@@ -41,9 +45,6 @@ namespace ryu::hardware {
 
     uint8_t integrated_circuit::read_byte(uint32_t address) const {
         return 0;
-    }
-
-    void integrated_circuit::reserve_memory_map(hardware::memory_map* map) {
     }
 
     void integrated_circuit::write_byte(uint32_t address, uint8_t value) {

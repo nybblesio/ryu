@@ -13,12 +13,15 @@ namespace ryu::hardware {
                                                         _name(name) {
     }
 
-    void machine::init() {
-        on_init();
-    }
-
     int machine::id() const {
         return _id;
+    }
+
+    void machine::initialize() {
+        on_initialize();
+    }
+
+    void machine::on_initialize() {
     }
 
     std::string machine::name() const {
@@ -31,6 +34,14 @@ namespace ryu::hardware {
 
     void machine::display(hardware::display* display) {
         _display = display;
+    }
+
+    hardware::memory_map* machine::memory_map() const {
+        return _memory_map;
+    }
+
+    void machine::memory_map(hardware::memory_map* map) {
+        _memory_map = map;
     }
 
 }
