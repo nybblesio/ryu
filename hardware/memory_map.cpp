@@ -20,6 +20,8 @@ namespace ryu::hardware {
     }
 
     void memory_map::zero() {
+        for (auto& ic : _components)
+            ic.value->zero();
     }
 
     void memory_map::reserve(
@@ -39,6 +41,8 @@ namespace ryu::hardware {
     }
 
     void memory_map::fill(uint8_t value) {
+        for (auto& ic : _components)
+            ic.value->fill(value);
     }
 
     uint32_t memory_map::address_space() const {
@@ -46,15 +50,22 @@ namespace ryu::hardware {
     }
 
     uint8_t memory_map::read_byte(uint32_t address) const {
-        return 0;
+        auto results = components_at_address(address);
+        if (results.empty())
+            return 0;
+        return results[0].value->read_byte(address);
     }
 
     void memory_map::write_byte(uint32_t address, uint8_t value) {
+        auto results = components_at_address(address);
+        if (results.empty())
+            return;
+        return results[0].value->write_byte(address, value);
     }
 
-    component_interval_list memory_map::components_at_address(uint32_t address) {
-        IntervalTree<hardware::integrated_circuit*> tree(_components);
-        component_interval_list results;
+    ic_interval_list memory_map::components_at_address(uint32_t address) const {
+        IntervalTree<hardware::integrated_circuit*> tree(const_cast<ic_interval_list&>(_components));
+        ic_interval_list results;
         tree.findContained(address, address, results);
         return results;
     }

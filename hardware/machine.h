@@ -9,6 +9,7 @@
 
 #include <string>
 #include "display.h"
+#include "component.h"
 #include "memory_map.h"
 #include "hardware_types.h"
 
@@ -26,13 +27,17 @@ namespace ryu::hardware {
 
         std::string name() const;
 
+        void remove_component(int id);
+
         hardware::display* display() const;
 
-        hardware::memory_map* memory_map() const;
+        const component_list components() const;
 
         void display(hardware::display* display);
 
-        void memory_map(hardware::memory_map* map);
+        hardware::component* find_component(int id) const;
+
+        void add_component(hardware::component* component);
 
     protected:
         virtual void on_initialize();
@@ -40,8 +45,8 @@ namespace ryu::hardware {
     private:
         int _id = -1;
         std::string _name;
+        component_dict _components;
         hardware::display* _display = nullptr;
-        hardware::memory_map* _memory_map = nullptr;
     };
 
 };

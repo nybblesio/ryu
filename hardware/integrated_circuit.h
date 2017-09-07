@@ -8,10 +8,9 @@
 #pragma once
 
 #include <string>
+#include "hardware_types.h"
 
 namespace ryu::hardware {
-
-    class memory_map;
 
     class integrated_circuit {
     public:

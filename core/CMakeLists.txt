@@ -11,6 +11,7 @@ add_library(
         state.cpp state.h
         timer.cpp timer.h
         engine.cpp engine.h
+        id_pool.cpp id_pool.h
         context.cpp context.h
         project.cpp project.h
         padding.cpp padding.h
