@@ -21,6 +21,7 @@ add_custom_command(OUTPUT always-rebuild COMMAND ${CMAKE_COMMAND} -E echo)
 # 3rd party dependencies
 find_package(Boost 1.65.0 COMPONENTS system filesystem REQUIRED)
 find_package(FMT REQUIRED)
+find_package(yaml-cpp REQUIRED)
 find_package(Log4cpp REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
@@ -30,6 +31,7 @@ include_directories(
         ${PROJECT_BINARY_DIR}
         ${PROJECT_SOURCE_DIR}
         ${Boost_INCLUDE_DIRS}
+        ${YAML_CPP_INCLUDE_DIR}
         ${FMT_INCLUDE_DIRS}
         ${Log4cpp_INCLUDE_DIR}
         ${SDL2_INCLUDE_DIR}
@@ -80,6 +82,7 @@ target_link_libraries(
         ${SDL2_LIBRARY}
         ${Boost_LIBRARIES}
         ${LOG4CPP_LIBRARIES}
+        ${YAML_CPP_LIBRARIES}
         ${SDL2_TTF_LIBRARIES}
         ${SDL2_IMAGE_LIBRARIES}
         fmt::fmt
