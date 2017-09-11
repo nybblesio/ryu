@@ -22,10 +22,10 @@ namespace ryu::core {
                 std::string code,
                 std::string message,
                 std::string details = "",
-                bool error = false) : _code(std::move(code)),
+                bool error = false) : _error(error),
+                                      _code(std::move(code)),
                                       _message(std::move(message)),
-                                      _details(std::move(details)),
-                                      _error(error) {
+                                      _details(std::move(details)) {
         }
 
         inline bool is_error() const {

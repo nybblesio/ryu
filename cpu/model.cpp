@@ -19,9 +19,9 @@ namespace ryu::cpu {
             const std::string& manufacturer,
             int address_space) : _id(id),
                                  _name(name),
+                                 _address_space(address_space),
                                  _description(description),
-                                 _manufacturer(manufacturer),
-                                 _address_space(address_space) {
+                                 _manufacturer(manufacturer) {
     }
 
     std::string model::name() const {

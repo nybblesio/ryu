@@ -37,6 +37,10 @@ namespace ryu::hardware {
 
         void fill(uint8_t value) override;
 
+        std::string type() const override {
+            return "rom";
+        }
+
         uint32_t address_space() const override;
 
         uint8_t read_byte(uint32_t address) const override;
@@ -44,6 +48,8 @@ namespace ryu::hardware {
         void write_byte(uint32_t address, uint8_t value) override;
 
     private:
+        RTTR_ENABLE(hardware::integrated_circuit)
+
         size_t _size;
         bool _write_latch = false;
         uint8_t* _buffer = nullptr;

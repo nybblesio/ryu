@@ -6,6 +6,7 @@
 //
 
 #include "opcode.h"
+#include <utility>
 
 namespace ryu::cpu::mc6809 {
 
@@ -13,10 +14,10 @@ namespace ryu::cpu::mc6809 {
             uint16_t op,
             uint8_t cycles,
             uint8_t mode,
-            const std::set<std::string>& mnemonics) : _op(op),
-                                                      _cycles(cycles),
-                                                      _mode(mode),
-                                                      _mnemonics(mnemonics) {
+            std::set<std::string> mnemonics) : _op(op),
+                                               _cycles(cycles),
+                                               _mnemonics(std::move(mnemonics)),
+                                               _mode(mode) {
     }
 
 }

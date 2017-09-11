@@ -69,7 +69,7 @@ namespace ryu::core {
                 view* parent,
                 types::id type,
                 int id,
-                const std::string& name);
+                std::string name);
 
         virtual ~view() = default;
 

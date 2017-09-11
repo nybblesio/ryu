@@ -28,7 +28,6 @@ namespace ryu::emulator {
     }
 
     void controller::on_init(SDL_Renderer* renderer) {
-        _font = context()->engine()->find_font("topaz-8");
     }
 
     void controller::on_draw(SDL_Renderer* renderer) {

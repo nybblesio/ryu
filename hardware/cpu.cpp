@@ -9,7 +9,7 @@
 
 namespace ryu::hardware {
 
-    cpu::cpu(int id, const std::string& name) : integrated_circuit(id, name) {
+    cpu::cpu(int id, const std::string& name) : hardware::integrated_circuit(id, name) {
     }
 
 }

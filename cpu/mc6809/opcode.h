@@ -32,7 +32,7 @@ namespace ryu::cpu::mc6809 {
                 uint16_t op,
                 uint8_t cycles,
                 uint8_t mode,
-                const std::set<std::string>& mnemonics);
+                std::set<std::string> mnemonics);
 
         opcode(const opcode& other) : _op(other._op),
                                                     _cycles(other._cycles),

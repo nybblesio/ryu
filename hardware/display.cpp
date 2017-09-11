@@ -15,9 +15,9 @@ namespace ryu::hardware {
             int width,
             int height,
             int refresh_rate) : _id(id),
-                                _name(name),
                                 _width(width),
                                 _height(height),
+                                _name(name),
                                 _refresh_rate(refresh_rate) {
     }
 

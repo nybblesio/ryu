@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic -Wno-unknown-pragmas -Wno-inconsistent-missing-override")
 
 project (ryu)
 set (ryu_version_major 1)
@@ -26,7 +27,11 @@ find_package(Log4cpp REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
-find_package(RTTR CONFIG REQUIRED Core)
+find_package(RTTR REQUIRED Core)
+
+# XXX: this doesn't seem correct but it works for now
+get_target_property(RTTR_INCLUDE_DIR RTTR::Core INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS ${RTTR_INCLUDE_DIR})
 
 include_directories(
         ${PROJECT_BINARY_DIR}
@@ -38,6 +43,7 @@ include_directories(
         ${SDL2_INCLUDE_DIR}
         ${SDL2_IMAGE_INCLUDE_DIRS}
         ${SDL2_TTF_INCLUDE_DIRS}
+        ${RTTR_INCLUDE_DIR}
 )
 
 # project libraries
@@ -69,8 +75,6 @@ add_executable(
         ryu.properties
         ryu_config.in.h
         application.cpp application.h)
-
-target_compile_features(ryu PRIVATE cxx_auto_type)
 target_link_libraries(
         ryu
         ide

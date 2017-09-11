@@ -1,4 +1,5 @@
-add_library(hardware
+add_library(
+        hardware
         memory.h
         cpu.cpp cpu.h
         ram.cpp ram.h

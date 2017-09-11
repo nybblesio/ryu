@@ -21,6 +21,8 @@ namespace ryu::cpu::mc6809 {
         uint32_t address_space() const override;
 
     private:
+        RTTR_ENABLE(hardware::cpu)
+
         static opcode_dictionary _opcodes;
     };
 

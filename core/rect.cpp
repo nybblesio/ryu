@@ -16,8 +16,8 @@ namespace ryu::core {
             int32_t left,
             int32_t top,
             int32_t width,
-            int32_t height) : _left(left),
-                              _top(top),
+            int32_t height) : _top(top),
+                              _left(left),
                               _width(width),
                               _height(height) {
     }

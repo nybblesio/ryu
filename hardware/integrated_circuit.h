@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <rttr/registration>
 #include "hardware_types.h"
 
 namespace ryu::hardware {
@@ -15,6 +16,8 @@ namespace ryu::hardware {
     class integrated_circuit {
     public:
         integrated_circuit(int id, const std::string& name);
+
+        virtual ~integrated_circuit() = default;
 
         int id() const;
 
@@ -30,6 +33,8 @@ namespace ryu::hardware {
 
         virtual void fill(uint8_t value);
 
+        virtual std::string type() const;
+
         virtual uint32_t address_space() const;
 
         virtual uint8_t read_byte(uint32_t address) const;
@@ -37,6 +42,8 @@ namespace ryu::hardware {
         virtual void write_byte(uint32_t address, uint8_t value);
 
     private:
+        RTTR_ENABLE()
+
         int _id = -1;
         std::string _name;
         uint32_t _address = 0;

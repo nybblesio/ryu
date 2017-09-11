@@ -11,8 +11,8 @@
 #pragma once
 
 #include <string>
-#include "integrated_circuit.h"
 #include "memory_map.h"
+#include "integrated_circuit.h"
 
 namespace ryu::hardware {
 

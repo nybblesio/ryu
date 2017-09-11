@@ -37,9 +37,6 @@ namespace ryu::emulator {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        int _top = 0;
-        int _left = 0;
-        core::font_t* _font = nullptr;
     };
 
 };

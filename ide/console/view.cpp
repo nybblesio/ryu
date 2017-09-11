@@ -21,9 +21,9 @@ namespace ryu::ide::console {
             core::view* parent,
             int id,
             const std::string& name) : core::view(context, parent, core::view::types::custom, id, name),
+                                       _caret(context, this, ids::caret, "console-caret"),
                                        _header(context, this, ids::header_label, "header-label"),
-                                       _footer(context, this, ids::footer_label, "footer-label"),
-                                       _caret(context, this, ids::caret, "console-caret") {
+                                       _footer(context, this, ids::footer_label, "footer-label") {
     }
 
     view::~view() {
@@ -105,7 +105,7 @@ namespace ryu::ide::console {
     void view::on_draw(SDL_Renderer* renderer) {
         auto bounds = client_rect();
         auto& white = (*context()->palette())[ide::context::colors::text];
-        auto& grey = (*context()->palette())[ide::context::colors::info_text];
+        //auto& grey = (*context()->palette())[ide::context::colors::info_text];
 
         auto text_color = white.to_sdl_color();
 

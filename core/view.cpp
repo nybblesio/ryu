@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <utility>
 #include "view.h"
 #include "engine.h"
 
@@ -18,11 +19,11 @@ namespace ryu::core {
             core::view* parent,
             types::id type,
             int id,
-            const std::string& name) : _id(id),
-                                       _type(type),
-                                       _name(name),
-                                       _parent(parent),
-                                       _context(context) {
+            std::string name) : _id(id),
+                                _name(std::move(name)),
+                                _parent(parent),
+                                _type(type),
+                                _context(context) {
         if (_parent != nullptr)
             _parent->_children.push_back(this);
 

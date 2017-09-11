@@ -11,11 +11,16 @@
 
 namespace ryu::hardware {
 
-    class cpu : public integrated_circuit {
+    class cpu : public hardware::integrated_circuit {
     public:
         cpu(int id, const std::string& name);
 
+        std::string type() const override {
+            return "cpu";
+        }
+
     private:
+        RTTR_ENABLE(hardware::integrated_circuit)
     };
 
 };
