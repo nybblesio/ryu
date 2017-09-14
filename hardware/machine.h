@@ -10,14 +10,14 @@
 #include <string>
 #include "display.h"
 #include "component.h"
-#include "memory_map.h"
+#include "memory_mapper.h"
 #include "hardware_types.h"
 
 namespace ryu::hardware {
 
     class machine {
     public:
-        machine(int id, const std::string& name);
+        explicit machine(int id);
 
         virtual ~machine() = default;
 
@@ -30,6 +30,8 @@ namespace ryu::hardware {
         void remove_component(int id);
 
         hardware::display* display() const;
+
+        void name(const std::string& value);
 
         const component_list components() const;
 

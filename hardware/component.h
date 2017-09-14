@@ -11,7 +11,7 @@
 #pragma once
 
 #include <string>
-#include "memory_map.h"
+#include "memory_mapper.h"
 #include "integrated_circuit.h"
 
 namespace ryu::hardware {
@@ -20,23 +20,24 @@ namespace ryu::hardware {
     public:
         component(
                 int id,
-                const std::string& name,
                 hardware::integrated_circuit* ic);
 
         int id() const;
 
         std::string name() const;
 
-        hardware::memory_map* memory_map() const;
+        void name(const std::string& value);
+
+        hardware::memory_mapper* mapper() const;
 
         hardware::integrated_circuit* ic() const;
 
-        void memory_map(hardware::memory_map* map);
+        void mapper(hardware::memory_mapper* mapper);
 
     private:
         int _id;
         std::string _name;
-        hardware::memory_map* _memory_map = nullptr;
+        hardware::memory_mapper* _mapper = nullptr;
         hardware::integrated_circuit* _ic = nullptr;
     };
 

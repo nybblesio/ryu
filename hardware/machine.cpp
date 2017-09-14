@@ -9,8 +9,7 @@
 
 namespace ryu::hardware {
 
-    machine::machine(int id, const std::string& name) : _id(id),
-                                                        _name(name) {
+    machine::machine(int id) : _id(id) {
     }
 
     int machine::id() const {
@@ -34,6 +33,10 @@ namespace ryu::hardware {
 
     hardware::display* machine::display() const {
         return _display;
+    }
+
+    void machine::name(const std::string& value) {
+        _name = value;
     }
 
     const component_list machine::components() const {

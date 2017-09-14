@@ -9,6 +9,7 @@
 
 #include <string>
 #include <rttr/registration>
+#include "memory_map.h"
 #include "hardware_types.h"
 
 namespace ryu::hardware {
@@ -37,6 +38,8 @@ namespace ryu::hardware {
 
         virtual uint32_t address_space() const;
 
+        const hardware::memory_map& memory_map() const;
+
         virtual uint8_t read_byte(uint32_t address) const;
 
         virtual void write_byte(uint32_t address, uint8_t value);
@@ -47,6 +50,7 @@ namespace ryu::hardware {
         int _id = -1;
         std::string _name;
         uint32_t _address = 0;
+        hardware::memory_map _memory_map;
     };
 
 };

@@ -17,7 +17,11 @@ namespace ryu::hardware {
 
     class memory;
 
-    class memory_map;
+    class memory_map_entry;
+
+    typedef std::vector<Interval<memory_map_entry*>> mm_entry_interval_list;
+
+    class memory_mapper;
 
     class machine;
 

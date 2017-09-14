@@ -14,9 +14,7 @@ namespace ryu::hardware {
 
     component::component(
             int id,
-            const std::string& name,
             hardware::integrated_circuit* ic) : _id(id),
-                                                _name(name),
                                                 _ic(ic) {
     }
 
@@ -28,16 +26,20 @@ namespace ryu::hardware {
         return _name;
     }
 
+    void component::name(const std::string& value) {
+        _name = value;
+    }
+
+    hardware::memory_mapper* component::mapper() const {
+        return _mapper;
+    }
+
     hardware::integrated_circuit* component::ic() const {
         return _ic;
     }
 
-    hardware::memory_map* component::memory_map() const {
-        return _memory_map;
-    }
-
-    void component::memory_map(hardware::memory_map* map) {
-        _memory_map = map;
+    void component::mapper(hardware::memory_mapper* mapper) {
+        _mapper = mapper;
     }
 
 }
