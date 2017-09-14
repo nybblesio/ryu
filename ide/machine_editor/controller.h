@@ -25,8 +25,6 @@ namespace ryu::ide::machine_editor {
                 int id,
                 const std::string& name);
 
-        ~controller() override;
-
     protected:
         void on_update(uint32_t dt) override;
 

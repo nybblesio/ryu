@@ -64,6 +64,9 @@ namespace ryu::ide::console {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
+        bool transition_to(const std::string& name);
+
+    private:
         short _page_width;
         short _page_height;
         core::caret _caret;

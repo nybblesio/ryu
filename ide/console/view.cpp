@@ -206,8 +206,13 @@ namespace ryu::ide::console {
                             if (result.has_code("C001"))
                                 context()->engine()->quit();
                             else if (result.has_code("C002")) {
-                                if (_transition_to_callback)
-                                    consumed = _transition_to_callback("text_editor");
+                                consumed = transition_to("text_editor");
+                            }
+                            else if (result.has_code("C023")) {
+                                consumed = transition_to("machine_editor");
+                            }
+                            else if (result.has_code("C024")) {
+                                consumed = transition_to("hex_editor");
                             }
                             else if (result.has_code("C004")) {
                                 _document.clear();
@@ -297,6 +302,13 @@ namespace ryu::ide::console {
 
     void view::on_execute_command(const execute_command_callable& callable) {
         _execute_command_callback = callable;
+    }
+
+    bool view::transition_to(const std::string& name) {
+        bool consumed = false;
+        if (_transition_to_callback)
+            consumed = _transition_to_callback(name);
+        return consumed;
     }
 
 }

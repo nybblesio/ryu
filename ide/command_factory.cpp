@@ -355,8 +355,16 @@ namespace ryu::ide {
                 result.add_message("C022", lit.value);
                 break;
             }
+            case command::memory_editor: {
+                result.add_message("C024", "Open hex editor.");
+                break;
+            }
             case command::text_editor: {
                 result.add_message("C002", "Open text editor.");
+                break;
+            }
+            case command::machines_editor: {
+                result.add_message("C023", "Open machines editor.");
                 break;
             }
             case command::goto_line: {

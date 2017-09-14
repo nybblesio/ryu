@@ -18,9 +18,6 @@ namespace ryu::ide::machine_editor {
             const std::string& name) : core::state(context, id, name) {
     }
 
-    controller::~controller() {
-    }
-
     void controller::on_update(uint32_t dt) {
     }
 
@@ -31,6 +28,14 @@ namespace ryu::ide::machine_editor {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {
+        if (e->type == SDL_KEYDOWN) {
+            switch (e->key.keysym.sym) {
+                case SDLK_ESCAPE: {
+                    end_state();
+                    return true;
+                }
+            }
+        }
         return false;
     }
 

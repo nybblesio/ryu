@@ -24,6 +24,12 @@ namespace ryu::ide {
                     if (command == "text_editor") {
                         push_state(states::text_editor);
                         return true;
+                    } else if (command == "hex_editor") {
+                        push_state(states::hex_editor);
+                        return true;
+                    } else if (command == "machine_editor") {
+                        push_state(states::machine_editor);
+                        return true;
                     }
                     return false;
                 });
