@@ -10,7 +10,7 @@
 
 #include "registry.h"
 
-namespace ryu::machine {
+namespace ryu::hardware {
 
     bool registry::load(core::result& result, const fs::path& path) {
         return false;

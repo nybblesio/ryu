@@ -51,7 +51,6 @@ include_directories(
 add_subdirectory(ide)
 add_subdirectory(core)
 add_subdirectory(common)
-add_subdirectory(machine)
 add_subdirectory(hardware)
 add_subdirectory(emulator)
 
@@ -63,7 +62,6 @@ add_executable(
         common
         emulator
         hardware
-        machine
         core
         ide
         LICENSE
@@ -78,7 +76,6 @@ target_link_libraries(
         ryu
         ide
         emulator
-        machine
         hardware
         core
         common

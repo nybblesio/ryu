@@ -7,6 +7,7 @@ add_library(
         hardware_types.h
         machine.cpp machine.h
         display.cpp display.h
+        registry.cpp registry.h
         hardware.h hardware.cpp
         component.cpp component.h
         memory_map.cpp memory_map.h

@@ -14,7 +14,7 @@
 #include <boost/filesystem.hpp>
 #include <hardware/hardware_types.h>
 
-namespace ryu::machine {
+namespace ryu::hardware {
 
     namespace fs = boost::filesystem;
 
