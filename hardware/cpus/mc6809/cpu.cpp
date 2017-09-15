@@ -250,9 +250,13 @@
 
 #include "cpu.h"
 
-namespace ryu::cpu::mc6809 {
+RTTR_REGISTRATION {
+    rttr::registration::class_<ryu::hardware::mc6809::cpu>("ryu::hardware::mc6809::cpu");
+}
 
-    cpu::cpu(int id, const std::string& name) : hardware::cpu(id, name) {
+namespace ryu::hardware::mc6809 {
+
+    cpu::cpu(int id, const std::string& name) : hardware::integrated_circuit(id, name) {
     }
 
     uint32_t cpu::address_space() const {

@@ -13,19 +13,17 @@
 
 namespace ryu::hardware {
 
-    class cpu;
-
     class memory;
-
-    class memory_map_entry;
-
-    typedef std::vector<Interval<memory_map_entry*>> mm_entry_interval_list;
-
-    class memory_mapper;
 
     class machine;
 
     class display;
+
+    class memory_mapper;
+
+    class memory_map_entry;
+
+    typedef std::vector<Interval<memory_map_entry*>> mm_entry_interval_list;
 
     class integrated_circuit;
 
@@ -35,4 +33,5 @@ namespace ryu::hardware {
 
     typedef std::vector<component*> component_list;
     typedef std::map<int, component*> component_dict;
+
 };

@@ -44,9 +44,9 @@ namespace ryu::hardware {
 
         integrated_circuit* circuit_at_address(uint32_t address) const;
 
-    private:
         RTTR_ENABLE(hardware::integrated_circuit)
 
+    private:
         uint32_t _address_space = 0;
         ic_interval_list _components;
     };

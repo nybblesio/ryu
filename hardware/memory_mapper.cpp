@@ -10,6 +10,10 @@
 
 #include "memory_mapper.h"
 
+RTTR_REGISTRATION {
+    rttr::registration::class_<ryu::hardware::memory_mapper>("ryu::hardware::memory_mapper");
+}
+
 namespace ryu::hardware {
 
     memory_mapper::memory_mapper(

@@ -12,7 +12,7 @@
 #include <map>
 #include <set>
 
-namespace ryu::cpu::mc6809 {
+namespace ryu::hardware::mc6809 {
 
     class opcode {
     public:
@@ -35,9 +35,9 @@ namespace ryu::cpu::mc6809 {
                 std::set<std::string> mnemonics);
 
         opcode(const opcode& other) : _op(other._op),
-                                                    _cycles(other._cycles),
-                                                    _mnemonics(other._mnemonics),
-                                                    _mode(other._mode) {
+                                      _cycles(other._cycles),
+                                      _mnemonics(other._mnemonics),
+                                      _mode(other._mode) {
         }
 
         opcode& operator= (const opcode& other) {

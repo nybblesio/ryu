@@ -8,7 +8,7 @@
 #include "opcode.h"
 #include <utility>
 
-namespace ryu::cpu::mc6809 {
+namespace ryu::hardware::mc6809 {
 
     opcode::opcode(
             uint16_t op,

@@ -9,6 +9,7 @@
 //
 
 #include <iostream>
+#include <hardware/hardware.h>
 #include "ryu_types.h"
 #include "application.h"
 
@@ -20,6 +21,8 @@ namespace ryu {
     }
 
     bool application::init() {
+        hardware::initialize();
+
         core::result result;
 
         if (!_engine.initialize(result)) {

@@ -7,20 +7,23 @@
 
 #pragma once
 
-#include "integrated_circuit.h"
+#include <hardware/integrated_circuit.h>
+#include "opcode.h"
 
-namespace ryu::hardware {
+namespace ryu::hardware::mc6809 {
 
     class cpu : public hardware::integrated_circuit {
     public:
+        static void init();
+
         cpu(int id, const std::string& name);
 
-        std::string type() const override {
-            return "cpu";
-        }
+        uint32_t address_space() const override;
+
+        RTTR_ENABLE(hardware::integrated_circuit)
 
     private:
-        RTTR_ENABLE(hardware::integrated_circuit)
+        static opcode_dictionary _opcodes;
     };
 
 };

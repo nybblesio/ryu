@@ -8,18 +8,16 @@
 #include <rttr/registration>
 #include "integrated_circuit.h"
 
+RTTR_REGISTRATION {
+    rttr::registration::class_<ryu::hardware::integrated_circuit>("ryu::hardware::integrated_circuit")
+            .constructor<int, const std::string&>()
+            .property_readonly("id", &ryu::hardware::integrated_circuit::id)
+            .property_readonly("type", &ryu::hardware::integrated_circuit::type)
+            .property_readonly("name", &ryu::hardware::integrated_circuit::name)
+            .property_readonly("address_space", &ryu::hardware::integrated_circuit::address_space);
+}
+
 namespace ryu::hardware {
-
-    RTTR_REGISTRATION {
-
-        rttr::registration::class_<integrated_circuit>("integrated_circuit")
-                .constructor<int, const std::string&>()
-                .property_readonly("id", &integrated_circuit::id)
-                .property_readonly("type", &integrated_circuit::type)
-                .property_readonly("name", &integrated_circuit::name)
-                .property_readonly("address_space", &integrated_circuit::address_space);
-
-    }
 
     integrated_circuit::integrated_circuit(
             int id,

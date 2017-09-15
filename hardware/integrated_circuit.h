@@ -44,9 +44,9 @@ namespace ryu::hardware {
 
         virtual void write_byte(uint32_t address, uint8_t value);
 
-    private:
         RTTR_ENABLE()
 
+    private:
         int _id = -1;
         std::string _name;
         uint32_t _address = 0;

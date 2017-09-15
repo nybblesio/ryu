@@ -10,6 +10,10 @@
 
 #include "ram.h"
 
+RTTR_REGISTRATION {
+    rttr::registration::class_<ryu::hardware::ram>("ryu::hardware::ram");
+}
+
 namespace ryu::hardware {
 
     ram::ram(

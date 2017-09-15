@@ -8,6 +8,8 @@
 // this source code file.
 //
 
+#include <rttr/type>
+#include <hardware/hardware.h>
 #include "controller.h"
 
 namespace ryu::ide::machine_editor {
@@ -22,6 +24,14 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_init(SDL_Renderer* renderer) {
+        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
+        auto component_types = base.get_derived_classes();
+        for(auto& t : component_types) {
+            std::cout << t.get_name() << "\n";
+            std::cout << "properties:\n";
+            for (auto& p : t.get_properties())
+                std::cout << "\tname: " << p.get_name() << "\n";
+        }
     }
 
     void controller::on_draw(SDL_Renderer* renderer) {

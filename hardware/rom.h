@@ -15,8 +15,8 @@
 
 namespace ryu::hardware {
 
-    class rom : public integrated_circuit,
-                public memory {
+    class rom : public hardware::integrated_circuit,
+                public hardware::memory {
     public:
         rom(
                 int id,
@@ -47,9 +47,9 @@ namespace ryu::hardware {
 
         void write_byte(uint32_t address, uint8_t value) override;
 
-    private:
-        RTTR_ENABLE(hardware::integrated_circuit)
+        RTTR_ENABLE(hardware::integrated_circuit, hardware::memory)
 
+    private:
         size_t _size;
         bool _write_latch = false;
         uint8_t* _buffer = nullptr;

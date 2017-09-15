@@ -1,14 +1,17 @@
 add_library(
         hardware
         memory.h
-        cpu.cpp cpu.h
+        hardware.h
         ram.cpp ram.h
         rom.cpp rom.h
         hardware_types.h
         machine.cpp machine.h
         display.cpp display.h
+        hardware.h hardware.cpp
         component.cpp component.h
         memory_map.cpp memory_map.h
         memory_mapper.cpp memory_mapper.h
+        cpus/mc6809/cpu.cpp cpus/mc6809/cpu.h
         memory_map_entry.cpp memory_map_entry.h
+        cpus/mc6809/opcode.cpp cpus/mc6809/opcode.h
         integrated_circuit.cpp integrated_circuit.h)

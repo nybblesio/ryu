@@ -10,6 +10,10 @@
 
 #include "rom.h"
 
+RTTR_REGISTRATION {
+    rttr::registration::class_<ryu::hardware::rom>("ryu::hardware::rom");
+}
+
 namespace ryu::hardware {
 
     rom::rom(
