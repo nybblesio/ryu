@@ -43,7 +43,7 @@ namespace ryu::core {
 
         palette_entry fade(uint8_t factor);
 
-        inline SDL_Color to_sdl_color() {
+        inline SDL_Color to_sdl_color() const {
             return SDL_Color{_red, _green, _blue, _alpha};
         }
 

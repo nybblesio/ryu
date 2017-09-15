@@ -31,23 +31,16 @@ namespace ryu::core {
             uint8_t color_index) {
         _engine = engine;
         _clip_rect = clip_rect;
+        _renderer = engine->_renderer;
         _fill_color_index = color_index;
-    }
-
-    core::engine* context::engine() {
-        return _engine;
     }
 
     void context::push_state(int id) {
         _stack.push(id);
     }
 
-    core::palette* context::palette() {
-        return _palette;
-    }
-
     void context::update(uint32_t dt) {
-        SDL_RenderSetClipRect(_engine->_renderer, &_clip_rect);
+        SDL_RenderSetClipRect(_renderer, &_clip_rect);
 
         for (auto it = _timers.begin(); it != _timers.end();) {
             auto timer = *it;
@@ -62,7 +55,7 @@ namespace ryu::core {
         if (current_state_id != -1) {
             auto active = _stack.active();
             if (!active->is_initialized())
-                active->init(_engine->_renderer);
+                active->initialize();
 
             if (_engine->_focused_context == _id) {
                 SDL_Event e{};
@@ -82,14 +75,14 @@ namespace ryu::core {
 
         auto& fill_color = (*palette())[_fill_color_index];
         SDL_SetRenderDrawColor(
-                _engine->_renderer,
+                _renderer,
                 fill_color.red(),
                 fill_color.green(),
                 fill_color.blue(),
                 fill_color.alpha());
-        SDL_RenderFillRect(_engine->_renderer, &_clip_rect);
+        SDL_RenderFillRect(_renderer, &_clip_rect);
 
-        _stack.draw(dt, _engine->_renderer);
+        _stack.draw(dt);
         _stack.update();
     }
 

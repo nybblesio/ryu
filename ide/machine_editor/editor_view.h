@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include <core/textbox.h>
-#include <core/label.h>
 #include <core/result.h>
+#include <core/views/label.h>
+#include <core/views/textbox.h>
 
 namespace ryu::ide::machine_editor {
 
@@ -32,7 +32,7 @@ namespace ryu::ide::machine_editor {
         ~editor_view() override;
 
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw() override;
 
         bool on_process_event(const SDL_Event* e) override;
 

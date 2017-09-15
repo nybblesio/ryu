@@ -12,10 +12,10 @@
 #pragma once
 
 #include <core/view.h>
-#include <core/caret.h>
-#include <core/label.h>
 #include <core/context.h>
 #include <core/document.h>
+#include <core/views/caret.h>
+#include <core/views/label.h>
 
 namespace ryu::ide::console {
 
@@ -59,7 +59,7 @@ namespace ryu::ide::console {
         void on_execute_command(const execute_command_callable& callable);
 
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw() override;
 
         bool on_process_event(const SDL_Event* e) override;
 

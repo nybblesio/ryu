@@ -21,13 +21,13 @@ namespace ryu::ide::hex_editor {
             const std::string& name) : core::state(context, id, name) {
     }
 
+    void controller::on_draw() {
+    }
+
+    void controller::on_initialize() {
+    }
+
     void controller::on_update(uint32_t dt) {
-    }
-
-    void controller::on_init(SDL_Renderer* renderer) {
-    }
-
-    void controller::on_draw(SDL_Renderer* renderer) {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

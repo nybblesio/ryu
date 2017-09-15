@@ -25,7 +25,11 @@ namespace ryu::core {
 
         virtual ~state() = default;
 
+        void draw();
+
         int id() const;
+
+        void initialize();
 
         void update(uint32_t dt);
 
@@ -33,17 +37,13 @@ namespace ryu::core {
 
         bool render_parent() const;
 
-        core::engine* engine() const;
-
         bool is_initialized() const;
 
-        core::context* context() const;
-
-        void init(SDL_Renderer* renderer);
-
-        void draw(SDL_Renderer* renderer);
-
         bool process_event(const SDL_Event* e);
+
+        inline core::context* context() const {
+            return _context;
+        }
 
         bool operator< (const state& rhs) const {
             return _id < rhs._id;
@@ -60,13 +60,13 @@ namespace ryu::core {
     protected:
         void end_state();
 
+        virtual void on_draw() = 0;
+
+        virtual void on_initialize() = 0;
+
         virtual void on_update(uint32_t dt) = 0;
 
         void erase_blackboard(const std::string& name);
-
-        virtual void on_init(SDL_Renderer* renderer) = 0;
-
-        virtual void on_draw(SDL_Renderer* renderer) = 0;
 
         virtual bool on_process_event(const SDL_Event* e) = 0;
 

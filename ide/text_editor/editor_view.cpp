@@ -237,14 +237,11 @@ namespace ryu::ide::text_editor {
         padding({left_padding, right_padding, header_padding, footer_padding});
     }
 
-    void editor_view::on_draw(SDL_Renderer* renderer) {
+    void editor_view::on_draw() {
         auto bounds = client_rect();
 
         auto& white = (*context()->palette())[ide::context::colors::white];
         auto& grey = (*context()->palette())[ide::context::colors::grey];
-
-        auto info_color = grey.to_sdl_color();
-        auto text_color = white.to_sdl_color();
 
         std::string cpu_name = "(none)";
         std::string file_name = _document.filename();
@@ -267,43 +264,27 @@ namespace ryu::ide::text_editor {
         auto row_start = _document.row();
         auto row_stop = row_start + _page_height;
         for (auto row = row_start; row < row_stop; row++) {
-            FC_DrawColor(font()->glyph, renderer, bounds.left(), y, info_color, "%.4d", row + 1);
+            draw_text(bounds.left(), y, fmt::format("{0:04}", row + 1), grey);
 
             auto col_start = _document.column();
             auto col_end = col_start + _page_width;
             std::stringstream stream;
             _document.write_line(stream, row, col_start, col_end);
 
-            FC_DrawColor(
-                    font()->glyph,
-                    renderer,
-                    bounds.left() + _caret.padding().left(),
-                    y,
-                    text_color,
-                    stream.str().c_str());
+            draw_text(bounds.left() + _caret.padding().left(), y, stream.str(), white);
 
             if (_selection.selected(row, 0)) {
-                SDL_BlendMode previous_blend_mode;
-                SDL_GetRenderDrawBlendMode(renderer, &previous_blend_mode);
-                SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
-                auto& selection_color = (*context()->palette())[ide::context::colors::selection];
-
-                SDL_SetRenderDrawColor(
-                        renderer,
-                        selection_color.red(),
-                        selection_color.green(),
-                        selection_color.blue(),
-                        0x7f);
-                SDL_Rect rect = {
+                push_blend_mode(SDL_BLENDMODE_BLEND);
+                auto selection_color = (*context()->palette())[ide::context::colors::selection];
+                selection_color.alpha(0x7f);
+                set_color(selection_color);
+                fill_rect(core::rect{
                         bounds.left() + _caret.padding().left(),
                         y,
                         font()->width * (_page_width + 1),
                         font()->line_height
-                };
-                SDL_RenderFillRect(renderer, &rect);
-
-                SDL_SetRenderDrawBlendMode(renderer, previous_blend_mode);
+                });
+                pop_blend_mode();
             }
 
             y += font()->line_height;

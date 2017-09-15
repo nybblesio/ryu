@@ -10,26 +10,21 @@
 
 #pragma once
 
-#include "view.h"
+#include <core/view.h>
 
 namespace ryu::core {
 
-    class label : public core::view {
+    class button : public core::view {
     public:
-        struct alignment {
-            enum types {
-                none,
-                left,
-                right,
-                center
-            };
-        };
+        using on_clicked_callable = std::function<void ()>;
 
-        label(
+        button(
                 core::context* context,
                 core::view* parent,
                 int id,
                 const std::string& name);
+
+        ~button() override;
 
         std::string value() const;
 
@@ -39,11 +34,16 @@ namespace ryu::core {
 
         void alignment(alignment::types value);
 
+        void on_clicked(const on_clicked_callable& callable);
+
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw() override;
+
+        bool on_process_event(const SDL_Event* e) override;
 
     private:
         std::string _value;
+        on_clicked_callable _on_clicked;
         alignment::types _alignment = alignment::types::none;
     };
 

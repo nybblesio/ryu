@@ -24,7 +24,7 @@ namespace ryu::ide::machine_editor {
     editor_view::~editor_view() {
     }
 
-    void editor_view::on_draw(SDL_Renderer* renderer) {
+    void editor_view::on_draw() {
     }
 
     bool editor_view::on_process_event(const SDL_Event* e) {

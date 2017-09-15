@@ -31,8 +31,20 @@ namespace ryu::core {
         visible(true);
     }
 
+    void view::draw() {
+        if (!visible())
+            return;
+
+        on_draw();
+        for (auto child : _children)
+            child->draw();
+    }
+
     int view::id() const {
         return _id;
+    }
+
+    void view::on_draw() {
     }
 
     view* view::parent() {
@@ -67,6 +79,14 @@ namespace ryu::core {
 
     bool view::focused() const {
         return (_flags & config::flags::focused) != 0;
+    }
+
+    void view::pop_blend_mode() {
+        if (_mode_stack.empty())
+            return;
+        auto mode = _mode_stack.top();
+        _mode_stack.pop();
+        SDL_SetRenderDrawBlendMode(context()->renderer(), mode);
     }
 
     void view::focus(bool value) {
@@ -172,15 +192,6 @@ namespace ryu::core {
         return _dock;
     }
 
-    void view::draw(SDL_Renderer* renderer) {
-        if (!visible())
-            return;
-
-        on_draw(renderer);
-        for (auto child : _children)
-            child->draw(renderer);
-    }
-
     void view::rect(const core::rect& value) {
         _rect = value;
     }
@@ -191,9 +202,6 @@ namespace ryu::core {
 
     void view::palette(core::palette* palette) {
         _palette = palette;
-    }
-
-    void view::on_draw(SDL_Renderer* renderer) {
     }
 
     bool view::process_event(const SDL_Event* e) {
@@ -218,6 +226,57 @@ namespace ryu::core {
 
     bool view::on_process_event(const SDL_Event* e) {
         return false;
+    }
+
+    void view::draw_rect(const core::rect& bounds) {
+        auto rect = bounds.to_sdl_rect();
+        SDL_RenderDrawRect(context()->renderer(), &rect);
+    }
+
+    void view::fill_rect(const core::rect& bounds) {
+        auto rect = bounds.to_sdl_rect();
+        SDL_RenderFillRect(context()->renderer(), &rect);
+    }
+
+    void view::push_blend_mode(SDL_BlendMode mode) {
+        SDL_BlendMode previous_blend_mode;
+        SDL_GetRenderDrawBlendMode(context()->renderer(), &previous_blend_mode);
+        _mode_stack.push(previous_blend_mode);
+        SDL_SetRenderDrawBlendMode(context()->renderer(), mode);
+    }
+
+    void view::draw_line(int x1, int y1, int x2, int y2) {
+        SDL_RenderDrawLine(context()->renderer(), x1, y1, x2, y2);
+    }
+
+    void view::set_color(const core::palette_entry& color) {
+        SDL_SetRenderDrawColor(context()->renderer(), color.red(), color.green(), color.blue(), color.alpha());
+    }
+
+    void view::set_font_color(const core::palette_entry& color) {
+        FC_SetDefaultColor(font()->glyph, color.to_sdl_color());
+    }
+
+    void view::draw_text(int x, int y, const std::string& value, const core::palette_entry& color) {
+        FC_DrawColor(font()->glyph, context()->renderer(), x, y, color.to_sdl_color(), value.c_str());
+    }
+
+    void view::draw_text_aligned(const std::string& value, const core::rect& bounds, alignment::types alignment) {
+        FC_AlignEnum align = FC_AlignEnum::FC_ALIGN_LEFT;
+        switch (alignment) {
+            case alignment::none:
+            case alignment::left:
+                align = FC_AlignEnum::FC_ALIGN_LEFT;
+                break;
+            case alignment::right:
+                align = FC_AlignEnum::FC_ALIGN_RIGHT;
+                break;
+            case alignment::center:
+                align = FC_AlignEnum::FC_ALIGN_CENTER;
+                break;
+        }
+
+        FC_DrawBoxAlign(font()->glyph, context()->renderer(), bounds.to_sdl_rect(), align, value.c_str());
     }
 
 }

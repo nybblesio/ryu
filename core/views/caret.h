@@ -12,8 +12,8 @@
 #pragma once
 
 #include <SDL_system.h>
-#include "context.h"
-#include "view.h"
+#include <core/context.h>
+#include <core/view.h>
 
 namespace ryu::core {
 
@@ -69,7 +69,7 @@ namespace ryu::core {
         void initialize(int row, int column, int page_width, int page_height);
 
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw() override;
 
     private:
         bool clamp_row();

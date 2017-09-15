@@ -23,6 +23,15 @@
 
 namespace ryu::core {
 
+    struct alignment {
+        enum types {
+            none,
+            left,
+            right,
+            center
+        };
+    };
+
     class view;
 
     typedef std::vector<view*> view_list;
@@ -74,6 +83,8 @@ namespace ryu::core {
         virtual ~view() = default;
 
         int id() const;
+
+        void draw();
 
         view* parent();
 
@@ -131,8 +142,6 @@ namespace ryu::core {
 
         void font(core::font_t* font);
 
-        void draw(SDL_Renderer* renderer);
-
         void rect(const core::rect& value);
 
         void palette(core::palette* palette);
@@ -144,13 +153,31 @@ namespace ryu::core {
         void padding(const core::padding& value);
 
     protected:
+        void pop_blend_mode();
+
+        virtual void on_draw();
+
         void focus(bool value);
 
         virtual void on_focus_changed();
 
-        virtual void on_draw(SDL_Renderer* renderer);
+        void draw_rect(const core::rect& bounds);
+
+        void fill_rect(const core::rect& bounds);
+
+        void push_blend_mode(SDL_BlendMode mode);
+
+        void draw_line(int x1, int y1, int x2, int y2);
+
+        void set_color(const core::palette_entry& color);
 
         virtual bool on_process_event(const SDL_Event* e);
+
+        void set_font_color(const core::palette_entry& color);
+
+        void draw_text(int x, int y, const std::string& value, const core::palette_entry& color);
+
+        void draw_text_aligned(const std::string& value, const core::rect& bounds, alignment::types alignment);
 
     private:
         int _id;
@@ -168,6 +195,7 @@ namespace ryu::core {
         types::id _type = types::none;
         core::context* _context = nullptr;
         core::palette* _palette = nullptr;
+        std::stack<SDL_BlendMode> _mode_stack;
         dock::styles _dock = dock::styles::none;
     };
 

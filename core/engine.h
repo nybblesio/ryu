@@ -47,6 +47,10 @@ namespace ryu::core {
 
         bool shutdown(core::result& result);
 
+        inline SDL_Renderer* renderer() const {
+            return _renderer;
+        }
+
         void add_context(core::context* context);
 
         void machine(hardware::machine* machine);

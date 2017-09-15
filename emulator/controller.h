@@ -30,9 +30,9 @@ namespace ryu::emulator {
     protected:
         void on_update(uint32_t dt) override;
 
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw() override;
 
-        void on_init(SDL_Renderer* renderer) override;
+        void on_initialize() override;
 
         bool on_process_event(const SDL_Event* e) override;
 

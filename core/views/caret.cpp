@@ -8,8 +8,8 @@
 // this source code file.
 //
 
+#include <core/timer.h>
 #include "caret.h"
-#include "timer.h"
 
 namespace ryu::core {
 
@@ -111,22 +111,15 @@ namespace ryu::core {
         return _mode;
     }
 
-    void caret::on_draw(SDL_Renderer* renderer) {
-        if (!enabled() || !visible())
+    void caret::on_draw() {
+        if (!enabled())
             return;
 
-        SDL_BlendMode previous_blend_mode;
-        SDL_GetRenderDrawBlendMode(renderer, &previous_blend_mode);
-        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+        push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        auto& caret_color = (*context()->palette())[fg_color()];
-
-        SDL_SetRenderDrawColor(
-                renderer,
-                caret_color.red(),
-                caret_color.green(),
-                caret_color.blue(),
-                0x7f);
+        auto caret_color = (*context()->palette())[fg_color()];
+        caret_color.alpha(0x7f);
+        set_color(caret_color);
 
         auto parent_bounds = parent()->client_rect();
         auto& bounds = rect();
@@ -135,10 +128,9 @@ namespace ryu::core {
                 (parent_bounds.left() + (_column * bounds.width())) + pad.left(),
                 (parent_bounds.top() + (_row * bounds.height())) + pad.top());
         bounds.size(font()->width, font()->line_height);
-        SDL_Rect rect = bounds.to_sdl_rect();
-        SDL_RenderFillRect(renderer, &rect);
+        fill_rect(bounds);
 
-        SDL_SetRenderDrawBlendMode(renderer, previous_blend_mode);
+        pop_blend_mode();
     }
 
     void caret::initialize(int row, int column, int page_width, int page_height) {

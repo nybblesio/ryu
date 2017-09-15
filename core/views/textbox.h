@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "view.h"
+#include <core/view.h>
+#include <core/document.h>
 #include "caret.h"
-#include "document.h"
 
 namespace ryu::core {
 
@@ -41,13 +41,13 @@ namespace ryu::core {
 
         void caret_home();
 
+        void on_draw() override;
+
         void on_focus_changed() override;
 
         bool caret_left(int columns = 1);
 
         bool caret_right(int columns = 1);
-
-        void on_draw(SDL_Renderer* renderer) override;
 
         bool on_process_event(const SDL_Event* e) override;
 

@@ -69,24 +69,19 @@ namespace ryu::core {
         _document.load(stream);
     }
 
-    void textbox::on_draw(SDL_Renderer* renderer) {
+    void textbox::on_draw() {
         auto bounds = client_rect();
         auto fg = (*context()->palette())[fg_color()];
         if (!enabled() || !focused())
             fg = fg.fade(2);
 
+        set_color(fg);
+
         std::stringstream stream;
         _document.write_line(stream, 0, 0, _document.columns());
 
-        FC_DrawColor(
-                font()->glyph,
-                renderer,
-                bounds.left(),
-                bounds.top(),
-                fg.to_sdl_color(),
-                stream.str().c_str());
-        SDL_SetRenderDrawColor(renderer, fg.red(), fg.green(), fg.blue(), fg.alpha());
-        SDL_RenderDrawLine(renderer, bounds.left(), bounds.bottom(), bounds.right(), bounds.bottom());
+        draw_text(bounds.left(), bounds.top(), stream.str(), fg);
+        draw_line(bounds.left(), bounds.bottom(), bounds.right(), bounds.bottom());
     }
 
     bool textbox::on_process_event(const SDL_Event* e) {

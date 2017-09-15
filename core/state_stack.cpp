@@ -67,6 +67,25 @@ namespace ryu::core {
         _pending_id = to_id != -1 ? to_id : peek();
     }
 
+    void state_stack::draw(uint32_t dt) {
+        if (_stack.empty())
+            return;
+
+        auto count = 1;
+        for (auto it = _stack.rbegin(); it != _stack.rend(); ++it) {
+            auto state = find_state(*it);
+            if (!state->render_parent())
+                break;
+            count++;
+        }
+
+        for (auto i = _stack.size() - count; i < _stack.size(); i++) {
+            auto state = find_state(_stack[i]);
+            state->update(dt);
+            state->draw();
+        }
+    }
+
     void state_stack::update_active_state() {
         _active = find_state(peek());
     }
@@ -91,25 +110,6 @@ namespace ryu::core {
         if (state == nullptr)
             return;
         _states.erase(state->id());
-    }
-
-    void state_stack::draw(uint32_t dt, SDL_Renderer* renderer) {
-        if (_stack.empty())
-            return;
-
-        auto count = 1;
-        for (auto it = _stack.rbegin(); it != _stack.rend(); ++it) {
-            auto state = find_state(*it);
-            if (!state->render_parent())
-                break;
-            count++;
-        }
-
-        for (auto i = _stack.size() - count; i < _stack.size(); i++) {
-            auto state = find_state(_stack[i]);
-            state->update(dt);
-            state->draw(renderer);
-        }
     }
 
     void state_stack::add_state(core::state* state, const state_transition_callable& callback) {

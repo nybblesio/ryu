@@ -16,13 +16,17 @@ namespace ryu::ide::machine_editor {
             core::context* context,
             core::view* parent,
             int id,
-            const std::string& name) : core::view(context, parent, core::view::types::custom, id, name) {
+            const std::string& name) : core::view(context,
+                                                  parent,
+                                                  core::view::types::custom,
+                                                  id,
+                                                  name) {
     }
 
     selection_view::~selection_view() {
     }
 
-    void selection_view::on_draw(SDL_Renderer* renderer) {
+    void selection_view::on_draw() {
     }
 
     bool selection_view::on_process_event(const SDL_Event* e) {

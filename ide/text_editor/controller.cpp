@@ -22,10 +22,11 @@ namespace ryu::ide::text_editor {
     controller::~controller() {
     }
 
-    void controller::on_update(uint32_t dt) {
+    void controller::on_draw() {
+        _view.draw();
     }
 
-    void controller::on_init(SDL_Renderer* renderer) {
+    void controller::on_initialize() {
         _view.font(context()->engine()->find_font("hack-bold"));
         _view.initialize(rows, columns);
         _view.on_transition([&](const std::string& name) {
@@ -50,8 +51,7 @@ namespace ryu::ide::text_editor {
         _view.focus(ids::text_editor);
     }
 
-    void controller::on_draw(SDL_Renderer* renderer) {
-        _view.draw(renderer);
+    void controller::on_update(uint32_t dt) {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

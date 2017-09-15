@@ -11,10 +11,10 @@
 #pragma once
 
 #include <core/view.h>
-#include <core/caret.h>
-#include <core/textbox.h>
 #include <core/document.h>
 #include <core/selection.h>
+#include <core/views/caret.h>
+#include <core/views/textbox.h>
 
 namespace ryu::ide::text_editor {
 
@@ -57,7 +57,7 @@ namespace ryu::ide::text_editor {
         void on_execute_command(const execute_command_callable& callable);
 
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw() override;
 
         bool on_process_event(const SDL_Event* e) override;
 

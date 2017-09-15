@@ -102,12 +102,10 @@ namespace ryu::ide::console {
         padding({left_padding, right_padding, header_padding + 5, footer_padding});
     }
 
-    void view::on_draw(SDL_Renderer* renderer) {
+    void view::on_draw() {
         auto bounds = client_rect();
         auto& white = (*context()->palette())[ide::context::colors::text];
         //auto& grey = (*context()->palette())[ide::context::colors::info_text];
-
-        auto text_color = white.to_sdl_color();
 
         std::string project_name = "(none)";
         std::string machine_name = "(none)";
@@ -127,15 +125,7 @@ namespace ryu::ide::console {
         for (auto row = 0; row < _page_height; row++) {
             std::stringstream stream;
             _document.write_line(stream, row, 0, _page_width);
-
-            FC_DrawColor(
-                    font()->glyph,
-                    renderer,
-                    bounds.left(),
-                    y,
-                    text_color,
-                    stream.str().c_str());
-
+            draw_text(bounds.left(), y, stream.str(), white);
             y += font()->line_height;
         }
     }

@@ -30,17 +30,9 @@ namespace ryu::core {
                 const SDL_Rect& clip_rect,
                 uint8_t color_index);
 
-        core::palette* palette();
-
-        core::engine* engine();
-
         void push_state(int id);
 
         void update(uint32_t dt);
-
-        SDL_Rect clip_rect() const {
-            return _clip_rect;
-        }
 
         void pop_state(int to_id = -1);
 
@@ -50,9 +42,25 @@ namespace ryu::core {
 
         void add_state(core::state* state);
 
+        inline SDL_Rect clip_rect() const {
+            return _clip_rect;
+        }
+
         void palette(core::palette* palette);
 
         void remove_state(core::state* state);
+
+        inline core::engine* engine() const {
+            return _engine;
+        }
+
+        inline SDL_Renderer* renderer() const {
+            return _renderer;
+        }
+
+        inline core::palette* palette() const {
+            return _palette;
+        }
 
         void erase_blackboard(const std::string& name);
 
@@ -71,6 +79,7 @@ namespace ryu::core {
         uint8_t _fill_color_index;
         core::blackboard _blackboard;
         core::engine* _engine = nullptr;
+        SDL_Renderer* _renderer = nullptr;
         core::palette* _palette = nullptr;
     };
 

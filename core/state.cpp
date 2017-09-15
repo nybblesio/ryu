@@ -21,12 +21,23 @@ namespace ryu::core {
                                   _context(context) {
     }
 
+    void state::draw() {
+        on_draw();
+    }
+
     int state::id() const {
         return _id;
     }
 
     void state::end_state() {
         _context->pop_state();
+    }
+
+    void state::initialize() {
+        if (!_initialized) {
+            on_initialize();
+            _initialized = true;
+        }
     }
 
     void state::update(uint32_t dt) {
@@ -43,25 +54,6 @@ namespace ryu::core {
 
     bool state::is_initialized() const {
         return _initialized;
-    }
-
-    core::engine* state::engine() const {
-        return _context->engine();
-    }
-
-    core::context* state::context() const {
-        return _context;
-    }
-
-    void state::init(SDL_Renderer* renderer) {
-        if (!_initialized) {
-            on_init(renderer);
-            _initialized = true;
-        }
-    }
-
-    void state::draw(SDL_Renderer* renderer) {
-        on_draw(renderer);
     }
 
     bool state::process_event(const SDL_Event* e) {

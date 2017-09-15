@@ -20,10 +20,10 @@ namespace ryu::ide::machine_editor {
             const std::string& name) : core::state(context, id, name) {
     }
 
-    void controller::on_update(uint32_t dt) {
+    void controller::on_draw() {
     }
 
-    void controller::on_init(SDL_Renderer* renderer) {
+    void controller::on_initialize() {
         auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
         auto component_types = base.get_derived_classes();
         for(auto& t : component_types) {
@@ -34,7 +34,7 @@ namespace ryu::ide::machine_editor {
         }
     }
 
-    void controller::on_draw(SDL_Renderer* renderer) {
+    void controller::on_update(uint32_t dt) {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

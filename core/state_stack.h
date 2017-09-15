@@ -37,6 +37,8 @@ namespace ryu::core {
 
         bool empty() const;
 
+        void draw(uint32_t dt);
+
         void pop(int to_id = -1);
 
         inline core::state* active() {
@@ -48,8 +50,6 @@ namespace ryu::core {
         void add_state(core::state* state);
 
         void remove_state(core::state* state);
-
-        void draw(uint32_t dt, SDL_Renderer* renderer);
 
         void add_state(core::state* state, const state_transition_callable& callback);
 

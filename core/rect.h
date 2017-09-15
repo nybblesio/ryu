@@ -34,10 +34,6 @@ namespace ryu::core {
 
         int32_t bottom() const;
 
-        inline SDL_Rect to_sdl_rect() {
-            return SDL_Rect{left(), top(), width(), height()};
-        }
-
         rect& pos(int32_t left, int32_t top);
 
         void inflate(int32_t dx, int32_t dy);
@@ -45,6 +41,10 @@ namespace ryu::core {
         void deflate(int32_t dx, int32_t dy);
 
         bool contains(const rect& rect) const;
+
+        inline SDL_Rect to_sdl_rect() const {
+            return SDL_Rect{left(), top(), width(), height()};
+        }
 
         bool intersects(const rect& rect) const;
 
