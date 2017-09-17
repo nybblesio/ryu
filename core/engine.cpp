@@ -168,26 +168,12 @@ namespace ryu::core {
                                 true);
                         result.fail();
                     } else {
-                        load_font(
-                                "topaz-8",
-                                "assets/Topaz-8.ttf",
-                                14,
-                                TTF_STYLE_NORMAL);
-                        load_font(
-                                "dejavu-sans-mono",
-                                "assets/DejaVu Sans Mono Bold for Powerline.ttf",
-                                14,
-                                TTF_STYLE_NORMAL);
-                        load_font(
-                                "3270Medium",
-                                "assets/3270Medium.otf",
-                                18,
-                                TTF_STYLE_NORMAL);
-                        _font = load_font(
-                                "hack-bold",
-                                "assets/Hack-Bold.ttf",
-                                16,
-                                TTF_STYLE_NORMAL);
+                        _font = load_font("hack-normal", "assets/Hack-Regular.ttf", 16, TTF_STYLE_NORMAL);
+                        load_font("hack-bold",      "assets/Hack-Bold.ttf",         16, TTF_STYLE_NORMAL);
+                        load_font("hack-italic",    "assets/Hack-Italic.ttf",       16, TTF_STYLE_ITALIC);
+                        load_font("hack-underline", "assets/Hack-Regular.ttf",      16, TTF_STYLE_UNDERLINE);
+
+                        load_font("topaz-normal", "assets/Topaz-8.ttf", 14, TTF_STYLE_NORMAL);
                     }
                 }
             }

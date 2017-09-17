@@ -168,8 +168,12 @@ namespace ryu::core {
 
     core::font_t* view::font() const {
         if (_font == nullptr)
-            return _context->engine()->find_font("topaz-8");
+            return _context->engine()->find_font("topaz-normal");
         return _font;
+    }
+
+    uint8_t view::font_stlye() const {
+        return _font_style;
     }
 
     void view::bg_color(uint8_t value) {
@@ -202,6 +206,10 @@ namespace ryu::core {
 
     void view::palette(core::palette* palette) {
         _palette = palette;
+    }
+
+    void view::font_style(font::styles styles) {
+        _font_style = styles;
     }
 
     bool view::process_event(const SDL_Event* e) {

@@ -39,10 +39,14 @@ namespace ryu::core {
     document::~document() {
         delete[] _data;
         _data = nullptr;
+
+        delete[] _attrs;
+        _attrs = nullptr;
     }
 
     void document::clear() {
         std::memset(_data, 0, _rows * _columns);
+        std::memset(_attrs, 0, _rows * _columns);
     }
 
     void document::initialize(
@@ -55,6 +59,7 @@ namespace ryu::core {
         _page_width = page_width;
         _page_height = page_height;
         _data = new uint8_t[_rows * _columns];
+        _attrs = new uint8_t[_rows * _columns];
     }
 
     void document::load(const fs::path& path) {
@@ -106,16 +111,24 @@ namespace ryu::core {
         auto size = (_rows * _columns) - 1;
         auto row_offset = row * _columns;
         auto previous_row_offset = std::max((row - 1), 0) * _columns;
+
         std::memcpy(_data + previous_row_offset, _data + row_offset, static_cast<size_t>(size - row_offset));
         std::memset(_data + ((_rows - 1) * _columns), 0, static_cast<size_t>(_columns));
+
+        std::memcpy(_attrs + previous_row_offset, _attrs + row_offset, static_cast<size_t>(size - row_offset));
+        std::memset(_attrs + ((_rows - 1) * _columns), 0, static_cast<size_t>(_columns));
     }
 
     void document::insert_line(int row) {
         auto size = (_rows * _columns) - 1;
         auto row_offset = (row + 1) * _columns;
         auto next_row_offset = (row + 2) * _columns;
-        std::memcpy(_data + next_row_offset, _data + row_offset, static_cast<size_t>(size - row_offset));
+
+        std::memcpy(_data + next_row_offset, _data + row_offset, static_cast<size_t>(size - next_row_offset));
         std::memset(_data + row_offset, 0, static_cast<size_t>(_columns));
+
+        std::memcpy(_attrs + next_row_offset, _attrs + row_offset, static_cast<size_t>(size - next_row_offset));
+        std::memset(_attrs + row_offset, 0, static_cast<size_t>(_columns));
     }
 
     int document::find_line_end(int row) {
@@ -143,24 +156,36 @@ namespace ryu::core {
         return empty;
     }
 
-    unsigned char document::get(int row, int column) {
+    uint8_t document::get(int row, int column) {
         return _data[(row * _columns) + column];
+    }
+
+    uint8_t document::get_attr(int row, int column) {
+        return _attrs[(row * _columns) + column];
     }
 
     void document::shift_up() {
         auto last_row = (_rows - 1) * _columns;
+
         std::memcpy(_data, _data + _columns, static_cast<size_t>(last_row));
         std::memset(_data + last_row, 0, static_cast<size_t>(_columns));
+
+        std::memcpy(_attrs, _attrs + _columns, static_cast<size_t>(last_row));
+        std::memset(_attrs + last_row, 0, static_cast<size_t>(_columns));
     }
 
     void document::shift_left(int row, int column, int times) {
         auto size = (_rows * _columns) - 1;
         for (auto i = 0; i < times; i++, column--) {
             auto offset = (row * _columns) + column;
-            if (offset + 1 < size)
+            if (offset + 1 < size) {
                 std::memcpy(_data + offset, _data + offset + 1, static_cast<size_t>(size - offset));
-            else
+                std::memcpy(_attrs + offset, _attrs + offset + 1, static_cast<size_t>(size - offset));
+            }
+            else {
                 std::memset(_data + offset, 0, 1);
+                std::memset(_attrs + offset, 0, 1);
+            }
         }
     }
 
@@ -168,13 +193,19 @@ namespace ryu::core {
         auto size = (_rows * _columns) - 1;
         for (auto i = 0; i < times; i++, column++) {
             auto offset = (row * _columns) + column;
-            if (offset + 1 < size)
+            if (offset + 1 < size) {
                 std::memcpy(_data + offset + 1, _data + offset, static_cast<size_t>(size - offset));
+                std::memcpy(_attrs + offset + 1, _attrs + offset, static_cast<size_t>(size - offset));
+            }
         }
     }
 
-    void document::put(int row, int column, unsigned char value) {
+    void document::put(int row, int column, uint8_t value) {
         _data[(row * _columns) + column] = value;
+    }
+
+    void document::put_attr(int row, int column, uint8_t value) {
+        _attrs[(row * _columns) + column] = value;
     }
 
     void document::shift_line_left(int row, int column, int times) {
@@ -182,6 +213,7 @@ namespace ryu::core {
         for (auto i = 0; i < times; i++, column--) {
             auto offset = (row * _columns) + column;
             std::memcpy(_data + offset, _data + offset + 1, static_cast<size_t>(size - column));
+            std::memcpy(_attrs + offset, _attrs + offset + 1, static_cast<size_t>(size - column));
         }
     }
 
@@ -191,7 +223,41 @@ namespace ryu::core {
             auto offset = (row * _columns) + column;
             std::memcpy(_data + offset + 1, _data + offset, static_cast<size_t>(size - column));
             _data[offset] = 0;
+
+            std::memcpy(_attrs + offset + 1, _attrs + offset, static_cast<size_t>(size - column));
+            _attrs[offset] = 0;
         }
+    }
+
+    attr_chunks document::get_line_chunks(int line, int column, int end_column) {
+        attr_chunks chunks;
+        std::stringstream stream;
+
+        uint8_t last_attr = 0;
+        auto col = column;
+        while (col < end_column) {
+            auto attr = get_attr(line, col);
+            if (attr != last_attr) {
+                auto text = stream.str();
+                if (!text.empty()) {
+                    chunks.push_back(attr_chunk_t{last_attr, text});
+                    stream.clear();
+                }
+                last_attr = attr;
+            }
+            auto value = get(line, col);
+            if (value == 0)
+                stream << " ";
+            else if (value == 37)
+                stream << "%%";
+            else
+                stream << value;
+            ++col;
+        }
+
+        chunks.push_back(attr_chunk_t{last_attr, stream.str()});
+
+        return chunks;
     }
 
     void document::write_line(std::ostream& stream, int line, int column, int end_column) {

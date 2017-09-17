@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 #include <core/engine.h>
 #include <ide/context.h>
+#include <common/bytes.h>
 #include "view.h"
 
 namespace ryu::ide::console {
@@ -104,8 +105,9 @@ namespace ryu::ide::console {
 
     void view::on_draw() {
         auto bounds = client_rect();
-        auto& white = (*context()->palette())[ide::context::colors::text];
-        //auto& grey = (*context()->palette())[ide::context::colors::info_text];
+        auto palette = (*context()->palette());
+        auto& white = palette[ide::context::colors::text];
+        //auto& grey = palette[ide::context::colors::info_text];
 
         std::string project_name = "(none)";
         std::string machine_name = "(none)";
@@ -123,9 +125,10 @@ namespace ryu::ide::console {
 
         auto y = bounds.top();
         for (auto row = 0; row < _page_height; row++) {
-            std::stringstream stream;
-            _document.write_line(stream, row, 0, _page_width);
-            draw_text(bounds.left(), y, stream.str(), white);
+            auto chunks = _document.get_line_chunks(row, 0, _page_width);
+            for (auto& chunk : chunks) {
+                draw_text(bounds.left(), y, chunk.text, white);
+            }
             y += font()->line_height;
         }
     }
@@ -272,15 +275,40 @@ namespace ryu::ide::console {
     }
 
     void view::write_message(const std::string& message) {
+        uint8_t attr = 0;
+
         caret_home();
-        for (const auto& c : message) {
-            if (c == '\n') {
+        auto token = message.begin();
+        while (token != message.end()) {
+            if (*token == '\n') {
                 caret_down();
                 caret_home();
+                ++token;
                 continue;
             }
-            _document.put(_caret.row(), _caret.column(), static_cast<uint8_t>(c));
+            if (*token == '{') {
+                std::string code;
+                while (*(++token) != '}') {
+                    code += *token;
+                }
+                if (code == "bold") {
+                    attr = ryu::set_upper_nybble(attr, 0b0001);
+                } else if (code == "italic") {
+                    attr = ryu::set_upper_nybble(attr, 0b0010);
+                } else if (code == "underline") {
+                    attr = ryu::set_upper_nybble(attr, 0b0100);
+                } else {
+                    attr = 0;
+                }
+                ++token;
+                continue;
+            }
+
+            _document.put_attr(_caret.row(), _caret.column(), attr);
+            _document.put(_caret.row(), _caret.column(), static_cast<uint8_t>(*token));
+
             caret_right();
+            ++token;
         }
         caret_down();
         caret_home();

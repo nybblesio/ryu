@@ -32,6 +32,16 @@ namespace ryu::core {
         };
     };
 
+    struct font {
+        enum styles : uint8_t {
+            normal        = 0b00000000,
+            italic        = 0b00000001,
+            bold          = 0b00000010,
+            underline     = 0b00000100,
+            strikethrough = 0b00001000,
+        };
+    };
+
     class view;
 
     typedef std::vector<view*> view_list;
@@ -134,6 +144,8 @@ namespace ryu::core {
 
         core::font_t* font() const;
 
+        uint8_t font_stlye() const;
+
         void bg_color(uint8_t value);
 
         void fg_color(uint8_t value);
@@ -145,6 +157,8 @@ namespace ryu::core {
         void rect(const core::rect& value);
 
         void palette(core::palette* palette);
+
+        void font_style(font::styles styles);
 
         bool process_event(const SDL_Event* e);
 
@@ -197,6 +211,7 @@ namespace ryu::core {
         core::palette* _palette = nullptr;
         std::stack<SDL_BlendMode> _mode_stack;
         dock::styles _dock = dock::styles::none;
+        uint8_t _font_style = font::styles::normal;
     };
 
 };

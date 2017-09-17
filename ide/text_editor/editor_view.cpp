@@ -316,10 +316,12 @@ namespace ryu::ide::text_editor {
                 }
                 case SDLK_RETURN: {
                     if (_caret.mode() == core::caret::mode::insert) {
+                        auto row = _vrow;
                         if (_caret.column() == 0)
-                            _document.insert_line(_vrow - 1);
-                        else
-                            _document.insert_line(_vrow);
+                            row--;
+                        if (row < 0)
+                            row = 0;
+                        _document.insert_line(row);
                     }
                     caret_down();
                     caret_home();

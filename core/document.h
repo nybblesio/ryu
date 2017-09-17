@@ -18,6 +18,13 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
+    struct attr_chunk_t {
+        uint8_t attr = 0;
+        std::string text {};
+    };
+
+    typedef std::vector<attr_chunk_t> attr_chunks;
+
     class document {
     public:
         static int spaces_to_prev_tabstop(int column, int tabsize);
@@ -129,11 +136,15 @@ namespace ryu::core {
 
         void save(std::ostream& stream);
 
+        uint8_t get(int row, int column);
+
         void save(const fs::path& path = "");
 
-        unsigned char get(int row, int column);
+        uint8_t get_attr(int row, int column);
 
-        void put(int row, int column, unsigned char value);
+        void put(int row, int column, uint8_t value);
+
+        void put_attr(int row, int column, uint8_t value);
 
         void shift_left(int row, int column, int times = 1);
 
@@ -142,6 +153,8 @@ namespace ryu::core {
         void shift_line_left(int row, int column, int times = 1);
 
         void shift_line_right(int row, int column, int times = 1);
+
+        attr_chunks get_line_chunks(int line, int column, int end_column);
 
         void write_line(std::ostream& stream, int line, int column, int end_column);
 
@@ -185,6 +198,7 @@ namespace ryu::core {
         int _page_width = 0;
         int _page_height = 0;
         uint8_t* _data = nullptr;
+        uint8_t* _attrs = nullptr;
     };
 
 }
