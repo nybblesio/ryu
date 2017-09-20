@@ -70,11 +70,11 @@ namespace ryu::ide::console {
 
         const int left_padding = 10;
         const int right_padding = 10;
-        const int footer_padding = font()->line_height;
-        const int header_padding = font()->line_height * 2;
+        const int footer_padding = font_face()->line_height;
+        const int header_padding = font_face()->line_height * 2;
 
-        _page_width = static_cast<short>((clip_rect.w - (left_padding + right_padding)) / font()->width);
-        _page_height = static_cast<short>((clip_rect.h - (header_padding + footer_padding + 20)) / font()->line_height);
+        _page_width = static_cast<short>((clip_rect.w - (left_padding + right_padding)) / font_face()->width);
+        _page_height = static_cast<short>((clip_rect.h - (header_padding + footer_padding + 20)) / font_face()->line_height);
 
         _document.initialize(_page_height, _page_width, _page_width, _page_height);
         _document.clear();
@@ -82,7 +82,7 @@ namespace ryu::ide::console {
         _header.rect()
                 .pos(0, 0)
                 .size(clip_rect.w, header_padding);
-        _header.font(font());
+        _header.font_family(font_family());
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
         _header.padding({left_padding, right_padding, 5, 0});
@@ -90,24 +90,24 @@ namespace ryu::ide::console {
         _footer.rect()
                 .pos(0, clip_rect.h - (footer_padding + 10))
                 .size(clip_rect.w, footer_padding);
-        _footer.font(font());
+        _footer.font_family(font_family());
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
         _footer.padding({left_padding, right_padding, 0, 0});
 
         _caret.initialize(0, 0, _page_width, _page_height);
         _caret.fg_color(ide::context::colors::caret);
-        _caret.font(font());
+        _caret.font_family(font_family());
 
         rect({0, 0, clip_rect.w, clip_rect.h});
         padding({left_padding, right_padding, header_padding + 5, footer_padding});
+
+        _color = ryu::ide::context::colors::text;
     }
 
     void view::on_draw() {
         auto bounds = client_rect();
         auto palette = (*context()->palette());
-        auto& white = palette[ide::context::colors::text];
-        //auto& grey = palette[ide::context::colors::info_text];
 
         std::string project_name = "(none)";
         std::string machine_name = "(none)";
@@ -123,13 +123,29 @@ namespace ryu::ide::console {
                 _caret.row() + 1,
                 _caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
 
+        auto face = font_face();
         auto y = bounds.top();
         for (auto row = 0; row < _page_height; row++) {
+            auto x = bounds.left();
             auto chunks = _document.get_line_chunks(row, 0, _page_width);
             for (auto& chunk : chunks) {
-                draw_text(bounds.left(), y, chunk.text, white);
+                auto width = static_cast<int32_t>(face->width * chunk.text.length());
+                auto style = get_upper_nybble(chunk.attr);
+                auto palette_index = get_lower_nybble(chunk.attr);
+                auto color = palette[palette_index];
+
+                if ((style & core::font::styles::strikethrough) != 0) {
+                    set_color(color);
+                    color = palette[ide::context::colors::fill_color];
+                    fill_rect(core::rect{x, y, width, face->line_height});
+                    style &= ~core::font::styles::strikethrough;
+                }
+
+                font_style(style);
+                draw_text(x, y, chunk.text, color);
+                x += width;
             }
-            y += font()->line_height;
+            y += face->line_height;
         }
     }
 
@@ -144,6 +160,10 @@ namespace ryu::ide::console {
             }
             const char* c = &e->text.text[0];
             while (*c != '\0') {
+                uint8_t attr = 0;
+                attr = set_lower_nybble(attr, _color);
+                _document.put_attr(_caret.row(), _caret.column(), attr);
+
                 _document.put(_caret.row(), _caret.column(), static_cast<uint8_t>(*c));
                 if (caret_right()) {
                     caret_right();
@@ -275,7 +295,7 @@ namespace ryu::ide::console {
     }
 
     void view::write_message(const std::string& message) {
-        uint8_t attr = 0;
+        uint8_t attr = set_lower_nybble(0, _color);
 
         caret_home();
         auto token = message.begin();
@@ -292,13 +312,47 @@ namespace ryu::ide::console {
                     code += *token;
                 }
                 if (code == "bold") {
-                    attr = ryu::set_upper_nybble(attr, 0b0001);
+                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::bold);
                 } else if (code == "italic") {
-                    attr = ryu::set_upper_nybble(attr, 0b0010);
+                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::italic);
                 } else if (code == "underline") {
-                    attr = ryu::set_upper_nybble(attr, 0b0100);
+                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::underline);
+                } else if (code == "rev") {
+                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::strikethrough);
+                } else if (code == "black") {
+                    attr = set_lower_nybble(0, ide::context::colors::black);
+                } else if (code == "white") {
+                    attr = set_lower_nybble(0, ide::context::colors::white);
+                } else if (code == "red") {
+                    attr = set_lower_nybble(0, ide::context::colors::red);
+                } else if (code == "cyan") {
+                    attr = set_lower_nybble(0, ide::context::colors::cyan);
+                } else if (code == "purple") {
+                    attr = set_lower_nybble(0, ide::context::colors::purple);
+                } else if (code == "green") {
+                    attr = set_lower_nybble(0, ide::context::colors::green);
+                } else if (code == "blue") {
+                    attr = set_lower_nybble(0, ide::context::colors::blue);
+                } else if (code == "yellow") {
+                    attr = set_lower_nybble(0, ide::context::colors::yellow);
+                } else if (code == "orange") {
+                    attr = set_lower_nybble(0, ide::context::colors::orange);
+                } else if (code == "brown") {
+                    attr = set_lower_nybble(0, ide::context::colors::brown);
+                } else if (code == "pink") {
+                    attr = set_lower_nybble(0, ide::context::colors::pink);
+                } else if (code == "dgrey") {
+                    attr = set_lower_nybble(0, ide::context::colors::dark_grey);
+                } else if (code == "grey") {
+                    attr = set_lower_nybble(0, ide::context::colors::grey);
+                } else if (code == "lgreen") {
+                    attr = set_lower_nybble(0, ide::context::colors::light_green);
+                } else if (code == "lblue") {
+                    attr = set_lower_nybble(0, ide::context::colors::light_blue);
+                } else if (code == "lgrey") {
+                    attr = set_lower_nybble(0, ide::context::colors::light_grey);
                 } else {
-                    attr = 0;
+                    attr = set_lower_nybble(0, _color);
                 }
                 ++token;
                 continue;

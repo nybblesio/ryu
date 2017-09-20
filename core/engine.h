@@ -15,6 +15,7 @@
 #include "result.h"
 #include "core_types.h"
 #include "state_stack.h"
+#include "font_family.h"
 
 namespace ryu::core {
 
@@ -28,12 +29,6 @@ namespace ryu::core {
         void quit();
 
         void focus(int id);
-
-        font_t* load_font(
-                const std::string& name,
-                const std::string& path,
-                uint32_t size,
-                int style);
 
         short display_width() const;
 
@@ -55,24 +50,26 @@ namespace ryu::core {
 
         void machine(hardware::machine* machine);
 
-        font_t* find_font(const std::string& name);
-
         void remove_context(core::context* context);
 
         void erase_blackboard(const std::string& name);
 
         std::string blackboard(const std::string& name) const;
 
+        core::font_family* find_font_family(const std::string& name);
+
         void blackboard(const std::string& name, const std::string& value);
 
+        core::font_family* add_font_family(uint32_t size, const std::string& name);
+
     private:
-        font_t* _font;
-        font_dict _fonts;
         bool _quit = false;
         int _focused_context = -1;
         core::blackboard _blackboard;
         core::context_dict _contexts;
         SDL_Window* _window = nullptr;
+        core::font_t* _font = nullptr;
+        font_family_dict _font_families;
         SDL_Renderer* _renderer = nullptr;
         std::pair<short, short> _display_size;
         hardware::machine* _machine = nullptr;

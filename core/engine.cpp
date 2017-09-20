@@ -21,32 +21,6 @@ namespace ryu::core {
         _quit = true;
     }
 
-    font_t* engine::load_font(
-            const std::string& name,
-            const std::string& path,
-            uint32_t size,
-            int style) {
-        auto font = find_font(name);
-        if (font != nullptr)
-            return font;
-
-        auto instance = FC_CreateFont();
-        auto result = FC_LoadFont(
-                instance,
-                _renderer,
-                path.c_str(),
-                size,
-                FC_MakeColor(0xff, 0xff, 0xff, 0xff),
-                style);
-        if (result != 0) {
-            auto it = _fonts.insert(std::make_pair(
-                    name,
-                    font_t{FC_GetWidth(instance, "A"), size, FC_GetLineHeight(instance), instance}));
-            return &(*it.first).second;
-        }
-        return nullptr;
-    }
-
     void engine::focus(int id) {
         _focused_context = id;
     }
@@ -109,12 +83,6 @@ namespace ryu::core {
     }
 
     bool engine::shutdown(core::result& result) {
-        for (auto& it : _fonts) {
-            if (it.second.glyph != nullptr)
-                FC_FreeFont(it.second.glyph);
-        }
-        _fonts.clear();
-
         if (_renderer != nullptr)
             SDL_DestroyRenderer(_renderer);
 
@@ -168,12 +136,16 @@ namespace ryu::core {
                                 true);
                         result.fail();
                     } else {
-                        _font = load_font("hack-normal", "assets/Hack-Regular.ttf", 16, TTF_STYLE_NORMAL);
-                        load_font("hack-bold",      "assets/Hack-Bold.ttf",         16, TTF_STYLE_NORMAL);
-                        load_font("hack-italic",    "assets/Hack-Italic.ttf",       16, TTF_STYLE_ITALIC);
-                        load_font("hack-underline", "assets/Hack-Regular.ttf",      16, TTF_STYLE_UNDERLINE);
+                        auto topaz = add_font_family(14, "topaz");
+                        _font = topaz->add_style(font::styles::normal, "assets/Topaz-8.ttf");
 
-                        load_font("topaz-normal", "assets/Topaz-8.ttf", 14, TTF_STYLE_NORMAL);
+                        auto hack = add_font_family(16, "hack");
+                        hack->add_style(font::styles::normal,                      "assets/Hack-Regular.ttf");
+                        hack->add_style(font::styles::bold,                        "assets/Hack-Bold.ttf");
+                        hack->add_style(font::styles::italic,                      "assets/Hack-Italic.ttf");
+                        hack->add_style(font::styles::underline,                   "assets/Hack-Regular.ttf");
+                        hack->add_style(font::styles::bold|font::styles::underline,"assets/Hack-Bold.ttf");
+                        hack->add_style(font::styles::bold|font::styles::italic,   "assets/Hack-BoldItalic.ttf");
                     }
                 }
             }
@@ -198,13 +170,6 @@ namespace ryu::core {
         _contexts.erase(context->id());
     }
 
-    font_t* engine::find_font(const std::string& name) {
-        auto it = _fonts.find(name);
-        if (it != _fonts.end())
-            return &it->second;
-        return nullptr;
-    }
-
     void engine::erase_blackboard(const std::string& name) {
         _blackboard.erase(name);
     }
@@ -217,8 +182,20 @@ namespace ryu::core {
         return "";
     }
 
+    core::font_family* engine::find_font_family(const std::string& name) {
+        auto it = _font_families.find(name);
+        if (it == _font_families.end())
+            return nullptr;
+        return &it->second;
+    }
+
     void engine::blackboard(const std::string& name, const std::string& value) {
         _blackboard[name] = value;
+    }
+
+    core::font_family* engine::add_font_family(uint32_t size, const std::string& name) {
+        auto it = _font_families.insert(std::make_pair(name, font_family(name, size, _renderer)));
+        return &(*it.first).second;
     }
 
 }

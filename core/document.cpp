@@ -241,6 +241,7 @@ namespace ryu::core {
                 auto text = stream.str();
                 if (!text.empty()) {
                     chunks.push_back(attr_chunk_t{last_attr, text});
+                    stream.str(std::string());
                     stream.clear();
                 }
                 last_attr = attr;

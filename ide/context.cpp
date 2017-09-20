@@ -51,16 +51,88 @@ namespace ryu::ide {
         white.alpha(0xff);
 
         auto& grey = _palette[colors::grey];
-        grey.red(0x93);
-        grey.green(0x93);
-        grey.blue(0x93);
+        grey.red(0x78);
+        grey.green(0x78);
+        grey.blue(0x78);
         grey.alpha(0xff);
 
-        auto& dark_blue = _palette[colors::dark_blue];
-        dark_blue.red(0x00);
-        dark_blue.green(0x00);
-        dark_blue.blue(0x68);
-        dark_blue.alpha(0xff);
+        auto& blue = _palette[colors::blue];
+        blue.red(0x40);
+        blue.green(0x31);
+        blue.blue(0x8c);
+        blue.alpha(0xff);
+
+        auto& red = _palette[colors::red];
+        red.red(0x88);
+        red.green(0x33);
+        red.blue(0x32);
+        red.alpha(0xff);
+        
+        auto& cyan = _palette[colors::cyan];
+        cyan.red(0x67);
+        cyan.green(0xb6);
+        cyan.blue(0xbd);
+        cyan.alpha(0xff);
+
+        auto& purple = _palette[colors::purple];
+        purple.red(0x8b);
+        purple.green(0x3f);
+        purple.blue(0x97);
+        purple.alpha(0xff);
+        
+        auto& green = _palette[colors::green];
+        green.red(0x57);
+        green.green(0xa0);
+        green.blue(0x49);
+        green.alpha(0xff);
+
+        auto& yellow = _palette[colors::yellow];
+        yellow.red(0xbf);
+        yellow.green(0xce);
+        yellow.blue(0x73);
+        yellow.alpha(0xff);
+
+        auto& orange = _palette[colors::orange];
+        orange.red(0x8b);
+        orange.green(0x55);
+        orange.blue(0x29);
+        orange.alpha(0xff);
+
+        auto& brown = _palette[colors::brown];
+        brown.red(0x57);
+        brown.green(0x42);
+        brown.blue(0x00);
+        brown.alpha(0xff);
+
+        auto& pink = _palette[colors::pink];
+        pink.red(0xb8);
+        pink.green(0x69);
+        pink.blue(0x62);
+        pink.alpha(0xff);
+
+        auto& dark_grey = _palette[colors::dark_grey];
+        dark_grey.red(0x50);
+        dark_grey.green(0x50);
+        dark_grey.blue(0x50);
+        dark_grey.alpha(0xff);
+
+        auto& light_green = _palette[colors::light_green];
+        light_green.red(0x95);
+        light_green.green(0xe0);
+        light_green.blue(0x88);
+        light_green.alpha(0xff);
+
+        auto& light_blue = _palette[colors::light_blue];
+        light_blue.red(0x78);
+        light_blue.green(0x69);
+        light_blue.blue(0xc4);
+        light_blue.alpha(0xff);
+
+        auto& light_grey = _palette[colors::light_grey];
+        light_grey.red(0x9f);
+        light_grey.green(0x9f);
+        light_grey.blue(0x9f);
+        light_grey.alpha(0xff);
 
         palette(&_palette);
     }

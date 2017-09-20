@@ -37,15 +37,6 @@ namespace ryu::core {
 
     typedef std::map<std::string, std::string> blackboard;
 
-    struct font_t {
-        int width {};
-        uint32_t size {};
-        int line_height {};
-        FC_Font* glyph = nullptr;
-    };
-
-    typedef std::map<std::string, font_t> font_dict;
-
     typedef std::map<std::string, std::string> parameter_dict;
 
 };

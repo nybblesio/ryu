@@ -32,7 +32,7 @@ namespace ryu::ide::console {
     }
 
     void controller::on_initialize() {
-        _view.font(context()->engine()->find_font("hack-normal"));
+        _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize();
         _view.on_transition([&](const std::string& name) {
             return transition_to(name);
@@ -41,9 +41,9 @@ namespace ryu::ide::console {
             _command_factory.execute(result, input);
         });
 
-        _view.write_message("{bold}Ryu{}: {italic}The Arcade Construction Kit{}");
-        _view.write_message("Copyright (C) 2017 Jeff Panici");
-        _view.write_message("See details in {bold}LICENSE{} file");
+        _view.write_message("{rev} {bold}Ryu: {italic}The Arcade Construction Kit {}");
+        _view.write_message(" Copyright (C) 2017 Jeff Panici");
+        _view.write_message(" See details in {underline}{bold}LICENSE{} file");
         _view.caret_down();
         _view.write_message("Ready.");
         _view.focus(ids::console);

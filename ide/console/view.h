@@ -67,6 +67,7 @@ namespace ryu::ide::console {
         bool transition_to(const std::string& name);
 
     private:
+        uint8_t _color;
         short _page_width;
         short _page_height;
         core::caret _caret;

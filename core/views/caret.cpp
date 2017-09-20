@@ -127,7 +127,7 @@ namespace ryu::core {
         bounds.pos(
                 (parent_bounds.left() + (_column * bounds.width())) + pad.left(),
                 (parent_bounds.top() + (_row * bounds.height())) + pad.top());
-        bounds.size(font()->width, font()->line_height);
+        bounds.size(font_face()->width, font_face()->line_height);
         fill_rect(bounds);
 
         pop_blend_mode();

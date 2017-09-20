@@ -18,6 +18,7 @@ add_library(
         state_stack.cpp state_stack.h
         views/label.cpp views/label.h
         views/caret.cpp views/caret.h
+        font_family.cpp font_family.h
         views/button.cpp views/button.h
         views/textbox.cpp views/textbox.h
         palette_entry.cpp palette_entry.h)

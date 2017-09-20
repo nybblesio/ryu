@@ -180,27 +180,27 @@ namespace ryu::ide::text_editor {
 
         const int left_padding = 10;
         const int right_padding = 15;
-        const int line_number_width = 6 * font()->width;
-        const int footer_padding = font()->line_height * 2;
-        const int header_padding = (font()->line_height * 2) + 25;
+        const int line_number_width = 6 * font_face()->width;
+        const int footer_padding = font_face()->line_height * 2;
+        const int header_padding = (font_face()->line_height * 2) + 25;
 
         _vcol = 0;
         _vrow = 0;
-        _page_width = (clip_rect.w - (left_padding + line_number_width + right_padding)) / font()->width;
-        _page_height = ((clip_rect.h - (header_padding + footer_padding)) / font()->line_height);
+        _page_width = (clip_rect.w - (left_padding + line_number_width + right_padding)) / font_face()->width;
+        _page_height = ((clip_rect.h - (header_padding + footer_padding)) / font_face()->line_height);
 
         _header.rect()
                 .pos(0, 0)
-                .size(clip_rect.w, font()->line_height * 2);
-        _header.font(font());
+                .size(clip_rect.w, font_face()->line_height * 2);
+        _header.font_family(font_family());
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
         _header.padding({left_padding, right_padding, 5, 0});
 
         _command_line.fg_color(ide::context::colors::text);
-        _command_line.font(font());
+        _command_line.font_family(font_family());
         _command_line.initialize(1, _page_width);
-        _command_line.rect().pos(left_padding, font()->line_height + 3);
+        _command_line.rect().pos(left_padding, font_face()->line_height + 3);
         _command_line.on_key_down([&](int keycode) {
             if (keycode == SDLK_ESCAPE) {
                 focus(id());
@@ -220,12 +220,12 @@ namespace ryu::ide::text_editor {
         _footer.rect()
                 .pos(0, clip_rect.h - (footer_padding + 10))
                 .size(clip_rect.w, footer_padding);
-        _footer.font(font());
+        _footer.font_family(font_family());
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
         _footer.padding({left_padding, right_padding, 13, 0});
 
-        _caret.font(font());
+        _caret.font_family(font_family());
         _caret.padding().left(line_number_width);
         _caret.fg_color(ide::context::colors::caret);
         _caret.initialize(0, 0, _page_width, _page_height);
@@ -240,8 +240,8 @@ namespace ryu::ide::text_editor {
     void editor_view::on_draw() {
         auto bounds = client_rect();
 
-        auto& white = (*context()->palette())[ide::context::colors::white];
-        auto& grey = (*context()->palette())[ide::context::colors::grey];
+        auto& text_color = (*context()->palette())[ide::context::colors::text];
+        auto& info_text_color = (*context()->palette())[ide::context::colors::info_text];
 
         std::string cpu_name = "(none)";
         std::string file_name = _document.filename();
@@ -264,14 +264,14 @@ namespace ryu::ide::text_editor {
         auto row_start = _document.row();
         auto row_stop = row_start + _page_height;
         for (auto row = row_start; row < row_stop; row++) {
-            draw_text(bounds.left(), y, fmt::format("{0:04}", row + 1), grey);
+            draw_text(bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
 
             auto col_start = _document.column();
             auto col_end = col_start + _page_width;
             std::stringstream stream;
             _document.write_line(stream, row, col_start, col_end);
 
-            draw_text(bounds.left() + _caret.padding().left(), y, stream.str(), white);
+            draw_text(bounds.left() + _caret.padding().left(), y, stream.str(), text_color);
 
             if (_selection.selected(row, 0)) {
                 push_blend_mode(SDL_BLENDMODE_BLEND);
@@ -281,13 +281,13 @@ namespace ryu::ide::text_editor {
                 fill_rect(core::rect{
                         bounds.left() + _caret.padding().left(),
                         y,
-                        font()->width * (_page_width + 1),
-                        font()->line_height
+                        font_face()->width * (_page_width + 1),
+                        font_face()->line_height
                 });
                 pop_blend_mode();
             }
 
-            y += font()->line_height;
+            y += font_face()->line_height;
         }
     }
 

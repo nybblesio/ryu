@@ -27,7 +27,7 @@ namespace ryu::ide::text_editor {
     }
 
     void controller::on_initialize() {
-        _view.font(context()->engine()->find_font("hack-normal"));
+        _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize(rows, columns);
         _view.on_transition([&](const std::string& name) {
             return transition_to(name);

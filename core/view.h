@@ -20,6 +20,7 @@
 #include "palette.h"
 #include "context.h"
 #include "padding.h"
+#include "font_family.h"
 
 namespace ryu::core {
 
@@ -29,16 +30,6 @@ namespace ryu::core {
             left,
             right,
             center
-        };
-    };
-
-    struct font {
-        enum styles : uint8_t {
-            normal        = 0b00000000,
-            italic        = 0b00000001,
-            bold          = 0b00000010,
-            underline     = 0b00000100,
-            strikethrough = 0b00001000,
         };
     };
 
@@ -92,9 +83,9 @@ namespace ryu::core {
 
         virtual ~view() = default;
 
-        int id() const;
-
         void draw();
+
+        int id() const;
 
         view* parent();
 
@@ -142,9 +133,7 @@ namespace ryu::core {
 
         dock::styles dock() const;
 
-        core::font_t* font() const;
-
-        uint8_t font_stlye() const;
+        uint8_t font_style() const;
 
         void bg_color(uint8_t value);
 
@@ -152,19 +141,25 @@ namespace ryu::core {
 
         void dock(dock::styles style);
 
-        void font(core::font_t* font);
+        void font_style(uint8_t styles);
 
         void rect(const core::rect& value);
 
         void palette(core::palette* palette);
 
-        void font_style(font::styles styles);
-
         bool process_event(const SDL_Event* e);
+
+        core::font_family* font_family() const;
 
         void margin(const core::padding& value);
 
         void padding(const core::padding& value);
+
+        void font_family(core::font_family* font);
+
+        inline const core::font_t* font_face() const {
+            return _font->find_style(_font_style);
+        }
 
     protected:
         void pop_blend_mode();
@@ -198,7 +193,6 @@ namespace ryu::core {
         short _index;
         uint8_t _flags;
         std::string _name;
-        core::font_t* _font;
         core::rect _rect {};
         view_list _children;
         core::padding _margin;
@@ -209,6 +203,7 @@ namespace ryu::core {
         types::id _type = types::none;
         core::context* _context = nullptr;
         core::palette* _palette = nullptr;
+        core::font_family* _font = nullptr;
         std::stack<SDL_BlendMode> _mode_stack;
         dock::styles _dock = dock::styles::none;
         uint8_t _font_style = font::styles::normal;

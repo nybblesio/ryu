@@ -166,13 +166,14 @@ namespace ryu::core {
         return _fg_color;
     }
 
-    core::font_t* view::font() const {
-        if (_font == nullptr)
-            return _context->engine()->find_font("topaz-normal");
+    core::font_family* view::font_family() const {
+        if (_font == nullptr) {
+            return _context->engine()->find_font_family("topaz");
+        }
         return _font;
     }
 
-    uint8_t view::font_stlye() const {
+    uint8_t view::font_style() const {
         return _font_style;
     }
 
@@ -188,12 +189,12 @@ namespace ryu::core {
         return _type;
     }
 
-    void view::font(core::font_t* font) {
-        _font = font;
-    }
-
     view::dock::styles view::dock() const {
         return _dock;
+    }
+
+    void view::font_style(uint8_t styles) {
+        _font_style = styles;
     }
 
     void view::rect(const core::rect& value) {
@@ -206,10 +207,6 @@ namespace ryu::core {
 
     void view::palette(core::palette* palette) {
         _palette = palette;
-    }
-
-    void view::font_style(font::styles styles) {
-        _font_style = styles;
     }
 
     bool view::process_event(const SDL_Event* e) {
@@ -232,10 +229,6 @@ namespace ryu::core {
         _padding = value;
     }
 
-    bool view::on_process_event(const SDL_Event* e) {
-        return false;
-    }
-
     void view::draw_rect(const core::rect& bounds) {
         auto rect = bounds.to_sdl_rect();
         SDL_RenderDrawRect(context()->renderer(), &rect);
@@ -253,6 +246,14 @@ namespace ryu::core {
         SDL_SetRenderDrawBlendMode(context()->renderer(), mode);
     }
 
+    bool view::on_process_event(const SDL_Event* e) {
+        return false;
+    }
+
+    void view::font_family(core::font_family* font) {
+        _font = font;
+    }
+
     void view::draw_line(int x1, int y1, int x2, int y2) {
         SDL_RenderDrawLine(context()->renderer(), x1, y1, x2, y2);
     }
@@ -262,14 +263,27 @@ namespace ryu::core {
     }
 
     void view::set_font_color(const core::palette_entry& color) {
-        FC_SetDefaultColor(font()->glyph, color.to_sdl_color());
+        FC_SetDefaultColor(font_face()->glyph, color.to_sdl_color());
     }
 
-    void view::draw_text(int x, int y, const std::string& value, const core::palette_entry& color) {
-        FC_DrawColor(font()->glyph, context()->renderer(), x, y, color.to_sdl_color(), value.c_str());
+    void view::draw_text(
+            int x,
+            int y,
+            const std::string& value,
+            const core::palette_entry& color) {
+        FC_DrawColor(
+                font_face()->glyph,
+                context()->renderer(),
+                x,
+                y,
+                color.to_sdl_color(),
+                value.c_str());
     }
 
-    void view::draw_text_aligned(const std::string& value, const core::rect& bounds, alignment::types alignment) {
+    void view::draw_text_aligned(
+            const std::string& value,
+            const core::rect& bounds,
+            alignment::types alignment) {
         FC_AlignEnum align = FC_AlignEnum::FC_ALIGN_LEFT;
         switch (alignment) {
             case alignment::none:
@@ -284,7 +298,12 @@ namespace ryu::core {
                 break;
         }
 
-        FC_DrawBoxAlign(font()->glyph, context()->renderer(), bounds.to_sdl_rect(), align, value.c_str());
+        FC_DrawBoxAlign(
+                font_face()->glyph,
+                context()->renderer(),
+                bounds.to_sdl_rect(),
+                align,
+                value.c_str());
     }
 
 }

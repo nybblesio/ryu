@@ -56,11 +56,11 @@ namespace ryu::core {
         _document.initialize(rows, columns, columns, rows);
         _document.clear();
 
-        _caret.font(font());
+        _caret.font_family(font_family());
         _caret.fg_color(fg_color());
         _caret.initialize(0, 0, columns, rows);
 
-        rect({0, 0, font()->width * (columns + 4), font()->line_height + 10});
+        rect({0, 0, font_face()->width * (columns + 4), font_face()->line_height + 10});
         padding({5, 5, 5, 5});
     }
 
