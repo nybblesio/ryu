@@ -18,6 +18,14 @@ namespace ryu::core {
         _start = {-1, -1};
     }
 
+    void selection::normalize() {
+        if (_start.first > _end.first) {
+            auto temp = _start.first;
+            _start.first = _end.first;
+            _end.first = temp;
+        }
+    }
+
     bool selection::valid() const {
         auto empty = std::pair<int, int>{-1, -1};
         return start() != empty && end() != empty;

@@ -62,6 +62,24 @@ namespace ryu::core {
         _attrs = new uint8_t[_rows * _columns];
     }
 
+    void document::shift_up() {
+        auto last_row = (_rows - 1) * _columns;
+
+        std::memcpy(_data, _data + _columns, static_cast<size_t>(last_row));
+        std::memset(_data + last_row, 0, static_cast<size_t>(_columns));
+
+        std::memcpy(_attrs, _attrs + _columns, static_cast<size_t>(last_row));
+        std::memset(_attrs + last_row, 0, static_cast<size_t>(_columns));
+    }
+
+    uint8_t document::default_attr() const {
+        return _default_attr;
+    }
+
+    void document::default_attr(uint8_t value) {
+        _default_attr = value;
+    }
+
     void document::load(const fs::path& path) {
         _path = path;
         std::fstream file;
@@ -83,6 +101,7 @@ namespace ryu::core {
                     continue;
                 }
                 put(row, col, value);
+                put_attr(row, col, _default_attr);
                 ++col;
             }
             ++row;
@@ -160,18 +179,19 @@ namespace ryu::core {
         return _data[(row * _columns) + column];
     }
 
-    uint8_t document::get_attr(int row, int column) {
-        return _attrs[(row * _columns) + column];
+    void document::split_line(int row, int column) {
+        insert_line(row);
+        auto offset = (row * _columns) + column;
+        auto new_line_offset = (row + 1) * _columns;
+        auto size = static_cast<size_t>(find_line_end(row) - column);
+        std::memcpy(_data + new_line_offset, _data + offset, size);
+        std::memcpy(_attrs + new_line_offset, _attrs + offset, size);
+        std::memset(_data + offset, 0, size);
+        std::memset(_attrs + offset, 0, size);
     }
 
-    void document::shift_up() {
-        auto last_row = (_rows - 1) * _columns;
-
-        std::memcpy(_data, _data + _columns, static_cast<size_t>(last_row));
-        std::memset(_data + last_row, 0, static_cast<size_t>(_columns));
-
-        std::memcpy(_attrs, _attrs + _columns, static_cast<size_t>(last_row));
-        std::memset(_attrs + last_row, 0, static_cast<size_t>(_columns));
+    uint8_t document::get_attr(int row, int column) {
+        return _attrs[(row * _columns) + column];
     }
 
     void document::shift_left(int row, int column, int times) {
@@ -201,7 +221,8 @@ namespace ryu::core {
     }
 
     void document::put(int row, int column, uint8_t value) {
-        _data[(row * _columns) + column] = value;
+        auto offset = (row * _columns) + column;
+        _data[offset] = value;
     }
 
     void document::put_attr(int row, int column, uint8_t value) {

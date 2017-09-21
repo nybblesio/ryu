@@ -22,6 +22,7 @@ namespace ryu::ide::text_editor {
 
     class editor_view : public core::view {
     public:
+        using char_action_callable = std::function<void (int, int)>;
         using transition_to_callable = std::function<bool (const std::string&)>;
         using execute_command_callable = std::function<void (core::result&, const std::string&)>;
 
@@ -86,6 +87,8 @@ namespace ryu::ide::text_editor {
 
         void update_selection();
 
+        void delete_selection();
+
         void caret_up(int rows = 1);
 
         void caret_down(int rows = 1);
@@ -97,6 +100,12 @@ namespace ryu::ide::text_editor {
         void caret_left(int columns = 1);
 
         bool caret_right(int columns = 1);
+
+        void insert_text(const char* text);
+
+        void get_selected_text(std::stringstream& stream);
+
+        void for_each_selection_char(const char_action_callable& action);
 
     private:
         int _vcol;

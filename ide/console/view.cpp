@@ -107,7 +107,7 @@ namespace ryu::ide::console {
 
     void view::on_draw() {
         auto bounds = client_rect();
-        auto palette = (*context()->palette());
+        auto palette = *(this->palette());
 
         std::string project_name = "(none)";
         std::string machine_name = "(none)";
@@ -123,12 +123,13 @@ namespace ryu::ide::console {
                 _caret.row() + 1,
                 _caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
 
+        // XXX: this may not be correct because font metrics may change
         auto face = font_face();
         auto y = bounds.top();
         for (auto row = 0; row < _page_height; row++) {
             auto x = bounds.left();
             auto chunks = _document.get_line_chunks(row, 0, _page_width);
-            for (auto& chunk : chunks) {
+            for (const auto& chunk : chunks) {
                 auto width = static_cast<int32_t>(face->width * chunk.text.length());
                 auto style = get_upper_nybble(chunk.attr);
                 auto palette_index = get_lower_nybble(chunk.attr);

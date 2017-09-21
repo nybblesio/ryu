@@ -20,6 +20,8 @@ namespace ryu::core {
 
         void clear();
 
+        void normalize();
+
         bool valid() const;
 
         void end(int row, int col);

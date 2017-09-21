@@ -114,6 +114,8 @@ namespace ryu::core {
     }
 
     core::palette* view::palette() {
+        if (_palette == nullptr)
+            return _context->palette();
         return _palette;
     }
 

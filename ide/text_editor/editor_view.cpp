@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 #include <core/engine.h>
 #include <ide/context.h>
+#include <common/bytes.h>
 #include "editor_view.h"
 
 namespace ryu::ide::text_editor {
@@ -96,6 +97,13 @@ namespace ryu::ide::text_editor {
             return;
 
         _caret.insert();
+
+        for_each_selection_char([&](int row, int col) {
+            auto attr = _document.get_attr(row, col);
+            auto style = get_upper_nybble(attr) & ~core::font::styles::strikethrough;
+            _document.put_attr(row, col, set_upper_nybble(attr, style));
+        });
+
         _selection.end(_vrow, _vcol);
     }
 
@@ -105,7 +113,7 @@ namespace ryu::ide::text_editor {
 
     void editor_view::update_selection() {
         if (_caret.mode() == core::caret::mode::select) {
-            if (_vrow < _selection.start().first || _vcol < _selection.start().second)
+            if (_vrow < _selection.start().first && _vcol < _selection.start().second)
                 _selection.start(_vrow, _vcol);
             else
                 _selection.end(_vrow, _vcol);
@@ -231,6 +239,9 @@ namespace ryu::ide::text_editor {
         _caret.initialize(0, 0, _page_width, _page_height);
 
         _document.initialize(rows, columns, _page_width, _page_height);
+        auto attr = set_lower_nybble(0, ide::context::colors::text);
+        attr = set_upper_nybble(attr, 0);
+        _document.default_attr(attr);
         _document.clear();
 
         rect({0, 0, clip_rect.w, clip_rect.h});
@@ -239,9 +250,9 @@ namespace ryu::ide::text_editor {
 
     void editor_view::on_draw() {
         auto bounds = client_rect();
+        auto palette = *this->palette();
 
-        auto& text_color = (*context()->palette())[ide::context::colors::text];
-        auto& info_text_color = (*context()->palette())[ide::context::colors::info_text];
+        auto& info_text_color = palette[ide::context::colors::info_text];
 
         std::string cpu_name = "(none)";
         std::string file_name = _document.filename();
@@ -260,6 +271,8 @@ namespace ryu::ide::text_editor {
                 _caret.row() + 1,
                 _caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
 
+        // XXX: this may not be correct because the font metrics may change
+        auto face = font_face();
         auto y = bounds.top();
         auto row_start = _document.row();
         auto row_stop = row_start + _page_height;
@@ -268,26 +281,73 @@ namespace ryu::ide::text_editor {
 
             auto col_start = _document.column();
             auto col_end = col_start + _page_width;
-            std::stringstream stream;
-            _document.write_line(stream, row, col_start, col_end);
 
-            draw_text(bounds.left() + _caret.padding().left(), y, stream.str(), text_color);
+            auto x = bounds.left() + _caret.padding().left();
+            auto chunks = _document.get_line_chunks(row, col_start, col_end);
+            for (const auto& chunk : chunks) {
+                auto width = static_cast<int32_t>(face->width * chunk.text.length());
+                auto style = get_upper_nybble(chunk.attr);
+                auto palette_index = get_lower_nybble(chunk.attr);
+                auto color = palette[palette_index];
 
-            if (_selection.selected(row, 0)) {
-                push_blend_mode(SDL_BLENDMODE_BLEND);
-                auto selection_color = (*context()->palette())[ide::context::colors::selection];
-                selection_color.alpha(0x7f);
-                set_color(selection_color);
-                fill_rect(core::rect{
-                        bounds.left() + _caret.padding().left(),
-                        y,
-                        font_face()->width * (_page_width + 1),
-                        font_face()->line_height
-                });
-                pop_blend_mode();
+                if ((style & core::font::styles::strikethrough) != 0) {
+                    push_blend_mode(SDL_BLENDMODE_BLEND);
+                    auto selection_color = palette[ide::context::colors::selection];
+                    selection_color.alpha(0x7f);
+                    set_color(selection_color);
+                    fill_rect(core::rect{x, y, width, face->line_height});
+                    style &= ~core::font::styles::strikethrough;
+                    pop_blend_mode();
+                }
+
+                font_style(style);
+                draw_text(x, y, chunk.text, color);
+                x += width;
             }
 
-            y += font_face()->line_height;
+            y += face->line_height;
+        }
+    }
+
+    void editor_view::delete_selection() {
+        auto last_row = -1;
+        auto target_col = 0;
+        for_each_selection_char([&](int row, int col) {
+            if (last_row != row) {
+                target_col = col;
+                last_row = row;
+                if (target_col == 0)
+                    _document.delete_line(row + 1);
+            }
+            if (target_col > 0)
+                _document.shift_line_left(row, target_col);
+        });
+        _caret.row(_selection.start().first);
+        _caret.column(_selection.start().second);
+        update_virtual_position();
+        end_selection();
+    }
+
+    void editor_view::insert_text(const char* text) {
+        const char* c = text;
+        while (true) {
+            if (*c == '\0')
+                break;
+
+            if (*c == '\n') {
+                if (_caret.mode() == core::caret::mode::insert)
+                    _document.split_line(_vrow, _vcol);
+                caret_down();
+                caret_home();
+            } else {
+                if (_caret.mode() == core::caret::mode::insert)
+                    _document.shift_line_right(_vrow, _vcol);
+                _document.put(_vrow, _vcol, static_cast<uint8_t>(*c));
+                _document.put_attr(_vrow, _vcol, _document.default_attr());
+                caret_right();
+            }
+
+            c++;
         }
     }
 
@@ -296,16 +356,33 @@ namespace ryu::ide::text_editor {
         auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
 
         if (e->type == SDL_TEXTINPUT) {
-            if (_caret.mode() == core::caret::mode::insert)
-                _document.shift_line_right(_vrow, _vcol);
-            const char* c = &e->text.text[0];
-            while (*c != '\0') {
-                _document.put(_vrow, _vcol, static_cast<uint8_t>(*c));
-                caret_right();
-                c++;
-            }
+            insert_text(&e->text.text[0]);
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
+                case SDLK_c: {
+                    if (ctrl_pressed) {
+                        std::stringstream stream;
+                        get_selected_text(stream);
+                        SDL_SetClipboardText(stream.str().c_str());
+                    }
+                    break;
+                }
+                case SDLK_v: {
+                    if (ctrl_pressed && SDL_HasClipboardText()) {
+                        auto text = SDL_GetClipboardText();
+                        insert_text(text);
+                    }
+                    break;
+                }
+                case SDLK_x: {
+                    if (ctrl_pressed) {
+                        std::stringstream stream;
+                        get_selected_text(stream);
+                        SDL_SetClipboardText(stream.str().c_str());
+                        delete_selection();
+                    }
+                    break;
+                }
                 case SDLK_ESCAPE: {
                     if (ctrl_pressed) {
                         focus(ids::command_line);
@@ -315,14 +392,8 @@ namespace ryu::ide::text_editor {
                     return true;
                 }
                 case SDLK_RETURN: {
-                    if (_caret.mode() == core::caret::mode::insert) {
-                        auto row = _vrow;
-                        if (_caret.column() == 0)
-                            row--;
-                        if (row < 0)
-                            row = 0;
-                        _document.insert_line(row);
-                    }
+                    if (_caret.mode() == core::caret::mode::insert)
+                        _document.split_line(_vrow, _vcol);
                     caret_down();
                     caret_home();
                     return true;
@@ -344,10 +415,14 @@ namespace ryu::ide::text_editor {
                     return true;
                 }
                 case SDLK_DELETE: {
-                    if (_document.is_line_empty(_vrow)) {
-                        _document.delete_line(_vrow + 1);
+                    if (_selection.valid()) {
+                        delete_selection();
                     } else {
-                        _document.shift_line_left(_vrow, _vcol);
+                        if (_document.is_line_empty(_vrow)) {
+                            _document.delete_line(_vrow + 1);
+                        } else {
+                            _document.shift_line_left(_vrow, _vcol);
+                        }
                     }
                     return true;
                 }
@@ -364,46 +439,69 @@ namespace ryu::ide::text_editor {
                     return true;
                 }
                 case SDLK_UP: {
-                    if (shift_pressed)
+                    if (shift_pressed) {
                         update_selection();
-                    else
+                        auto line_end = _document.find_line_end(_vrow);
+                        for (auto col = _vcol; col < line_end; col++) {
+                            auto attr = _document.get_attr(_vrow, col);
+                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                        }
+                    } else {
                         end_selection();
-
+                    }
                     caret_up();
-
+                    if (shift_pressed)
+                        caret_home();
                     return true;
                 }
                 case SDLK_DOWN: {
-                    if (shift_pressed)
+                    if (shift_pressed) {
                         update_selection();
-                    else
+                        auto line_end = _document.find_line_end(_vrow);
+                        for (auto col = _vcol; col < line_end; col++) {
+                            auto attr = _document.get_attr(_vrow, col);
+                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                        }
+                    } else {
                         end_selection();
-
+                    }
                     caret_down();
-
+                    if (shift_pressed)
+                        caret_home();
                     return true;
                 }
                 case SDLK_LEFT: {
-                    if (shift_pressed)
+                    if (shift_pressed) {
                         update_selection();
-                    else
+                        auto attr = _document.get_attr(_vrow, _vcol);
+                        _document.put_attr(_vrow, _vcol, set_upper_nybble(attr, core::font::styles::strikethrough));
+                    } else {
                         end_selection();
-
+                    }
                     caret_left();
-
                     return true;
                 }
                 case SDLK_RIGHT: {
-                    if (shift_pressed)
+                    if (shift_pressed) {
                         update_selection();
-                    else
+                        auto attr = _document.get_attr(_vrow, _vcol);
+                        _document.put_attr(_vrow, _vcol, set_upper_nybble(attr, core::font::styles::strikethrough));
+                    } else {
                         end_selection();
-
+                    }
                     caret_right();
-
                     return true;
                 }
                 case SDLK_HOME: {
+                    if (shift_pressed) {
+                        update_selection();
+                        for (auto col = _vcol; col >= 0; col--) {
+                            auto attr = _document.get_attr(_vrow, col);
+                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                        }
+                    } else {
+                        end_selection();
+                    }
                     if (ctrl_pressed)
                         first_page();
                     else
@@ -411,6 +509,16 @@ namespace ryu::ide::text_editor {
                     return true;
                 }
                 case SDLK_END: {
+                    if (shift_pressed) {
+                        update_selection();
+                        auto line_end = _document.find_line_end(_vrow);
+                        for (auto col = _vcol; col < line_end; col++) {
+                            auto attr = _document.get_attr(_vrow, col);
+                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                        }
+                    } else {
+                        end_selection();
+                    }
                     if (ctrl_pressed)
                         last_page();
                     else
@@ -437,12 +545,46 @@ namespace ryu::ide::text_editor {
         return false;
     }
 
+    void editor_view::get_selected_text(std::stringstream& stream) {
+        auto last_row = 0;
+        for_each_selection_char([&](int row, int col) {
+            if (last_row != row) {
+                last_row = row;
+                stream << "\n";
+            }
+            auto value = _document.get(row, col);
+            if (value == 0)
+                stream << " ";
+            else
+                stream << value;
+        });
+    }
+
     void editor_view::on_transition(const transition_to_callable& callable) {
         _transition_callable = callable;
     }
 
     void editor_view::on_execute_command(const execute_command_callable& callable) {
         _execute_command_callable = callable;
+    }
+
+    void editor_view::for_each_selection_char(const editor_view::char_action_callable& action) {
+        _selection.normalize();
+        auto row = _selection.start().first;
+        auto col = _selection.start().second;
+        auto line_end = _document.find_line_end(row);
+        while (true) {
+            action(row, col);
+            col++;
+            if (col >= line_end
+            || (_selection.end().second > 0 && col > _selection.end().second && row == _selection.end().first)) {
+                col = 0;
+                row++;
+                if (row > _selection.end().first)
+                    break;
+                line_end = _document.find_line_end(row);
+            }
+        }
     }
 
 }

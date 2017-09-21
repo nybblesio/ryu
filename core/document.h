@@ -12,7 +12,6 @@
 
 #include <list>
 #include <boost/filesystem.hpp>
-#include "core/state.h"
 
 namespace ryu::core {
 
@@ -125,10 +124,14 @@ namespace ryu::core {
             return _path.filename().string();
         }
 
+        uint8_t default_attr() const;
+
         inline bool column(int column) {
             _column = column;
             return clamp_column();
         }
+
+        void default_attr(uint8_t value);
 
         void load(const fs::path& path);
 
@@ -137,6 +140,8 @@ namespace ryu::core {
         void save(std::ostream& stream);
 
         uint8_t get(int row, int column);
+
+        void split_line(int row, int column);
 
         void save(const fs::path& path = "");
 
@@ -199,6 +204,7 @@ namespace ryu::core {
         int _page_height = 0;
         uint8_t* _data = nullptr;
         uint8_t* _attrs = nullptr;
+        uint8_t _default_attr = 0;
     };
 
 }
