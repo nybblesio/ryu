@@ -57,4 +57,13 @@ namespace ryu::hardware {
         return false;
     }
 
+    hardware::machine* registry::find_machine(const std::string& name) {
+        for (auto it = _machines.begin(); it != _machines.end(); ++it) {
+            if ((*it).second.name() == name) {
+                return &(*it).second;
+            }
+        }
+        return nullptr;
+    }
+
 }

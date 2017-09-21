@@ -10,6 +10,7 @@
 
 #include <rttr/type>
 #include <hardware/hardware.h>
+#include <hardware/registry.h>
 #include "controller.h"
 
 namespace ryu::ide::machine_editor {
@@ -21,6 +22,10 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_draw() {
+    }
+
+    void controller::on_deactivate() {
+        _machine = nullptr;
     }
 
     void controller::on_initialize() {
@@ -37,6 +42,14 @@ namespace ryu::ide::machine_editor {
     void controller::on_update(uint32_t dt) {
     }
 
+    hardware::machine* controller::machine() {
+        return _machine;
+    }
+
+    void controller::machine(hardware::machine* value) {
+        _machine = value;
+    }
+
     bool controller::on_process_event(const SDL_Event* e) {
         if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
@@ -47,6 +60,17 @@ namespace ryu::ide::machine_editor {
             }
         }
         return false;
+    }
+
+    void controller::on_activate(const core::parameter_dict& params) {
+        auto it = params.find("name");
+        if (it != params.end()) {
+            _machine = hardware::registry::instance()->find_machine(it->second);
+            if (_machine == nullptr) {
+                _machine = hardware::registry::instance()->new_machine();
+                _machine->name(it->second);
+            }
+        }
     }
 
 }

@@ -40,6 +40,13 @@ namespace ryu::core {
         }
     }
 
+    void state::deactivate() {
+        on_deactivate();
+    }
+
+    void state::on_deactivate() {
+    }
+
     void state::update(uint32_t dt) {
         on_update(dt);
     }
@@ -62,6 +69,13 @@ namespace ryu::core {
 
     void state::erase_blackboard(const std::string& name) {
         _context->erase_blackboard(name);
+    }
+
+    void state::activate(const core::parameter_dict& params) {
+        on_activate(params);
+    }
+
+    void state::on_activate(const core::parameter_dict& params) {
     }
 
     std::string state::blackboard(const std::string& name) const {

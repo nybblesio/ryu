@@ -35,10 +35,6 @@ namespace ryu::core {
         _fill_color_index = color_index;
     }
 
-    void context::push_state(int id) {
-        _stack.push(id);
-    }
-
     void context::update(uint32_t dt) {
         SDL_RenderSetClipRect(_renderer, &_clip_rect);
 
@@ -127,6 +123,10 @@ namespace ryu::core {
             return it->second;
         }
         return "";
+    }
+
+    void context::push_state(int id, const core::parameter_dict& params) {
+        _stack.push(id, params);
     }
 
     void context::blackboard(const std::string& name, const std::string& value) {

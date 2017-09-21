@@ -30,8 +30,6 @@ namespace ryu::core {
                 const SDL_Rect& clip_rect,
                 uint8_t color_index);
 
-        void push_state(int id);
-
         void update(uint32_t dt);
 
         inline int peek_state() const {
@@ -73,6 +71,8 @@ namespace ryu::core {
         void erase_blackboard(const std::string& name);
 
         std::string blackboard(const std::string& name) const;
+
+        void push_state(int id, const core::parameter_dict& params);
 
         void blackboard(const std::string& name, const std::string& value);
 

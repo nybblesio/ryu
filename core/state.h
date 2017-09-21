@@ -31,6 +31,8 @@ namespace ryu::core {
 
         void initialize();
 
+        void deactivate();
+
         void update(uint32_t dt);
 
         std::string name() const;
@@ -53,6 +55,8 @@ namespace ryu::core {
             return _id == rhs._id;
         }
 
+        void activate(const core::parameter_dict& params);
+
         void transition_callback(const state_transition_callable& callback);
 
         bool transition_to(const std::string& name, const parameter_dict& params);
@@ -61,6 +65,8 @@ namespace ryu::core {
         void end_state();
 
         virtual void on_draw() = 0;
+
+        virtual void on_deactivate();
 
         virtual void on_initialize() = 0;
 
@@ -71,6 +77,8 @@ namespace ryu::core {
         virtual bool on_process_event(const SDL_Event* e) = 0;
 
         std::string blackboard(const std::string& name) const;
+
+        virtual void on_activate(const core::parameter_dict& params);
 
         void blackboard(const std::string& name, const std::string& value);
 

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <core/state.h>
+#include <hardware/machine.h>
 
 namespace ryu::ide::machine_editor {
 
@@ -25,6 +26,10 @@ namespace ryu::ide::machine_editor {
                 int id,
                 const std::string& name);
 
+        hardware::machine* machine();
+
+        void machine(hardware::machine* value);
+
     protected:
         void on_draw() override;
 
@@ -34,7 +39,12 @@ namespace ryu::ide::machine_editor {
 
         bool on_process_event(const SDL_Event* e) override;
 
+        void on_deactivate() override;
+
+        void on_activate(const core::parameter_dict& params) override;
+
     private:
+        hardware::machine* _machine;
     };
 
 };

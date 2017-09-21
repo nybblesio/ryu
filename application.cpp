@@ -84,7 +84,7 @@ namespace ryu {
         };
 
         _ide_context.initialize(&_engine, rect, ide::context::colors::fill_color);
-        _ide_context.push_state(ide::context::states::console);
+        _ide_context.push_state(ide::context::states::console, {});
         _engine.add_context(&_ide_context);
     }
 
@@ -97,7 +97,7 @@ namespace ryu {
         };
 
         _emulator_context.initialize(&_engine, rect, emulator::context::colors::fill_color);
-        _emulator_context.push_state(emulator::context::states::execute);
+        _emulator_context.push_state(emulator::context::states::execute, {});
         _engine.add_context(&_emulator_context);
     }
 

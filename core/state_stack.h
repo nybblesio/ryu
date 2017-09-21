@@ -33,8 +33,6 @@ namespace ryu::core {
 
         int peek() const;
 
-        void push(int id);
-
         bool empty() const;
 
         void draw(uint32_t dt);
@@ -51,6 +49,8 @@ namespace ryu::core {
 
         void remove_state(core::state* state);
 
+        void push(int id, const core::parameter_dict& params);
+
         void add_state(core::state* state, const state_transition_callable& callback);
 
     private:
@@ -61,6 +61,7 @@ namespace ryu::core {
         int _pending_id = -1;
         std::vector<int> _stack;
         core::state* _active = nullptr;
+        core::parameter_dict _pending_params {};
         pending_state::action _pending_action = pending_state::action::none;
     };
 

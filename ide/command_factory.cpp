@@ -122,6 +122,7 @@ namespace ryu::ide {
                     ("usemachine",  command_factory::command::use_machine)
 
                     // editor and tool commands
+                    ("%",           command_factory::command::open_editor)
                     ("sounds",      command_factory::command::sounds)
                     ("tracker",     command_factory::command::tracker)
                     ("tiles",       command_factory::command::tile_editor)
@@ -132,7 +133,7 @@ namespace ryu::ide {
         }
     };
 
-    struct symbol_t {
+    struct identifier_t {
         std::string value;
     };
 
@@ -140,7 +141,7 @@ namespace ryu::ide {
         std::string value;
     };
 
-    typedef std::vector<boost::variant<uint32_t, symbol_t, string_literal_t, char>> command_parameters;
+    typedef std::vector<boost::variant<uint32_t, identifier_t, string_literal_t, char>> command_parameters;
     struct command_t {
         command_factory::command::types type;
         command_parameters params;
@@ -168,9 +169,9 @@ namespace ryu::ide {
             }
 
             std::stringstream stream;
-            stream << "Syntax error in " << what << std::endl
-                   << error_line << std::endl
-                   << std::setw(error_pos) << '^' << std::endl;
+            stream << "Syntax error in " << what << "\n"
+                   << error_line << "\n"
+                   << std::setw(error_pos) << '^';
             const_cast<error_reporter_t*>(this)->_error = stream.str();
         }
 
@@ -185,15 +186,13 @@ namespace ryu::ide {
             character %= lit("'") > char_ > lit("'");
             character.name("character");
 
-            symbol %= lexeme[
-                    (('_' | alpha) >> *(alnum))
-            ];
-            symbol.name("symbol");
+            identifier = alpha >> +(alnum | '_');
+            identifier.name("identifier");
 
             number %= lexeme[
                         (('$' | lit("0x")) >> hex_parser)
                     |   (('%' | lit("0b")) >> bin_parser)
-                    |   (('@' | lit("0")) >> octal_parser)
+                    |   (('@' | lit("0"))  >> octal_parser)
                     |   (dec_parser)
             ];
             number.name("number");
@@ -201,7 +200,7 @@ namespace ryu::ide {
             quoted_string %= lexeme['"' > +(char_ - '"') > '"'];
             quoted_string.name("quoted_string");
 
-            start %= (eps > no_case[command_symbols]) >> *(symbol | number | character | quoted_string);
+            start %= (eps > no_case[command_symbols]) >> *(identifier | number | character | quoted_string);
             start.name("command");
 
             boost::phoenix::function<error_reporter_t> f = reporter;
@@ -218,7 +217,7 @@ namespace ryu::ide {
         error_reporter_t reporter;
         rule<Iterator, char()> character;
         rule<Iterator, uint32_t()> number;
-        rule<Iterator, symbol_t()> symbol;
+        rule<Iterator, identifier_t()> identifier;
         uint_parser<uint32_t, 2, 1, 32> bin_parser;
         uint_parser<uint32_t, 16, 1, 8> hex_parser;
         uint_parser<uint32_t, 10, 1, 10> dec_parser;
@@ -371,11 +370,50 @@ namespace ryu::ide {
                 result.add_data("C002", {});
                 break;
             }
+            case command::open_editor: {
+                if (command.params.size() < 2) {
+                    result.add_message(
+                            "C030",
+                            "open editor requires {italic}name{} and {italic}type{} parameters",
+                            true);
+                    return false;
+                }
+                const auto& name = command.params[0];
+                const auto& type = command.params[1];
+
+                core::parameter_dict params;
+                if (name.which() == 2) {
+                    string_literal_t lit = boost::get<string_literal_t>(name);
+                    params["name"] = lit.value;
+                } else {
+                    result.add_message("C030", "{italic}name{} must be a string literal", true);
+                    result.fail();
+                }
+
+                if (type.which() == 1) {
+                    identifier_t symbol = boost::get<identifier_t>(type);
+                    params["type"] = symbol.value;
+                } else {
+                    result.add_message("C030", "{italic}type{} must be a identifier", true);
+                    result.fail();
+                }
+
+                if (result.is_failed())
+                    return false;
+
+                result.add_data("C030", params);
+                break;
+            }
             case command::machines_list: {
                 auto machines = hardware::registry::instance()->machines();
-                result.add_message("C028", "{rev}{bold} ID     Name                            ");
+                result.add_message("C028", "{rev}{bold}  ID Name                             Type ");
                 for (auto machine : machines) {
-                    result.add_message("C028", fmt::format("{:>6d} \"{:<32s}\"", machine->id(), machine->name()));
+                    result.add_message(
+                            "C028",
+                            fmt::format(" {:>3d} {:<32s} {:<4s}",
+                                        machine->id(),
+                                        fmt::format("\"{}\"", machine->name()),
+                                        "MACH"));
                 }
                 result.add_message("C028", fmt::format("{} registered machines", machines.size()));
                 break;
@@ -451,7 +489,7 @@ namespace ryu::ide {
 
 }
 
-BOOST_FUSION_ADAPT_STRUCT(ryu::ide::symbol_t, value);
+BOOST_FUSION_ADAPT_STRUCT(ryu::ide::identifier_t, value);
 
 BOOST_FUSION_ADAPT_STRUCT(ryu::ide::string_literal_t, value);
 

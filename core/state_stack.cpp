@@ -31,6 +31,7 @@ namespace ryu::core {
                 break;
             }
             case pending_state::action::pop: {
+                // XXX: need to call deactivate on each stack as we remove them from the stack
                 while (!_stack.empty()) {
                     auto top = _stack.back();
                     _stack.pop_back();
@@ -46,6 +47,7 @@ namespace ryu::core {
         }
 
         _pending_action = pending_state::action::none;
+        _pending_params = {};
         _pending_id = -1;
     }
 
@@ -53,8 +55,9 @@ namespace ryu::core {
         return _stack.empty() ? -1 : _stack.back();
     }
 
-    void state_stack::push(int id) {
+    void state_stack::push(int id, const core::parameter_dict& params) {
         _pending_action = pending_state::action::push;
+        _pending_params = params;
         _pending_id = id;
     }
 
@@ -87,7 +90,10 @@ namespace ryu::core {
     }
 
     void state_stack::update_active_state() {
+        if (_active != nullptr)
+            _active->deactivate();
         _active = find_state(peek());
+        _active->activate(_pending_params);
     }
 
     core::state* state_stack::find_state(int id) {

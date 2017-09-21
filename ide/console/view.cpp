@@ -217,6 +217,7 @@ namespace ryu::ide::console {
                             }
 
                             caret_down();
+                            caret_home();
 
                             auto consumed = true;
 
@@ -240,6 +241,22 @@ namespace ryu::ide::console {
                                 code = result.find_code("C024");
                                 if (code != nullptr) {
                                     consumed = transition_to("hex_editor", code->params());
+                                }
+
+                                code = result.find_code("C030");
+                                if (code != nullptr) {
+                                    const auto& params = code->params();
+                                    auto it = params.find("type");
+                                    if (it != params.end()) {
+                                        auto type = it->second;
+                                        if (type == "MACH") {
+                                            consumed = transition_to("machine_editor", params);
+                                        } else if (type == "TEXT") {
+                                            consumed = transition_to("text_editor", params);
+                                        } else if (type == "DATA") {
+                                            consumed = transition_to("hex_editor", params);
+                                        }
+                                    }
                                 }
                             }
 

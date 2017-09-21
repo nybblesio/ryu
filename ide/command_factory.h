@@ -19,10 +19,10 @@ namespace ryu::ide {
         struct command {
             enum types : uint8_t {
                 quit = 1,
+                clear,
+
                 assemble,
                 evaluate,
-                text_editor,
-                memory_editor,
                 disassemble,
                 hex_dump,
                 search_memory,
@@ -31,26 +31,31 @@ namespace ryu::ide {
                 jump_to_address,
                 go_to_address,
                 register_editor,
-                clear,
+
+                dir,
+                remove_file,
                 change_directory,
                 print_working_directory,
+
                 new_project,
                 load_project,
                 save_project,
                 clone_project,
-                remove_file,
-                dir,
 
                 machine_editor,
                 machines_list,
                 del_machine,
                 use_machine,
 
+                open_editor,
+                text_editor,
+                memory_editor,
                 sprite_editor,
                 tile_editor,
                 background_editor,
                 tracker,
                 sounds,
+
                 read_binary_to_memory,
                 write_memory_to_binary,
                 read_text,

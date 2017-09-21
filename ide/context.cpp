@@ -22,13 +22,13 @@ namespace ryu::ide {
                 &_console_state,
                 [this](auto state, auto& command, auto& params) {
                     if (command == "text_editor") {
-                        push_state(states::text_editor);
+                        push_state(states::text_editor, params);
                         return true;
                     } else if (command == "hex_editor") {
-                        push_state(states::hex_editor);
+                        push_state(states::hex_editor, params);
                         return true;
                     } else if (command == "machine_editor") {
-                        push_state(states::machine_editor);
+                        push_state(states::machine_editor, params);
                         return true;
                     }
                     return false;

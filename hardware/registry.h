@@ -34,6 +34,8 @@ namespace ryu::hardware {
 
         bool load(core::result& result, const fs::path& path);
 
+        hardware::machine* find_machine(const std::string& name);
+
     protected:
         registry() = default;
 
