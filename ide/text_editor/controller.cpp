@@ -29,8 +29,8 @@ namespace ryu::ide::text_editor {
     void controller::on_initialize() {
         _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize(rows, columns);
-        _view.on_transition([&](const std::string& name) {
-            return transition_to(name);
+        _view.on_transition([&](auto* state, const std::string& name, const core::parameter_dict& params) {
+            return transition_to(name, params);
         });
         _view.on_execute_command([&](core::result& result, const std::string& input) {
             _command_factory.execute(result, input);

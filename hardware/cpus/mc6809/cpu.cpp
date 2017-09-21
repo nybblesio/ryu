@@ -256,6 +256,17 @@ RTTR_REGISTRATION {
 
 namespace ryu::hardware::mc6809 {
 
+    mnemonic_set cpu::_mnemonics;
+    opcode_dictionary cpu::_opcodes;
+
+    const mnemonic_set& cpu::mnemonics() {
+        return _mnemonics;
+    }
+
+    const opcode_dictionary& cpu::opcodes() {
+        return _opcodes;
+    }
+
     cpu::cpu(int id, const std::string& name) : hardware::integrated_circuit(id, name) {
     }
 
@@ -1185,6 +1196,11 @@ namespace ryu::hardware::mc6809 {
                 9,
                 opcode::address_modes::relative,
                 {"tstb"});
+
+        for (const auto& it : _opcodes) {
+            const auto& mnemonics = it.second.mnemonics();
+            _mnemonics.insert(mnemonics.begin(), mnemonics.end());
+        }
     }
 
 }

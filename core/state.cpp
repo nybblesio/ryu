@@ -60,12 +60,6 @@ namespace ryu::core {
         return on_process_event(e);
     }
 
-    bool state::transition_to(const std::string& name) {
-        if (_callback)
-            return _callback(this, name);
-        return false;
-    }
-
     void state::erase_blackboard(const std::string& name) {
         _context->erase_blackboard(name);
     }
@@ -80,6 +74,12 @@ namespace ryu::core {
 
     void state::transition_callback(const state_transition_callable& callback) {
         _callback = callback;
+    }
+
+    bool state::transition_to(const std::string& name, const parameter_dict& params) {
+        if (_callback)
+            return _callback(this, name, params);
+        return false;
     }
 
 }

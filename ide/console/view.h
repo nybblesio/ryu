@@ -21,8 +21,7 @@ namespace ryu::ide::console {
 
     class view : public core::view {
     public:
-        using transition_to_callable = std::function<bool (const std::string&)>;
-        using execute_command_callable = std::function<void (core::result&, const std::string&)>;
+        using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
 
         enum ids {
             caret = 2,
@@ -54,9 +53,9 @@ namespace ryu::ide::console {
 
         void write_message(const std::string& message);
 
-        void on_transition(const transition_to_callable& callable);
-
         void on_execute_command(const execute_command_callable& callable);
+
+        void on_transition(const core::state_transition_callable& callable);
 
     protected:
         void on_draw() override;
@@ -64,7 +63,7 @@ namespace ryu::ide::console {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        bool transition_to(const std::string& name);
+        bool transition_to(const std::string& name, const core::parameter_dict& params);
 
     private:
         uint8_t _color;
@@ -74,8 +73,8 @@ namespace ryu::ide::console {
         core::label _header;
         core::label _footer;
         core::document _document;
-        transition_to_callable _transition_to_callback;
         execute_command_callable _execute_command_callback;
+        core::state_transition_callable _transition_to_callback;
     };
 
 };

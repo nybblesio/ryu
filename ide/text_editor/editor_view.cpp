@@ -560,12 +560,12 @@ namespace ryu::ide::text_editor {
         });
     }
 
-    void editor_view::on_transition(const transition_to_callable& callable) {
-        _transition_callable = callable;
-    }
-
     void editor_view::on_execute_command(const execute_command_callable& callable) {
         _execute_command_callable = callable;
+    }
+
+    void editor_view::on_transition(const core::state_transition_callable& callable) {
+        _transition_callable = callable;
     }
 
     void editor_view::for_each_selection_char(const editor_view::char_action_callable& action) {

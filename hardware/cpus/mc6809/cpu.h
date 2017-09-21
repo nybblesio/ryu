@@ -14,6 +14,10 @@ namespace ryu::hardware::mc6809 {
 
     class cpu : public hardware::integrated_circuit {
     public:
+        static const mnemonic_set& mnemonics();
+
+        static const opcode_dictionary& opcodes();
+
         static void init();
 
         cpu(int id, const std::string& name);
@@ -23,6 +27,7 @@ namespace ryu::hardware::mc6809 {
         RTTR_ENABLE(hardware::integrated_circuit)
 
     private:
+        static mnemonic_set _mnemonics;
         static opcode_dictionary _opcodes;
     };
 

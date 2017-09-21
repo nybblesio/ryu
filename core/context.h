@@ -34,6 +34,10 @@ namespace ryu::core {
 
         void update(uint32_t dt);
 
+        inline int peek_state() const {
+            return _stack.peek();
+        }
+
         void pop_state(int to_id = -1);
 
         void remove_timer(timer* timer);
@@ -60,6 +64,10 @@ namespace ryu::core {
 
         inline core::palette* palette() const {
             return _palette;
+        }
+
+        inline core::state* find_state(int id) {
+            return _stack.find_state(id);
         }
 
         void erase_blackboard(const std::string& name);

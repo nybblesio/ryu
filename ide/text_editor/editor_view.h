@@ -23,7 +23,6 @@ namespace ryu::ide::text_editor {
     class editor_view : public core::view {
     public:
         using char_action_callable = std::function<void (int, int)>;
-        using transition_to_callable = std::function<bool (const std::string&)>;
         using execute_command_callable = std::function<void (core::result&, const std::string&)>;
 
         enum ids {
@@ -53,9 +52,9 @@ namespace ryu::ide::text_editor {
 
         void initialize(int rows, int columns);
 
-        void on_transition(const transition_to_callable& callable);
-
         void on_execute_command(const execute_command_callable& callable);
+
+        void on_transition(const core::state_transition_callable& callable);
 
     protected:
         void on_draw() override;
@@ -118,8 +117,8 @@ namespace ryu::ide::text_editor {
         core::document _document;
         core::selection _selection;
         core::textbox _command_line;
-        transition_to_callable _transition_callable;
         execute_command_callable _execute_command_callable;
+        core::state_transition_callable _transition_callable;
     };
 
 };

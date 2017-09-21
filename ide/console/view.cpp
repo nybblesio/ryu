@@ -174,8 +174,7 @@ namespace ryu::ide::console {
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
                 case SDLK_ESCAPE: {
-                    if (_transition_to_callback != nullptr)
-                        return _transition_to_callback("text_editor");
+                    return transition_to("text_editor", {});
                 }
                 case SDLK_RETURN: {
                     core::result result;
@@ -205,33 +204,43 @@ namespace ryu::ide::console {
                         // finally, if we got something, try to execute it
                         auto str = cmd.str();
                         if (str.length() > 0 && _execute_command_callback != nullptr) {
-                            _execute_command_callback(result, str);
+                            auto success = _execute_command_callback(result, str);
 
                             caret_down();
                             caret_home();
 
-                            for (const auto& msg : result.messages())
-                                write_message(fmt::format("{0}{1}", msg.is_error() ? "ERROR: " : "", msg.message()));
+                            for (const auto& msg : result.messages()) {
+                                if (msg.type() == core::result_message::types::data)
+                                    continue;
+                                auto error_part = msg.is_error() ? "{bold}{red}ERROR:{} " : "";
+                                write_message(fmt::format("{0}{1}", error_part, msg.message()));
+                            }
 
                             caret_down();
 
                             auto consumed = true;
 
-                            if (result.has_code("C001"))
+                            if (result.has_code("C001")) {
                                 context()->engine()->quit();
-                            else if (result.has_code("C002")) {
-                                consumed = transition_to("text_editor");
-                            }
-                            else if (result.has_code("C023")) {
-                                consumed = transition_to("machine_editor");
-                            }
-                            else if (result.has_code("C024")) {
-                                consumed = transition_to("hex_editor");
-                            }
-                            else if (result.has_code("C004")) {
+                            } else if (result.has_code("C004")) {
                                 _document.clear();
                                 caret_home();
                                 _caret.row(0);
+                            } else if (success) {
+                                auto code = result.find_code("C023");
+                                if (code != nullptr) {
+                                    consumed = transition_to("machine_editor", code->params());
+                                }
+
+                                code = result.find_code("C002");
+                                if (code != nullptr) {
+                                    consumed = transition_to("text_editor", code->params());
+                                }
+
+                                code = result.find_code("C024");
+                                if (code != nullptr) {
+                                    consumed = transition_to("hex_editor", code->params());
+                                }
                             }
 
                             write_message("Ready.");
@@ -369,18 +378,20 @@ namespace ryu::ide::console {
         caret_home();
     }
 
-    void view::on_transition(const transition_to_callable& callable) {
-        _transition_to_callback = callable;
-    }
-
     void view::on_execute_command(const execute_command_callable& callable) {
         _execute_command_callback = callable;
     }
 
-    bool view::transition_to(const std::string& name) {
+    void view::on_transition(const core::state_transition_callable& callable) {
+        _transition_to_callback = callable;
+    }
+
+    bool view::transition_to(const std::string& name, const core::parameter_dict& params) {
         bool consumed = false;
-        if (_transition_to_callback)
-            consumed = _transition_to_callback(name);
+        if (_transition_to_callback) {
+            auto ctx = context();
+            consumed = _transition_to_callback(ctx->find_state(ctx->peek_state()), name, params);
+        }
         return consumed;
     }
 

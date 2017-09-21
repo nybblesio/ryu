@@ -18,6 +18,7 @@ namespace ryu::hardware {
         rttr::type::get<ram>();
         rttr::type::get<rom>();
         rttr::type::get<mc6809::cpu>();
+        mc6809::cpu::init();
     }
 
 }

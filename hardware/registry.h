@@ -20,13 +20,27 @@ namespace ryu::hardware {
 
     class registry {
     public:
-        registry() = default;
+        static registry* instance();
+
+        machine_list machines();
+
+        void remove_machine(int id);
+
+        hardware::machine* new_machine();
+
+        hardware::machine* find_machine(int id);
 
         bool save(core::result& result, const fs::path& path);
 
         bool load(core::result& result, const fs::path& path);
 
+    protected:
+        registry() = default;
+
+        virtual ~registry() = default;
+
     private:
+        machine_dict _machines;
     };
 
 };

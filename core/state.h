@@ -53,9 +53,9 @@ namespace ryu::core {
             return _id == rhs._id;
         }
 
-        bool transition_to(const std::string& name);
-
         void transition_callback(const state_transition_callable& callback);
+
+        bool transition_to(const std::string& name, const parameter_dict& params);
 
     protected:
         void end_state();

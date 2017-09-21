@@ -10,6 +10,8 @@
 
 #include <iomanip>
 #include <fmt/format.h>
+#include <hardware/machine.h>
+#include <hardware/registry.h>
 #include <boost/filesystem.hpp>
 #include <common/string_support.h>
 #include <boost/spirit/include/qi.hpp>
@@ -28,7 +30,6 @@ namespace ryu::ide {
     using namespace boost::fusion;
 
     // commands are not case sensitive
-
     //
     // !                                        - quit
     //
@@ -61,8 +62,11 @@ namespace ryu::ide {
     // CLONE [filename]                         - saves open project to a new file
     // RM [filename]                            - delete filename
     // DIR                                      - list contents of the current directory
-    // MACHINES                                 - open the machine editor
-    // MACHINE [name]                           - make the named machine current
+    //
+    // MACHINES                                 - list the machines available in the registry
+    // MACHINE [name]                           - open editor for machine name or create a new machine
+    // DELMACHINE [name]                        - remove the named machine from the registry
+    // USEMACHINE [name]                        - set the machine as current for the project
     //
     // RB [filename] [start addr] [end addr]    - read binary into memory
     // WB [filename] [start addr] [end addr]    - write memory to binary file on disk
@@ -111,13 +115,17 @@ namespace ryu::ide {
                     (":",           command_factory::command::goto_line)
                     ("/",           command_factory::command::find_text)
 
+                    // machines
+                    ("machines",    command_factory::command::machines_list)
+                    ("machine",     command_factory::command::machine_editor)
+                    ("delmachine",  command_factory::command::del_machine)
+                    ("usemachine",  command_factory::command::use_machine)
+
                     // editor and tool commands
                     ("sounds",      command_factory::command::sounds)
                     ("tracker",     command_factory::command::tracker)
                     ("tiles",       command_factory::command::tile_editor)
-                    ("machine",     command_factory::command::set_machine)
                     ("sprites",     command_factory::command::sprite_editor)
-                    ("machines",    command_factory::command::machines_editor)
                     ("backgrounds", command_factory::command::background_editor)
                     ;
             name("command-name");
@@ -356,15 +364,65 @@ namespace ryu::ide {
                 break;
             }
             case command::memory_editor: {
-                result.add_message("C024", "Open hex editor.");
+                result.add_data("C024", {});
                 break;
             }
             case command::text_editor: {
-                result.add_message("C002", "Open text editor.");
+                result.add_data("C002", {});
                 break;
             }
-            case command::machines_editor: {
-                result.add_message("C023", "Open machines editor.");
+            case command::machines_list: {
+                auto machines = hardware::registry::instance()->machines();
+                result.add_message("C028", "{rev}{bold} ID     Name                            ");
+                for (auto machine : machines) {
+                    result.add_message("C028", fmt::format("{:>6d} \"{:<32s}\"", machine->id(), machine->name()));
+                }
+                result.add_message("C028", fmt::format("{} registered machines", machines.size()));
+                break;
+            }
+            case command::machine_editor: {
+                if (command.params.empty()) {
+                    result.add_message("C023", "machine name required", true);
+                    return false;
+                }
+                const auto& param = command.params[0];
+                if (param.which() == 2) {
+                    string_literal_t lit = boost::get<string_literal_t>(param);
+                    result.add_data("C023", {{"name", lit.value}});
+                } else {
+                    result.add_message("C023", "machine name must be a string literal", true);
+                    return false;
+                }
+                break;
+            }
+            case command::use_machine: {
+                if (command.params.empty()) {
+                    result.add_message("C026", "machine name required", true);
+                    return false;
+                }
+                const auto& param = command.params[0];
+                if (param.which() == 2) {
+                    string_literal_t lit = boost::get<string_literal_t>(param);
+                    result.add_data("C026", {{"name", lit.value}});
+                } else {
+                    result.add_message("C026", "machine name must be a string literal", true);
+                    return false;
+                }
+                break;
+            }
+            case command::del_machine: {
+                if (command.params.empty()) {
+                    result.add_message("C027", "machine name required", true);
+                    return false;
+                }
+                const auto& param = command.params[0];
+                if (param.which() == 2) {
+                    string_literal_t lit = boost::get<string_literal_t>(param);
+                    result.add_data("C027", {{"name", lit.value}});
+                } else {
+                    result.add_message("C027", "machine name must be a string literal", true);
+                    return false;
+                }
                 break;
             }
             case command::goto_line: {
@@ -372,13 +430,19 @@ namespace ryu::ide {
                     result.add_message("C020", "line number is required", true);
                     return false;
                 }
-                uint32_t value = boost::get<uint32_t>(command.params[0]);
-                result.add_message("C020", std::to_string(value));
+                const auto& param = command.params[0];
+                if (param.which() == 0) {
+                    uint32_t value = boost::get<uint32_t>(param);
+                    result.add_message("C020", std::to_string(value));
+                } else {
+                    result.add_message("C020", "line number must be a number", true);
+                    return false;
+                }
                 break;
             }
             default: {
-                result.add_message("C400", "Command not implemented.");
-                break;
+                result.add_message("C400", "Command not implemented.", true);
+                return false;
             }
         }
 

@@ -14,6 +14,8 @@
 
 namespace ryu::hardware::mc6809 {
 
+    typedef std::set<std::string> mnemonic_set;
+
     class opcode {
     public:
         enum address_modes : uint8_t {
@@ -32,7 +34,7 @@ namespace ryu::hardware::mc6809 {
                 uint16_t op,
                 uint8_t cycles,
                 uint8_t mode,
-                std::set<std::string> mnemonics);
+                mnemonic_set mnemonics);
 
         opcode(const opcode& other) : _op(other._op),
                                       _cycles(other._cycles),
@@ -48,10 +50,12 @@ namespace ryu::hardware::mc6809 {
             return *this;
         }
 
+        const mnemonic_set& mnemonics() const;
+
     private:
         uint16_t _op = 0;
         uint8_t _cycles = 0;
-        std::set<std::string> _mnemonics;
+        mnemonic_set _mnemonics;
         uint8_t _mode = address_modes::none;
     };
 

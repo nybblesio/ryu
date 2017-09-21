@@ -8,16 +8,15 @@
 #pragma once
 
 #include <string>
-#include <utility>
 #include <vector>
+#include <utility>
 #include "result_message.h"
 
 namespace ryu::core {
 
     class result {
     public:
-        result() : _success(true), _messages({}) {
-        }
+        result() = default;
 
         inline void fail() {
             _success = false;
@@ -27,17 +26,27 @@ namespace ryu::core {
             _success = true;
         }
 
+        inline void add_data(
+                const std::string& code,
+                const core::parameter_dict& params) {
+            _messages.emplace_back(code, params);
+        }
+
         inline void add_message(
                 const std::string& code,
                 const std::string& message) {
-            _messages.emplace_back(code, message, "", false);
+            _messages.emplace_back(code, message, std::string(), result_message::types::info);
         }
 
         inline void add_message(
                 const std::string& code,
                 const std::string& message,
                 bool error) {
-            _messages.emplace_back(code, message, "", error);
+            _messages.emplace_back(
+                    code,
+                    message,
+                    std::string(),
+                    error ? result_message::types::error : result_message::types::info);
         }
 
         inline void add_message(
@@ -45,7 +54,19 @@ namespace ryu::core {
                 const std::string& message,
                 const std::string& details,
                 bool error) {
-            _messages.emplace_back(code, message, details, error);
+            _messages.emplace_back(
+                    code,
+                    message,
+                    details,
+                    error ? result_message::types::error : result_message::types::info);
+        }
+
+        inline bool is_failed() const {
+            return !_success;
+        }
+
+        inline const result_message_list& messages() const {
+            return _messages;
         }
 
         inline bool has_code(const std::string& code) const {
@@ -55,17 +76,17 @@ namespace ryu::core {
             return false;
         }
 
-        inline bool is_failed() const {
-            return !_success;
-        }
-
-        inline const result_message_list & messages() const {
-            return _messages;
+        inline const result_message* find_code(const std::string& code) const {
+            for (auto it = _messages.begin(); it != _messages.end(); ++it) {
+                if ((*it).code() == code)
+                    return &(*it);
+            }
+            return nullptr;
         }
 
     private:
-        bool _success = false;
-        result_message_list _messages;
+        bool _success = true;
+        result_message_list _messages {};
     };
 
 };

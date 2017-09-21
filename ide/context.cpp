@@ -20,7 +20,7 @@ namespace ryu::ide {
                                                  _machine_editor_state(this, states::machine_editor, "machine editor") {
         add_state(
                 &_console_state,
-                [this](auto state, auto& command) {
+                [this](auto state, auto& command, auto& params) {
                     if (command == "text_editor") {
                         push_state(states::text_editor);
                         return true;
@@ -144,4 +144,5 @@ namespace ryu::ide {
     void context::project(core::project* project) {
         _project = project;
     }
+
 }

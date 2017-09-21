@@ -26,9 +26,9 @@ namespace ryu::core {
         return id;
     }
 
-    id_pool& id_pool::instance() {
+    id_pool* id_pool::instance() {
         static id_pool pool;
-        return pool;
+        return &pool;
     }
 
     void id_pool::release(int32_t id) {
@@ -45,7 +45,7 @@ namespace ryu::core {
                 _pool.insert(id_interval(id, id));
             } else {
                 if (it != _pool.begin()) {
-                    id_set::iterator it_2 = it;
+                    auto it_2 = it;
                     --it_2;
                     if (it_2->right() + 1 == id ) {
                         id_interval _interval2 = *(it_2);

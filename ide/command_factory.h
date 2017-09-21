@@ -40,8 +40,12 @@ namespace ryu::ide {
                 clone_project,
                 remove_file,
                 dir,
-                machines_editor,
-                set_machine,
+
+                machine_editor,
+                machines_list,
+                del_machine,
+                use_machine,
+
                 sprite_editor,
                 tile_editor,
                 background_editor,

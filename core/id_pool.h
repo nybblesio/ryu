@@ -37,15 +37,16 @@ namespace ryu::core {
 
     class id_pool {
     public:
-        static id_pool& instance();
-
-        id_pool();
+        static id_pool* instance();
 
         int32_t allocate();
 
         void release(int32_t id);
 
         bool mark_used(int32_t id);
+
+    protected:
+        id_pool();
 
     private:
         id_set _pool;

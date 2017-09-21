@@ -6,7 +6,6 @@
 //
 
 #include "opcode.h"
-#include <utility>
 
 namespace ryu::hardware::mc6809 {
 
@@ -18,6 +17,10 @@ namespace ryu::hardware::mc6809 {
                                                _cycles(cycles),
                                                _mnemonics(std::move(mnemonics)),
                                                _mode(mode) {
+    }
+
+    const mnemonic_set& opcode::mnemonics() const {
+        return _mnemonics;
     }
 
 }

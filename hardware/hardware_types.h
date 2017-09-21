@@ -17,6 +17,9 @@ namespace ryu::hardware {
 
     class machine;
 
+    typedef std::map<int, machine> machine_dict;
+    typedef std::vector<machine*> machine_list;
+
     class display;
 
     class memory_mapper;
