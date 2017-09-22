@@ -13,6 +13,7 @@
 #include <stack>
 #include <vector>
 #include <boost/variant.hpp>
+#include <core/result.h>
 
 namespace ryu::ide {
 
@@ -75,10 +76,10 @@ namespace ryu::ide {
     };
 
     struct operator_t {
-        enum op_type {
-            any = 1,
-            unary,
-            binary
+        enum op_type : uint8_t {
+            no_op = 0b00000000,
+            unary = 0b00000001,
+            binary= 0b00000010
         };
 
         enum associativity_type {
@@ -87,22 +88,23 @@ namespace ryu::ide {
             left
         };
 
-        bool operator> (const operator_t& other) {
-            return precedence > other.precedence;
+        bool not_right_associative() {
+            return type != associativity_type::right;
         }
 
-        bool operator< (const operator_t& other) {
-            return precedence < other.precedence;
+        int compare_precedence(const operator_t& other) {
+            return precedence > other.precedence ? 1 : other.precedence == precedence ? 0 : -1;
         }
 
-        bool operator== (const operator_t& other) {
-            return symbol == other.symbol;
-        }
-
-        op_type type;
         std::string symbol;
         uint8_t precedence = 0;
+        uint8_t type = op_type::no_op;
         associativity_type associativity = associativity_type::none;
+    };
+
+    struct radix_number_t {
+        int radix = 0;
+        std::string value;
     };
 
     typedef std::map<std::string, operator_t> operator_dict;
@@ -111,7 +113,7 @@ namespace ryu::ide {
 
     typedef std::vector<ast_node_t*> ast_node_list;
 
-    typedef boost::variant<uint32_t, std::string, char, operator_t, command_t> variant_t;
+    typedef boost::variant<radix_number_t, std::string, char, operator_t, command_t> variant_t;
 
     typedef std::map<std::string, variant_t> symbol_table;
 
@@ -143,7 +145,9 @@ namespace ryu::ide {
     public:
         explicit command_parser(const std::string& input);
 
-        ast_node_t parse();
+        ast_node_t* parse();
+
+        const core::result& result() const;
 
         const variant_t* symbol(const std::string& name) const;
 
@@ -158,6 +162,10 @@ namespace ryu::ide {
 
         void increment_line();
 
+        char* current_token();
+
+        ast_node_t* pop_operand();
+
         ast_node_t* parse_number();
 
         void forget_top_position();
@@ -166,17 +174,29 @@ namespace ryu::ide {
 
         char* move_to_next_token();
 
+        operator_t* pop_operator();
+
+        operator_t* peek_operator();
+
         ast_node_t* parse_command();
 
         void clear_position_stack();
+
+        operator_t* parse_operator();
 
         ast_node_t* parse_expression();
 
         ast_node_t* parse_identifier();
 
+        void push_operator(operator_t* op);
+
         ast_node_t* parse_literal_string();
 
+        void push_operand(ast_node_t* node);
+
         ast_node_t* parse_literal_character();
+
+        void error(const std::string& code, const std::string& message);
 
     private:
         static command_table _commands;
@@ -186,10 +206,12 @@ namespace ryu::ide {
         int _index;
         int _column;
         std::string _input;
+        core::result _result;
         symbol_table _symbols;
         char* _token = nullptr;
-        std::stack<ast_node_t> _operand_stack;
-        std::stack<operator_t> _operator_stack;
+        operator_t* _last_operator = nullptr;
+        std::stack<ast_node_t*> _operand_stack;
+        std::stack<operator_t*> _operator_stack;
         std::stack<scanner_pos_t> _position_stack;
     };
 
