@@ -16,10 +16,12 @@ add_library(
         padding.cpp padding.h
         document.cpp document.h
         selection.cpp selection.h
+        evaluator.cpp evaluator.h
         state_stack.cpp state_stack.h
         views/label.cpp views/label.h
         views/caret.cpp views/caret.h
         font_family.cpp font_family.h
+        symbol_table.cpp symbol_table.h
         views/button.cpp views/button.h
         views/textbox.cpp views/textbox.h
         palette_entry.cpp palette_entry.h

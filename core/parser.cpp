@@ -15,26 +15,28 @@
 namespace ryu::core {
 
     operator_dict parser::_operators = {
-            {"~",  {"~",  12, operator_t::op_type::unary,  operator_t::associativity_type::right}},
-            {"`",  {"-",  11, operator_t::op_type::unary,  operator_t::associativity_type::right}},
-            {"^",  {"^",  10, operator_t::op_type::binary, operator_t::associativity_type::right}},
-            {"*",  {"*",   9, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"/",  {"/",   9, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"%",  {"%",   9, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"+",  {"+",   8, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"-",  {"-",   8, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {">",  {">",   7, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {">=", {">=",  7, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"<",  {"<",   7, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"<=", {"<=",  7, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"==", {"==",  6, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"!=", {"!=",  6, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"&&", {"&&",  5, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"||", {"||",  4, operator_t::op_type::binary, operator_t::associativity_type::left}},
-            {"(",  {"(",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none}},
-            {")",  {")",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none}},
-            {"[",  {"[",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none}},
-            {"]",  {"]",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none}},
+            {"~",  {"~",  12, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
+            {"`",  {"-",  11, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
+            {"^",  {"^",  10, operator_t::op_type::binary, operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
+            {"*",  {"*",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
+            {"/",  {"/",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
+            {"\\", {"\\",  9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
+            {"+",  {"+",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
+            {"-",  {"-",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
+            {"&",  {"&",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
+            {"|",  {"|",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
+            {">",  {">",   7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
+            {">=", {">=",  7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
+            {"<",  {"<",   7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
+            {"<=", {"<=",  7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
+            {"==", {"==",  6, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
+            {"!=", {"!=",  6, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
+            {"&&", {"&&",  5, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::logical}},
+            {"||", {"||",  4, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::logical}},
+            {"(",  {"(",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
+            {")",  {")",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
+            {"[",  {"[",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
+            {"]",  {"]",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
     };
 
     bool parser::has_operand() {
@@ -299,6 +301,10 @@ namespace ryu::core {
         return nullptr;
     }
 
+    symbol_table* parser::symbol_table() {
+        return _symbol_table;
+    }
+
     ast_node_t* parser::parse_expression() {
         while (true) {
             main:
@@ -409,11 +415,20 @@ namespace ryu::core {
         return pop_operand();
     }
 
+    void parser::consume_tokens(int count) {
+        for (auto i = 0; i < count; ++i) {
+            auto token = move_to_next_token();
+            if (token == nullptr)
+                break;
+        }
+    }
+
     ast_node_t* parser::parse_null_literal() {
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
-        if (std::regex_match(reinterpret_cast<const char*>(*token), std::regex("[nN][uU][lL][lL]"))) {
+        if (std::regex_match(token, std::regex("[nN][uU][lL][lL]"))) {
+            consume_tokens(4);
             auto identifier_node = new ast_node_t();
             identifier_node->token = ast_node_t::tokens::null_literal;
             return identifier_node;
@@ -461,12 +476,14 @@ namespace ryu::core {
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
-        if (std::regex_match(reinterpret_cast<const char*>(*token), std::regex("[tT][rR][uU][eE]"))) {
+        if (std::regex_match(token, std::regex("[tT][rR][uU][eE]"))) {
+            consume_tokens(4);
             auto identifier_node = new ast_node_t();
             identifier_node->value = true;
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
-        } else if (std::regex_match(reinterpret_cast<const char*>(*token), std::regex("[fF][aA][lL][sS][eE]"))) {
+        } else if (std::regex_match(token, std::regex("[fF][aA][lL][sS][eE]"))) {
+            consume_tokens(5);
             auto identifier_node = new ast_node_t();
             identifier_node->value = false;
             identifier_node->token = ast_node_t::tokens::boolean_literal;
@@ -508,15 +525,13 @@ namespace ryu::core {
         return nullptr;
     }
 
-    const variant_t* parser::symbol(const std::string& name) const {
-        auto it = _symbols.find(name);
-        if (it == _symbols.end())
-            return nullptr;
-        return &(it->second);
+    void parser::symbol_table(core::symbol_table* value) {
+        _symbol_table = value;
     }
 
-    void parser::symbol(const std::string& name, const variant_t& value) {
-        _symbols[name] = value;
+    ast_node_t* parser::parse_expression(const std::string& input) {
+        reset(input);
+        return parse_expression();
     }
 
     void parser::error(const std::string& code, const std::string& message) {

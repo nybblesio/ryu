@@ -18,6 +18,8 @@
 
 namespace ryu::core {
 
+    typedef std::map<std::string, command_t::types> command_table;
+
     class command_parser : public core::parser {
     public:
         command_parser();

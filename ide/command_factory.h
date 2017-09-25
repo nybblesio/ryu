@@ -11,6 +11,7 @@
 #pragma once
 
 #include <core/result.h>
+#include <core/symbol_table.h>
 
 namespace ryu::ide {
 
@@ -21,6 +22,9 @@ namespace ryu::ide {
         ~command_factory() = default;
 
         bool execute(core::result& result, const std::string& line);
+
+    private:
+        core::symbol_table _symbol_table;
     };
 
 };

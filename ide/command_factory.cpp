@@ -9,6 +9,7 @@
 //
 
 #include <fmt/format.h>
+#include <core/evaluator.h>
 #include <hardware/machine.h>
 #include <hardware/registry.h>
 #include <boost/filesystem.hpp>
@@ -24,6 +25,8 @@ namespace ryu::ide {
         using namespace boost::filesystem;
 
         core::command_parser parser;
+        parser.symbol_table(&_symbol_table);
+
         auto root = parser.parse(line);
         if (parser.result().is_failed()) {
             for (auto& msg : parser.result().messages())
@@ -33,6 +36,8 @@ namespace ryu::ide {
         }
 
         auto command = boost::get<core::command_t>(root->value);
+        core::evaluator evaluator;
+        evaluator.symbol_table(&_symbol_table);
 
         switch (command.type) {
             case core::command_t::quit: {
@@ -43,43 +48,38 @@ namespace ryu::ide {
                 result.add_message("C004", "Clear screen buffer");
                 break;
             }
-//            case command::evaluate: {
-//                for (const auto& param : command.params) {
-//                    switch (param.which()) {
-//                        case 0:
-//                        case 3: {
-//                            std::string ascii;
-//                            uint32_t value = param.which() == 0 ?
-//                                             boost::get<uint32_t>(param) :
-//                                             static_cast<uint32_t>(boost::get<char>(param));
-//                            auto* p = (char*) (&value) + 3;
-//                            for (auto i = 0; i < 4; i++) {
-//                                char c = *p--;
-//                                if (c == 0)
-//                                    ascii += ".";
-//                                else
-//                                    ascii += c;
-//                            }
-//                            result.add_message(
-//                                    "C003",
-//                                    fmt::format("${0:08x} {0:>10} \"{1:>4}\" %{0:032b}", value, ascii));
-//                            break;
-//                        }
-//                        case 1: {
-//                            break;
-//                        }
-//                        case 2: {
-//                            string_literal_t lit = boost::get<string_literal_t>(param);
-//                            auto dump = hex_dump(
-//                                    static_cast<const void*>(lit.value.c_str()),
-//                                    lit.value.length());
-//                            result.add_message("C003", dump);
-//                            break;
-//                        }
-//                    }
-//                }
-//                break;
-//            }
+            case core::command_t::evaluate: {
+                for (const auto node : root->children) {
+                    auto param = evaluator.evaluate(result, node);
+                    switch (param.which()) {
+                        case 1: {
+                            std::string ascii;
+                            uint32_t value = boost::get<uint32_t>(param);
+                            auto* p = (char*) (&value) + 3;
+                            for (auto i = 0; i < 4; i++) {
+                                char c = *p--;
+                                if (c == 0)
+                                    ascii += ".";
+                                else
+                                    ascii += c;
+                            }
+                            result.add_message(
+                                    "C003",
+                                    fmt::format("${0:08x} {0:>10} \"{1:>4}\" %{0:032b}", value, ascii));
+                            break;
+                        }
+                        case 2: {
+                            auto lit = boost::get<std::string>(param);
+                            auto dump = hex_dump(
+                                    static_cast<const void*>(lit.c_str()),
+                                    lit.length());
+                            result.add_message("C003", dump);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
 //            case command::change_directory: {
 //                if (command.params.empty()) {
 //                    result.add_message("C007", "path parameter is required", true);
