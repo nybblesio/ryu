@@ -10,110 +10,11 @@
 
 #include <regex>
 #include <iomanip>
-#include "command_parser.h"
+#include "parser.h"
 
-namespace ryu::ide {
+namespace ryu::core {
 
-    // commands are not case sensitive
-    //
-    // !                                        - quit
-    //
-    // A                                        - assemble
-    // A [addr]                                 - assemble
-    //
-    // ?                                        - expression evaluator
-    // ? 'A'                                    - convert character to ASCII value
-    // ? [number]                               - display various base values of number
-    // ? [expression]                           - evaluate arithmetic expression
-    //
-    // E                                        - open the text editor
-    // M [addr]                                 - open hex editor
-    // D [addr]                                 - disassemble
-    // H [addr]                                 - hex dump into console
-    // S [addr] [bytes] [value]                 - search memory
-    // F [addr] [bytes] [value]                 - fill memory
-    // C [dst addr] [src addr] [bytes]          - copy memory
-    //
-    // J [addr]                                 - jump to address and begin execution
-    // G [addr]                                 - go to address
-    // R                                        - view/edit CPU registers
-    //
-    // CLEAR                                    - clear the console screen and move caret to home position
-    // CD [path]                                - change directory
-    // PWD                                      - print current directory
-    // NEW [filename]                           - create a new project
-    // LOAD [filename]                          - load an existing project from disk
-    // SAVE                                     - save the open project to disk
-    // CLONE [filename]                         - saves open project to a new file
-    // RM [filename]                            - delete filename
-    // DIR                                      - list contents of the current directory
-    //
-    // MACHINES                                 - list the machines available in the registry
-    // MACHINE [name]                           - open editor for machine name or create a new machine
-    // DELMACHINE [name]                        - remove the named machine from the registry
-    // USEMACHINE [name]                        - set the machine as current for the project
-    //
-    // RB [filename] [start addr] [end addr]    - read binary into memory
-    // WB [filename] [start addr] [end addr]    - write memory to binary file on disk
-    //
-    // RT [filename]                            - read text file into editor buffer
-    // WT [filename]                            - write text in buffer to file
-    // :  [number]                              - goto line number
-    // /  [needle]                              - find needle in buffer
-    //
-    command_table command_parser::_commands = {
-            // assembler & memory commands
-            {"!",           command_t::types::quit},
-            {"?",           command_t::types::evaluate},
-            {"a",           command_t::types::assemble},
-            {"e",           command_t::types::text_editor},
-            {"m",           command_t::types::memory_editor},
-            {"d",           command_t::types::disassemble},
-            {"h",           command_t::types::hex_dump},
-            {"s",           command_t::types::search_memory},
-            {"f",           command_t::types::fill_memory},
-            {"c",           command_t::types::copy_memory},
-            {"j",           command_t::types::jump_to_address},
-            {"g",           command_t::types::go_to_address},
-            {"r",           command_t::types::register_editor},
-            {"rb",          command_t::types::read_binary_to_memory},
-            {"wb",          command_t::types::write_memory_to_binary},
-
-            // filesystem commands
-            {"rm",          command_t::types::remove_file},
-            {"dir",         command_t::types::dir},
-            {"cd",          command_t::types::change_directory},
-            {"pwd",         command_t::types::print_working_directory},
-            {"clear",       command_t::types::clear},
-
-            // project commands
-            {"new",         command_t::types::new_project},
-            {"load",        command_t::types::load_project},
-            {"save",        command_t::types::save_project},
-            {"clone",       command_t::types::clone_project},
-
-            // text editor commands
-            {"rt",          command_t::types::read_text},
-            {"wt",          command_t::types::write_text},
-            {":",           command_t::types::goto_line},
-            {"/",           command_t::types::find_text},
-
-            // machines
-            {"machines",    command_t::types::machines_list},
-            {"machine",     command_t::types::machine_editor},
-            {"delmachine",  command_t::types::del_machine},
-            {"usemachine",  command_t::types::use_machine},
-
-            // editor and tool commands
-            {"%",           command_t::types::open_editor},
-            {"sounds",      command_t::types::sounds},
-            {"tracker",     command_t::types::tracker},
-            {"tiles",       command_t::types::tile_editor},
-            {"sprites",     command_t::types::sprite_editor},
-            {"backgrounds", command_t::types::background_editor},
-    };
-
-    operator_dict command_parser::_operators = {
+    operator_dict parser::_operators = {
             {"~",  {"~",  12, operator_t::op_type::unary,  operator_t::associativity_type::right}},
             {"`",  {"-",  11, operator_t::op_type::unary,  operator_t::associativity_type::right}},
             {"^",  {"^",  10, operator_t::op_type::binary, operator_t::associativity_type::right}},
@@ -136,15 +37,15 @@ namespace ryu::ide {
             {"]",  {"]",   0, operator_t::op_type::no_op,  operator_t::associativity_type::none}},
     };
 
-    command_parser::command_parser(const std::string& input) : _input(input) {
+    bool parser::has_operand() {
+        return !_operand_stack.empty();
     }
 
-    ast_node_t* command_parser::parse() {
-        reset_position();
-        return parse_command();
+    bool parser::has_operator() {
+        return !_operator_stack.empty();
     }
 
-    void command_parser::pop_position() {
+    void parser::pop_position() {
         if (_position_stack.empty())
             return;
 
@@ -159,32 +60,25 @@ namespace ryu::ide {
         _position_stack.pop();
     }
 
-    char* command_parser::current_token() {
+    char* parser::current_token() {
         if (_token == nullptr)
             move_to_next_token();
         return _token;
     }
 
-    void command_parser::push_position() {
+    void parser::push_position() {
         _position_stack.push(scanner_pos_t {
                 _line,
                 std::min(_index, static_cast<int>(_input.length())),
                 _column});
     }
 
-    void command_parser::reset_position() {
-        _line = 1;
-        _column = 1;
-        _index = -1;
-        clear_position_stack();
-    }
-
-    void command_parser::increment_line() {
+    void parser::increment_line() {
         _column = 1;
         _line++;
     }
 
-    ast_node_t* command_parser::pop_operand() {
+    ast_node_t* parser::pop_operand() {
         if (_operand_stack.empty())
             return nullptr;
         auto top = _operand_stack.top();
@@ -192,13 +86,13 @@ namespace ryu::ide {
         return top;
     }
 
-    void command_parser::forget_top_position() {
+    void parser::forget_top_position() {
         if (_position_stack.empty())
             return;
         _position_stack.pop();
     }
 
-    char* command_parser::move_to_next_token() {
+    char* parser::move_to_next_token() {
         _index++;
         if (_index > _input.length() - 1) {
             _token = nullptr;
@@ -209,7 +103,7 @@ namespace ryu::ide {
         return _token;
     }
 
-    void command_parser::consume_white_space() {
+    void parser::consume_white_space() {
         auto token = current_token();
         while (token != nullptr && isspace(*token)) {
             if (*token == '\n')
@@ -220,7 +114,7 @@ namespace ryu::ide {
         }
     }
 
-    ast_node_t* command_parser::parse_number() {
+    ast_node_t* parser::parse_number() {
         radix_number_t number;
 
         auto token = current_token();
@@ -299,7 +193,7 @@ namespace ryu::ide {
         return nullptr;
     }
 
-    operator_t* command_parser::pop_operator() {
+    operator_t* parser::pop_operator() {
         if (_operator_stack.empty())
             return nullptr;
         auto top = _operator_stack.top();
@@ -307,53 +201,37 @@ namespace ryu::ide {
         return top;
     }
 
-    operator_t* command_parser::peek_operator() {
+    operator_t* parser::peek_operator() {
         if (_operator_stack.empty())
             return nullptr;
         return _operator_stack.top();
     }
 
-    void command_parser::clear_position_stack() {
+    void parser::clear_position_stack() {
         while (!_position_stack.empty())
             _position_stack.pop();
     }
 
-    ast_node_t* command_parser::parse_command() {
+    ast_node_t* parser::parse_comment() {
         auto token = current_token();
-        std::stringstream stream;
-        if (!isspace(*token)) {
-            stream << *token;
-            while (true) {
+        if (token == nullptr)
+            return nullptr;
+        if (*token == '*' || *token == ';') {
+            token = move_to_next_token();
+            std::stringstream stream;
+            while (token != nullptr && *token != '\n') {
+                stream << *token;
                 token = move_to_next_token();
-                if (token == nullptr)
-                    break;
-                if (!isspace(*token))
-                    stream << *token;
-                else
-                    break;
             }
-            auto it = _commands.find(stream.str());
-            if (it == _commands.end()) {
-                error("P010", "unknown command");
-                return nullptr;
-            }
-            auto command_node = new ast_node_t();
-            command_node->value = command_t {it->second, stream.str()};
-            command_node->token = ast_node_t::tokens::command;
-
-            while (true) {
-                auto expr = parse_expression();
-                if (expr == nullptr)
-                    break;
-                command_node->children.push_back(expr);
-            }
-
-            return command_node;
+            auto comment = new ast_node_t();
+            comment->value = stream.str();
+            comment->token = ast_node_t::tokens::comment;
+            return comment;
         }
         return nullptr;
     }
 
-    operator_t* command_parser::parse_operator() {
+    operator_t* parser::parse_operator() {
         push_position();
 
         for (auto it = _operators.begin(); it != _operators.end(); ++it) {
@@ -396,7 +274,7 @@ namespace ryu::ide {
         return nullptr;
     }
 
-    ast_node_t* command_parser::parse_identifier() {
+    ast_node_t* parser::parse_identifier() {
         auto token = current_token();
         std::string s;
         s = *token;
@@ -421,9 +299,9 @@ namespace ryu::ide {
         return nullptr;
     }
 
-    ast_node_t* command_parser::parse_expression() {
+    ast_node_t* parser::parse_expression() {
         while (true) {
-        main:
+            main:
             consume_white_space();
 
             auto token = current_token();
@@ -438,7 +316,7 @@ namespace ryu::ide {
             } else if (*token == ')') {
                 _last_operator = &_operators[")"];
                 token = move_to_next_token();
-                while (!_operator_stack.empty()) {
+                while (has_operator()) {
                     auto op = pop_operator();
                     if (op == &_operators["("]) {
                         auto subexpression = new ast_node_t();
@@ -458,10 +336,10 @@ namespace ryu::ide {
             } else {
                 auto op = parse_operator();
                 if (op != nullptr) {
-                    while (!_operator_stack.empty()) {
+                    while (has_operator()) {
                         auto top = peek_operator();
                         if ((op->not_right_associative() && op->compare_precedence(*top) == 0)
-                        ||  (op->compare_precedence(*top) < 0)) {
+                            ||  (op->compare_precedence(*top) < 0)) {
                             pop_operator();
                             if ((top->type & operator_t::op_type::unary) != 0) {
                                 auto unary_op_node = new ast_node_t();
@@ -482,31 +360,27 @@ namespace ryu::ide {
                     }
                     push_operator(op);
                 } else {
-                    auto number = parse_number();
-                    if (number != nullptr) {
-                        push_operand(number);
-                    } else {
-                        auto identifier = parse_identifier();
-                        if (identifier != nullptr) {
-                            push_operand(identifier);
-                        } else {
-                            auto string_lit = parse_literal_string();
-                            if (string_lit != nullptr) {
-                                push_operand(string_lit);
-                            } else {
-                                auto character_lit = parse_literal_character();
-                                if (character_lit != nullptr) {
-                                    push_operand(character_lit);
-                                } else
-                                    break;
-                            }
+                    const std::vector<std::function<ast_node_t* ()>> terminals = {
+                            [&] () {return parse_number();},
+                            [&] () {return parse_comment();},
+                            [&] () {return parse_identifier();},
+                            [&] () {return parse_null_literal();},
+                            [&] () {return parse_string_literal();},
+                            [&] () {return parse_boolean_literal();},
+                            [&] () {return parse_character_literal();},
+                    };
+                    for (const auto& terminal : terminals) {
+                        auto node = terminal();
+                        if (node != nullptr) {
+                            push_operand(node);
+                            break;
                         }
                     }
                 }
             }
         }
 
-        while (!_operator_stack.empty()) {
+        while (has_operator()) {
             auto op = pop_operator();
 
             if (op == &_operators["("]) {
@@ -535,11 +409,23 @@ namespace ryu::ide {
         return pop_operand();
     }
 
-    void command_parser::push_operator(operator_t* op) {
+    ast_node_t* parser::parse_null_literal() {
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (std::regex_match(reinterpret_cast<const char*>(*token), std::regex("[nN][uU][lL][lL]"))) {
+            auto identifier_node = new ast_node_t();
+            identifier_node->token = ast_node_t::tokens::null_literal;
+            return identifier_node;
+        }
+        return nullptr;
+    }
+
+    void parser::push_operator(operator_t* op) {
         _operator_stack.push(op);
     }
 
-    ast_node_t* command_parser::parse_literal_string() {
+    ast_node_t* parser::parse_string_literal() {
         auto token = current_token();
         std::stringstream stream;
         if (*token == '\"') {
@@ -563,15 +449,42 @@ namespace ryu::ide {
         return nullptr;
     }
 
-    const core::result& command_parser::result() const {
+    const core::result& parser::result() const {
         return _result;
     }
 
-    void command_parser::push_operand(ast_node_t* node) {
+    void parser::push_operand(ast_node_t* node) {
         _operand_stack.push(node);
     }
 
-    ast_node_t* command_parser::parse_literal_character() {
+    ast_node_t* parser::parse_boolean_literal() {
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (std::regex_match(reinterpret_cast<const char*>(*token), std::regex("[tT][rR][uU][eE]"))) {
+            auto identifier_node = new ast_node_t();
+            identifier_node->value = true;
+            identifier_node->token = ast_node_t::tokens::boolean_literal;
+            return identifier_node;
+        } else if (std::regex_match(reinterpret_cast<const char*>(*token), std::regex("[fF][aA][lL][sS][eE]"))) {
+            auto identifier_node = new ast_node_t();
+            identifier_node->value = false;
+            identifier_node->token = ast_node_t::tokens::boolean_literal;
+            return identifier_node;
+        }
+        return nullptr;
+    }
+
+    void parser::reset(const std::string& input) {
+        _line = 1;
+        _column = 1;
+        _index = -1;
+        _result = {};
+        _input = input;
+        clear_position_stack();
+    }
+
+    ast_node_t* parser::parse_character_literal() {
         auto token = current_token();
         if (token != nullptr && *token == '\'') {
             char value;
@@ -595,18 +508,18 @@ namespace ryu::ide {
         return nullptr;
     }
 
-    const variant_t* command_parser::symbol(const std::string& name) const {
+    const variant_t* parser::symbol(const std::string& name) const {
         auto it = _symbols.find(name);
         if (it == _symbols.end())
             return nullptr;
         return &(it->second);
     }
 
-    void command_parser::symbol(const std::string& name, const variant_t& value) {
+    void parser::symbol(const std::string& name, const variant_t& value) {
         _symbols[name] = value;
     }
 
-    void command_parser::error(const std::string& code, const std::string& message) {
+    void parser::error(const std::string& code, const std::string& message) {
         std::stringstream stream;
         stream << "Syntax error: " << message << "\n"
                << _input << "\n"

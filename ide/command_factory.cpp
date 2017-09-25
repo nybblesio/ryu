@@ -12,8 +12,8 @@
 #include <hardware/machine.h>
 #include <hardware/registry.h>
 #include <boost/filesystem.hpp>
+#include <core/command_parser.h>
 #include <common/string_support.h>
-#include "command_parser.h"
 #include "command_factory.h"
 
 namespace ryu::ide {
@@ -23,8 +23,8 @@ namespace ryu::ide {
             const std::string& line) {
         using namespace boost::filesystem;
 
-        command_parser parser(line);
-        auto root = parser.parse();
+        core::command_parser parser;
+        auto root = parser.parse(line);
         if (parser.result().is_failed()) {
             for (auto& msg : parser.result().messages())
                 result.add_message(msg.code(), msg.message(), msg.is_error());
@@ -32,14 +32,14 @@ namespace ryu::ide {
             return false;
         }
 
-        auto command = boost::get<command_t>(root->value);
+        auto command = boost::get<core::command_t>(root->value);
 
         switch (command.type) {
-            case command_t::quit: {
+            case core::command_t::quit: {
                 result.add_message("C001", "Goodbye!");
                 break;
             }
-            case command_t::clear: {
+            case core::command_t::clear: {
                 result.add_message("C004", "Clear screen buffer");
                 break;
             }
@@ -198,7 +198,7 @@ namespace ryu::ide {
 //                result.add_data("C030", params);
 //                break;
 //            }
-            case command_t::machines_list: {
+            case core::command_t::machines_list: {
                 auto machines = hardware::registry::instance()->machines();
                 result.add_message("C028", "{rev}{bold}  ID Name                             Type ");
                 for (auto machine : machines) {

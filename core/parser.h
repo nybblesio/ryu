@@ -10,18 +10,12 @@
 
 #pragma once
 
-#include <stack>
-#include <vector>
+#include <map>
+#include <string>
 #include <boost/variant.hpp>
-#include <core/result.h>
+#include "result.h"
 
-namespace ryu::ide {
-
-    struct scanner_pos_t {
-        int line;
-        int index;
-        int column;
-    };
+namespace ryu::core {
 
     struct command_t {
         enum types : uint8_t {
@@ -75,6 +69,12 @@ namespace ryu::ide {
         std::string symbol;
     };
 
+    struct scanner_pos_t {
+        int line;
+        int index;
+        int column;
+    };
+
     struct operator_t {
         enum op_type : uint8_t {
             no_op = 0b00000000,
@@ -113,7 +113,7 @@ namespace ryu::ide {
 
     typedef std::vector<ast_node_t*> ast_node_list;
 
-    typedef boost::variant<radix_number_t, std::string, char, operator_t, command_t> variant_t;
+    typedef boost::variant<radix_number_t, std::string, char, operator_t, command_t, bool> variant_t;
 
     typedef std::map<std::string, variant_t> symbol_table;
 
@@ -124,6 +124,7 @@ namespace ryu::ide {
             command,
             comment,
             basic_block,
+            statement,
             expression,
             binary_op,
             unary_op,
@@ -131,6 +132,7 @@ namespace ryu::ide {
             string_literal,
             character_literal,
             number_literal,
+            null_literal,
             boolean_literal
         };
 
@@ -141,46 +143,58 @@ namespace ryu::ide {
         ast_node_t* rhs = nullptr;
     };
 
-    class command_parser {
+    class parser {
     public:
-        explicit command_parser(const std::string& input);
-
-        ast_node_t* parse();
+        parser() = default;
 
         const core::result& result() const;
 
         const variant_t* symbol(const std::string& name) const;
 
+        virtual ast_node_t* parse(const std::string& input) = 0;
+
         void symbol(const std::string& name, const variant_t& value);
 
-    protected:
-        void pop_position();
+    protected: // shunting yard
+        bool has_operand();
 
-        void push_position();
-
-        void reset_position();
-
-        void increment_line();
-
-        char* current_token();
+        bool has_operator();
 
         ast_node_t* pop_operand();
-
-        ast_node_t* parse_number();
-
-        void forget_top_position();
-
-        void consume_white_space();
-
-        char* move_to_next_token();
 
         operator_t* pop_operator();
 
         operator_t* peek_operator();
 
-        ast_node_t* parse_command();
+        void push_operator(operator_t* op);
+
+        void push_operand(ast_node_t* node);
+
+    protected: // core
+        void pop_position();
+
+        void push_position();
+
+        void increment_line();
+
+        char* current_token();
+
+        void forget_top_position();
+
+        char* move_to_next_token();
+
+        void consume_white_space();
 
         void clear_position_stack();
+
+        void reset(const std::string& input);
+
+        void error(const std::string& code, const std::string& message);
+
+    protected: // parsers
+        ast_node_t* parse_number();
+
+        ast_node_t* parse_comment();
 
         operator_t* parse_operator();
 
@@ -188,23 +202,20 @@ namespace ryu::ide {
 
         ast_node_t* parse_identifier();
 
-        void push_operator(operator_t* op);
+        ast_node_t* parse_null_literal();
 
-        ast_node_t* parse_literal_string();
+        ast_node_t* parse_string_literal();
 
-        void push_operand(ast_node_t* node);
+        ast_node_t* parse_boolean_literal();
 
-        ast_node_t* parse_literal_character();
-
-        void error(const std::string& code, const std::string& message);
+        ast_node_t* parse_character_literal();
 
     private:
-        static command_table _commands;
         static operator_dict _operators;
 
-        int _line;
-        int _index;
-        int _column;
+        int _line {};
+        int _index {};
+        int _column {};
         std::string _input;
         core::result _result;
         symbol_table _symbols;

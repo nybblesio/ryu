@@ -10,7 +10,6 @@ add_library(
         text_editor
         machine_editor
         context.cpp context.h
-        command_parser.cpp command_parser.h
         command_factory.cpp command_factory.h)
 target_link_libraries(
         ide

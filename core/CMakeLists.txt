@@ -9,6 +9,7 @@ add_library(
         state.cpp state.h
         timer.cpp timer.h
         engine.cpp engine.h
+        parser.cpp parser.h
         id_pool.cpp id_pool.h
         context.cpp context.h
         project.cpp project.h
@@ -21,4 +22,5 @@ add_library(
         font_family.cpp font_family.h
         views/button.cpp views/button.h
         views/textbox.cpp views/textbox.h
-        palette_entry.cpp palette_entry.h)
+        palette_entry.cpp palette_entry.h
+        command_parser.cpp command_parser.h)
