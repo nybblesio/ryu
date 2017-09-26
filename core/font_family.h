@@ -26,6 +26,11 @@ namespace ryu::core {
             strikethrough = 0b00001000,
         };
 
+        enum flags : uint8_t {
+            none          = 0b00000000,
+            reverse       = 0b00000001,
+        };
+
         static int to_sdl_style(uint8_t flags) {
             int sdl = TTF_STYLE_NORMAL;
 

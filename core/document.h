@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <map>
 #include <list>
 #include <boost/filesystem.hpp>
 
@@ -17,8 +18,33 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
+    struct attr_t {
+        uint8_t color = 0;
+        uint8_t style = 0;
+        uint8_t flags = 0;
+        bool operator== (const attr_t& rhs) const {
+            return color == rhs.color && style == rhs.style && flags == rhs.flags;
+        }
+        bool operator!= (const attr_t& rhs) const {
+            return color != rhs.color || style != rhs.style || flags != rhs.flags;
+        }
+    };
+
+    struct element_t {
+        uint8_t value = 0;
+        attr_t attr;
+    };
+
+    struct line_t {
+        explicit line_t(int columns, const attr_t& attr) {
+            for (auto i = 0; i < columns; i++)
+                elements.push_back(element_t{0, attr});
+        }
+        std::vector<element_t> elements;
+    };
+
     struct attr_chunk_t {
-        uint8_t attr = 0;
+        attr_t attr;
         std::string text {};
     };
 
@@ -32,7 +58,7 @@ namespace ryu::core {
 
         document() = default;
 
-        ~document();
+        ~document() = default;
 
         void clear();
 
@@ -69,7 +95,7 @@ namespace ryu::core {
             clamp_row();
         }
 
-        void insert_line(int row);
+        line_t* insert_line(int row);
 
         void delete_line(int row);
 
@@ -122,14 +148,12 @@ namespace ryu::core {
             return _path.filename().string();
         }
 
-        uint8_t default_attr() const;
+        attr_t default_attr() const;
 
         inline bool column(int column) {
             _column = column;
             return clamp_column();
         }
-
-        void default_attr(uint8_t value);
 
         void load(const fs::path& path);
 
@@ -137,31 +161,31 @@ namespace ryu::core {
 
         void save(std::ostream& stream);
 
-        uint8_t get(int row, int column);
+        void default_attr(attr_t value);
+
+        element_t* get(int row, int column);
 
         void split_line(int row, int column);
 
         void save(const fs::path& path = "");
 
-        uint8_t get_attr(int row, int column);
-
-        void put(int row, int column, uint8_t value);
-
-        void put_attr(int row, int column, uint8_t value);
-
         void shift_left(int row, int column, int times = 1);
 
         void shift_right(int row, int column, int times = 1);
+
+        void put(int row, int column, const element_t& value);
 
         void shift_line_left(int row, int column, int times = 1);
 
         void shift_line_right(int row, int column, int times = 1);
 
-        attr_chunks get_line_chunks(int line, int column, int end_column);
+        attr_chunks get_line_chunks(int row, int column, int end_column);
 
-        void write_line(std::ostream& stream, int line, int column, int end_column);
+        void write_line(std::ostream& stream, int row, int column, int end_column);
 
     private:
+        line_t* line_at(int row);
+
         bool clamp_column() {
             if (_column < 0) {
                 _column = 0;
@@ -200,9 +224,8 @@ namespace ryu::core {
         int _column = 0;
         int _page_width = 0;
         int _page_height = 0;
-        uint8_t* _data = nullptr;
-        uint8_t* _attrs = nullptr;
-        uint8_t _default_attr = 0;
+        attr_t _default_attr {};
+        std::vector<line_t> _lines;
     };
 
 }

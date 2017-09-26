@@ -89,7 +89,10 @@ namespace ryu::core {
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
             while (*c != '\0') {
-                _document.put(0, _caret.column(), static_cast<uint8_t>(*c));
+                _document.put(
+                        0,
+                        _caret.column(),
+                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
                 if (caret_right())
                     break;
                 c++;

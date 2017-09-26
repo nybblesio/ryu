@@ -73,11 +73,14 @@ namespace ryu::ide::console {
         const int footer_padding = font_face()->line_height;
         const int header_padding = font_face()->line_height * 2;
 
+        _color = ryu::ide::context::colors::text;
+
         _page_width = static_cast<short>((bounds.width() - (left_padding + right_padding)) / font_face()->width);
         _page_height = static_cast<short>((bounds.height() - (header_padding + footer_padding + 20)) / font_face()->line_height);
 
         _document.initialize(_page_height, _page_width);
         _document.page_size(_page_height, _page_width);
+        _document.default_attr(core::attr_t {_color, core::font::styles::normal, core::font::flags::none});
         _document.clear();
 
         _header.rect()
@@ -102,8 +105,6 @@ namespace ryu::ide::console {
 
         rect({0, 0, bounds.width(), bounds.height()});
         padding({left_padding, right_padding, header_padding + 5, footer_padding});
-
-        _color = ryu::ide::context::colors::text;
     }
 
     void view::on_resize() {
@@ -158,18 +159,15 @@ namespace ryu::ide::console {
             auto chunks = _document.get_line_chunks(row, 0, _page_width);
             for (const auto& chunk : chunks) {
                 auto width = static_cast<int32_t>(face->width * chunk.text.length());
-                auto style = get_upper_nybble(chunk.attr);
-                auto palette_index = get_lower_nybble(chunk.attr);
-                auto color = palette[palette_index];
+                auto color = palette[chunk.attr.color];
 
-                if ((style & core::font::styles::strikethrough) != 0) {
+                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
                     set_color(color);
                     color = palette[ide::context::colors::fill_color];
                     fill_rect(core::rect{x, y, width, face->line_height});
-                    style &= ~core::font::styles::strikethrough;
                 }
 
-                font_style(style);
+                font_style(chunk.attr.style);
                 draw_text(x, y, chunk.text, color);
                 x += width;
             }
@@ -188,11 +186,10 @@ namespace ryu::ide::console {
             }
             const char* c = &e->text.text[0];
             while (*c != '\0') {
-                uint8_t attr = 0;
-                attr = set_lower_nybble(attr, _color);
-                _document.put_attr(_caret.row(), _caret.column(), attr);
-
-                _document.put(_caret.row(), _caret.column(), static_cast<uint8_t>(*c));
+                _document.put(
+                        _caret.row(),
+                        _caret.column(),
+                        core::element_t {static_cast<uint8_t>(*c), core::attr_t{_color}});
                 if (caret_right()) {
                     caret_right();
                 }
@@ -213,19 +210,19 @@ namespace ryu::ide::console {
                             caret_left();
                             if (_caret.row() == 0 && _caret.column() == 0)
                                 break;
-                            auto value = _document.get(_caret.row(), _caret.column());
-                            if (value == 0)
+                            auto element = _document.get(_caret.row(), _caret.column());
+                            if (element == nullptr || element->value == 0)
                                 break;
                         }
 
                         // second, scan forward to the next null value to build the command
-                        caret_right();
+                        //caret_right();
                         while (true) {
                             caret_right();
-                            auto value = _document.get(_caret.row(), _caret.column());
-                            if (value == 0)
+                            auto element = _document.get(_caret.row(), _caret.column());
+                            if (element == nullptr || element->value == 0)
                                 break;
-                            cmd << value;
+                            cmd << element->value;
                         }
 
                         // finally, if we got something, try to execute it
@@ -349,7 +346,7 @@ namespace ryu::ide::console {
     }
 
     void view::write_message(const std::string& message) {
-        uint8_t attr = set_lower_nybble(0, _color);
+        core::attr_t attr {_color, core::font::styles::normal, core::font::flags::none};
 
         caret_home();
         auto token = message.begin();
@@ -366,54 +363,57 @@ namespace ryu::ide::console {
                     code += *token;
                 }
                 if (code == "bold") {
-                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::bold);
+                    attr.style |= core::font::styles::bold;
                 } else if (code == "italic") {
-                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::italic);
+                    attr.style |= core::font::styles::italic;
                 } else if (code == "underline") {
-                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::underline);
+                    attr.style |= core::font::styles::underline;
                 } else if (code == "rev") {
-                    attr = set_upper_nybble(attr, get_upper_nybble(attr) | core::font::styles::strikethrough);
+                    attr.flags |= core::font::flags::reverse;
                 } else if (code == "black") {
-                    attr = set_lower_nybble(0, ide::context::colors::black);
+                    attr.color = ide::context::colors::black;
                 } else if (code == "white") {
-                    attr = set_lower_nybble(0, ide::context::colors::white);
+                    attr.color = ide::context::colors::white;
                 } else if (code == "red") {
-                    attr = set_lower_nybble(0, ide::context::colors::red);
+                    attr.color = ide::context::colors::red;
                 } else if (code == "cyan") {
-                    attr = set_lower_nybble(0, ide::context::colors::cyan);
+                    attr.color = ide::context::colors::cyan;
                 } else if (code == "purple") {
-                    attr = set_lower_nybble(0, ide::context::colors::purple);
+                    attr.color = ide::context::colors::purple;
                 } else if (code == "green") {
-                    attr = set_lower_nybble(0, ide::context::colors::green);
+                    attr.color = ide::context::colors::green;
                 } else if (code == "blue") {
-                    attr = set_lower_nybble(0, ide::context::colors::blue);
+                    attr.color = ide::context::colors::blue;
                 } else if (code == "yellow") {
-                    attr = set_lower_nybble(0, ide::context::colors::yellow);
+                    attr.color = ide::context::colors::yellow;
                 } else if (code == "orange") {
-                    attr = set_lower_nybble(0, ide::context::colors::orange);
+                    attr.color = ide::context::colors::orange;
                 } else if (code == "brown") {
-                    attr = set_lower_nybble(0, ide::context::colors::brown);
+                    attr.color = ide::context::colors::brown;
                 } else if (code == "pink") {
-                    attr = set_lower_nybble(0, ide::context::colors::pink);
+                    attr.color = ide::context::colors::pink;
                 } else if (code == "dgrey") {
-                    attr = set_lower_nybble(0, ide::context::colors::dark_grey);
+                    attr.color = ide::context::colors::dark_grey;
                 } else if (code == "grey") {
-                    attr = set_lower_nybble(0, ide::context::colors::grey);
+                    attr.color = ide::context::colors::grey;
                 } else if (code == "lgreen") {
-                    attr = set_lower_nybble(0, ide::context::colors::light_green);
+                    attr.color = ide::context::colors::light_green;
                 } else if (code == "lblue") {
-                    attr = set_lower_nybble(0, ide::context::colors::light_blue);
+                    attr.color = ide::context::colors::light_blue;
                 } else if (code == "lgrey") {
-                    attr = set_lower_nybble(0, ide::context::colors::light_grey);
+                    attr.color = ide::context::colors::light_grey;
                 } else {
-                    attr = set_lower_nybble(0, _color);
+                    attr.color = _color;
+                    attr.flags = core::font::flags::none;
+                    attr.style = core::font::styles::normal;
                 }
                 ++token;
                 continue;
             }
-
-            _document.put_attr(_caret.row(), _caret.column(), attr);
-            _document.put(_caret.row(), _caret.column(), static_cast<uint8_t>(*token));
+            _document.put(
+                    _caret.row(),
+                    _caret.column(),
+                    core::element_t {static_cast<uint8_t>(*token), attr});
 
             caret_right();
             ++token;

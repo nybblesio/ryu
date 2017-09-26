@@ -124,46 +124,46 @@ namespace ryu::ide {
 //                }
 //                break;
 //            }
-//            case command::print_working_directory: {
-//                auto cwd = current_path();
-//                if (is_directory(cwd)) {
-//                    result.add_message("C006", cwd.string());
-//                }
-//                break;
-//            }
-//            case command::read_text: {
-//                if (command.params.empty()) {
-//                    result.add_message("C021", "path parameter is required", true);
-//                    return false;
-//                }
-//                string_literal_t lit = boost::get<string_literal_t>(command.params[0]);
-//                if (!is_regular_file(lit.value)) {
-//                    result.add_message("C021", fmt::format("invalid path: {}", lit.value), true);
-//                    return false;
-//                }
-//                result.add_message("C021", lit.value);
-//                break;
-//            }
-//            case command::write_text: {
-//                string_literal_t lit {"(default)"};
-//                if (!command.params.empty()) {
-//                    lit = boost::get<string_literal_t>(command.params[0]);
-//                    if (!is_regular_file(lit.value)) {
-//                        result.add_message("C022", fmt::format("invalid path: {}", lit.value), true);
-//                        return false;
-//                    }
-//                }
-//                result.add_message("C022", lit.value);
-//                break;
-//            }
-//            case command::memory_editor: {
-//                result.add_data("C024", {});
-//                break;
-//            }
-//            case command::text_editor: {
-//                result.add_data("C002", {});
-//                break;
-//            }
+            case core::command_t::print_working_directory: {
+                auto cwd = current_path();
+                if (is_directory(cwd)) {
+                    result.add_message("C006", cwd.string());
+                }
+                break;
+            }
+            case core::command_t::read_text: {
+                if (root->children.empty()) {
+                    result.add_message("C021", "path parameter is required", true);
+                    return false;
+                }
+                auto lit = boost::get<std::string>(root->children[1]->value);
+                if (!is_regular_file(lit)) {
+                    result.add_message("C021", fmt::format("invalid path: {}", lit), true);
+                    return false;
+                }
+                result.add_message("C021", lit);
+                break;
+            }
+            case core::command_t::write_text: {
+                std::string lit {"(default)"};
+                if (!root->children.empty()) {
+                    lit = boost::get<std::string>(root->children[1]->value);
+                    if (!is_regular_file(lit)) {
+                        result.add_message("C022", fmt::format("invalid path: {}", lit), true);
+                        return false;
+                    }
+                }
+                result.add_message("C022", lit);
+                break;
+            }
+            case core::command_t::memory_editor: {
+                result.add_data("C024", {});
+                break;
+            }
+            case core::command_t::text_editor: {
+                result.add_data("C002", {});
+                break;
+            }
 //            case command::open_editor: {
 //                if (command.params.size() < 2) {
 //                    result.add_message(

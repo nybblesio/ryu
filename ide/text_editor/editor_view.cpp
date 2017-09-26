@@ -44,6 +44,23 @@ namespace ryu::ide::text_editor {
         update_virtual_position();
     }
 
+    void editor_view::on_resize() {
+        auto bounds = context()->bounds();
+
+        const int footer_padding = font_face()->line_height * 2;
+
+        rect().size(bounds.width(), bounds.height());
+
+        _footer.rect()
+                .pos(0, bounds.height() - (footer_padding + 10))
+                .size(bounds.width(), footer_padding);
+
+        _header.rect()
+                .pos(0, 0)
+                .size(bounds.width(), font_face()->line_height * 2);
+
+    }
+
     void editor_view::page_down() {
         _document.page_down();
         update_virtual_position();
@@ -99,9 +116,8 @@ namespace ryu::ide::text_editor {
         _caret.insert();
 
         for_each_selection_char([&](int row, int col) {
-            auto attr = _document.get_attr(row, col);
-            auto style = get_upper_nybble(attr) & ~core::font::styles::strikethrough;
-            _document.put_attr(row, col, set_upper_nybble(attr, style));
+            auto element = _document.get(row, col);
+            element->attr.flags &= ~core::font::flags::reverse;
         });
 
         _selection.end(_vrow, _vcol);
@@ -184,7 +200,7 @@ namespace ryu::ide::text_editor {
     }
 
     void editor_view::initialize(int rows, int columns) {
-        auto clip_rect = context()->bounds();
+        auto bounds = context()->bounds();
 
         const int left_padding = 10;
         const int right_padding = 15;
@@ -194,12 +210,12 @@ namespace ryu::ide::text_editor {
 
         _vcol = 0;
         _vrow = 0;
-        _page_width = (clip_rect.width() - (left_padding + line_number_width + right_padding)) / font_face()->width;
-        _page_height = ((clip_rect.height() - (header_padding + footer_padding)) / font_face()->line_height);
+        _page_width = (bounds.width() - (left_padding + line_number_width + right_padding)) / font_face()->width;
+        _page_height = ((bounds.height() - (header_padding + footer_padding)) / font_face()->line_height);
 
         _header.rect()
                 .pos(0, 0)
-                .size(clip_rect.width(), font_face()->line_height * 2);
+                .size(bounds.width(), font_face()->line_height * 2);
         _header.font_family(font_family());
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
@@ -226,8 +242,8 @@ namespace ryu::ide::text_editor {
         });
 
         _footer.rect()
-                .pos(0, clip_rect.height() - (footer_padding + 10))
-                .size(clip_rect.width(), footer_padding);
+                .pos(0, bounds.height() - (footer_padding + 10))
+                .size(bounds.width(), footer_padding);
         _footer.font_family(font_family());
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
@@ -240,12 +256,10 @@ namespace ryu::ide::text_editor {
 
         _document.initialize(rows, columns);
         _document.page_size(_page_height, _page_width);
-        auto attr = set_lower_nybble(0, ide::context::colors::text);
-        attr = set_upper_nybble(attr, 0);
-        _document.default_attr(attr);
+        _document.default_attr(core::attr_t { ide::context::colors::text, core::font::styles::normal});
         _document.clear();
 
-        rect({0, 0, clip_rect.width(), clip_rect.height()});
+        rect({0, 0, bounds.width(), bounds.height()});
         padding({left_padding, right_padding, header_padding, footer_padding});
     }
 
@@ -287,21 +301,18 @@ namespace ryu::ide::text_editor {
             auto chunks = _document.get_line_chunks(row, col_start, col_end);
             for (const auto& chunk : chunks) {
                 auto width = static_cast<int32_t>(face->width * chunk.text.length());
-                auto style = get_upper_nybble(chunk.attr);
-                auto palette_index = get_lower_nybble(chunk.attr);
-                auto color = palette[palette_index];
+                auto color = palette[chunk.attr.color];
 
-                if ((style & core::font::styles::strikethrough) != 0) {
+                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
                     push_blend_mode(SDL_BLENDMODE_BLEND);
                     auto selection_color = palette[ide::context::colors::selection];
                     selection_color.alpha(0x7f);
                     set_color(selection_color);
                     fill_rect(core::rect{x, y, width, face->line_height});
-                    style &= ~core::font::styles::strikethrough;
                     pop_blend_mode();
                 }
 
-                font_style(style);
+                font_style(chunk.attr.style);
                 draw_text(x, y, chunk.text, color);
                 x += width;
             }
@@ -343,8 +354,10 @@ namespace ryu::ide::text_editor {
             } else {
                 if (_caret.mode() == core::caret::mode::insert)
                     _document.shift_line_right(_vrow, _vcol);
-                _document.put(_vrow, _vcol, static_cast<uint8_t>(*c));
-                _document.put_attr(_vrow, _vcol, _document.default_attr());
+                _document.put(
+                        _vrow,
+                        _vcol,
+                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
                 caret_right();
             }
 
@@ -410,7 +423,7 @@ namespace ryu::ide::text_editor {
                         auto spaces = core::document::spaces_to_next_tabstop(_vcol, 4);
                         _document.shift_line_right(_vrow, _vcol, spaces);
                         for (auto col = _vcol; col < _vcol + spaces; col++)
-                            _document.put(_vrow, col, 0);
+                            _document.put(_vrow, col, core::element_t {0, _document.default_attr()});
                         caret_right(spaces);
                     }
                     return true;
@@ -444,8 +457,8 @@ namespace ryu::ide::text_editor {
                         update_selection();
                         auto line_end = _document.find_line_end(_vrow);
                         for (auto col = _vcol; col < line_end; col++) {
-                            auto attr = _document.get_attr(_vrow, col);
-                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                            auto element = _document.get(_vrow, col);
+                            element->attr.flags |= core::font::flags::reverse;
                         }
                     } else {
                         end_selection();
@@ -460,8 +473,8 @@ namespace ryu::ide::text_editor {
                         update_selection();
                         auto line_end = _document.find_line_end(_vrow);
                         for (auto col = _vcol; col < line_end; col++) {
-                            auto attr = _document.get_attr(_vrow, col);
-                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                            auto element = _document.get(_vrow, col);
+                            element->attr.flags |= core::font::flags::reverse;
                         }
                     } else {
                         end_selection();
@@ -474,8 +487,8 @@ namespace ryu::ide::text_editor {
                 case SDLK_LEFT: {
                     if (shift_pressed) {
                         update_selection();
-                        auto attr = _document.get_attr(_vrow, _vcol);
-                        _document.put_attr(_vrow, _vcol, set_upper_nybble(attr, core::font::styles::strikethrough));
+                        auto element = _document.get(_vrow, _vcol);
+                        element->attr.flags |= core::font::flags::reverse;
                     } else {
                         end_selection();
                     }
@@ -485,8 +498,8 @@ namespace ryu::ide::text_editor {
                 case SDLK_RIGHT: {
                     if (shift_pressed) {
                         update_selection();
-                        auto attr = _document.get_attr(_vrow, _vcol);
-                        _document.put_attr(_vrow, _vcol, set_upper_nybble(attr, core::font::styles::strikethrough));
+                        auto element = _document.get(_vrow, _vcol);
+                        element->attr.flags |= core::font::flags::reverse;
                     } else {
                         end_selection();
                     }
@@ -497,8 +510,8 @@ namespace ryu::ide::text_editor {
                     if (shift_pressed) {
                         update_selection();
                         for (auto col = _vcol; col >= 0; col--) {
-                            auto attr = _document.get_attr(_vrow, col);
-                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                            auto element = _document.get(_vrow, col);
+                            element->attr.flags |= core::font::flags::reverse;
                         }
                     } else {
                         end_selection();
@@ -514,8 +527,8 @@ namespace ryu::ide::text_editor {
                         update_selection();
                         auto line_end = _document.find_line_end(_vrow);
                         for (auto col = _vcol; col < line_end; col++) {
-                            auto attr = _document.get_attr(_vrow, col);
-                            _document.put_attr(_vrow, col, set_upper_nybble(attr, core::font::styles::strikethrough));
+                            auto element = _document.get(_vrow, col);
+                            element->attr.flags |= core::font::flags::reverse;
                         }
                     } else {
                         end_selection();
@@ -553,11 +566,11 @@ namespace ryu::ide::text_editor {
                 last_row = row;
                 stream << "\n";
             }
-            auto value = _document.get(row, col);
-            if (value == 0)
+            auto element = _document.get(row, col);
+            if (element->value == 0)
                 stream << " ";
             else
-                stream << value;
+                stream << element->value;
         });
     }
 
