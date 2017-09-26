@@ -38,11 +38,9 @@ namespace ryu::core {
 
         void shift_up();
 
-        void initialize(
-                int rows,
-                int columns,
-                int page_width,
-                int page_height);
+        void initialize(int rows, int columns);
+
+        void page_size(int height, int width);
 
         inline void home() {
             _column = 0;

@@ -35,6 +35,10 @@ namespace ryu {
 
         void configure_emulator();
 
+        core::rect ide_bounds(const core::rect& bounds);
+
+        core::rect emulator_bounds(const core::rect& bounds);
+
     private:
         core::engine _engine;
         ide::context _ide_context;

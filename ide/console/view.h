@@ -60,6 +60,8 @@ namespace ryu::ide::console {
     protected:
         void on_draw() override;
 
+        void on_resize() override;
+
         bool on_process_event(const SDL_Event* e) override;
 
     private:

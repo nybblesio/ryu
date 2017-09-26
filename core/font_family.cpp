@@ -27,8 +27,11 @@ namespace ryu::core {
 
     const font_t* font_family::find_style(uint8_t style) const {
         auto it = _faces.find(style);
-        if (it == _faces.end())
-            return nullptr;
+        if (it == _faces.end()) {
+            it = _faces.find(font::styles::normal);
+            if (it == _faces.end())
+                return nullptr;
+        }
         return &it->second;
     }
 

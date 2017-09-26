@@ -11,6 +11,7 @@
 #include <SDL_image.h>
 #include <hardware/machine.h>
 #include <common/SDL_FontCache.h>
+#include "rect.h"
 #include "timer.h"
 #include "result.h"
 #include "core_types.h"
@@ -22,6 +23,8 @@ namespace ryu::core {
     class engine {
         friend class context;
     public:
+        using resize_callable = std::function<void (const core::rect&)>;
+
         engine(int width, int height);
 
         ~engine() = default;
@@ -54,6 +57,8 @@ namespace ryu::core {
 
         void erase_blackboard(const std::string& name);
 
+        void on_resize(const resize_callable& callable);
+
         std::string blackboard(const std::string& name) const;
 
         core::font_family* find_font_family(const std::string& name);
@@ -63,6 +68,9 @@ namespace ryu::core {
         core::font_family* add_font_family(uint32_t size, const std::string& name);
 
     private:
+        SDL_Rect bounds();
+
+    private:
         bool _quit = false;
         int _focused_context = -1;
         core::blackboard _blackboard;
@@ -70,6 +78,7 @@ namespace ryu::core {
         SDL_Window* _window = nullptr;
         core::font_t* _font = nullptr;
         font_family_dict _font_families;
+        resize_callable _resize_callable;
         SDL_Renderer* _renderer = nullptr;
         std::pair<short, short> _display_size;
         hardware::machine* _machine = nullptr;

@@ -40,6 +40,10 @@ namespace ryu::core {
             child->draw();
     }
 
+    void view::resize() {
+        on_resize();
+    }
+
     int view::id() const {
         return _id;
     }
@@ -49,6 +53,9 @@ namespace ryu::core {
 
     view* view::parent() {
         return _parent;
+    }
+
+    void view::on_resize() {
     }
 
     core::rect& view::rect() {

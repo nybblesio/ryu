@@ -137,6 +137,13 @@ namespace ryu::ide {
         palette(&_palette);
     }
 
+    void context::on_resize() {
+        _console_state.resize();
+        _hex_editor_state.resize();
+        _text_editor_state.resize();
+        _machine_editor_state.resize();
+    }
+
     core::project* context::project() {
         return _project;
     }

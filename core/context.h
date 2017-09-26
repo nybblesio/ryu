@@ -14,6 +14,7 @@
 #include <string>
 #include "palette.h"
 #include "state_stack.h"
+#include "rect.h"
 
 namespace ryu::core {
 
@@ -27,10 +28,8 @@ namespace ryu::core {
 
         void initialize(
                 core::engine* engine,
-                const SDL_Rect& clip_rect,
+                const core::rect& bounds,
                 uint8_t color_index);
-
-        void update(uint32_t dt);
 
         inline int peek_state() const {
             return _stack.peek();
@@ -44,8 +43,8 @@ namespace ryu::core {
 
         void add_state(core::state* state);
 
-        inline SDL_Rect clip_rect() const {
-            return _clip_rect;
+        inline core::rect bounds() const {
+            return _bounds;
         }
 
         void palette(core::palette* palette);
@@ -68,9 +67,16 @@ namespace ryu::core {
             return _stack.find_state(id);
         }
 
+        inline void bounds(const core::rect& value) {
+            _bounds = value;
+            on_resize();
+        }
+
         void erase_blackboard(const std::string& name);
 
         std::string blackboard(const std::string& name) const;
+
+        void update(uint32_t dt, std::deque<SDL_Event>& events);
 
         void push_state(int id, const core::parameter_dict& params);
 
@@ -78,11 +84,14 @@ namespace ryu::core {
 
         void add_state(core::state* state, const state_transition_callable& callback);
 
+    protected:
+        virtual void on_resize();
+
     private:
         int _id;
         std::string _name;
         timer_list _timers;
-        SDL_Rect _clip_rect;
+        core::rect _bounds;
         core::state_stack _stack;
         uint8_t _fill_color_index;
         core::blackboard _blackboard;

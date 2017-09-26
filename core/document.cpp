@@ -49,17 +49,16 @@ namespace ryu::core {
         std::memset(_attrs, 0, _rows * _columns);
     }
 
-    void document::initialize(
-            int rows,
-            int columns,
-            int page_width,
-            int page_height) {
+    void document::initialize(int rows, int columns) {
         _rows = rows;
         _columns = columns;
-        _page_width = page_width;
-        _page_height = page_height;
         _data = new uint8_t[_rows * _columns];
         _attrs = new uint8_t[_rows * _columns];
+    }
+
+    void document::page_size(int height, int width) {
+        _page_width = width;
+        _page_height = height;
     }
 
     void document::shift_up() {

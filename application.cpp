@@ -37,6 +37,11 @@ namespace ryu {
         configure_ide();
         configure_emulator();
 
+        _engine.on_resize([&](const core::rect& bounds) {
+            _ide_context.bounds(ide_bounds(bounds));
+            _emulator_context.bounds(emulator_bounds(bounds));
+        });
+
         return true;
     }
 
@@ -76,29 +81,39 @@ namespace ryu {
     }
 
     void application::configure_ide() {
-        SDL_Rect rect = {
-                0,
-                0,
-                (display_width / 2) - 1,
-                display_height
-        };
-
-        _ide_context.initialize(&_engine, rect, ide::context::colors::fill_color);
+        _ide_context.initialize(
+                &_engine,
+                ide_bounds({0, 0, display_width, display_height}),
+                ide::context::colors::fill_color);
         _ide_context.push_state(ide::context::states::console, {});
         _engine.add_context(&_ide_context);
     }
 
     void application::configure_emulator() {
-        SDL_Rect rect = {
-                (display_width / 2) + 1,
-                0,
-                (display_width / 2) - 1,
-                display_height
-        };
-
-        _emulator_context.initialize(&_engine, rect, emulator::context::colors::fill_color);
+        _emulator_context.initialize(
+                &_engine,
+                emulator_bounds({0, 0, display_width, display_height}),
+                emulator::context::colors::fill_color);
         _emulator_context.push_state(emulator::context::states::execute, {});
         _engine.add_context(&_emulator_context);
+    }
+
+    core::rect application::ide_bounds(const core::rect& bounds) {
+        return {
+                0,
+                0,
+                (bounds.width() / 2) - 1,
+                bounds.height()
+        };
+    }
+
+    core::rect application::emulator_bounds(const core::rect& bounds) {
+        return {
+                (bounds.width() / 2) + 1,
+                0,
+                (bounds.width() / 2) - 1,
+                bounds.height()
+        };
     }
 
 }

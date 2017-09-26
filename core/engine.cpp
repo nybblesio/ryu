@@ -21,6 +21,10 @@ namespace ryu::core {
         _quit = true;
     }
 
+    SDL_Rect engine::bounds() {
+        return {0, 0, _display_size.first, _display_size.second};
+    }
+
     void engine::focus(int id) {
         _focused_context = id;
     }
@@ -38,7 +42,6 @@ namespace ryu::core {
         short frame_count = 0;
         auto last_time = SDL_GetTicks();
         auto last_fps_time = last_time;
-        SDL_Rect clip{0, 0, _display_size.first, _display_size.second};
         SDL_StartTextInput();
 
         while (!_quit) {
@@ -55,10 +58,34 @@ namespace ryu::core {
             SDL_SetRenderDrawColor(_renderer, 0x00, 0x00, 0x00, 0xff);
             SDL_RenderClear(_renderer);
 
-            for (auto& it : _contexts)
-                it.second->update(dt);
+            std::deque<SDL_Event> events;
+            SDL_Event e{};
+            while (SDL_PollEvent(&e) != 0) {
+                switch (e.type) {
+                    case SDL_WINDOWEVENT:
+                        switch (e.window.event) {
+                            case SDL_WINDOWEVENT_RESIZED:
+                                _display_size = std::make_pair(e.window.data1, e.window.data2);
+                                if (_resize_callable != nullptr) {
+                                    _resize_callable(core::rect{0, 0, _display_size.first, _display_size.second});
+                                }
+                                break;
+                        }
+                        break;
+                    case SDL_QUIT:
+                        _quit = true;
+                        continue;
+                    default:
+                        events.push_back(e);
+                        break;
+                }
+            }
 
-            SDL_RenderSetClipRect(_renderer, &clip);
+            for (auto& it : _contexts)
+                it.second->update(dt, events);
+
+            auto clip_rect = bounds();
+            SDL_RenderSetClipRect(_renderer, &clip_rect);
             FC_SetDefaultColor(_font->glyph, FC_MakeColor(0xff, 0xff, 0xff, 0xff));
             auto fps = fmt::format("FPS: {}", (int) average_fps);
             int fps_width = FC_GetWidth(_font->glyph, fps.c_str());
@@ -110,7 +137,7 @@ namespace ryu::core {
                     SDL_WINDOWPOS_CENTERED,
                     display_width(),
                     display_height(),
-                    SDL_WINDOW_SHOWN);
+                    SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
             if (_window == nullptr) {
                 result.add_message(
                         "R003",
@@ -119,7 +146,11 @@ namespace ryu::core {
                         true);
                 result.fail();
             } else {
-                _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                SDL_SetWindowOpacity(_window, 1.0f);
+                _renderer = SDL_CreateRenderer(
+                        _window,
+                        -1,
+                        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
                 if (_renderer == nullptr) {
                     result.add_message(
                             "R004",
@@ -180,6 +211,10 @@ namespace ryu::core {
             return it->second;
         }
         return "";
+    }
+
+    void engine::on_resize(const engine::resize_callable& callable) {
+        _resize_callable = callable;
     }
 
     core::font_family* engine::find_font_family(const std::string& name) {

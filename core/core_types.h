@@ -98,6 +98,31 @@ namespace ryu::core {
     };
 
     struct operator_t {
+        enum op {
+            invert,
+            negate,
+            pow,
+            multiply,
+            divide,
+            modulo,
+            add,
+            subtract,
+            binary_and,
+            binary_or,
+            greater_than,
+            greater_than_equal,
+            less_than,
+            less_than_equal,
+            equal,
+            not_equal,
+            logical_and,
+            logical_or,
+            left_parenthesis,
+            right_parenthesis,
+            left_bracket,
+            right_bracket
+        };
+
         enum op_type : uint8_t {
             no_op = 0b00000000,
             unary = 0b00000001,
@@ -125,6 +150,7 @@ namespace ryu::core {
             return precedence > other.precedence ? 1 : other.precedence == precedence ? 0 : -1;
         }
 
+        op op;
         std::string symbol;
         uint8_t precedence = 0;
         uint8_t type = op_type::no_op;

@@ -27,6 +27,9 @@ namespace ryu::emulator {
     void controller::on_draw() {
     }
 
+    void controller::on_resize() {
+    }
+
     void controller::on_initialize() {
     }
 

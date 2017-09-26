@@ -31,6 +31,10 @@ namespace ryu::ide::console {
         _view.draw();
     }
 
+    void controller::on_resize() {
+        _view.resize();
+    }
+
     void controller::on_initialize() {
         _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize();

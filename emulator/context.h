@@ -34,6 +34,9 @@ namespace ryu::emulator {
 
         context(int id, std::string name);
 
+    protected:
+        void on_resize() override;
+
     private:
         core::palette _palette;
         controller _emulator_state;

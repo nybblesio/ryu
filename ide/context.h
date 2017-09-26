@@ -78,6 +78,9 @@ namespace ryu::ide {
 
         void project(core::project* project);
 
+    protected:
+        void on_resize() override;
+
     private:
         core::palette _palette;
         core::project* _project = nullptr;

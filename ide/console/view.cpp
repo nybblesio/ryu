@@ -66,30 +66,31 @@ namespace ryu::ide::console {
     }
 
     void view::initialize() {
-        auto clip_rect = context()->clip_rect();
+        auto bounds = context()->bounds();
 
         const int left_padding = 10;
         const int right_padding = 10;
         const int footer_padding = font_face()->line_height;
         const int header_padding = font_face()->line_height * 2;
 
-        _page_width = static_cast<short>((clip_rect.w - (left_padding + right_padding)) / font_face()->width);
-        _page_height = static_cast<short>((clip_rect.h - (header_padding + footer_padding + 20)) / font_face()->line_height);
+        _page_width = static_cast<short>((bounds.width() - (left_padding + right_padding)) / font_face()->width);
+        _page_height = static_cast<short>((bounds.height() - (header_padding + footer_padding + 20)) / font_face()->line_height);
 
-        _document.initialize(_page_height, _page_width, _page_width, _page_height);
+        _document.initialize(_page_height, _page_width);
+        _document.page_size(_page_height, _page_width);
         _document.clear();
 
         _header.rect()
                 .pos(0, 0)
-                .size(clip_rect.w, header_padding);
+                .size(bounds.width(), header_padding);
         _header.font_family(font_family());
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
         _header.padding({left_padding, right_padding, 5, 0});
 
         _footer.rect()
-                .pos(0, clip_rect.h - (footer_padding + 10))
-                .size(clip_rect.w, footer_padding);
+                .pos(0, bounds.height() - (footer_padding + 10))
+                .size(bounds.width(), footer_padding);
         _footer.font_family(font_family());
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
@@ -99,10 +100,36 @@ namespace ryu::ide::console {
         _caret.fg_color(ide::context::colors::caret);
         _caret.font_family(font_family());
 
-        rect({0, 0, clip_rect.w, clip_rect.h});
+        rect({0, 0, bounds.width(), bounds.height()});
         padding({left_padding, right_padding, header_padding + 5, footer_padding});
 
         _color = ryu::ide::context::colors::text;
+    }
+
+    void view::on_resize() {
+        auto bounds = context()->bounds();
+
+        const int left_padding = 10;
+        const int right_padding = 10;
+        const int footer_padding = font_face()->line_height;
+        const int header_padding = font_face()->line_height * 2;
+
+//        _page_width = static_cast<short>((bounds.width() - (left_padding + right_padding)) / font_face()->width);
+//        _page_height = static_cast<short>((bounds.height() - (header_padding + footer_padding + 20)) / font_face()->line_height);
+//
+//        _document.page_size(_page_height, _page_width);
+
+        auto& header_bounds = _header.rect();
+        header_bounds.pos(0, 0);
+        header_bounds.size(bounds.width(), header_bounds.height());
+
+        auto& footer_bounds = _footer.rect();
+        footer_bounds
+                .pos(0, bounds.height() - (footer_padding + 10))
+                .size(bounds.width(), footer_bounds.height());
+
+        auto& self = rect();
+        self.size(bounds.width(), bounds.height());
     }
 
     void view::on_draw() {

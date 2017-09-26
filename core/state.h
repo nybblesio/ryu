@@ -29,6 +29,8 @@ namespace ryu::core {
 
         int id() const;
 
+        void resize();
+
         void initialize();
 
         void deactivate();
@@ -63,6 +65,8 @@ namespace ryu::core {
 
     protected:
         void end_state();
+
+        virtual void on_resize();
 
         virtual void on_draw() = 0;
 

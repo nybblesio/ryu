@@ -35,6 +35,8 @@ namespace ryu::ide::console {
     protected:
         void on_draw() override;
 
+        void on_resize() override;
+
         void on_initialize() override;
 
         void on_update(uint32_t dt) override;

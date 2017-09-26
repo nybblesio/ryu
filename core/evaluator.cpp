@@ -87,22 +87,18 @@ namespace ryu::core {
 
                         auto lhs = boost::get<uint32_t>(lhs_node);
                         auto rhs = boost::get<uint32_t>(rhs_node);
-                        if (op.symbol == "+") {
-                            return lhs + rhs;
-                        } else if (op.symbol == "-") {
-                            return lhs - rhs;
-                        } else if (op.symbol == "*") {
-                            return lhs * rhs;
-                        } else if (op.symbol == "/") {
-                            return lhs / rhs;
-                        } else if (op.symbol == "\\") {
-                            return lhs % rhs;
-                        } else if (op.symbol == "&") {
-                            return lhs & rhs;
-                        } else if (op.symbol == "|") {
-                            return lhs | rhs;
-                        } else if (op.symbol == "^") {
-                            return lhs ^ rhs;
+                        switch (op.op) {
+                            case operator_t::op::add:        return lhs + rhs;
+                            case operator_t::op::subtract:   return lhs - rhs;
+                            case operator_t::op::multiply:   return lhs * rhs;
+                            case operator_t::op::divide:     return lhs / rhs;
+                            case operator_t::op::modulo:     return lhs % rhs;
+                            case operator_t::op::binary_and: return lhs & rhs;
+                            case operator_t::op::binary_or:  return lhs | rhs;
+                            case operator_t::op::pow:        return lhs ^ rhs;
+                            default:
+                                error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
+                                break;
                         }
                         break;
                     }
@@ -121,10 +117,12 @@ namespace ryu::core {
             case ast_node_t::unary_op: {
                 auto rhs = boost::get<uint32_t>(evaluate(result, node->rhs));
                 auto op = boost::get<operator_t>(node->value);
-                if (op.symbol == "-") {
-                    return -rhs;
-                } else if (op.symbol == "~") {
-                    return ~rhs;
+                switch (op.op) {
+                    case operator_t::op::negate: return -rhs;
+                    case operator_t::op::invert: return ~rhs;
+                    default:
+                        error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
+                        break;
                 }
                 break;
             }

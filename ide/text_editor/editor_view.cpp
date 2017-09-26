@@ -184,7 +184,7 @@ namespace ryu::ide::text_editor {
     }
 
     void editor_view::initialize(int rows, int columns) {
-        auto clip_rect = context()->clip_rect();
+        auto clip_rect = context()->bounds();
 
         const int left_padding = 10;
         const int right_padding = 15;
@@ -194,12 +194,12 @@ namespace ryu::ide::text_editor {
 
         _vcol = 0;
         _vrow = 0;
-        _page_width = (clip_rect.w - (left_padding + line_number_width + right_padding)) / font_face()->width;
-        _page_height = ((clip_rect.h - (header_padding + footer_padding)) / font_face()->line_height);
+        _page_width = (clip_rect.width() - (left_padding + line_number_width + right_padding)) / font_face()->width;
+        _page_height = ((clip_rect.height() - (header_padding + footer_padding)) / font_face()->line_height);
 
         _header.rect()
                 .pos(0, 0)
-                .size(clip_rect.w, font_face()->line_height * 2);
+                .size(clip_rect.width(), font_face()->line_height * 2);
         _header.font_family(font_family());
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
@@ -226,8 +226,8 @@ namespace ryu::ide::text_editor {
         });
 
         _footer.rect()
-                .pos(0, clip_rect.h - (footer_padding + 10))
-                .size(clip_rect.w, footer_padding);
+                .pos(0, clip_rect.height() - (footer_padding + 10))
+                .size(clip_rect.width(), footer_padding);
         _footer.font_family(font_family());
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
@@ -238,13 +238,14 @@ namespace ryu::ide::text_editor {
         _caret.fg_color(ide::context::colors::caret);
         _caret.initialize(0, 0, _page_width, _page_height);
 
-        _document.initialize(rows, columns, _page_width, _page_height);
+        _document.initialize(rows, columns);
+        _document.page_size(_page_height, _page_width);
         auto attr = set_lower_nybble(0, ide::context::colors::text);
         attr = set_upper_nybble(attr, 0);
         _document.default_attr(attr);
         _document.clear();
 
-        rect({0, 0, clip_rect.w, clip_rect.h});
+        rect({0, 0, clip_rect.width(), clip_rect.height()});
         padding({left_padding, right_padding, header_padding, footer_padding});
     }
 

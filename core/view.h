@@ -85,6 +85,8 @@ namespace ryu::core {
 
         void draw();
 
+        void resize();
+
         int id() const;
 
         view* parent();
@@ -158,7 +160,7 @@ namespace ryu::core {
         void font_family(core::font_family* font);
 
         inline const core::font_t* font_face() const {
-            return _font->find_style(_font_style);
+            return font_family()->find_style(_font_style);
         }
 
     protected:
@@ -167,6 +169,8 @@ namespace ryu::core {
         virtual void on_draw();
 
         void focus(bool value);
+
+        virtual void on_resize();
 
         virtual void on_focus_changed();
 

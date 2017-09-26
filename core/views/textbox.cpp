@@ -53,7 +53,8 @@ namespace ryu::core {
     }
 
     void textbox::initialize(int rows, int columns) {
-        _document.initialize(rows, columns, columns, rows);
+        _document.initialize(rows, columns);
+        _document.page_size(rows, columns);
         _document.clear();
 
         _caret.font_family(font_family());

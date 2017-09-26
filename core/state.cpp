@@ -25,6 +25,10 @@ namespace ryu::core {
         on_draw();
     }
 
+    void state::resize() {
+        on_resize();
+    }
+
     int state::id() const {
         return _id;
     }
@@ -38,6 +42,9 @@ namespace ryu::core {
             on_initialize();
             _initialized = true;
         }
+    }
+
+    void state::on_resize() {
     }
 
     void state::deactivate() {
