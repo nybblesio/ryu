@@ -61,6 +61,14 @@ namespace ryu::ide::text_editor {
         _document.page_size(_metrics.page_height, _metrics.page_width);
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _command_line.size(1, _metrics.page_width);
+
+        if (_caret.row() > _metrics.page_height)
+            _caret.row(_metrics.page_height - 1);
+
+        if (_caret.column() > _metrics.page_width)
+            _caret.column(_metrics.page_width - 1);
+
+        update_virtual_position();
     }
 
     void editor_view::page_down() {

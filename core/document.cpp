@@ -108,7 +108,7 @@ namespace ryu::core {
     }
 
     void document::save(std::ostream& stream) {
-        for (auto row = 0; row < _rows; row++) {
+        for (auto row = 0; row < _lines.size(); row++) {
             std::stringstream line;
             write_line(line, row, 0, _columns);
             stream << ryu::rtrimmed(line.str()) << "\n";
@@ -165,20 +165,34 @@ namespace ryu::core {
     }
 
     void document::split_line(int row, int column) {
-        auto new_line = insert_line(row + 1);
+        insert_line(row + 1);
         auto old_line = line_at(row);
         if (old_line == nullptr)
             return;
         auto col = 0;
         for (; column < _columns; column++) {
-            new_line->elements[col++] = old_line->elements[column];
-            old_line->elements[column] = element_t{};
+            auto old_element = get(row, column);
+            put(row + 1, col++, old_element != nullptr ? *old_element : element_t {0, _default_attr});
+            put(row, column, element_t { 0, _default_attr });
         }
     }
 
     void document::page_size(int height, int width) {
         _page_width = width;
+        if (_columns < _page_width)
+            _columns = _page_width;
+
         _page_height = height;
+        if (_rows < _page_height)
+            _rows = _page_height;
+
+        for (auto& line : _lines) {
+            if (line.elements.size() < _page_width) {
+                auto missing_count = _page_width - line.elements.size();
+                for (auto i = 0; i < missing_count; i++)
+                    line.elements.push_back(element_t {0, _default_attr});
+            }
+        }
     }
 
     void document::initialize(int rows, int columns) {
@@ -190,7 +204,9 @@ namespace ryu::core {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto i = 0; i < times; i++, column--) {
+        for (auto i = 0; i < times && column < line->elements.size(); i++, column--) {
+            if (line->elements.empty())
+                break;
             line->elements.erase(line->elements.begin() + column);
 //            for (auto& below : _lines) {
 //                if (below.row > line->row) {
@@ -218,7 +234,7 @@ namespace ryu::core {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto i = 0; i < times; i++, column--) {
+        for (auto i = 0; i < times && column < line->elements.size(); i++, column--) {
             line->elements.erase(line->elements.begin() + column);
         }
     }
@@ -227,6 +243,11 @@ namespace ryu::core {
         auto line = line_at(row);
         if (line == nullptr) {
             line = insert_line(row);
+        }
+        if (column > line->elements.size()) {
+            auto missing_count = column - line->elements.size();
+            for (auto i = 0; i < missing_count; i++)
+                line->elements.push_back(element_t {0, _default_attr});
         }
         line->elements[column] = value;
     }
@@ -250,7 +271,7 @@ namespace ryu::core {
         std::stringstream stream;
         attr_t last_attr = line->elements[col].attr;
 
-        while (col < end_column) {
+        while (col < end_column && col < line->elements.size()) {
             auto& element = line->elements[col];
             if (last_attr != element.attr) {
                 auto text = stream.str();
@@ -279,7 +300,7 @@ namespace ryu::core {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto col = column; col < end_column; col++) {
+        for (auto col = column; col < end_column && col < line->elements.size(); col++) {
             const auto& element = line->elements[col];
             if (element.value == 0)
                 stream << " ";
