@@ -30,6 +30,8 @@ namespace ryu::core {
 
         std::string value();
 
+        void size(int rows, int columns);
+
         void value(const std::string& value);
 
         void initialize(int rows, int columns);
@@ -43,6 +45,8 @@ namespace ryu::core {
 
         void on_draw() override;
 
+        void on_resize() override;
+
         void on_focus_changed() override;
 
         bool caret_left(int columns = 1);
@@ -52,6 +56,7 @@ namespace ryu::core {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
+        int _page_width;
         core::caret _caret;
         core::document _document;
         on_key_down_callable _on_key_down;

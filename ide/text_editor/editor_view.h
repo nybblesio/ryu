@@ -57,6 +57,16 @@ namespace ryu::ide::text_editor {
         void on_transition(const core::state_transition_callable& callable);
 
     protected:
+        struct metrics_t {
+            int page_width;
+            int page_height;
+            int footer_padding;
+            int header_padding;
+            int line_number_width;
+            const int left_padding = 10;
+            const int right_padding = 15;
+        };
+
         void on_draw() override;
 
         void on_resize() override;
@@ -94,6 +104,8 @@ namespace ryu::ide::text_editor {
 
         void caret_down(int rows = 1);
 
+        void calculate_page_metrics();
+
         void update_virtual_position();
 
         void on_focus_changed() override;
@@ -111,9 +123,8 @@ namespace ryu::ide::text_editor {
     private:
         int _vcol;
         int _vrow;
-        int _page_width;
-        int _page_height;
         core::caret _caret;
+        metrics_t _metrics;
         core::label _header;
         core::label _footer;
         core::document _document;

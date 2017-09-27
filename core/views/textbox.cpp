@@ -27,7 +27,12 @@ namespace ryu::core {
     }
 
     void textbox::caret_end() {
-        _caret.column(_document.columns() - 1);
+        auto line_end = _document.find_line_end(0);
+        _caret.column(line_end != -1 ? line_end : _page_width - 1);
+    }
+
+    void textbox::on_resize() {
+        rect().size(font_face()->width * (_page_width + 4), font_face()->line_height + 10);
     }
 
     void textbox::caret_home() {
@@ -36,7 +41,7 @@ namespace ryu::core {
 
     std::string textbox::value() {
         std::stringstream stream;
-        _document.write_line(stream, 0, 0, _document.columns());
+        _document.write_line(stream, 0, 0, _page_width);
         return stream.str();
     }
 
@@ -52,17 +57,23 @@ namespace ryu::core {
         return _caret.right(columns);
     }
 
+    void textbox::size(int rows, int columns) {
+        _document.page_size(rows, columns);
+        _caret.page_size(rows, columns);
+        _page_width = columns;
+        on_resize();
+    }
+
     void textbox::initialize(int rows, int columns) {
         _document.initialize(rows, columns);
-        _document.page_size(rows, columns);
         _document.clear();
 
         _caret.font_family(font_family());
         _caret.fg_color(fg_color());
-        _caret.initialize(0, 0, columns, rows);
+        _caret.initialize(0, 0);
 
-        rect({0, 0, font_face()->width * (columns + 4), font_face()->line_height + 10});
         padding({5, 5, 5, 5});
+        size(rows, columns);
     }
 
     void textbox::value(const std::string& value) {
@@ -79,10 +90,10 @@ namespace ryu::core {
         set_color(fg);
 
         std::stringstream stream;
-        _document.write_line(stream, 0, 0, _document.columns());
+        _document.write_line(stream, 0, 0, _page_width);
 
         draw_text(bounds.left(), bounds.top(), stream.str(), fg);
-        draw_line(bounds.left(), bounds.bottom(), bounds.right(), bounds.bottom());
+        draw_line(bounds.left(), bounds.top() + bounds.height(), bounds.right(), bounds.top() + bounds.height());
     }
 
     bool textbox::on_process_event(const SDL_Event* e) {

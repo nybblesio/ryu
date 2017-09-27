@@ -32,6 +32,8 @@ namespace ryu::ide::text_editor {
     protected:
         void on_draw() override;
 
+        void on_resize() override;
+
         void on_initialize() override;
 
         void on_update(uint32_t dt) override;
@@ -40,6 +42,7 @@ namespace ryu::ide::text_editor {
 
     private:
         editor_view _view;
+        bool _initialized = false;
         command_factory _command_factory;
     };
 

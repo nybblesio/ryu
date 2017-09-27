@@ -45,6 +45,7 @@ namespace ryu::ide::console {
 
     private:
         console::view _view;
+        bool _initialized = false;
         command_factory _command_factory;
     };
 

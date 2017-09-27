@@ -31,7 +31,7 @@ namespace ryu::ide::console {
     }
 
     void view::caret_end() {
-        _caret.column(_page_width);
+        _caret.column(_metrics.page_width);
     }
 
     void view::caret_home() {
@@ -66,71 +66,68 @@ namespace ryu::ide::console {
     }
 
     void view::initialize() {
-        auto bounds = context()->bounds();
-
-        const int left_padding = 10;
-        const int right_padding = 10;
-        const int footer_padding = font_face()->line_height;
-        const int header_padding = font_face()->line_height * 2;
-
         _color = ryu::ide::context::colors::text;
 
-        _page_width = static_cast<short>((bounds.width() - (left_padding + right_padding)) / font_face()->width);
-        _page_height = static_cast<short>((bounds.height() - (header_padding + footer_padding + 20)) / font_face()->line_height);
+        _metrics.footer_padding = font_face()->line_height;
+        _metrics.header_padding = font_face()->line_height * 2;
 
-        _document.initialize(_page_height, _page_width);
-        _document.page_size(_page_height, _page_width);
+        calculate_page_metrics();
+
+        _document.initialize(_metrics.page_height, _metrics.page_width);
         _document.default_attr(core::attr_t {_color, core::font::styles::normal, core::font::flags::none});
         _document.clear();
 
-        _header.rect()
-                .pos(0, 0)
-                .size(bounds.width(), header_padding);
         _header.font_family(font_family());
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
-        _header.padding({left_padding, right_padding, 5, 0});
+        _header.padding({_metrics.left_padding, _metrics.right_padding, 5, 0});
 
-        _footer.rect()
-                .pos(0, bounds.height() - (footer_padding + 10))
-                .size(bounds.width(), footer_padding);
         _footer.font_family(font_family());
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
-        _footer.padding({left_padding, right_padding, 0, 0});
+        _footer.padding({_metrics.left_padding, _metrics.right_padding, 0, 0});
 
-        _caret.initialize(0, 0, _page_width, _page_height);
+        _caret.initialize(0, 0);
         _caret.fg_color(ide::context::colors::caret);
+        _caret.overwrite();
         _caret.font_family(font_family());
 
-        rect({0, 0, bounds.width(), bounds.height()});
-        padding({left_padding, right_padding, header_padding + 5, footer_padding});
+        padding({_metrics.left_padding,
+                 _metrics.right_padding,
+                 _metrics.header_padding + 5,
+                 _metrics.footer_padding});
+
+        on_resize();
+    }
+
+    void view::calculate_page_metrics() {
+        auto bounds = context()->bounds();
+
+        _metrics.page_width = static_cast<short>(
+                (bounds.width() - (_metrics.left_padding + _metrics.right_padding))
+                / font_face()->width);
+        _metrics.page_height = static_cast<short>(
+                (bounds.height() - (_metrics.header_padding + _metrics.footer_padding + 20))
+                / font_face()->line_height);
     }
 
     void view::on_resize() {
         auto bounds = context()->bounds();
 
-        const int left_padding = 10;
-        const int right_padding = 10;
-        const int footer_padding = font_face()->line_height;
-        const int header_padding = font_face()->line_height * 2;
+        calculate_page_metrics();
 
-//        _page_width = static_cast<short>((bounds.width() - (left_padding + right_padding)) / font_face()->width);
-//        _page_height = static_cast<short>((bounds.height() - (header_padding + footer_padding + 20)) / font_face()->line_height);
-//
-//        _document.page_size(_page_height, _page_width);
+        _caret.page_size(_metrics.page_height, _metrics.page_width);
+        _document.page_size(_metrics.page_height, _metrics.page_width);
 
-        auto& header_bounds = _header.rect();
-        header_bounds.pos(0, 0);
-        header_bounds.size(bounds.width(), header_bounds.height());
+        _header.rect()
+                .pos(0, 0)
+                .size(bounds.width(), _metrics.header_padding);
 
-        auto& footer_bounds = _footer.rect();
-        footer_bounds
-                .pos(0, bounds.height() - (footer_padding + 10))
-                .size(bounds.width(), footer_bounds.height());
+        _footer.rect()
+                .pos(0, bounds.height() - (_metrics.footer_padding + 10))
+                .size(bounds.width(), _metrics.footer_padding);
 
-        auto& self = rect();
-        self.size(bounds.width(), bounds.height());
+        rect({0, 0, bounds.width(), bounds.height()});
     }
 
     void view::on_draw() {
@@ -154,9 +151,9 @@ namespace ryu::ide::console {
         // XXX: this may not be correct because font metrics may change
         auto face = font_face();
         auto y = bounds.top();
-        for (auto row = 0; row < _page_height; row++) {
+        for (auto row = 0; row < _metrics.page_height; row++) {
             auto x = bounds.left();
-            auto chunks = _document.get_line_chunks(row, 0, _page_width);
+            auto chunks = _document.get_line_chunks(row, 0, _metrics.page_width);
             for (const auto& chunk : chunks) {
                 auto width = static_cast<int32_t>(face->width * chunk.text.length());
                 auto color = palette[chunk.attr.color];
@@ -190,9 +187,7 @@ namespace ryu::ide::console {
                         _caret.row(),
                         _caret.column(),
                         core::element_t {static_cast<uint8_t>(*c), core::attr_t{_color}});
-                if (caret_right()) {
-                    caret_right();
-                }
+                caret_right();
                 c++;
             }
         } else if (e->type == SDL_KEYDOWN) {
@@ -329,7 +324,7 @@ namespace ryu::ide::console {
 
                 case SDLK_END:
                     if (ctrl_pressed) {
-                        _caret.row(_page_height - 1);
+                        _caret.row(_metrics.page_height - 1);
                     }
                     caret_end();
                     return true;

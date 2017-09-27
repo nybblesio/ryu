@@ -58,6 +58,15 @@ namespace ryu::ide::console {
         void on_transition(const core::state_transition_callable& callable);
 
     protected:
+        struct metrics_t {
+            short page_width;
+            short page_height;
+            int footer_padding;
+            int header_padding;
+            const int left_padding = 10;
+            const int right_padding = 10;
+        };
+
         void on_draw() override;
 
         void on_resize() override;
@@ -65,13 +74,14 @@ namespace ryu::ide::console {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
+        void calculate_page_metrics();
+
         bool transition_to(const std::string& name, const core::parameter_dict& params);
 
     private:
         uint8_t _color;
-        short _page_width;
-        short _page_height;
         core::caret _caret;
+        metrics_t _metrics;
         core::label _header;
         core::label _footer;
         core::document _document;

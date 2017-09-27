@@ -12,7 +12,6 @@
 #include <fmt/format.h>
 #include <core/engine.h>
 #include <ide/context.h>
-#include <common/bytes.h>
 #include "editor_view.h"
 
 namespace ryu::ide::text_editor {
@@ -47,18 +46,21 @@ namespace ryu::ide::text_editor {
     void editor_view::on_resize() {
         auto bounds = context()->bounds();
 
-        const int footer_padding = font_face()->line_height * 2;
-
-        rect().size(bounds.width(), bounds.height());
+        rect({0, 0, bounds.width(), bounds.height()});
 
         _footer.rect()
-                .pos(0, bounds.height() - (footer_padding + 10))
-                .size(bounds.width(), footer_padding);
+                .pos(0, bounds.height() - (_metrics.footer_padding + 10))
+                .size(bounds.width(), _metrics.footer_padding);
 
         _header.rect()
                 .pos(0, 0)
                 .size(bounds.width(), font_face()->line_height * 2);
 
+        calculate_page_metrics();
+
+        _document.page_size(_metrics.page_height, _metrics.page_width);
+        _caret.page_size(_metrics.page_height, _metrics.page_width);
+        _command_line.size(1, _metrics.page_width);
     }
 
     void editor_view::page_down() {
@@ -200,31 +202,23 @@ namespace ryu::ide::text_editor {
     }
 
     void editor_view::initialize(int rows, int columns) {
-        auto bounds = context()->bounds();
+        _metrics.line_number_width = 6 * font_face()->width;
+        _metrics.footer_padding = font_face()->line_height * 2;
+        _metrics.header_padding = (font_face()->line_height * 2) + 25;
 
-        const int left_padding = 10;
-        const int right_padding = 15;
-        const int line_number_width = 6 * font_face()->width;
-        const int footer_padding = font_face()->line_height * 2;
-        const int header_padding = (font_face()->line_height * 2) + 25;
+        calculate_page_metrics();
 
         _vcol = 0;
         _vrow = 0;
-        _page_width = (bounds.width() - (left_padding + line_number_width + right_padding)) / font_face()->width;
-        _page_height = ((bounds.height() - (header_padding + footer_padding)) / font_face()->line_height);
 
-        _header.rect()
-                .pos(0, 0)
-                .size(bounds.width(), font_face()->line_height * 2);
         _header.font_family(font_family());
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
-        _header.padding({left_padding, right_padding, 5, 0});
+        _header.padding({_metrics.left_padding, _metrics.right_padding, 5, 0});
 
         _command_line.fg_color(ide::context::colors::text);
         _command_line.font_family(font_family());
-        _command_line.initialize(1, _page_width);
-        _command_line.rect().pos(left_padding, font_face()->line_height + 3);
+        _command_line.rect().pos(_metrics.left_padding, font_face()->line_height + 3);
         _command_line.on_key_down([&](int keycode) {
             if (keycode == SDLK_ESCAPE) {
                 focus(id());
@@ -240,27 +234,28 @@ namespace ryu::ide::text_editor {
                 focus(id());
             }
         });
+        _command_line.initialize(1, _metrics.page_width);
 
-        _footer.rect()
-                .pos(0, bounds.height() - (footer_padding + 10))
-                .size(bounds.width(), footer_padding);
         _footer.font_family(font_family());
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
-        _footer.padding({left_padding, right_padding, 13, 0});
+        _footer.padding({_metrics.left_padding, _metrics.right_padding, 13, 0});
 
         _caret.font_family(font_family());
-        _caret.padding().left(line_number_width);
+        _caret.padding().left(_metrics.line_number_width);
         _caret.fg_color(ide::context::colors::caret);
-        _caret.initialize(0, 0, _page_width, _page_height);
+        _caret.initialize(0, 0);
 
         _document.initialize(rows, columns);
-        _document.page_size(_page_height, _page_width);
         _document.default_attr(core::attr_t { ide::context::colors::text, core::font::styles::normal});
         _document.clear();
 
-        rect({0, 0, bounds.width(), bounds.height()});
-        padding({left_padding, right_padding, header_padding, footer_padding});
+        padding({_metrics.left_padding,
+                 _metrics.right_padding,
+                 _metrics.header_padding,
+                 _metrics.footer_padding});
+
+        on_resize();
     }
 
     void editor_view::on_draw() {
@@ -290,12 +285,12 @@ namespace ryu::ide::text_editor {
         auto face = font_face();
         auto y = bounds.top();
         auto row_start = _document.row();
-        auto row_stop = row_start + _page_height;
+        auto row_stop = row_start + _metrics.page_height;
         for (auto row = row_start; row < row_stop; row++) {
             draw_text(bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
 
             auto col_start = _document.column();
-            auto col_end = col_start + _page_width;
+            auto col_end = col_start + _metrics.page_width;
 
             auto x = bounds.left() + _caret.padding().left();
             auto chunks = _document.get_line_chunks(row, col_start, col_end);
@@ -338,6 +333,17 @@ namespace ryu::ide::text_editor {
         _caret.column(_selection.start().second);
         update_virtual_position();
         end_selection();
+    }
+
+    void editor_view::calculate_page_metrics() {
+        auto bounds = context()->bounds();
+
+        _metrics.page_width =
+                (bounds.width() - (_metrics.left_padding + _metrics.line_number_width + _metrics.right_padding))
+                / font_face()->width;
+        _metrics.page_height =
+                ((bounds.height() - (_metrics.header_padding + _metrics.footer_padding))
+                 / font_face()->line_height);
     }
 
     void editor_view::insert_text(const char* text) {

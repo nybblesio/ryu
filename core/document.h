@@ -64,10 +64,6 @@ namespace ryu::core {
 
         void shift_up();
 
-        void initialize(int rows, int columns);
-
-        void page_size(int height, int width);
-
         inline void home() {
             _column = 0;
         }
@@ -94,8 +90,6 @@ namespace ryu::core {
             _row += _page_height;
             clamp_row();
         }
-
-        line_t* insert_line(int row);
 
         void delete_line(int row);
 
@@ -128,6 +122,8 @@ namespace ryu::core {
             --_column;
             return clamp_column();
         }
+
+        line_t* insert_line(int row);
 
         inline int columns() const {
             return _columns;
@@ -168,6 +164,10 @@ namespace ryu::core {
         void split_line(int row, int column);
 
         void save(const fs::path& path = "");
+
+        void page_size(int height, int width);
+
+        void initialize(int rows, int columns);
 
         void shift_left(int row, int column, int times = 1);
 

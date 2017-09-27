@@ -32,6 +32,8 @@ namespace ryu::ide::console {
     }
 
     void controller::on_resize() {
+        if (!_initialized)
+            return;
         _view.resize();
     }
 
@@ -51,6 +53,7 @@ namespace ryu::ide::console {
         _view.caret_down();
         _view.write_message("Ready.");
         _view.focus(ids::console);
+        _initialized = true;
     }
 
     void controller::on_update(uint32_t dt) {

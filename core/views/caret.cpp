@@ -133,11 +133,9 @@ namespace ryu::core {
         pop_blend_mode();
     }
 
-    void caret::initialize(int row, int column, int page_width, int page_height) {
+    void caret::initialize(int row, int column) {
         _row = row;
         _column = column;
-        _page_width = page_width;
-        _page_height = page_height;
 
         _timer = new timer(ids::blink_timer, 500);
         _timer->bind([&](timer* t) {
@@ -145,6 +143,11 @@ namespace ryu::core {
             t->reset();
         });
         context()->add_timer(_timer);
+    }
+
+    void caret::page_size(int page_height, int page_width) {
+        _page_width = page_width;
+        _page_height = page_height;
     }
 
 }

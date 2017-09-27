@@ -26,6 +26,12 @@ namespace ryu::ide::text_editor {
         _view.draw();
     }
 
+    void controller::on_resize() {
+        if (!_initialized)
+            return;
+        _view.resize();
+    }
+
     void controller::on_initialize() {
         _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize(rows, columns);
@@ -49,6 +55,7 @@ namespace ryu::ide::text_editor {
             }
         });
         _view.focus(ids::text_editor);
+        _initialized = true;
     }
 
     void controller::on_update(uint32_t dt) {

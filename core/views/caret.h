@@ -66,7 +66,9 @@ namespace ryu::core {
 
         mode::types mode() const;
 
-        void initialize(int row, int column, int page_width, int page_height);
+        void initialize(int row, int column);
+
+        void page_size(int page_height, int page_width);
 
     protected:
         void on_draw() override;
