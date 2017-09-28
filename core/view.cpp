@@ -63,9 +63,9 @@ namespace ryu::core {
     }
 
     void view::focus(int id) {
-        focus(id == _id);
         for (auto child : _children)
             child->focus(id);
+        focus(id == _id);
     }
 
     short view::index() const {
@@ -101,7 +101,11 @@ namespace ryu::core {
             _flags |= config::flags::focused;
         else
             _flags &= ~config::flags::focused;
+        if (_in_on_focus_changed)
+            return;
+        _in_on_focus_changed = true;
         on_focus_changed();
+        _in_on_focus_changed = false;
     }
 
     view_list& view::children() {
@@ -261,6 +265,10 @@ namespace ryu::core {
 
     void view::font_family(core::font_family* font) {
         _font = font;
+    }
+
+    int view::measure_text(const std::string& value) {
+        return FC_GetWidth(font_face()->glyph, value.c_str());
     }
 
     void view::draw_line(int x1, int y1, int x2, int y2) {

@@ -21,6 +21,7 @@ add_library(
         views/label.cpp views/label.h
         views/caret.cpp views/caret.h
         font_family.cpp font_family.h
+        views/panel.cpp views/panel.h
         symbol_table.cpp symbol_table.h
         views/button.cpp views/button.h
         views/textbox.cpp views/textbox.h

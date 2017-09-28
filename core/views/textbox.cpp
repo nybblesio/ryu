@@ -71,6 +71,7 @@ namespace ryu::core {
         _caret.font_family(font_family());
         _caret.fg_color(fg_color());
         _caret.initialize(0, 0);
+        _caret.enabled(false);
 
         padding({5, 5, 5, 5});
         size(rows, columns);

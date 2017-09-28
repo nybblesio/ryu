@@ -9,6 +9,7 @@
 //
 
 #include <rttr/type>
+#include <core/engine.h>
 #include <hardware/hardware.h>
 #include <hardware/registry.h>
 #include "controller.h"
@@ -18,10 +19,18 @@ namespace ryu::ide::machine_editor {
     controller::controller(
             core::context* context,
             int id,
-            const std::string& name) : core::state(context, id, name) {
+            const std::string& name) : core::state(context, id, name),
+                                       _view(context, nullptr, ids::editor, "editor") {
     }
 
     void controller::on_draw() {
+        _view.draw();
+    }
+
+    void controller::on_resize() {
+        if (!_initialized)
+            return;
+        _view.resize();
     }
 
     void controller::on_deactivate() {
@@ -29,14 +38,19 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_initialize() {
-        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
-        auto component_types = base.get_derived_classes();
-        for(auto& t : component_types) {
-            std::cout << t.get_name() << "\n";
-            std::cout << "properties:\n";
-            for (auto& p : t.get_properties())
-                std::cout << "\tname: " << p.get_name() << "\n";
-        }
+        _view.font_family(context()->engine()->find_font_family("hack"));
+        _view.initialize(machine());
+        _view.focus(ids::editor);
+        _initialized = true;
+
+//        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
+//        auto component_types = base.get_derived_classes();
+//        for(auto& t : component_types) {
+//            std::cout << t.get_name() << "\n";
+//            std::cout << "properties:\n";
+//            for (auto& p : t.get_properties())
+//                std::cout << "\tname: " << p.get_name() << "\n";
+//        }
     }
 
     void controller::on_update(uint32_t dt) {
@@ -51,6 +65,8 @@ namespace ryu::ide::machine_editor {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {
+        if (_view.process_event(e))
+            return true;
         if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
                 case SDLK_ESCAPE: {

@@ -208,6 +208,7 @@ namespace ryu::core {
             if (line->elements.empty())
                 break;
             line->elements.erase(line->elements.begin() + column);
+            line->elements.push_back(element_t{0, _default_attr});
 //            for (auto& below : _lines) {
 //                if (below.row > line->row) {
 //                    line->elements.erase(line->elements.begin());

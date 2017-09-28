@@ -10,32 +10,20 @@
 
 #pragma once
 
-#include <string>
 #include <core/view.h>
-#include <core/views/label.h>
-#include <core/views/textbox.h>
 
-namespace ryu::ide::machine_editor {
+namespace ryu::core {
 
-    class selection_view : public core::view {
+    class panel  : public core::view {
     public:
-        enum ids {
-        };
-
-        selection_view(
+        panel(
                 core::context* context,
                 core::view* parent,
                 int id,
                 const std::string& name);
 
-        ~selection_view() override;
-
     protected:
         void on_draw() override;
-
-        bool on_process_event(const SDL_Event* e) override;
-
-    private:
     };
 
 };

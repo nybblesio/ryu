@@ -76,7 +76,7 @@ namespace ryu::core {
 
         view(
                 core::context* context,
-                view* parent,
+                core::view* parent,
                 types::id type,
                 int id,
                 std::string name);
@@ -180,6 +180,8 @@ namespace ryu::core {
 
         void push_blend_mode(SDL_BlendMode mode);
 
+        int measure_text(const std::string& value);
+
         void draw_line(int x1, int y1, int x2, int y2);
 
         void set_color(const core::palette_entry& color);
@@ -203,8 +205,9 @@ namespace ryu::core {
         uint8_t _bg_color = 0;
         uint8_t _fg_color = 0;
         core::padding _padding;
-        view* _parent = nullptr;
+        core::view* _parent = nullptr;
         types::id _type = types::none;
+        bool _in_on_focus_changed = false;
         core::context* _context = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
