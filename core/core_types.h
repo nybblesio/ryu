@@ -87,8 +87,15 @@ namespace ryu::core {
             find_text
         };
 
+        enum sizes {
+            byte,
+            word,
+            dword,
+        };
+
         types type;
         std::string symbol;
+        sizes size = sizes::dword;
     };
 
     struct scanner_pos_t {
@@ -169,7 +176,7 @@ namespace ryu::core {
             inconvertible
         };
 
-        conversion_result parse(uint32_t& out) {
+        conversion_result parse(int32_t& out) {
             const char* s = value.c_str();
             char* end;
             long l;
@@ -184,8 +191,62 @@ namespace ryu::core {
             if (*s == '\0' || *end != '\0') {
                 return inconvertible;
             }
-            out = static_cast<uint32_t>(l);
+            out = static_cast<int32_t>(l);
             return success;
+        }
+    };
+
+    struct comment_t {
+        std::string value;
+    };
+
+    struct identifier_t {
+        std::string value;
+    };
+
+    struct string_literal_t {
+        std::string value;
+    };
+
+    struct char_literal_t {
+        char value;
+    };
+
+    struct boolean_literal_t {
+        bool value;
+    };
+
+    struct numeric_literal_t {
+        int32_t value;
+        numeric_literal_t operator~ () {
+            return numeric_literal_t {~value};
+        }
+        numeric_literal_t operator+ (const numeric_literal_t& other) {
+            return numeric_literal_t {value + other.value};
+        }
+        numeric_literal_t operator- () {
+            return numeric_literal_t {-value};
+        }
+        numeric_literal_t operator- (const numeric_literal_t& other) {
+            return numeric_literal_t {value - other.value};
+        }
+        numeric_literal_t operator* (const numeric_literal_t& other) {
+            return numeric_literal_t {value * other.value};
+        }
+        numeric_literal_t operator/ (const numeric_literal_t& other) {
+            return numeric_literal_t {value / other.value};
+        }
+        numeric_literal_t operator% (const numeric_literal_t& other) {
+            return numeric_literal_t {value % other.value};
+        }
+        numeric_literal_t operator& (const numeric_literal_t& other) {
+            return numeric_literal_t {value & other.value};
+        }
+        numeric_literal_t operator| (const numeric_literal_t& other) {
+            return numeric_literal_t {value | other.value};
+        }
+        numeric_literal_t operator^ (const numeric_literal_t& other) {
+            return numeric_literal_t {value ^ other.value};
         }
     };
 
@@ -195,7 +256,30 @@ namespace ryu::core {
 
     typedef std::vector<ast_node_t*> ast_node_list;
 
-    typedef boost::variant<radix_number_t, uint32_t, std::string, char, operator_t, command_t, bool> variant_t;
+    typedef boost::variant<
+            radix_number_t,
+            numeric_literal_t,
+            boolean_literal_t,
+            identifier_t,
+            string_literal_t,
+            char_literal_t,
+            operator_t,
+            command_t,
+            comment_t> variant_t;
+
+    struct variant {
+        enum types {
+            radix_numeric_literal = 0,
+            numeric_literal,
+            boolean_literal,
+            identifier,
+            string_literal,
+            char_literal,
+            operator_literal,
+            command_literal,
+            comment_literal
+        };
+    };
 
     typedef std::map<std::string, ast_node_t*> symbol_dict;
 

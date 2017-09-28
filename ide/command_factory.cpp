@@ -19,6 +19,47 @@
 
 namespace ryu::ide {
 
+    void format_numeric_conversion(
+            core::result& result,
+            int32_t value,
+            core::command_t::sizes size) {
+        std::string ascii;
+        std::string fmt_spec;
+
+        auto mask = 0;
+        auto byte_count = 0;
+        switch (size) {
+            case core::command_t::byte:
+                byte_count = 1;
+                mask = 0xff;
+                fmt_spec = "${0:02x} {1:>3} \"{2:>1}\" %{0:08b}";
+                break;
+            case core::command_t::word:
+                byte_count = 2;
+                mask = 0xffff;
+                fmt_spec = "${0:04x} {1:>5} \"{2:>2}\" %{0:016b}";
+                break;
+            case core::command_t::dword:
+                byte_count = 4;
+                mask = 0xffffffff;
+                fmt_spec = "${0:08x} {1:>10} \"{2:>4}\" %{0:032b}";
+                break;
+        }
+
+        auto* p = (char*) (&value) + (byte_count - 1);
+        for (auto i = 0; i < byte_count; i++) {
+            char c = *p--;
+            if (c == 0)
+                ascii += ".";
+            else
+                ascii += c;
+        }
+        auto signed_value = value & mask;
+        result.add_message(
+                "C003",
+                fmt::format(fmt_spec, signed_value, value, ascii));
+    }
+
     bool command_factory::execute(
             core::result& result,
             const std::string& line) {
@@ -52,28 +93,25 @@ namespace ryu::ide {
                 for (const auto node : root->children) {
                     auto param = evaluator.evaluate(result, node);
                     switch (param.which()) {
-                        case 1: {
-                            std::string ascii;
-                            uint32_t value = boost::get<uint32_t>(param);
-                            auto* p = (char*) (&value) + 3;
-                            for (auto i = 0; i < 4; i++) {
-                                char c = *p--;
-                                if (c == 0)
-                                    ascii += ".";
-                                else
-                                    ascii += c;
-                            }
-                            result.add_message(
-                                    "C003",
-                                    fmt::format("${0:08x} {0:>10} \"{1:>4}\" %{0:032b}", value, ascii));
+                        case core::variant::types::char_literal: {
+                            auto value = boost::get<core::char_literal_t>(param).value;
+                            format_numeric_conversion(result, value, command.size);
                             break;
                         }
-                        case 2: {
-                            auto lit = boost::get<std::string>(param);
+                        case core::variant::types::numeric_literal: {
+                            auto value = boost::get<core::numeric_literal_t>(param).value;
+                            format_numeric_conversion(result, value, command.size);
+                            break;
+                        }
+                        case core::variant::types::string_literal: {
+                            auto value = boost::get<core::string_literal_t>(param).value;
                             auto dump = hex_dump(
-                                    static_cast<const void*>(lit.c_str()),
-                                    lit.length());
+                                    static_cast<const void*>(value.c_str()),
+                                    value.length());
                             result.add_message("C003", dump);
+                            break;
+                        }
+                        default: {
                             break;
                         }
                     }
@@ -136,24 +174,32 @@ namespace ryu::ide {
                     result.add_message("C021", "path parameter is required", true);
                     return false;
                 }
-                auto lit = boost::get<std::string>(root->children[1]->value);
-                if (!is_regular_file(lit)) {
-                    result.add_message("C021", fmt::format("invalid path: {}", lit), true);
+                if (root->children[0]->value.which() != core::variant::types::string_literal) {
+                    result.add_message("C021", "path parameter must be a string", true);
                     return false;
                 }
-                result.add_message("C021", lit);
+                auto value = boost::get<core::string_literal_t>(root->children[0]->value).value;
+                if (!is_regular_file(value)) {
+                    result.add_message("C021", fmt::format("invalid path: {}", value), true);
+                    return false;
+                }
+                result.add_message("C021", value);
                 break;
             }
             case core::command_t::write_text: {
-                std::string lit {"(default)"};
+                std::string value {"(default)"};
                 if (!root->children.empty()) {
-                    lit = boost::get<std::string>(root->children[1]->value);
-                    if (!is_regular_file(lit)) {
-                        result.add_message("C022", fmt::format("invalid path: {}", lit), true);
+                    if (root->children[0]->value.which() != core::variant::types::string_literal) {
+                        result.add_message("C022", "path parameter must be a string", true);
+                        return false;
+                    }
+                    value = boost::get<core::string_literal_t>(root->children[0]->value).value;
+                    if (!is_regular_file(value)) {
+                        result.add_message("C022", fmt::format("invalid path: {}", value), true);
                         return false;
                     }
                 }
-                result.add_message("C022", lit);
+                result.add_message("C022", value);
                 break;
             }
             case core::command_t::memory_editor: {

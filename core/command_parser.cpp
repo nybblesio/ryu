@@ -19,10 +19,7 @@ namespace ryu::core {
     // A                                        - assemble
     // A [addr]                                 - assemble
     //
-    // ?                                        - expression evaluator
-    // ? 'A'                                    - convert character to ASCII value
-    // ? [number]                               - display various base values of number
-    // ? [expression]                           - evaluate arithmetic expression
+    // ?.[size] [expression] ...                - expression evaluator, where [size] can be .b .w .dw
     //
     // E                                        - open the text editor
     // M [addr]                                 - open hex editor
@@ -123,13 +120,40 @@ namespace ryu::core {
         auto token = current_token();
         std::stringstream stream;
         if (!isspace(*token)) {
+            auto size = command_t::sizes::dword;
             stream << *token;
             while (true) {
                 token = move_to_next_token();
                 if (token == nullptr)
                     break;
-                if (!isspace(*token))
-                    stream << *token;
+                if (!isspace(*token)) {
+                    if (*token == '.') {
+                        token = move_to_next_token();
+                        if (token == nullptr) {
+                            error("P008", "unexpected end of input");
+                            return nullptr;
+                        }
+                        if (*token == 'b')
+                            size = command_t::sizes::byte;
+                        else if (*token == 'w')
+                            size = command_t::sizes::word;
+                        else if (*token == 'd') {
+                            token = move_to_next_token();
+                            if (token == nullptr) {
+                                error("P008", "unexpected end of input");
+                                return nullptr;
+                            }
+                            if (*token == 'w') {
+                                size = command_t::sizes::dword;
+                            }
+                        } else {
+                            error("P011", "invalid size suffix");
+                            return nullptr;
+                        }
+                    } else {
+                        stream << *token;
+                    }
+                }
                 else
                     break;
             }
@@ -139,14 +163,14 @@ namespace ryu::core {
                 return nullptr;
             }
             auto command_node = new ast_node_t();
-            command_node->value = command_t {it->second, stream.str()};
+            command_node->value = command_t {it->second, stream.str(), size};
             command_node->token = ast_node_t::tokens::command;
 
             while (true) {
                 auto expr = parse_expression();
                 if (expr == nullptr)
                     break;
-                command_node->children.push_back(expr);
+                command_node->children.insert(command_node->children.begin(), expr);
             }
 
             return command_node;

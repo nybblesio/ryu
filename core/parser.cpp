@@ -226,7 +226,7 @@ namespace ryu::core {
                 token = move_to_next_token();
             }
             auto comment = new ast_node_t();
-            comment->value = stream.str();
+            comment->value = comment_t {stream.str()};
             comment->token = ast_node_t::tokens::comment;
             return comment;
         }
@@ -294,14 +294,14 @@ namespace ryu::core {
                     break;
             }
             auto identifier_node = new ast_node_t();
-            identifier_node->value = stream.str();
+            identifier_node->value = identifier_t {stream.str()};
             identifier_node->token = ast_node_t::tokens::identifier;
             return identifier_node;
         }
         return nullptr;
     }
 
-    symbol_table* parser::symbol_table() {
+    core::symbol_table* parser::symbol_table() {
         return _symbol_table;
     }
 
@@ -456,7 +456,7 @@ namespace ryu::core {
             auto value = stream.str();
             if (!value.empty()) {
                 auto string_literal = new ast_node_t();
-                string_literal->value = value;
+                string_literal->value = string_literal_t{value};
                 string_literal->token = ast_node_t::tokens::string_literal;
                 return string_literal;
             }
@@ -479,13 +479,13 @@ namespace ryu::core {
         if (std::regex_match(token, std::regex("[tT][rR][uU][eE]"))) {
             consume_tokens(4);
             auto identifier_node = new ast_node_t();
-            identifier_node->value = true;
+            identifier_node->value = boolean_literal_t {true};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         } else if (std::regex_match(token, std::regex("[fF][aA][lL][sS][eE]"))) {
             consume_tokens(5);
             auto identifier_node = new ast_node_t();
-            identifier_node->value = false;
+            identifier_node->value = boolean_literal_t {false};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         }
@@ -512,7 +512,7 @@ namespace ryu::core {
                 if (token != nullptr && *token == '\'') {
                     move_to_next_token();
                     auto character_literal = new ast_node_t();
-                    character_literal->value = value;
+                    character_literal->value = char_literal_t{value};
                     character_literal->token = ast_node_t::tokens::character_literal;
                     return character_literal;
                 } else {
