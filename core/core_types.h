@@ -39,61 +39,106 @@ namespace ryu::core {
 
     typedef std::map<std::string, std::string> blackboard;
 
-    struct command_t {
-        enum types : uint8_t {
-            quit = 1,
-            clear,
+    struct variant {
+        enum types {
+            radix_numeric_literal = 0,
+            numeric_literal,
+            boolean_literal,
+            identifier,
+            string_literal,
+            char_literal,
+            operator_literal,
+            command_literal,
+            comment_literal,
 
-            assemble,
-            evaluate,
-            disassemble,
-            hex_dump,
-            search_memory,
-            fill_memory,
-            copy_memory,
-            jump_to_address,
-            go_to_address,
-            register_editor,
-
-            dir,
-            remove_file,
-            change_directory,
-            print_working_directory,
-
-            new_project,
-            load_project,
-            save_project,
-            clone_project,
-
-            machine_editor,
-            machines_list,
-            del_machine,
-            use_machine,
-
-            open_editor,
-            text_editor,
-            memory_editor,
-            sprite_editor,
-            tile_editor,
-            background_editor,
-            tracker,
-            sounds,
-
-            read_binary_to_memory,
-            write_memory_to_binary,
-            read_text,
-            write_text,
-            goto_line,
-            find_text
+            // N.B. these must always be the last values
+            variadic,
+            any
         };
 
+        static std::string to_string(types value) {
+            switch (value) {
+                case radix_numeric_literal: return "radix_numeric_literal";
+                case numeric_literal:       return "numeric_literal";
+                case boolean_literal:       return "boolean_literal";
+                case identifier:            return "identifier";
+                case string_literal:        return "string_literal";
+                case char_literal:          return "char_literal";
+                case operator_literal:      return "operator_literal";
+                case command_literal:       return "command_literal";
+                case comment_literal:       return "comment_literal";
+                case variadic:              return "variadic";
+                case any:                   return "any";
+            }
+        }
+    };
+
+    enum command_types : uint8_t {
+        quit = 1,
+        clear,
+
+        assemble,
+        evaluate,
+        disassemble,
+        hex_dump,
+        search_memory,
+        fill_memory,
+        copy_memory,
+        jump_to_address,
+        go_to_address,
+        register_editor,
+
+        dir,
+        remove_file,
+        change_directory,
+        print_working_directory,
+
+        new_project,
+        load_project,
+        save_project,
+        clone_project,
+
+        machine_editor,
+        machines_list,
+        del_machine,
+        use_machine,
+
+        open_editor,
+        text_editor,
+        memory_editor,
+        sprite_editor,
+        tile_editor,
+        background_editor,
+        tracker,
+        sounds,
+
+        read_binary_to_memory,
+        write_memory_to_binary,
+        read_text,
+        write_text,
+        goto_line,
+        find_text
+    };
+
+    struct command_parameter_spec_t {
+        std::string name;
+        variant::types type;
+        bool required = true;
+    };
+
+    struct command_spec_t {
+        command_types type;
+        std::vector<command_parameter_spec_t> params;
+    };
+
+    struct command_t {
         enum sizes {
             byte,
             word,
             dword,
         };
 
-        types type;
+        command_spec_t spec;
         std::string symbol;
         sizes size = sizes::dword;
     };
@@ -266,20 +311,6 @@ namespace ryu::core {
             operator_t,
             command_t,
             comment_t> variant_t;
-
-    struct variant {
-        enum types {
-            radix_numeric_literal = 0,
-            numeric_literal,
-            boolean_literal,
-            identifier,
-            string_literal,
-            char_literal,
-            operator_literal,
-            command_literal,
-            comment_literal
-        };
-    };
 
     typedef std::map<std::string, ast_node_t*> symbol_dict;
 

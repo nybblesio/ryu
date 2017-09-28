@@ -446,7 +446,12 @@ namespace ryu::core {
         if (*token == '\"') {
             while (true) {
                 token = move_to_next_token();
-                if (token == nullptr || *token == '\"') {
+                if (token == nullptr) {
+                    error("P008", "unexpected end of string literal");
+                    break;
+                }
+                if (*token == '\"') {
+                    move_to_next_token();
                     break;
                 } else if (*token =='\\') {
                     token = move_to_next_token();

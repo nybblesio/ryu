@@ -10,6 +10,7 @@
 
 #include <fmt/format.h>
 #include <core/evaluator.h>
+#include <core/core_types.h>
 #include <hardware/machine.h>
 #include <hardware/registry.h>
 #include <boost/filesystem.hpp>
@@ -19,7 +20,7 @@
 
 namespace ryu::ide {
 
-    void format_numeric_conversion(
+    static void format_numeric_conversion(
             core::result& result,
             int32_t value,
             core::command_t::sizes size) {
@@ -69,7 +70,7 @@ namespace ryu::ide {
         parser.symbol_table(&_symbol_table);
 
         auto root = parser.parse(line);
-        if (parser.result().is_failed()) {
+        if (root == nullptr || parser.result().is_failed()) {
             for (auto& msg : parser.result().messages())
                 result.add_message(msg.code(), msg.message(), msg.is_error());
             result.fail();
@@ -80,18 +81,79 @@ namespace ryu::ide {
         core::evaluator evaluator;
         evaluator.symbol_table(&_symbol_table);
 
-        switch (command.type) {
-            case core::command_t::quit: {
+        std::map<std::string, std::vector<core::variant_t>> params;
+        if (root->children.empty()) {
+            for (const auto& param_spec : command.spec.params) {
+                if (param_spec.required) {
+                    result.add_message(
+                            "C801",
+                            fmt::format("the parameter {{italic}}'{}'{{}} is required.", param_spec.name),
+                            true);
+                    result.fail();
+                }
+            }
+        } else {
+            auto idx = 0;
+            for (const auto& param_spec : command.spec.params) {
+                if (param_spec.required) {
+                    if (idx >= root->children.size()) {
+                        result.add_message(
+                                "C801",
+                                fmt::format("the parameter {{italic}}'{}'{{}} is required.", param_spec.name),
+                                true);
+                        result.fail();
+                        break;
+                    }
+                }
+                auto value = evaluator.evaluate(result, root->children[idx]);
+                if (result.is_failed())
+                    break;
+                if (param_spec.type != core::variant::types::variadic
+                &&  param_spec.type != core::variant::types::any) {
+                    if (value.which() != param_spec.type) {
+                        result.add_message(
+                                "C801",
+                                fmt::format("the parameter {{italic}}'{}'{{}} must be of type {{italic}}'{}'{{}}.",
+                                            param_spec.name,
+                                            core::variant::to_string(param_spec.type)),
+                                true);
+                        result.fail();
+                    }
+                }
+                if (param_spec.type == core::variant::types::variadic) {
+                    auto& values = params[param_spec.name];
+                    values.push_back(value);
+
+                    ++idx;
+                    while (idx < root->children.size()) {
+                        value = evaluator.evaluate(result, root->children[idx++]);
+                        if (result.is_failed())
+                            break;
+                        values.push_back(value);
+                    }
+                } else {
+                    auto& values = params[param_spec.name];
+                    values.push_back(value);
+                    ++idx;
+                }
+            }
+        }
+
+        if (result.is_failed())
+            return false;
+
+        switch (command.spec.type) {
+            case core::command_types::quit: {
                 result.add_message("C001", "Goodbye!");
                 break;
             }
-            case core::command_t::clear: {
+            case core::command_types::clear: {
                 result.add_message("C004", "Clear screen buffer");
                 break;
             }
-            case core::command_t::evaluate: {
-                for (const auto node : root->children) {
-                    auto param = evaluator.evaluate(result, node);
+            case core::command_types::evaluate: {
+                const auto& values = params["..."];
+                for (const auto& param : values) {
                     switch (param.which()) {
                         case core::variant::types::char_literal: {
                             auto value = boost::get<core::char_literal_t>(param).value;
@@ -118,67 +180,51 @@ namespace ryu::ide {
                 }
                 break;
             }
-//            case command::change_directory: {
-//                if (command.params.empty()) {
-//                    result.add_message("C007", "path parameter is required", true);
-//                    return false;
-//                }
-//                string_literal_t lit = boost::get<string_literal_t>(command.params[0]);
-//                if (!is_directory(lit.value)) {
-//                    result.add_message("C007", fmt::format("invalid path: {}", lit.value), true);
-//                    return false;
-//                }
-//                current_path(lit.value);
-//                auto cwd = current_path();
-//                result.add_message("C007", fmt::format("working path is now: {}", cwd.string()));
-//                break;
-//            }
-//            case command::dir: {
-//                auto cwd = current_path();
-//                if (is_directory(cwd)) {
-//                    result.add_message("C005", fmt::format("{0}:", cwd.string()));
-//                    std::vector<directory_entry> entries;
-//                    copy(directory_iterator(cwd), directory_iterator(), back_inserter(entries));
-//                    for (auto& entry : entries) {
-//                        result.add_message("C005", fmt::format("  {0}", entry.path().filename().string()));
-//                    }
-//                }
-//                break;
-//            }
-//            case command::remove_file: {
-//                if (command.params.empty()) {
-//                    result.add_message("C008", "path parameter is required", true);
-//                    return false;
-//                }
-//                string_literal_t lit = boost::get<string_literal_t>(command.params[0]);
-//                if (!is_directory(lit.value) && !is_regular_file(lit.value)) {
-//                    result.add_message("C008", fmt::format("invalid path: {}", lit.value), true);
-//                    return false;
-//                }
-//                if (remove(lit.value)) {
-//                    result.add_message("C008", fmt::format("{} removed", lit.value));
-//                } else {
-//                    result.add_message("C008", fmt::format("remove of {} failed", lit.value), true);
-//                }
-//                break;
-//            }
-            case core::command_t::print_working_directory: {
+            case core::command_types::change_directory: {
+                auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
+                if (!is_directory(value)) {
+                    result.add_message("C007", fmt::format("invalid path: {}", value), true);
+                    return false;
+                }
+                current_path(value);
+                auto cwd = current_path();
+                result.add_message("C007", fmt::format("working path is now: {}", cwd.string()));
+                break;
+            }
+            case core::command_types::dir: {
+                auto cwd = current_path();
+                if (is_directory(cwd)) {
+                    result.add_message("C005", fmt::format("{0}:", cwd.string()));
+                    std::vector<directory_entry> entries;
+                    copy(directory_iterator(cwd), directory_iterator(), back_inserter(entries));
+                    for (auto& entry : entries) {
+                        result.add_message("C005", fmt::format("  {0}", entry.path().filename().string()));
+                    }
+                }
+                break;
+            }
+            case core::command_types::remove_file: {
+                auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
+                if (!is_directory(value) && !is_regular_file(value)) {
+                    result.add_message("C008", fmt::format("invalid path: {}", value), true);
+                    return false;
+                }
+                if (remove(value)) {
+                    result.add_message("C008", fmt::format("{} removed", value));
+                } else {
+                    result.add_message("C008", fmt::format("remove of {} failed", value), true);
+                }
+                break;
+            }
+            case core::command_types::print_working_directory: {
                 auto cwd = current_path();
                 if (is_directory(cwd)) {
                     result.add_message("C006", cwd.string());
                 }
                 break;
             }
-            case core::command_t::read_text: {
-                if (root->children.empty()) {
-                    result.add_message("C021", "path parameter is required", true);
-                    return false;
-                }
-                if (root->children[0]->value.which() != core::variant::types::string_literal) {
-                    result.add_message("C021", "path parameter must be a string", true);
-                    return false;
-                }
-                auto value = boost::get<core::string_literal_t>(root->children[0]->value).value;
+            case core::command_types::read_text: {
+                auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
                 if (!is_regular_file(value)) {
                     result.add_message("C021", fmt::format("invalid path: {}", value), true);
                     return false;
@@ -186,14 +232,10 @@ namespace ryu::ide {
                 result.add_message("C021", value);
                 break;
             }
-            case core::command_t::write_text: {
+            case core::command_types::write_text: {
                 std::string value {"(default)"};
                 if (!root->children.empty()) {
-                    if (root->children[0]->value.which() != core::variant::types::string_literal) {
-                        result.add_message("C022", "path parameter must be a string", true);
-                        return false;
-                    }
-                    value = boost::get<core::string_literal_t>(root->children[0]->value).value;
+                    value = boost::get<core::string_literal_t>(params["path"].front()).value;
                     if (!is_regular_file(value)) {
                         result.add_message("C022", fmt::format("invalid path: {}", value), true);
                         return false;
@@ -202,49 +244,22 @@ namespace ryu::ide {
                 result.add_message("C022", value);
                 break;
             }
-            case core::command_t::memory_editor: {
+            case core::command_types::memory_editor: {
                 result.add_data("C024", {});
                 break;
             }
-            case core::command_t::text_editor: {
+            case core::command_types::text_editor: {
                 result.add_data("C002", {});
                 break;
             }
-//            case command::open_editor: {
-//                if (command.params.size() < 2) {
-//                    result.add_message(
-//                            "C030",
-//                            "open editor requires {italic}name{} and {italic}type{} parameters",
-//                            true);
-//                    return false;
-//                }
-//                const auto& name = command.params[0];
-//                const auto& type = command.params[1];
-//
-//                core::parameter_dict params;
-//                if (name.which() == 2) {
-//                    string_literal_t lit = boost::get<string_literal_t>(name);
-//                    params["name"] = lit.value;
-//                } else {
-//                    result.add_message("C030", "{italic}name{} must be a string literal", true);
-//                    result.fail();
-//                }
-//
-//                if (type.which() == 1) {
-//                    identifier_t symbol = boost::get<identifier_t>(type);
-//                    params["type"] = symbol.value;
-//                } else {
-//                    result.add_message("C030", "{italic}type{} must be a identifier", true);
-//                    result.fail();
-//                }
-//
-//                if (result.is_failed())
-//                    return false;
-//
-//                result.add_data("C030", params);
-//                break;
-//            }
-            case core::command_t::machines_list: {
+            case core::command_types::open_editor: {
+                core::parameter_dict dict;
+                dict["name"] = boost::get<core::string_literal_t>(params["name"].front()).value;
+                dict["type"] = boost::get<core::identifier_t>(params["type"].front()).value;
+                result.add_data("C030", dict);
+                break;
+            }
+            case core::command_types::machines_list: {
                 auto machines = hardware::registry::instance()->machines();
                 result.add_message("C028", "{rev}{bold}  ID Name                             Type ");
                 for (auto machine : machines) {
@@ -258,66 +273,30 @@ namespace ryu::ide {
                 result.add_message("C028", fmt::format("{} registered machines", machines.size()));
                 break;
             }
-//            case command::machine_editor: {
-//                if (command.params.empty()) {
-//                    result.add_message("C023", "machine name required", true);
-//                    return false;
-//                }
-//                const auto& param = command.params[0];
-//                if (param.which() == 2) {
-//                    string_literal_t lit = boost::get<string_literal_t>(param);
-//                    result.add_data("C023", {{"name", lit.value}});
-//                } else {
-//                    result.add_message("C023", "machine name must be a string literal", true);
-//                    return false;
-//                }
-//                break;
-//            }
-//            case command::use_machine: {
-//                if (command.params.empty()) {
-//                    result.add_message("C026", "machine name required", true);
-//                    return false;
-//                }
-//                const auto& param = command.params[0];
-//                if (param.which() == 2) {
-//                    string_literal_t lit = boost::get<string_literal_t>(param);
-//                    result.add_data("C026", {{"name", lit.value}});
-//                } else {
-//                    result.add_message("C026", "machine name must be a string literal", true);
-//                    return false;
-//                }
-//                break;
-//            }
-//            case command::del_machine: {
-//                if (command.params.empty()) {
-//                    result.add_message("C027", "machine name required", true);
-//                    return false;
-//                }
-//                const auto& param = command.params[0];
-//                if (param.which() == 2) {
-//                    string_literal_t lit = boost::get<string_literal_t>(param);
-//                    result.add_data("C027", {{"name", lit.value}});
-//                } else {
-//                    result.add_message("C027", "machine name must be a string literal", true);
-//                    return false;
-//                }
-//                break;
-//            }
-//            case command::goto_line: {
-//                if (command.params.empty()) {
-//                    result.add_message("C020", "line number is required", true);
-//                    return false;
-//                }
-//                const auto& param = command.params[0];
-//                if (param.which() == 0) {
-//                    uint32_t value = boost::get<uint32_t>(param);
-//                    result.add_message("C020", std::to_string(value));
-//                } else {
-//                    result.add_message("C020", "line number must be a number", true);
-//                    return false;
-//                }
-//                break;
-//            }
+            case core::command_types::machine_editor: {
+                result.add_data(
+                        "C023",
+                        {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
+                break;
+            }
+            case core::command_types::use_machine: {
+                result.add_data(
+                        "C026",
+                        {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
+                break;
+            }
+            case core::command_types::del_machine: {
+                result.add_data(
+                        "C027",
+                        {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
+                break;
+            }
+            case core::command_types::goto_line: {
+                result.add_message(
+                        "C020",
+                        std::to_string(boost::get<core::numeric_literal_t>(params["line"].front()).value));
+                break;
+            }
             default: {
                 result.add_message("C400", "Command not implemented.", true);
                 return false;
