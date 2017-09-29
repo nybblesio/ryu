@@ -326,6 +326,16 @@ namespace ryu::ide {
                 break;
             }
             case core::command_types::show_symbol_table: {
+                result.add_message("C029", "{rev}{bold} Identifier                       Value                            ");
+                auto identifiers = _symbol_table.identifiers();
+                for (const auto& symbol : identifiers) {
+                    std::stringstream stream;
+                    _symbol_table.get(symbol)->serialize(stream);
+                    result.add_message(
+                            "C029",
+                            fmt::format(" {:<32s} {:<32s}", symbol, stream.str()));
+                }
+                result.add_message("C029", fmt::format("{} symbols", identifiers.size()));
                 break;
             }
             default: {
