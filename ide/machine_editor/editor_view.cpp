@@ -111,8 +111,8 @@ namespace ryu::ide::machine_editor {
     }
 
     bool editor_view::on_process_event(const SDL_Event* e) {
-        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
-        auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
+//        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
+//        auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
 
         if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {

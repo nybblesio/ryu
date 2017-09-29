@@ -21,6 +21,8 @@ namespace ryu::ide {
 
         ~command_factory() = default;
 
+        core::symbol_table* symbol_table();
+
         bool execute(core::result& result, const std::string& line);
 
     private:

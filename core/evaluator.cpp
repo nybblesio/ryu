@@ -39,7 +39,7 @@ namespace ryu::core {
                 }
                 auto identifier = boost::get<identifier_t>(node->value);
                 auto value = _symbol_table->get(identifier.value);
-                if (value == nullptr) {
+                if (value == nullptr && _symbol_table->missing_is_error()) {
                     error(result, "E006", fmt::format("unknown identifier: {}", identifier.value));
                 } else {
                     return evaluate(result, value);
@@ -62,7 +62,6 @@ namespace ryu::core {
                     }
                     case variant::types::numeric_literal: {
                         return node->value;
-
                     }
                     default: {
                         error(result, "E004", "numeric conversion error");
@@ -82,31 +81,50 @@ namespace ryu::core {
             }
             case ast_node_t::binary_op: {
                 auto op = boost::get<operator_t>(node->value);
+                auto lhs_node = evaluate(result, node->lhs);
+                auto rhs_node = evaluate(result, node->rhs);
                 switch (op.group) {
+                    case operator_t::op_group::relational:
                     case operator_t::op_group::arithmetic: {
-                        auto lhs_node = evaluate(result, node->lhs);
-                        if (lhs_node.which() != variant::types::numeric_literal) {
-                            error(result, "E005", "only integer values can be used with arithmetic operators");
+                        numeric_literal_t lhs;
+                        numeric_literal_t rhs;
+                        if (lhs_node.which() == variant::types::boolean_literal) {
+                            lhs = numeric_literal_t {boost::get<boolean_literal_t>(lhs_node).value};
+                        } else if (lhs_node.which() == variant::types::numeric_literal) {
+                            lhs = boost::get<numeric_literal_t>(lhs_node);
+                        } else {
+                            error(result,
+                                  "E005",
+                                  "only integer values can be used with arithmetic/relational operators");
                         }
-                        auto rhs_node = evaluate(result, node->rhs);
-                        if (rhs_node.which() != variant::types::numeric_literal) {
-                            error(result, "E005", "only integer values can be used with arithmetic operators");
+                        if (rhs_node.which() == variant::types::boolean_literal) {
+                            rhs = numeric_literal_t {boost::get<boolean_literal_t>(rhs_node).value};
+                        } else if (rhs_node.which() == variant::types::numeric_literal) {
+                            rhs = boost::get<numeric_literal_t>(rhs_node);
+                        } else {
+                            error(result,
+                                  "E005",
+                                  "only integer values can be used with arithmetic/relational operators");
                         }
 
                         if (result.is_failed())
                             break;
 
-                        auto lhs = boost::get<numeric_literal_t>(lhs_node);
-                        auto rhs = boost::get<numeric_literal_t>(rhs_node);
                         switch (op.op) {
-                            case operator_t::op::add:        return lhs + rhs;
-                            case operator_t::op::subtract:   return lhs - rhs;
-                            case operator_t::op::multiply:   return lhs * rhs;
-                            case operator_t::op::divide:     return lhs / rhs;
-                            case operator_t::op::modulo:     return lhs % rhs;
-                            case operator_t::op::binary_and: return lhs & rhs;
-                            case operator_t::op::binary_or:  return lhs | rhs;
-                            case operator_t::op::pow:        return lhs ^ rhs;
+                            case operator_t::op::add:                   return lhs + rhs;
+                            case operator_t::op::subtract:              return lhs - rhs;
+                            case operator_t::op::multiply:              return lhs * rhs;
+                            case operator_t::op::divide:                return lhs / rhs;
+                            case operator_t::op::modulo:                return lhs % rhs;
+                            case operator_t::op::binary_and:            return lhs & rhs;
+                            case operator_t::op::binary_or:             return lhs | rhs;
+                            case operator_t::op::pow:                   return lhs ^ rhs;
+                            case operator_t::op::less_than:             return lhs < rhs;
+                            case operator_t::op::less_than_equal:       return lhs <= rhs;
+                            case operator_t::op::equal:                 return lhs == rhs;
+                            case operator_t::op::not_equal:             return lhs != rhs;
+                            case operator_t::op::greater_than:          return lhs > rhs;
+                            case operator_t::op::greater_than_equal:    return lhs >= rhs;
                             default:
                                 error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
                                 break;
@@ -114,12 +132,43 @@ namespace ryu::core {
                         break;
                     }
                     case operator_t::op_group::logical: {
-                        break;
-                    }
-                    case operator_t::op_group::relational: {
+                        boolean_literal_t lhs;
+                        boolean_literal_t rhs;
+                        if (lhs_node.which() == variant::types::numeric_literal) {
+                            lhs = boolean_literal_t {boost::get<numeric_literal_t>(lhs_node).value == 1};
+                        } else if (lhs_node.which() == variant::types::boolean_literal) {
+                            lhs = boost::get<boolean_literal_t>(lhs_node);
+                        } else {
+                            error(result,
+                                  "E005",
+                                  "only boolean values can be used with logical operators");
+                        }
+                        if (rhs_node.which() == variant::types::numeric_literal) {
+                            rhs = boolean_literal_t {boost::get<numeric_literal_t>(rhs_node).value == 1};
+                        } else if (rhs_node.which() == variant::types::boolean_literal) {
+                            rhs = boost::get<boolean_literal_t>(rhs_node);
+                        } else {
+                            error(result,
+                                  "E005",
+                                  "only boolean values can be used with logical operators");
+                        }
+
+                        if (result.is_failed())
+                            break;
+
+                        switch (op.op) {
+                            case operator_t::op::equal:       return lhs == rhs;
+                            case operator_t::op::not_equal:   return lhs == rhs;
+                            case operator_t::op::logical_or:  return lhs || rhs;
+                            case operator_t::op::logical_and: return lhs && rhs;
+                            default:
+                                error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
+                                break;
+                        }
                         break;
                     }
                     default: {
+                        error(result, "E008", "unknown binary operator group");
                         break;
                     }
                 }
@@ -127,17 +176,47 @@ namespace ryu::core {
             }
             case ast_node_t::unary_op: {
                 auto rhs_node = evaluate(result, node->rhs);
-                if (rhs_node.which() != variant::types::numeric_literal) {
-                    error(result, "E005", "only integer values can be used with arithmetic operators");
-                    break;
-                }
-                auto rhs = boost::get<numeric_literal_t>(rhs_node);
                 auto op = boost::get<operator_t>(node->value);
-                switch (op.op) {
-                    case operator_t::op::negate: return -rhs;
-                    case operator_t::op::invert: return ~rhs;
+                switch (op.group) {
+                    case operator_t::arithmetic: {
+                        numeric_literal_t rhs;
+                        if (rhs_node.which() == variant::types::boolean_literal) {
+                            rhs = numeric_literal_t {boost::get<boolean_literal_t>(rhs_node).value};
+                        } else if (rhs_node.which() == variant::types::numeric_literal) {
+                            rhs = boost::get<numeric_literal_t>(rhs_node);
+                        } else {
+                            error(result, "E005", "only integer values can be used with arithmetic operators");
+                            break;
+                        }
+                        switch (op.op) {
+                            case operator_t::op::negate: return -rhs;
+                            case operator_t::op::invert: return ~rhs;
+                            default:
+                                error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
+                                break;
+                        }
+                        break;
+                    }
+                    case operator_t::logical: {
+                        boolean_literal_t rhs;
+                        if (rhs_node.which() == variant::types::numeric_literal) {
+                            rhs = boolean_literal_t {boost::get<numeric_literal_t>(rhs_node).value == 1};
+                        } else if (rhs_node.which() == variant::types::boolean_literal) {
+                            rhs = boost::get<boolean_literal_t>(rhs_node);
+                        } else {
+                            error(result, "E005", "only boolean values can be used with logical operators");
+                            break;
+                        }
+                        switch (op.op) {
+                            case operator_t::op::logical_not: return !rhs;
+                            default:
+                                error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
+                                break;
+                        }
+                        break;
+                    }
                     default:
-                        error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
+                        error(result, "E008", "unknown unary operator group");
                         break;
                 }
                 break;

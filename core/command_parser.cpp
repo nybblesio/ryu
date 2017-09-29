@@ -56,6 +56,10 @@ namespace ryu::core {
     // :  [number]                              - goto line number
     // /  [needle]                              - find needle in buffer
     //
+    // SET [name] [expression]                  - assign the result of expression to the symbol of [name]
+    // UNSET [name]                             - removes the symbol [name] from the table
+    // SYMBOLS                                  - dumps the symbol table
+    //
     command_table command_parser::_commands = {
             // assembler & memory commands
             {"!",           {command_types::quit,                       {}}},
@@ -123,6 +127,12 @@ namespace ryu::core {
             {"tiles",       {command_types::tile_editor,                {}}},
             {"sprites",     {command_types::sprite_editor,              {}}},
             {"backgrounds", {command_types::background_editor,          {}}},
+
+            // symbol table commands
+            {"set",         {command_types::add_symbol,                 {{"name", variant::types::identifier},
+                                                                         {"value", variant::types::any}}}},
+            {"unset",       {command_types::remove_symbol,              {{"name", variant::types::identifier}}}},
+            {"symbols",     {command_types::show_symbol_table,          {}}},
     };
 
     command_parser::command_parser() : parser() {
@@ -191,7 +201,7 @@ namespace ryu::core {
                 command_node->children.insert(command_node->children.begin(), expr);
             }
 
-            return command_node;
+            return is_failed() ? nullptr : command_node;
         }
         return nullptr;
     }

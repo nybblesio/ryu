@@ -41,6 +41,8 @@ namespace ryu::core {
 
         ast_node_t* pop_operand();
 
+        ast_node_t* peek_operand();
+
         operator_t* pop_operator();
 
         operator_t* peek_operator();
@@ -57,6 +59,10 @@ namespace ryu::core {
         void increment_line();
 
         char* current_token();
+
+        bool is_failed() const {
+            return _result.is_failed();
+        }
 
         void forget_top_position();
 
@@ -90,6 +96,14 @@ namespace ryu::core {
         ast_node_t* parse_boolean_literal();
 
         ast_node_t* parse_character_literal();
+
+    private:
+        bool match_literal(const std::string& literal);
+
+        std::vector<operator_t*> find_matching_operators(
+                std::vector<operator_t*> candidates,
+                char token,
+                int index);
 
     private:
         static operator_dict _operators;

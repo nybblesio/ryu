@@ -27,7 +27,7 @@ namespace ryu::ide {
         std::string ascii;
         std::string fmt_spec;
 
-        auto mask = 0;
+        uint32_t mask = 0;
         auto byte_count = 0;
         switch (size) {
             case core::command_t::byte:
@@ -52,6 +52,8 @@ namespace ryu::ide {
             char c = *p--;
             if (c == 0)
                 ascii += ".";
+            else if (c == 10)
+                ascii += "\\n";
             else
                 ascii += c;
         }
@@ -171,6 +173,11 @@ namespace ryu::ide {
                                     static_cast<const void*>(value.c_str()),
                                     value.length());
                             result.add_message("C003", dump);
+                            break;
+                        }
+                        case core::variant::types::boolean_literal: {
+                            auto value = boost::get<core::boolean_literal_t>(param).value;
+                            format_numeric_conversion(result, value, core::command_t::sizes::byte);
                             break;
                         }
                         default: {
@@ -297,6 +304,19 @@ namespace ryu::ide {
                         std::to_string(boost::get<core::numeric_literal_t>(params["line"].front()).value));
                 break;
             }
+            case core::command_types::add_symbol: {
+                auto identifier = boost::get<core::identifier_t>(params["name"].front()).value;
+                _symbol_table.put(identifier, root->children[1]);
+                break;
+            }
+            case core::command_types::remove_symbol: {
+                auto identifier = boost::get<core::identifier_t>(params["name"].front()).value;
+                _symbol_table.remove(identifier);
+                break;
+            }
+            case core::command_types::show_symbol_table: {
+                break;
+            }
             default: {
                 result.add_message("C400", "Command not implemented.", true);
                 return false;
@@ -304,6 +324,10 @@ namespace ryu::ide {
         }
 
         return true;
+    }
+
+    core::symbol_table* command_factory::symbol_table() {
+        return &_symbol_table;
     }
 
 }

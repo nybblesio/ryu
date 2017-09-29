@@ -77,6 +77,10 @@ namespace ryu::core {
         quit = 1,
         clear,
 
+        add_symbol,
+        remove_symbol,
+        show_symbol_table,
+
         assemble,
         evaluate,
         disassemble,
@@ -169,6 +173,7 @@ namespace ryu::core {
             not_equal,
             logical_and,
             logical_or,
+            logical_not,
             left_parenthesis,
             right_parenthesis,
             left_bracket,
@@ -259,6 +264,21 @@ namespace ryu::core {
 
     struct boolean_literal_t {
         bool value;
+        boolean_literal_t operator! () {
+            return boolean_literal_t {!value};
+        }
+        boolean_literal_t operator== (const boolean_literal_t& other) {
+            return boolean_literal_t {value == other.value};
+        }
+        boolean_literal_t operator!= (const boolean_literal_t& other) {
+            return boolean_literal_t {value != other.value};
+        }
+        boolean_literal_t operator&& (const boolean_literal_t& other) {
+            return boolean_literal_t {value && other.value};
+        }
+        boolean_literal_t operator|| (const boolean_literal_t& other) {
+            return boolean_literal_t {value || other.value};
+        }
     };
 
     struct numeric_literal_t {
@@ -266,11 +286,11 @@ namespace ryu::core {
         numeric_literal_t operator~ () {
             return numeric_literal_t {~value};
         }
-        numeric_literal_t operator+ (const numeric_literal_t& other) {
-            return numeric_literal_t {value + other.value};
-        }
         numeric_literal_t operator- () {
             return numeric_literal_t {-value};
+        }
+        numeric_literal_t operator+ (const numeric_literal_t& other) {
+            return numeric_literal_t {value + other.value};
         }
         numeric_literal_t operator- (const numeric_literal_t& other) {
             return numeric_literal_t {value - other.value};
@@ -292,6 +312,24 @@ namespace ryu::core {
         }
         numeric_literal_t operator^ (const numeric_literal_t& other) {
             return numeric_literal_t {value ^ other.value};
+        }
+        boolean_literal_t operator< (const numeric_literal_t& other) {
+            return boolean_literal_t {value < other.value};
+        }
+        boolean_literal_t operator<= (const numeric_literal_t& other) {
+            return boolean_literal_t {value <= other.value};
+        }
+        boolean_literal_t operator== (const numeric_literal_t& other) {
+            return boolean_literal_t {value == other.value};
+        }
+        boolean_literal_t operator!= (const numeric_literal_t& other) {
+            return boolean_literal_t {value != other.value};
+        }
+        boolean_literal_t operator> (const numeric_literal_t& other) {
+            return boolean_literal_t {value > other.value};
+        }
+        boolean_literal_t operator>= (const numeric_literal_t& other) {
+            return boolean_literal_t {value >= other.value};
         }
     };
 

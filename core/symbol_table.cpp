@@ -12,6 +12,10 @@
 
 namespace ryu::core {
 
+    void symbol_table::remove(const std::string& name) {
+        _symbols.erase(name);
+    }
+
     ast_node_t* symbol_table::get(const std::string& name) const {
         auto it = _symbols.find(name);
         if (it == _symbols.end())

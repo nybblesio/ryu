@@ -18,12 +18,23 @@ namespace ryu::core {
     public:
         symbol_table() = default;
 
+        bool missing_is_error() const {
+            return _missing_is_error;
+        }
+
+        void missing_is_error(bool flag) {
+            _missing_is_error = flag;
+        }
+
+        void remove(const std::string& name);
+
         ast_node_t* get(const std::string& name) const;
 
         void put(const std::string& name, ast_node_t* value);
 
     private:
         symbol_dict _symbols;
+        bool _missing_is_error = true;
     };
 
 };

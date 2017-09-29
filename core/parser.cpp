@@ -17,6 +17,7 @@ namespace ryu::core {
     operator_dict parser::_operators = {
             {"~",  {operator_t::op::invert,            "~",  12, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
             {"`",  {operator_t::op::negate,            "-",  11, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
+            {"!",  {operator_t::op::logical_not,       "!",  11, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::logical}},
             {"^",  {operator_t::op::pow,               "^",  10, operator_t::op_type::binary, operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
             {"*",  {operator_t::op::multiply,          "*",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
             {"/",  {operator_t::op::divide,            "/",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
@@ -203,6 +204,12 @@ namespace ryu::core {
         return top;
     }
 
+    ast_node_t* parser::peek_operand() {
+        if (_operand_stack.empty())
+            return nullptr;
+        return _operand_stack.top();
+    }
+
     operator_t* parser::peek_operator() {
         if (_operator_stack.empty())
             return nullptr;
@@ -233,47 +240,79 @@ namespace ryu::core {
         return nullptr;
     }
 
-    operator_t* parser::parse_operator() {
-        push_position();
-
-        for (auto it = _operators.begin(); it != _operators.end(); ++it) {
-            if (it->second.precedence == 0)
+    std::vector<operator_t*> parser::find_matching_operators(
+            std::vector<operator_t*> candidates,
+            char token,
+            int index) {
+        std::vector<operator_t*> matches;
+        for (auto it = candidates.begin(); it != candidates.end(); ++it) {
+            auto op = *it;
+            if (op->precedence == 0)
                 continue;
+            if (token == op->symbol[index]) {
+                matches.push_back(op);
+            }
+        }
+        return matches;
+    }
 
-            auto token = current_token();
-            if (*token == it->second.symbol[0]) {
-                token = move_to_next_token();
-                if (token == nullptr)
-                    break;
+    operator_t* parser::parse_operator() {
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
 
-                if (it->second.symbol.length() > 1) {
-                    if (*token == it->second.symbol[1]) {
-                        token = move_to_next_token();
-                    } else {
-                        error("P009", "unexpected operator");
-                        pop_position();
-                        return nullptr;
-                    }
+        std::vector<operator_t*> candidates;
+        for (auto it = _operators.begin(); it != _operators.end(); ++it)
+            candidates.push_back(&it->second);
+
+        auto index = 0;
+        operator_t* op = nullptr;
+        std::vector<operator_t*> narrowed;
+        while (true) {
+            narrowed = find_matching_operators(candidates, *token, index);
+            if (narrowed.empty())
+                break;
+
+            token = move_to_next_token();
+            if (token == nullptr) {
+                error("P008", "unexpected end of operator");
+                return nullptr;
+            }
+
+            if (narrowed.size() == 1 && (index == narrowed.front()->symbol.length() - 1)) {
+                op = narrowed.front();
+                break;
+            } else {
+                for (auto x : narrowed) {
+                    if (x->symbol.length() - 1 == index)
+                        op = x;
                 }
+            }
 
-                forget_top_position();
-                auto op = &it->second;
+            candidates = narrowed;
+            index++;
+        }
 
-                if (_last_operator == nullptr || _last_operator->symbol != ")") {
-                    if (op->symbol == "-")
+        if (!candidates.empty() && candidates.size() < _operators.size()) {
+            auto top_op = peek_operator();
+            auto top_operand = peek_operand();
+            auto top_is_binary_op = top_op != nullptr && (top_op->type & operator_t::op_type::binary) != 0;
+
+            for (auto candidate : candidates) {
+                if (candidate->symbol == "-") {
+                    if (top_operand == nullptr || top_is_binary_op)
                         op = &_operators["`"];
-                    else if (op->symbol == "(") {
-                        error("C008", "unexpected binary operator");
-                    }
+                    else
+                        op = &_operators["-"];
+                    break;
                 }
-
-                _last_operator = op;
-                return op;
             }
         }
 
-        pop_position();
-        return nullptr;
+        if (op != nullptr)
+            _last_operator = op;
+
+        return op;
     }
 
     ast_node_t* parser::parse_identifier() {
@@ -341,6 +380,8 @@ namespace ryu::core {
                 error("P008", "unbalanced right parentheses");
             } else {
                 auto op = parse_operator();
+                if (_result.is_failed())
+                    return nullptr;
                 if (op != nullptr) {
                     while (has_operator()) {
                         auto top = peek_operator();
@@ -369,10 +410,10 @@ namespace ryu::core {
                     const std::vector<std::function<ast_node_t* ()>> terminals = {
                             [&] () {return parse_number();},
                             [&] () {return parse_comment();},
-                            [&] () {return parse_identifier();},
                             [&] () {return parse_null_literal();},
-                            [&] () {return parse_string_literal();},
                             [&] () {return parse_boolean_literal();},
+                            [&] () {return parse_identifier();},
+                            [&] () {return parse_string_literal();},
                             [&] () {return parse_character_literal();},
                     };
                     for (const auto& terminal : terminals) {
@@ -427,8 +468,7 @@ namespace ryu::core {
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
-        if (std::regex_match(token, std::regex("[nN][uU][lL][lL]"))) {
-            consume_tokens(4);
+        if (match_literal("null")) {
             auto identifier_node = new ast_node_t();
             identifier_node->token = ast_node_t::tokens::null_literal;
             return identifier_node;
@@ -481,14 +521,12 @@ namespace ryu::core {
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
-        if (std::regex_match(token, std::regex("[tT][rR][uU][eE]"))) {
-            consume_tokens(4);
+        if (match_literal("true")) {
             auto identifier_node = new ast_node_t();
             identifier_node->value = boolean_literal_t {true};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
-        } else if (std::regex_match(token, std::regex("[fF][aA][lL][sS][eE]"))) {
-            consume_tokens(5);
+        } else if (match_literal("false")) {
             auto identifier_node = new ast_node_t();
             identifier_node->value = boolean_literal_t {false};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
@@ -521,10 +559,10 @@ namespace ryu::core {
                     character_literal->token = ast_node_t::tokens::character_literal;
                     return character_literal;
                 } else {
-                    error("C008", "unbalanced single quote of character literal");
+                    error("P008", "unbalanced single quote of character literal");
                 }
             } else {
-                error("C010", "unexpected end of input");
+                error("P008", "unexpected end of input");
             }
         }
         return nullptr;
@@ -532,6 +570,24 @@ namespace ryu::core {
 
     void parser::symbol_table(core::symbol_table* value) {
         _symbol_table = value;
+    }
+
+    bool parser::match_literal(const std::string& literal) {
+        auto token = current_token();
+        for (auto i = 0; i < literal.length(); ++i) {
+            auto c = literal[i];
+            if (token == nullptr) {
+                error("P008", "Unexpected end of input");
+                return false;
+            }
+            if (c != *token && toupper(c) != *token) {
+                if (i > 0)
+                    error("P008", fmt::format("Unexpected character in literal: {}", literal));
+                return false;
+            }
+            token = move_to_next_token();
+        }
+        return true;
     }
 
     ast_node_t* parser::parse_expression(const std::string& input) {
