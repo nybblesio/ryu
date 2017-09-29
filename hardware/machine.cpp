@@ -5,11 +5,13 @@
 // All Rights Reserved.
 //
 
+#include <core/id_pool.h>
 #include "machine.h"
 
 namespace ryu::hardware {
 
-    machine::machine(int id) : _id(id) {
+    machine::machine(int id) : _id(id),
+                               _mapper(core::id_pool::instance()->allocate(), "mapper") {
     }
 
     int machine::id() const {
@@ -28,7 +30,24 @@ namespace ryu::hardware {
     }
 
     void machine::remove_component(int id) {
-        _components.erase(id);
+        auto component = find_component(id);
+        if (component != nullptr) {
+            _mapper.release(component->ic());
+            _components.erase(id);
+        }
+    }
+
+    uint32_t machine::address_space() const {
+        return _address_space;
+    }
+
+    hardware::memory_mapper* machine::mapper() {
+        return &_mapper;
+    }
+
+    void machine::address_space(uint32_t value) {
+        _address_space = value;
+        _mapper.address_space(value);
     }
 
     hardware::display* machine::display() const {
@@ -57,10 +76,11 @@ namespace ryu::hardware {
         return nullptr;
     }
 
-    void machine::add_component(hardware::component* component) {
+    void machine::add_component(hardware::component* component, uint32_t address) {
         if (component == nullptr)
             return;
         _components.insert(std::make_pair(component->id(), component));
+        _mapper.reserve(address, component->ic());
     }
 
 }

@@ -223,8 +223,19 @@ namespace ryu::core {
     }
 
     bool view::process_event(const SDL_Event* e) {
-        if (focused() && on_process_event(e))
-            return true;
+        if (focused()) {
+            if (e->type == SDL_KEYDOWN) {
+                switch (e->key.keysym.sym) {
+                    case SDLK_TAB: {
+                        if (_on_tab_callable != nullptr)
+                            _on_tab_callable();
+                        return true;
+                    }
+                }
+            }
+            if (on_process_event(e))
+                return true;
+        }
 
         for (auto child : _children) {
             if (child->process_event(e))
@@ -276,7 +287,16 @@ namespace ryu::core {
     }
 
     void view::set_color(const core::palette_entry& color) {
-        SDL_SetRenderDrawColor(context()->renderer(), color.red(), color.green(), color.blue(), color.alpha());
+        SDL_SetRenderDrawColor(
+                context()->renderer(),
+                color.red(),
+                color.green(),
+                color.blue(),
+                color.alpha());
+    }
+
+    void view::on_tab(const view::on_tab_callable& callable) {
+        _on_tab_callable = callable;
     }
 
     void view::set_font_color(const core::palette_entry& color) {

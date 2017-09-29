@@ -28,16 +28,11 @@ namespace ryu::hardware {
 
         void name(const std::string& value);
 
-        hardware::memory_mapper* mapper() const;
-
         hardware::integrated_circuit* ic() const;
-
-        void mapper(hardware::memory_mapper* mapper);
 
     private:
         int _id;
         std::string _name;
-        hardware::memory_mapper* _mapper = nullptr;
         hardware::integrated_circuit* _ic = nullptr;
     };
 

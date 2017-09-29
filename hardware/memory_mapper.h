@@ -17,10 +17,7 @@ namespace ryu::hardware {
 
     class memory_mapper : public hardware::integrated_circuit {
     public:
-        memory_mapper(
-                int id,
-                const std::string& name,
-                uint32_t address_space);
+        memory_mapper(int id, const std::string& name);
 
         void clear();
 
@@ -32,6 +29,8 @@ namespace ryu::hardware {
 
         void fill(uint8_t value) override;
 
+        void address_space(uint32_t value);
+
         std::string type() const override {
             return "memory mapper";
         }
@@ -39,6 +38,8 @@ namespace ryu::hardware {
         uint32_t address_space() const override;
 
         uint8_t read_byte(uint32_t address) const override;
+
+        void release(hardware::integrated_circuit* component);
 
         void write_byte(uint32_t address, uint8_t value) override;
 

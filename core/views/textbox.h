@@ -18,7 +18,7 @@ namespace ryu::core {
 
     class textbox : public core::view {
     public:
-        using on_key_down_callable = std::function<void (int)>;
+        using on_key_down_callable = std::function<bool (int)>;
 
         textbox(
                 core::context* context,

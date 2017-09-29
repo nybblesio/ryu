@@ -30,16 +30,8 @@ namespace ryu::hardware {
         _name = value;
     }
 
-    hardware::memory_mapper* component::mapper() const {
-        return _mapper;
-    }
-
     hardware::integrated_circuit* component::ic() const {
         return _ic;
-    }
-
-    void component::mapper(hardware::memory_mapper* mapper) {
-        _mapper = mapper;
     }
 
 }

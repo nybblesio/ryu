@@ -65,8 +65,6 @@ namespace ryu::ide::machine_editor {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {
-        if (_view.process_event(e))
-            return true;
         if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
                 case SDLK_ESCAPE: {
@@ -75,7 +73,7 @@ namespace ryu::ide::machine_editor {
                 }
             }
         }
-        return false;
+        return _view.process_event(e);
     }
 
     void controller::on_activate(const core::parameter_dict& params) {

@@ -230,7 +230,7 @@ namespace ryu::ide::text_editor {
         _command_line.on_key_down([&](int keycode) {
             if (keycode == SDLK_ESCAPE) {
                 focus(id());
-                return;
+                return false;
             }
             if (keycode == SDLK_RETURN) {
                 auto input = _command_line.value();
@@ -240,7 +240,9 @@ namespace ryu::ide::text_editor {
                 }
                 _command_line.clear();
                 focus(id());
+                return false;
             }
+            return true;
         });
         _command_line.initialize(1, _metrics.page_width);
 

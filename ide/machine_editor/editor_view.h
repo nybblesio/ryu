@@ -22,7 +22,9 @@ namespace ryu::ide::machine_editor {
         enum ids {
             name_label = 100,
             name_textbox = 101,
-            display_label = 102
+            display_label = 102,
+            address_space_label = 103,
+            address_space_textbox = 104
         };
 
         editor_view(
@@ -48,6 +50,8 @@ namespace ryu::ide::machine_editor {
         core::label _name_label;
         core::label _display_label;
         core::textbox _name_textbox;
+        core::label _address_space_label;
+        core::textbox _address_space_textbox;
         hardware::machine* _machine = nullptr;
     };
 

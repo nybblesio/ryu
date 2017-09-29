@@ -39,6 +39,8 @@ namespace ryu::core {
 
     class view {
     public:
+        using on_tab_callable = std::function<void ()>;
+
         struct config {
             enum flags : uint8_t {
                 none    = 0b00000000,
@@ -159,6 +161,8 @@ namespace ryu::core {
 
         void font_family(core::font_family* font);
 
+        void on_tab(const on_tab_callable& callable);
+
         inline const core::font_t* font_face() const {
             return font_family()->find_style(_font_style);
         }
@@ -207,6 +211,7 @@ namespace ryu::core {
         core::padding _padding;
         core::view* _parent = nullptr;
         types::id _type = types::none;
+        on_tab_callable _on_tab_callable;
         bool _in_on_focus_changed = false;
         core::context* _context = nullptr;
         core::palette* _palette = nullptr;

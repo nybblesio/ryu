@@ -16,11 +16,7 @@ RTTR_REGISTRATION {
 
 namespace ryu::hardware {
 
-    memory_mapper::memory_mapper(
-            int id,
-            const std::string& name,
-            uint32_t address_space) : integrated_circuit(id, name),
-                                      _address_space(address_space) {
+    memory_mapper::memory_mapper(int id, const std::string& name) : integrated_circuit(id, name) {
     }
 
     void memory_mapper::zero() {
@@ -50,6 +46,10 @@ namespace ryu::hardware {
         return _address_space;
     }
 
+    void memory_mapper::address_space(uint32_t value) {
+        _address_space = value;
+    }
+
     uint8_t memory_mapper::read_byte(uint32_t address) const {
         auto ic = circuit_at_address(address);
         if (ic != nullptr)
@@ -61,6 +61,14 @@ namespace ryu::hardware {
         auto ic = circuit_at_address(address);
         if (ic != nullptr)
             ic->write_byte(address, value);
+    }
+
+    void memory_mapper::release(hardware::integrated_circuit* component) {
+        for (auto it = _components.begin(); it != _components.end(); ++it) {
+            if ((*it).value == component) {
+                it = _components.erase(it);
+            }
+        }
     }
 
     integrated_circuit* memory_mapper::circuit_at_address(uint32_t address) const {

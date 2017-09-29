@@ -85,8 +85,9 @@ namespace ryu::core {
     void textbox::on_draw() {
         auto bounds = client_rect();
         auto fg = (*context()->palette())[fg_color()];
-        if (!enabled() || !focused())
+        if (!enabled() || !focused()) {
             fg = fg.fade(2);
+        }
 
         set_color(fg);
 
@@ -101,6 +102,10 @@ namespace ryu::core {
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
             while (*c != '\0') {
+                if (_on_key_down != nullptr)
+                    if (!_on_key_down(e->key.keysym.sym))
+                        continue;
+
                 _document.put(
                         0,
                         _caret.column(),
@@ -143,7 +148,7 @@ namespace ryu::core {
             }
 
             if (_on_key_down != nullptr)
-                _on_key_down(e->key.keysym.sym);
+                return _on_key_down(e->key.keysym.sym);
         }
         return false;
     }
