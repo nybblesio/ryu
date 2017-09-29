@@ -10,8 +10,9 @@
 #include <map>
 #include <stack>
 #include <list>
-#include <common/SDL_FontCache.h>
+#include <fmt/format.h>
 #include <boost/variant.hpp>
+#include <common/SDL_FontCache.h>
 
 namespace ryu::core {
 
@@ -147,6 +148,11 @@ namespace ryu::core {
         command_spec_t spec;
         std::string symbol;
         sizes size = sizes::dword;
+
+        friend std::ostream& operator<<(std::ostream& stream, const command_t& command) {
+            stream << command.symbol;
+            return stream;
+        }
     };
 
     struct scanner_pos_t {
@@ -209,6 +215,11 @@ namespace ryu::core {
             return precedence > other.precedence ? 1 : other.precedence == precedence ? 0 : -1;
         }
 
+        friend std::ostream& operator<<(std::ostream& stream, const operator_t& op) {
+            stream << op.symbol;
+            return stream;
+        }
+
         op op;
         std::string symbol;
         uint8_t precedence = 0;
@@ -246,22 +257,60 @@ namespace ryu::core {
             out = static_cast<int32_t>(l);
             return success;
         }
+
+        friend std::ostream& operator<<(std::ostream& stream, const radix_number_t& lit) {
+            switch (lit.radix) {
+                case 2:
+                    stream << fmt::format("%{:032b}", lit.value);
+                    break;
+                case 8:
+                    stream << fmt::format("@{:24o}", lit.value);
+                    break;
+                case 10:
+                    stream << fmt::format("{:11d}", lit.value);
+                    break;
+                case 16:
+                    stream << fmt::format("${:08x}", lit.value);
+                    break;
+            }
+            return stream;
+        }
     };
 
     struct comment_t {
         std::string value;
+
+        friend std::ostream& operator<<(std::ostream& stream, const comment_t& comment) {
+            stream << "; " << comment.value;
+            return stream;
+        }
     };
 
     struct identifier_t {
         std::string value;
+
+        friend std::ostream& operator<<(std::ostream& stream, const identifier_t& identifier) {
+            stream << identifier.value;
+            return stream;
+        }
     };
 
     struct string_literal_t {
         std::string value;
+
+        friend std::ostream& operator<<(std::ostream& stream, const string_literal_t& lit) {
+            stream << "\"" << lit.value << "\"";
+            return stream;
+        }
     };
 
     struct char_literal_t {
         char value;
+
+        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
+            stream << "'" << lit.value << "'";
+            return stream;
+        }
     };
 
     struct boolean_literal_t {
@@ -280,6 +329,10 @@ namespace ryu::core {
         }
         boolean_literal_t operator|| (const boolean_literal_t& other) {
             return boolean_literal_t {value || other.value};
+        }
+        friend std::ostream& operator<<(std::ostream& stream, const boolean_literal_t& lit) {
+            stream << std::boolalpha << lit.value;
+            return stream;
         }
     };
 
@@ -333,6 +386,10 @@ namespace ryu::core {
         boolean_literal_t operator>= (const numeric_literal_t& other) {
             return boolean_literal_t {value >= other.value};
         }
+        friend std::ostream& operator<<(std::ostream& stream, const numeric_literal_t& lit) {
+            stream << lit.value;
+            return stream;
+        }
     };
 
     typedef std::map<std::string, operator_t> operator_dict;
@@ -370,6 +427,41 @@ namespace ryu::core {
             null_literal,
             boolean_literal
         };
+
+        void serialize(std::ostream& stream) {
+            switch (token) {
+                case basic_block:
+                case statement:
+                    break;
+                case expression:
+                    stream << "(";
+                    for (auto child : children)
+                        child->serialize(stream);
+                    stream << ")";
+                    break;
+                case binary_op:
+                    lhs->serialize(stream);
+                    stream << value;
+                    rhs->serialize(stream);
+                    break;
+                case unary_op:
+                    stream << value;
+                    rhs->serialize(stream);
+                    break;
+                case command:
+                case comment:
+                case identifier:
+                case string_literal:
+                case number_literal:
+                case boolean_literal:
+                case character_literal:
+                    stream << value;
+                    break;
+                case null_literal:
+                    stream << "null";
+                    break;
+            }
+        }
 
         tokens token;
         variant_t value;
