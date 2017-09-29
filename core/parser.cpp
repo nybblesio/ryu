@@ -309,9 +309,6 @@ namespace ryu::core {
             }
         }
 
-        if (op != nullptr)
-            _last_operator = op;
-
         return op;
     }
 
@@ -356,10 +353,8 @@ namespace ryu::core {
 
             if (*token == '(') {
                 push_operator(&_operators["("]);
-                _last_operator = &_operators["("];
                 token = move_to_next_token();
             } else if (*token == ')') {
-                _last_operator = &_operators[")"];
                 token = move_to_next_token();
                 while (has_operator()) {
                     auto op = pop_operator();
@@ -465,14 +460,17 @@ namespace ryu::core {
     }
 
     ast_node_t* parser::parse_null_literal() {
+        push_position();
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
         if (match_literal("null")) {
+            forget_top_position();
             auto identifier_node = new ast_node_t();
             identifier_node->token = ast_node_t::tokens::null_literal;
             return identifier_node;
         }
+        pop_position();
         return nullptr;
     }
 
@@ -518,20 +516,24 @@ namespace ryu::core {
     }
 
     ast_node_t* parser::parse_boolean_literal() {
+        push_position();
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
         if (match_literal("true")) {
+            forget_top_position();
             auto identifier_node = new ast_node_t();
             identifier_node->value = boolean_literal_t {true};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         } else if (match_literal("false")) {
+            forget_top_position();
             auto identifier_node = new ast_node_t();
             identifier_node->value = boolean_literal_t {false};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         }
+        pop_position();
         return nullptr;
     }
 
@@ -581,8 +583,6 @@ namespace ryu::core {
                 return false;
             }
             if (c != *token && toupper(c) != *token) {
-                if (i > 0)
-                    error("P008", fmt::format("Unexpected character in literal: {}", literal));
                 return false;
             }
             token = move_to_next_token();

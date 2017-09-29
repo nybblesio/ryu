@@ -114,7 +114,6 @@ namespace ryu::core {
         std::string _input;
         core::result _result;
         char* _token = nullptr;
-        operator_t* _last_operator = nullptr;
         std::stack<ast_node_t*> _operand_stack;
         std::stack<operator_t*> _operator_stack;
         std::stack<scanner_pos_t> _position_stack;

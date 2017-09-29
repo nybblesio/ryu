@@ -70,6 +70,7 @@ namespace ryu::core {
                 case variadic:              return "variadic";
                 case any:                   return "any";
             }
+            return "unknown";
         }
     };
 
@@ -128,6 +129,7 @@ namespace ryu::core {
         std::string name;
         variant::types type;
         bool required = true;
+        bool evaluate = true;
     };
 
     struct command_spec_t {

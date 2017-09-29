@@ -120,8 +120,8 @@ namespace ryu::core {
 
             // editor and tool commands
             {"%",           {command_types::open_editor,
-                                                                        {{"path",  variant::types::string_literal},
-                                                                         {"type",  variant::types::identifier}}}},
+                                                                        {{"name",  variant::types::string_literal},
+                                                                         {"type",  variant::types::identifier, true, false}}}},
             {"sounds",      {command_types::sounds,                     {}}},
             {"tracker",     {command_types::tracker,                    {}}},
             {"tiles",       {command_types::tile_editor,                {}}},
@@ -129,9 +129,9 @@ namespace ryu::core {
             {"backgrounds", {command_types::background_editor,          {}}},
 
             // symbol table commands
-            {"set",         {command_types::add_symbol,                 {{"name", variant::types::identifier},
-                                                                         {"value", variant::types::any}}}},
-            {"unset",       {command_types::remove_symbol,              {{"name", variant::types::identifier}}}},
+            {"set",         {command_types::add_symbol,                 {{"name", variant::types::identifier, true, false},
+                                                                         {"value", variant::types::any,       true, false}}}},
+            {"unset",       {command_types::remove_symbol,              {{"name", variant::types::identifier, true, false}}}},
             {"symbols",     {command_types::show_symbol_table,          {}}},
     };
 

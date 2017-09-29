@@ -97,6 +97,14 @@ namespace ryu::ide {
         } else {
             auto idx = 0;
             for (const auto& param_spec : command.spec.params) {
+                std::vector<core::variant_t>* values = nullptr;
+                auto it = params.find(param_spec.name);
+                if (it == params.end()) {
+                    auto range = params.insert(std::make_pair(param_spec.name, std::vector<core::variant_t>{}));
+                    it = range.first;
+                }
+                values = &it->second;
+
                 if (param_spec.required) {
                     if (idx >= root->children.size()) {
                         result.add_message(
@@ -107,7 +115,9 @@ namespace ryu::ide {
                         break;
                     }
                 }
-                auto value = evaluator.evaluate(result, root->children[idx]);
+                auto value = param_spec.evaluate ?
+                             evaluator.evaluate(result, root->children[idx]) :
+                             root->children[idx]->value;
                 if (result.is_failed())
                     break;
                 if (param_spec.type != core::variant::types::variadic
@@ -123,19 +133,19 @@ namespace ryu::ide {
                     }
                 }
                 if (param_spec.type == core::variant::types::variadic) {
-                    auto& values = params[param_spec.name];
-                    values.push_back(value);
+                    values->push_back(value);
 
                     ++idx;
                     while (idx < root->children.size()) {
-                        value = evaluator.evaluate(result, root->children[idx++]);
+                        value = param_spec.evaluate ?
+                                evaluator.evaluate(result, root->children[idx++]) :
+                                root->children[idx]->value;
                         if (result.is_failed())
                             break;
-                        values.push_back(value);
+                        values->push_back(value);
                     }
                 } else {
-                    auto& values = params[param_spec.name];
-                    values.push_back(value);
+                    values->push_back(value);
                     ++idx;
                 }
             }
