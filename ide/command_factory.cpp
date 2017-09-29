@@ -317,6 +317,7 @@ namespace ryu::ide {
             case core::command_types::add_symbol: {
                 auto identifier = boost::get<core::identifier_t>(params["name"].front()).value;
                 _symbol_table.put(identifier, root->children[1]);
+                save(result, "global.conf");
                 break;
             }
             case core::command_types::remove_symbol: {
@@ -338,6 +339,39 @@ namespace ryu::ide {
 
     core::symbol_table* command_factory::symbol_table() {
         return &_symbol_table;
+    }
+
+    bool command_factory::load(core::result& result, const boost::filesystem::path& path) {
+        if (!boost::filesystem::exists(path)) {
+            result.add_message(
+                    "S404",
+                    "File not found",
+                    fmt::format("The path does not exist: {}", path.string()), true);
+            result.fail();
+            return false;
+        }
+        std::ifstream file(path.string());
+        std::string line;
+        auto success = true;
+        while (std::getline(file, line)) {
+            if (!execute(result, line))
+                success = false;
+        }
+        file.close();
+        return success;
+    }
+
+    bool command_factory::save(core::result& result, const boost::filesystem::path& path) {
+        std::ofstream file(path.string());
+        for (auto& symbol : _symbol_table.identifiers()) {
+            auto value = _symbol_table.get(symbol);
+            file << "set " << symbol << " ";
+            value->serialize(file);
+            file << "\n";
+        }
+        file << std::endl;
+        file.close();
+        return true;
     }
 
 }

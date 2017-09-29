@@ -239,7 +239,7 @@ namespace ryu::core {
             inconvertible
         };
 
-        conversion_result parse(int32_t& out) {
+        conversion_result parse(int32_t& out) const {
             const char* s = value.c_str();
             char* end;
             long l;
@@ -261,16 +261,16 @@ namespace ryu::core {
         friend std::ostream& operator<<(std::ostream& stream, const radix_number_t& lit) {
             switch (lit.radix) {
                 case 2:
-                    stream << fmt::format("%{:032b}", lit.value);
+                    stream << fmt::format("%{0}", lit.value);
                     break;
                 case 8:
-                    stream << fmt::format("@{:24o}", lit.value);
+                    stream << fmt::format("@{0}", lit.value);
                     break;
                 case 10:
-                    stream << fmt::format("{:11d}", lit.value);
+                    stream << fmt::format("{0}", lit.value);
                     break;
                 case 16:
-                    stream << fmt::format("${:08x}", lit.value);
+                    stream << fmt::format("${0}", lit.value);
                     break;
             }
             return stream;

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "result.h"
 #include "core_types.h"
 
 namespace ryu::core {
@@ -27,6 +28,14 @@ namespace ryu::core {
         }
 
         void remove(const std::string& name);
+
+        std::vector<std::string> identifiers() {
+            std::vector<std::string> identifiers;
+            for (auto& symbol : _symbols) {
+                identifiers.push_back(symbol.first);
+            }
+            return identifiers;
+        }
 
         ast_node_t* get(const std::string& name) const;
 

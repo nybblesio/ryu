@@ -25,6 +25,10 @@ namespace ryu::ide {
 
         bool execute(core::result& result, const std::string& line);
 
+        bool load(core::result& result, const boost::filesystem::path& path);
+
+        bool save(core::result& result, const boost::filesystem::path& path);
+
     private:
         core::symbol_table _symbol_table;
     };
