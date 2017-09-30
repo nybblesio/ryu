@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <SDL_rect.h>
+#include "padding.h"
 
 namespace ryu::core {
 
@@ -22,15 +23,27 @@ namespace ryu::core {
 
         rect(int32_t left, int32_t top, int32_t width, int32_t height);
 
-        int32_t left() const;
+        bool empty() const {
+            return _top == 0 && _left == 0 && _width == 0 && _height == 0;
+        }
 
         int32_t top() const;
 
+        void top(int32_t y);
+
+        int32_t left() const;
+
+        void left(int32_t x);
+
         int32_t width() const;
+
+        void width(int32_t w);
+
+        int32_t right() const;
 
         int32_t height() const;
 
-        int32_t right() const;
+        void height(int32_t h);
 
         int32_t bottom() const;
 

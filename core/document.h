@@ -98,6 +98,10 @@ namespace ryu::core {
             clamp_row();
         }
 
+        bool initialized() const {
+            return _initialized;
+        }
+
         inline bool row(int row) {
             _row = row;
             return clamp_row();
@@ -225,6 +229,7 @@ namespace ryu::core {
         int _page_width = 0;
         int _page_height = 0;
         attr_t _default_attr {};
+        bool _initialized = false;
         std::vector<line_t> _lines;
     };
 

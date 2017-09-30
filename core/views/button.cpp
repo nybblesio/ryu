@@ -17,7 +17,7 @@ namespace ryu::core {
             core::view* parent,
             const std::string& name) : core::view(context,
                                                   parent,
-                                                  core::view::types::custom,
+                                                  core::view::types::control,
                                                   name) {
     }
 
@@ -28,29 +28,21 @@ namespace ryu::core {
         return _value;
     }
 
-    alignment::types button::alignment() const {
-        return _alignment;
-    }
-
     void button::value(const std::string& value) {
         _value = value;
-    }
-
-    void button::alignment(alignment::types value) {
-        _alignment = value;
     }
 
     void button::on_draw() {
         push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        auto bounds = client_rect();
+        auto bounds = client_bounds();
 
         auto fg = (*context()->palette())[fg_color()];
         auto bg = (*context()->palette())[bg_color()];
 
         if (!enabled()) {
-            fg = fg.fade(2);
-            bg = bg.fade(2);
+            fg = fg / 2;
+            bg = bg / 2;
         }
 
         set_color(bg);
@@ -59,13 +51,29 @@ namespace ryu::core {
         draw_rect(bounds);
 
         set_font_color(fg);
-        draw_text_aligned(_value, bounds, _alignment);
+        draw_text_aligned(_value, bounds, _halign, _valign);
 
         pop_blend_mode();
     }
 
     bool button::on_process_event(const SDL_Event* e) {
         return false;
+    }
+
+    alignment::vertical::types button::valign() const {
+        return _valign;
+    }
+
+    alignment::horizontal::types button::halign() const {
+        return _halign;
+    }
+
+    void button::valign(alignment::vertical::types value) {
+        _valign = value;
+    }
+
+    void button::halign(alignment::horizontal::types value) {
+        _halign = value;
     }
 
     void button::on_clicked(const button::on_clicked_callable& callable) {

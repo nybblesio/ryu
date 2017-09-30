@@ -21,8 +21,15 @@ namespace ryu::core {
                 core::view* parent,
                 const std::string& name);
 
+        border::types border() const;
+
+        void border(border::types value);
+
     protected:
         void on_draw() override;
+
+    private:
+        border::types _border = border::types::none;
     };
 
 };

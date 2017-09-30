@@ -14,6 +14,7 @@
 #include <core/views/label.h>
 #include <core/views/textbox.h>
 #include <hardware/machine.h>
+#include <core/views/panel.h>
 
 namespace ryu::ide::machine_editor {
 
@@ -30,15 +31,11 @@ namespace ryu::ide::machine_editor {
 
     protected:
         struct metrics_t {
-            int footer_padding;
-            int header_padding;
             const int left_padding = 10;
             const int right_padding = 10;
         };
 
         void on_draw() override;
-
-        void on_resize() override;
 
         void on_focus_changed() override;
 
@@ -48,11 +45,13 @@ namespace ryu::ide::machine_editor {
         metrics_t _metrics;
         core::label _header;
         core::label _footer;
+        core::panel _row1_panel;
+        core::panel _row2_panel;
         core::label _name_label;
-        core::label _display_label;
         core::textbox _name_textbox;
         core::label _address_space_label;
         core::textbox _address_space_textbox;
+        core::label _display_label;
         hardware::machine* _machine = nullptr;
     };
 

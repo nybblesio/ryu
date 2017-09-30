@@ -198,6 +198,7 @@ namespace ryu::core {
     void document::initialize(int rows, int columns) {
         _rows = rows;
         _columns = columns;
+        _initialized = true;
     }
 
     void document::shift_left(int row, int column, int times) {

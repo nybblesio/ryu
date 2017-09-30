@@ -16,7 +16,7 @@ namespace ryu::core {
     textbox::textbox(
             core::context* context,
             core::view* parent,
-            const std::string& name) : core::view(context, parent, types::label, name),
+            const std::string& name) : core::view(context, parent, types::control, name),
                                        _caret(context, this, "textbox-caret") {
     }
 
@@ -31,7 +31,7 @@ namespace ryu::core {
     }
 
     void textbox::on_resize() {
-        rect().size(font_face()->width * (_page_width + 4), font_face()->line_height + 10);
+        bounds().size(font_face()->width * _page_width, font_face()->line_height + 10);
     }
 
     void textbox::caret_home() {
@@ -82,11 +82,10 @@ namespace ryu::core {
     }
 
     void textbox::on_draw() {
-        auto bounds = client_rect();
+        auto bounds = client_bounds();
         auto fg = (*context()->palette())[fg_color()];
-        if (!enabled() || !focused()) {
-            fg = fg.fade(2);
-        }
+        if (!enabled() || !focused())
+            fg = fg - 35;
 
         set_color(fg);
 

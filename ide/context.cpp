@@ -134,6 +134,12 @@ namespace ryu::ide {
         light_grey.blue(0x9f);
         light_grey.alpha(0xff);
 
+        auto& transparent = _palette[colors::transparent];
+        transparent.red(0x00);
+        transparent.green(0x00);
+        transparent.blue(0x00);
+        transparent.alpha(0x00);
+
         palette(&_palette);
     }
 

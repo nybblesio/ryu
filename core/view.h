@@ -25,11 +25,48 @@
 namespace ryu::core {
 
     struct alignment {
+        struct horizontal {
+            enum types {
+                none,
+                left,
+                right,
+                center
+            };
+        };
+
+        struct vertical {
+            enum types {
+                none,
+                top,
+                middle,
+                bottom
+            };
+        };
+
+        static FC_AlignEnum to_font_align(horizontal::types value) {
+            FC_AlignEnum align = FC_AlignEnum::FC_ALIGN_LEFT;
+            switch (value) {
+                case horizontal::none:
+                case horizontal::left:
+                    align = FC_AlignEnum::FC_ALIGN_LEFT;
+                    break;
+                case horizontal::right:
+                    align = FC_AlignEnum::FC_ALIGN_RIGHT;
+                    break;
+                case horizontal::center:
+                    align = FC_AlignEnum::FC_ALIGN_CENTER;
+                    break;
+            }
+            return align;
+        }
+    };
+
+    struct border {
         enum types {
             none,
-            left,
-            right,
-            center
+            solid,
+            dashed,
+            rounded
         };
     };
 
@@ -64,15 +101,8 @@ namespace ryu::core {
 
         struct types {
             enum id : uint8_t {
-                none,
-                label,
-                textbox,
-                checkbox,
-                combobox,
-                list,
-                menu,
-                menuitem,
-                custom
+                control,
+                container
             };
         };
 
@@ -92,11 +122,11 @@ namespace ryu::core {
 
         view* parent();
 
-        core::rect& rect();
-
         void focus(int id);
 
         short index() const;
+
+        core::rect& bounds();
 
         bool focused() const;
 
@@ -112,6 +142,8 @@ namespace ryu::core {
 
         core::padding& margin();
 
+        core::padding& padding();
+
         void index(short value);
 
         void enabled(bool value);
@@ -126,10 +158,6 @@ namespace ryu::core {
 
         core::palette* palette();
 
-        core::padding& padding();
-
-        core::rect client_rect();
-
         uint8_t bg_color() const;
 
         uint8_t fg_color() const;
@@ -137,6 +165,8 @@ namespace ryu::core {
         dock::styles dock() const;
 
         uint8_t font_style() const;
+
+        core::rect client_bounds();
 
         void bg_color(uint8_t value);
 
@@ -146,7 +176,7 @@ namespace ryu::core {
 
         void font_style(uint8_t styles);
 
-        void rect(const core::rect& value);
+        void bounds(const core::rect& value);
 
         void palette(core::palette* palette);
 
@@ -177,6 +207,12 @@ namespace ryu::core {
 
         virtual void on_focus_changed();
 
+        void draw_text_aligned(
+                const std::string& value,
+                const core::rect& bounds,
+                alignment::horizontal::types halign,
+                alignment::vertical::types valign);
+
         void draw_rect(const core::rect& bounds);
 
         void fill_rect(const core::rect& bounds);
@@ -195,8 +231,6 @@ namespace ryu::core {
 
         void draw_text(int x, int y, const std::string& value, const core::palette_entry& color);
 
-        void draw_text_aligned(const std::string& value, const core::rect& bounds, alignment::types alignment);
-
     private:
         int _id;
         short _index;
@@ -209,7 +243,7 @@ namespace ryu::core {
         uint8_t _fg_color = 0;
         core::padding _padding;
         core::view* _parent = nullptr;
-        types::id _type = types::none;
+        types::id _type = types::control;
         on_tab_callable _on_tab_callable;
         bool _in_on_focus_changed = false;
         core::context* _context = nullptr;

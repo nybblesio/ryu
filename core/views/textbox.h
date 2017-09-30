@@ -29,6 +29,10 @@ namespace ryu::core {
 
         std::string value();
 
+        int length() const {
+            return _document.columns();
+        }
+
         void size(int rows, int columns);
 
         void value(const std::string& value);

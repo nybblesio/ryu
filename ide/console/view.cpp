@@ -20,7 +20,7 @@ namespace ryu::ide::console {
     view::view(
             core::context* context,
             core::view* parent,
-            const std::string& name) : core::view(context, parent, core::view::types::custom, name),
+            const std::string& name) : core::view(context, parent, core::view::types::container, name),
                                        _caret(context, this, "console-caret"),
                                        _header(context, this, "header-label"),
                                        _footer(context, this, "footer-label") {
@@ -67,70 +67,55 @@ namespace ryu::ide::console {
     void view::initialize() {
         _color = ryu::ide::context::colors::text;
 
-        _metrics.footer_padding = font_face()->line_height;
-        _metrics.header_padding = font_face()->line_height * 2;
-
-        calculate_page_metrics();
-
-        _document.initialize(_metrics.page_height, _metrics.page_width);
-        _document.default_attr(core::attr_t {_color, core::font::styles::normal, core::font::flags::none});
-        _document.clear();
-
         _header.font_family(font_family());
+        _header.dock(dock::styles::top);
         _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
-        _header.padding({_metrics.left_padding, _metrics.right_padding, 5, 0});
+        _header.bounds().height(font_face()->line_height);
+        _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _footer.font_family(font_family());
+        _footer.dock(dock::styles::bottom);
         _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
-        _footer.padding({_metrics.left_padding, _metrics.right_padding, 0, 0});
+        _footer.bounds().height(font_face()->line_height);
+        _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _caret.initialize(0, 0);
         _caret.fg_color(ide::context::colors::caret);
         _caret.overwrite();
         _caret.font_family(font_family());
 
-        padding({_metrics.left_padding,
-                 _metrics.right_padding,
-                 _metrics.header_padding + 5,
-                 _metrics.footer_padding});
+        dock(dock::styles::fill);
+        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
-        on_resize();
+        resize();
     }
 
     void view::calculate_page_metrics() {
-        auto bounds = context()->bounds();
-
-        _metrics.page_width = static_cast<short>(
-                (bounds.width() - (_metrics.left_padding + _metrics.right_padding))
-                / font_face()->width);
-        _metrics.page_height = static_cast<short>(
-                (bounds.height() - (_metrics.header_padding + _metrics.footer_padding + 20))
-                / font_face()->line_height);
+        auto rect = bounds();
+        if (rect.empty())
+            return;
+        _metrics.page_width = static_cast<short>(rect.width() / font_face()->width);
+        _metrics.page_height = static_cast<short>(rect.height() / font_face()->line_height);
     }
 
     void view::on_resize() {
-        auto bounds = context()->bounds();
+        core::view::on_resize();
 
         calculate_page_metrics();
-
         _caret.page_size(_metrics.page_height, _metrics.page_width);
+
+        if (!_document.initialized()) {
+            _document.initialize(_metrics.page_height, _metrics.page_width);
+            _document.default_attr(core::attr_t {_color, core::font::styles::normal, core::font::flags::none});
+            _document.clear();
+        }
         _document.page_size(_metrics.page_height, _metrics.page_width);
-
-        _header.rect()
-                .pos(0, 0)
-                .size(bounds.width(), _metrics.header_padding);
-
-        _footer.rect()
-                .pos(0, bounds.height() - (_metrics.footer_padding + 10))
-                .size(bounds.width(), _metrics.footer_padding);
-
-        rect({0, 0, bounds.width(), bounds.height()});
     }
 
     void view::on_draw() {
-        auto bounds = client_rect();
+        auto bounds = client_bounds();
         auto palette = *(this->palette());
 
         std::string project_name = "(none)";

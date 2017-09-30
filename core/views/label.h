@@ -23,18 +23,28 @@ namespace ryu::core {
 
         std::string value() const;
 
-        alignment::types alignment() const;
+        border::types border() const;
+
+        void border(border::types value);
 
         void value(const std::string& value);
 
-        void alignment(alignment::types value);
+        alignment::vertical::types valign() const;
+
+        alignment::horizontal::types halign() const;
+
+        void valign(alignment::vertical::types value);
+
+        void halign(alignment::horizontal::types value);
 
     protected:
         void on_draw() override;
 
     private:
         std::string _value;
-        alignment::types _alignment = alignment::types::none;
+        border::types _border = border::types::none;
+        alignment::vertical::types _valign = alignment::vertical::middle;
+        alignment::horizontal::types _halign = alignment::horizontal::none;
     };
 
 };

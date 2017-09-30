@@ -16,7 +16,7 @@ namespace ryu::core {
     caret::caret(
             core::context* context,
             core::view* parent,
-            const std::string& name) : core::view(context, parent, core::view::types::custom, name),
+            const std::string& name) : core::view(context, parent, core::view::types::control, name),
                                        _timer(500) {
     }
 
@@ -37,8 +37,8 @@ namespace ryu::core {
             _column = 0;
             return true;
         }
-        if (_column > _page_width) {
-            _column = _page_width;
+        if (_column > _page_width - 1) {
+            _column = _page_width - 1;
             return true;
         }
         return false;
@@ -112,14 +112,14 @@ namespace ryu::core {
         caret_color.alpha(0x7f);
         set_color(caret_color);
 
-        auto parent_bounds = parent()->client_rect();
-        auto& bounds = rect();
+        auto parent_bounds = parent()->client_bounds();
+        auto& rect = bounds();
         auto& pad = padding();
-        bounds.pos(
-                (parent_bounds.left() + (_column * bounds.width())) + pad.left(),
-                (parent_bounds.top() + (_row * bounds.height())) + pad.top());
-        bounds.size(font_face()->width, font_face()->line_height);
-        fill_rect(bounds);
+        rect.pos(
+                (parent_bounds.left() + (_column * rect.width())) + pad.left(),
+                (parent_bounds.top() + (_row * rect.height())) + pad.top());
+        rect.size(font_face()->width, font_face()->line_height);
+        fill_rect(rect);
 
         pop_blend_mode();
     }

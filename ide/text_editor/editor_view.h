@@ -52,11 +52,9 @@ namespace ryu::ide::text_editor {
         struct metrics_t {
             int page_width;
             int page_height;
-            int footer_padding;
-            int header_padding;
             int line_number_width;
             const int left_padding = 10;
-            const int right_padding = 15;
+            const int right_padding = 10;
         };
 
         void on_draw() override;

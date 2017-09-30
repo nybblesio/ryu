@@ -60,6 +60,8 @@ namespace ryu::ide {
 
                 light_grey = 15,
                 info_text = 15,
+
+                transparent = 16
             };
         };
 

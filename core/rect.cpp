@@ -22,24 +22,40 @@ namespace ryu::core {
                               _height(height) {
     }
 
+    int32_t rect::top() const {
+        return _top;
+    }
+
+    void rect::top(int32_t y) {
+        _top = y;
+    }
+
     int32_t rect::left() const {
         return _left;
     }
 
-    int32_t rect::top() const {
-        return _top;
+    void rect::left(int32_t x) {
+        _left = x;
+    }
+
+    void rect::width(int32_t w) {
+        _width = w;
     }
 
     int32_t rect::width() const {
         return _width;
     }
 
+    int32_t rect::right() const {
+        return _left + _width;
+    }
+
     int32_t rect::height() const {
         return _height;
     }
 
-    int32_t rect::right() const {
-        return _left + _width;
+    void rect::height(int32_t h) {
+        _height = h;
     }
 
     int32_t rect::bottom() const {

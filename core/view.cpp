@@ -57,15 +57,74 @@ namespace ryu::core {
     void view::on_draw() {
     }
 
-    view* view::parent() {
+    core::view* view::parent() {
         return _parent;
     }
 
     void view::on_resize() {
-    }
+        if (type() != types::container)
+            return;
 
-    core::rect& view::rect() {
-        return _rect;
+        core::rect bounds;
+        auto parent_view = parent();
+        if (parent_view != nullptr) {
+            if (parent_view->type() == types::container)
+                bounds = this->bounds();
+            else
+                bounds = parent_view->bounds();
+        } else {
+            bounds = context()->bounds();
+        }
+
+        view_list views = _children;
+        if (parent_view == nullptr)
+            views.push_back(this);
+
+        for (auto child : views) {
+            auto& rect = child->bounds();
+            auto margins = child->margin();
+            auto horizontal_margin = margins.left() + margins.right();
+            auto width_plus_margin = rect.width() + horizontal_margin;
+            auto vertical_margin = margins.top() + margins.bottom();
+            auto height_plus_margin = rect.height() + vertical_margin;
+            switch (child->dock()) {
+                case dock::bottom: {
+                    rect.pos(bounds.left() + margins.left(), bounds.bottom() - height_plus_margin);
+                    rect.width(bounds.width() - margins.right());
+                    bounds.height(bounds.height() - height_plus_margin);
+                    break;
+                }
+                case dock::fill: {
+                    rect = {bounds.left() + margins.left(),
+                            bounds.top() + margins.top(),
+                            bounds.width() - margins.right(),
+                            bounds.height() - margins.bottom()};
+                    break;
+                }
+                case dock::left: {
+                    rect.pos(bounds.left() + margins.left(), bounds.top() + margins.top());
+                    rect.height(bounds.height() - vertical_margin);
+                    bounds.width(bounds.width() - width_plus_margin);
+                    bounds.left(bounds.left() + width_plus_margin);
+                    break;
+                }
+                case dock::right: {
+                    rect.pos(bounds.right() - width_plus_margin, bounds.top() + margins.top());
+                    rect.height(bounds.height() - vertical_margin);
+                    bounds.width(bounds.width() - width_plus_margin);
+                    break;
+                }
+                case dock::top: {
+                    rect.pos(bounds.left() + margins.left(), bounds.top() + margins.top());
+                    rect.width(bounds.width() - horizontal_margin);
+                    bounds.height(bounds.height() - height_plus_margin);
+                    bounds.top(bounds.top() + height_plus_margin);
+                    break;
+                }
+                default:
+                    continue;
+            }
+        }
     }
 
     void view::focus(int id) {
@@ -76,6 +135,10 @@ namespace ryu::core {
 
     short view::index() const {
         return _index;
+    }
+
+    core::rect& view::bounds() {
+        return _rect;
     }
 
     bool view::enabled() const {
@@ -168,12 +231,12 @@ namespace ryu::core {
         return _name;
     }
 
-    core::rect view::client_rect() {
-        auto& bounds = rect();
-        auto& pad = padding();
+    core::rect view::client_bounds() {
+        auto rect = bounds();
+        auto pad = padding();
         core::rect padded;
-        padded.pos(bounds.left() + pad.left(), bounds.top() + pad.top());
-        padded.size(bounds.width() - pad.right(), bounds.height() - pad.bottom());
+        padded.pos(rect.left() + pad.left(), rect.top() + pad.top());
+        padded.size(rect.width() - pad.right(), rect.height() - pad.bottom());
         return padded;
     }
 
@@ -216,7 +279,7 @@ namespace ryu::core {
         _font_style = styles;
     }
 
-    void view::rect(const core::rect& value) {
+    void view::bounds(const core::rect& value) {
         _rect = value;
     }
 
@@ -326,26 +389,25 @@ namespace ryu::core {
     void view::draw_text_aligned(
             const std::string& value,
             const core::rect& bounds,
-            alignment::types alignment) {
-        FC_AlignEnum align = FC_AlignEnum::FC_ALIGN_LEFT;
-        switch (alignment) {
-            case alignment::none:
-            case alignment::left:
-                align = FC_AlignEnum::FC_ALIGN_LEFT;
+            alignment::horizontal::types halign,
+            alignment::vertical::types valign) {
+        auto yoffset = 0;
+        switch (valign) {
+            case alignment::vertical::bottom:
+                yoffset = bounds.height() - font_face()->line_height;
                 break;
-            case alignment::right:
-                align = FC_AlignEnum::FC_ALIGN_RIGHT;
+            case alignment::vertical::middle:
+                yoffset = (bounds.height() - font_face()->line_height) / 2;
                 break;
-            case alignment::center:
-                align = FC_AlignEnum::FC_ALIGN_CENTER;
+            default:
                 break;
         }
-
+        auto box = SDL_Rect{bounds.left(), bounds.top() + yoffset, bounds.width(), bounds.height()};
         FC_DrawBoxAlign(
                 font_face()->glyph,
                 context()->renderer(),
-                bounds.to_sdl_rect(),
-                align,
+                box,
+                alignment::to_font_align(halign),
                 value.c_str());
     }
 

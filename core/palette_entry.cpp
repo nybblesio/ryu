@@ -54,8 +54,4 @@ namespace ryu::core {
         _alpha = value;
     }
 
-    palette_entry palette_entry::fade(uint8_t factor) {
-        return {_red /= factor, _green /= factor, _blue /= factor, _alpha};
-    }
-
 }

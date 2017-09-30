@@ -27,11 +27,15 @@ namespace ryu::core {
 
         std::string value() const;
 
-        alignment::types alignment() const;
-
         void value(const std::string& value);
 
-        void alignment(alignment::types value);
+        alignment::vertical::types valign() const;
+
+        alignment::horizontal::types halign() const;
+
+        void valign(alignment::vertical::types value);
+
+        void halign(alignment::horizontal::types value);
 
         void on_clicked(const on_clicked_callable& callable);
 
@@ -43,7 +47,8 @@ namespace ryu::core {
     private:
         std::string _value;
         on_clicked_callable _on_clicked;
-        alignment::types _alignment = alignment::types::none;
+        alignment::vertical::types _valign = alignment::vertical::middle;
+        alignment::horizontal::types _halign = alignment::horizontal::none;
     };
 
 };
