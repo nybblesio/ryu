@@ -126,7 +126,8 @@ namespace ryu::ide::text_editor {
 
         for_each_selection_char([&](int row, int col) {
             auto element = _document.get(row, col);
-            element->attr.flags &= ~core::font::flags::reverse;
+            if (element != nullptr)
+                element->attr.flags &= ~core::font::flags::reverse;
         });
 
         _selection.end(_vrow, _vcol);

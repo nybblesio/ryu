@@ -24,6 +24,8 @@ namespace ryu::core {
 
         virtual ~context();
 
+        void resize();
+
         int id() const;
 
         void initialize(
@@ -69,7 +71,7 @@ namespace ryu::core {
 
         inline void bounds(const core::rect& value) {
             _bounds = value;
-            on_resize();
+            resize();
         }
 
         void erase_blackboard(const std::string& name);
@@ -85,8 +87,6 @@ namespace ryu::core {
         void add_state(core::state* state, const state_transition_callable& callback);
 
     protected:
-        virtual void on_resize();
-
         virtual void on_initialize();
 
     private:

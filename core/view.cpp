@@ -46,6 +46,8 @@ namespace ryu::core {
 
     void view::resize() {
         on_resize();
+        for (auto child : _children)
+            child->resize();
     }
 
     int view::id() const {

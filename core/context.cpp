@@ -26,11 +26,14 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
-    int context::id() const {
-        return _id;
+    void context::resize() {
+        auto active = _stack.find_state(_stack.peek());
+        if (active != nullptr)
+            active->resize();
     }
 
-    void context::on_resize() {
+    int context::id() const {
+        return _id;
     }
 
     void context::initialize(

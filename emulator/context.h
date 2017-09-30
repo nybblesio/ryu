@@ -29,8 +29,6 @@ namespace ryu::emulator {
         explicit context(std::string name);
 
     protected:
-        void on_resize() override;
-
         void on_initialize() override;
 
     private:

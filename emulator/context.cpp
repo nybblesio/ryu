@@ -32,10 +32,6 @@ namespace ryu::emulator {
         palette(&_palette);
     }
 
-    void context::on_resize() {
-        _emulator_state.resize();
-    }
-
     void context::on_initialize() {
         push_state(_emulator_state.id(), {});
     }

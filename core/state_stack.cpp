@@ -94,6 +94,7 @@ namespace ryu::core {
             _active->deactivate();
         _active = find_state(peek());
         _active->activate(_pending_params);
+        _active->resize();
     }
 
     core::state* state_stack::find_state(int id) {
