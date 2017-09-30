@@ -20,11 +20,13 @@ namespace ryu::ide::machine_editor {
     class editor_view : public core::view {
     public:
         enum ids {
-            name_label = 100,
-            name_textbox = 101,
-            display_label = 102,
-            address_space_label = 103,
-            address_space_textbox = 104
+            header_label = 100,
+            footer_label = 101,
+            name_label = 102,
+            name_textbox = 103,
+            display_label = 104,
+            address_space_label = 105,
+            address_space_textbox = 106,
         };
 
         editor_view(
@@ -38,6 +40,13 @@ namespace ryu::ide::machine_editor {
         void initialize(hardware::machine* mach);
 
     protected:
+        struct metrics_t {
+            int footer_padding;
+            int header_padding;
+            const int left_padding = 10;
+            const int right_padding = 10;
+        };
+
         void on_draw() override;
 
         void on_resize() override;
@@ -47,6 +56,9 @@ namespace ryu::ide::machine_editor {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
+        metrics_t _metrics;
+        core::label _header;
+        core::label _footer;
         core::label _name_label;
         core::label _display_label;
         core::textbox _name_textbox;

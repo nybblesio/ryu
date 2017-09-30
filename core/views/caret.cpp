@@ -17,16 +17,8 @@ namespace ryu::core {
             core::context* context,
             core::view* parent,
             int id,
-            const std::string& name) : core::view(context,
-                                                  parent,
-                                                  core::view::types::custom,
-                                                  id,
-                                                  name) {
-    }
-
-    caret::~caret() {
-        delete _timer;
-        _timer = nullptr;
+            const std::string& name) : core::view(context, parent, core::view::types::custom, id, name),
+                                       _timer(ids::blink_timer, 500) {
     }
 
     bool caret::clamp_row() {
@@ -137,12 +129,11 @@ namespace ryu::core {
         _row = row;
         _column = column;
 
-        _timer = new timer(ids::blink_timer, 500);
-        _timer->bind([&](timer* t) {
+        _timer.bind([&](timer* t) {
             visible(!visible());
             t->reset();
         });
-        context()->add_timer(_timer);
+        context()->add_timer(&_timer);
     }
 
     void caret::page_size(int page_height, int page_width) {

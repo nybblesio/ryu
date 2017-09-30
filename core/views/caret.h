@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include <SDL_system.h>
-#include <core/context.h>
 #include <core/view.h>
+#include <core/timer.h>
+#include <core/context.h>
 
 namespace ryu::core {
 
@@ -37,8 +37,6 @@ namespace ryu::core {
                 core::view* parent,
                 int id,
                 const std::string& name);
-
-        ~caret() override;
 
         void select();
 
@@ -81,9 +79,9 @@ namespace ryu::core {
     private:
         int _row = 0;
         int _column = 0;
+        core::timer _timer;
         int _page_width = 0;
         int _page_height = 0;
-        timer* _timer = nullptr;
         mode::types _mode = mode::types::insert;
     };
 

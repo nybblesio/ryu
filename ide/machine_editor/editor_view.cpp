@@ -19,6 +19,8 @@ namespace ryu::ide::machine_editor {
             core::view* parent,
             int id,
             const std::string& name) : core::view(context, parent, core::view::types::custom, id, name),
+                                       _header(context, this, ids::header_label, "header-label"),
+                                       _footer(context, this, ids::footer_label, "footer-label"),
                                        _name_label(context, this, ids::name_label, "name-label"),
                                        _display_label(context, this, ids::display_label, "display-label"),
                                        _name_textbox(context, this, ids::name_textbox, "name-textbox"),
@@ -33,33 +35,73 @@ namespace ryu::ide::machine_editor {
     }
 
     void editor_view::on_resize() {
-        auto name_label_width = measure_text(_name_label.value()) + 50;
+        auto bounds = context()->bounds();
+
+        auto height = font_face()->line_height + 6;
+        auto name_label_width = measure_text(_name_label.value());
+        auto display_label_width = measure_text(_display_label.value());
+        auto address_space_label_width = measure_text(_address_space_label.value());
+        auto name_textbox_width = (font_face()->width * 32) + 10;
+        auto address_textbox_width = (font_face()->width * 8) + 10;
+
+        auto y = 35;
+        auto name_offset = display_label_width;
         _name_label.rect()
-                .pos(10, 15)
-                .size(name_label_width, font_face()->line_height + 5);
+                .pos(10, y)
+                .size(name_offset, height);
         _name_textbox.rect()
-                .pos(name_label_width + 10, 10)
-                .size((font_face()->width * 32) + 10, font_face()->line_height + 5);
+                .pos(name_offset + 5, y - 5)
+                .size(name_textbox_width, height);
 
+        auto address_space_offset = name_offset + name_textbox_width + 20;
         _address_space_label.rect()
-                .pos(10, 45)
-                .size(name_label_width, font_face()->line_height + 5);
+                .pos(address_space_offset, y)
+                .size(address_space_label_width, height);
         _address_space_textbox.rect()
-                .pos(name_label_width + 10, 40)
-                .size((font_face()->width * 8) + 10, font_face()->line_height + 5);
+                .pos(address_space_offset + address_space_label_width, y - 5)
+                .size(address_textbox_width, height);
 
+
+        y += 25;
         _display_label.rect()
-                .pos(10, 75)
-                .size(name_label_width, font_face()->line_height + 5);
+                .pos(10, y)
+                .size(display_label_width, height);
+
+        _header.rect()
+                .pos(0, 0)
+                .size(bounds.width(), _metrics.header_padding);
+
+        _footer.rect()
+                .pos(0, bounds.height() - (_metrics.footer_padding + 10))
+                .size(bounds.width(), _metrics.footer_padding);
     }
 
     void editor_view::initialize(hardware::machine* mach) {
         _machine = mach;
-        
+
+        _metrics.footer_padding = font_face()->line_height;
+        _metrics.header_padding = font_face()->line_height * 2;
+
+        _header.font_family(font_family());
+        _header.bg_color(ide::context::colors::fill_color);
+        _header.fg_color(ide::context::colors::info_text);
+        _header.padding({_metrics.left_padding, _metrics.right_padding, 5, 0});
+        std::string project_name = "(none)";
+        auto project = dynamic_cast<ide::context*>(context())->project();
+        if (project != nullptr)
+            project_name = project->name();
+        _header.value(fmt::format("machine editor | project: {0} | id: {1}", project_name, _machine->id()));
+
+        _footer.font_family(font_family());
+        _footer.bg_color(ide::context::colors::fill_color);
+        _footer.fg_color(ide::context::colors::info_text);
+        _footer.padding({_metrics.left_padding, _metrics.right_padding, 0, 0});
+        _footer.value("F1=Memory Map | F2=Add Component | DEL=Remove Component | ESC=Close");
+
         _name_label.font_family(font_family());
         _name_label.fg_color(ide::context::colors::text);
         _name_label.bg_color(ide::context::colors::fill_color);
-        _name_label.value("machine name:");
+        _name_label.value("name:");
         _name_label.alignment(core::alignment::types::right);
 
         _name_textbox.font_family(font_family());
@@ -78,8 +120,8 @@ namespace ryu::ide::machine_editor {
         _address_space_label.font_family(font_family());
         _address_space_label.fg_color(ide::context::colors::text);
         _address_space_label.bg_color(ide::context::colors::fill_color);
-        _address_space_label.value("address space:");
-        _address_space_label.alignment(core::alignment::types::right);
+        _address_space_label.value("address space: $");
+        _address_space_label.alignment(core::alignment::types::left);
 
         _address_space_textbox.font_family(font_family());
         _address_space_textbox.fg_color(ide::context::colors::text);
@@ -98,7 +140,7 @@ namespace ryu::ide::machine_editor {
         _display_label.fg_color(ide::context::colors::text);
         _display_label.bg_color(ide::context::colors::fill_color);
         _display_label.value("display:");
-        _display_label.alignment(core::alignment::types::right);
+        _display_label.alignment(core::alignment::types::left);
 
         padding({5, 5, 5, 5});
         on_resize();
