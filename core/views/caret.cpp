@@ -16,9 +16,8 @@ namespace ryu::core {
     caret::caret(
             core::context* context,
             core::view* parent,
-            int id,
-            const std::string& name) : core::view(context, parent, core::view::types::custom, id, name),
-                                       _timer(ids::blink_timer, 500) {
+            const std::string& name) : core::view(context, parent, core::view::types::custom, name),
+                                       _timer(500) {
     }
 
     bool caret::clamp_row() {

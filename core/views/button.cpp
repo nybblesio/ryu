@@ -15,11 +15,9 @@ namespace ryu::core {
     button::button(
             core::context* context,
             core::view* parent,
-            int id,
             const std::string& name) : core::view(context,
                                                   parent,
                                                   core::view::types::custom,
-                                                  id,
                                                   name) {
     }
 

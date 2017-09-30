@@ -24,11 +24,11 @@ namespace ryu {
 
         application();
 
-        bool init();
-
         bool shutdown();
 
         int run(int argc, char** argv);
+
+        bool init(int argc, char** argv);
 
     private:
         void configure_ide();

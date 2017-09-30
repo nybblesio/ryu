@@ -17,15 +17,14 @@ namespace ryu::ide::machine_editor {
     editor_view::editor_view(
             core::context* context,
             core::view* parent,
-            int id,
-            const std::string& name) : core::view(context, parent, core::view::types::custom, id, name),
-                                       _header(context, this, ids::header_label, "header-label"),
-                                       _footer(context, this, ids::footer_label, "footer-label"),
-                                       _name_label(context, this, ids::name_label, "name-label"),
-                                       _display_label(context, this, ids::display_label, "display-label"),
-                                       _name_textbox(context, this, ids::name_textbox, "name-textbox"),
-                                       _address_space_label(context, this, ids::address_space_label, "address-space-label"),
-                                       _address_space_textbox(context, this, ids::address_space_textbox, "address-space-textbox") {
+            const std::string& name) : core::view(context, parent, core::view::types::custom, name),
+                                       _header(context, this, "header-label"),
+                                       _footer(context, this, "footer-label"),
+                                       _name_label(context, this, "name-label"),
+                                       _display_label(context, this, "display-label"),
+                                       _name_textbox(context, this, "name-textbox"),
+                                       _address_space_label(context, this, "address-space-label"),
+                                       _address_space_textbox(context, this, "address-space-textbox") {
     }
 
     editor_view::~editor_view() {
@@ -112,7 +111,7 @@ namespace ryu::ide::machine_editor {
             return true;
         });
         _name_textbox.on_tab([&]() {
-            focus(ids::address_space_textbox);
+            focus(_address_space_textbox.id());
         });
         _name_textbox.value(_machine->name());
         _name_textbox.enabled(true);
@@ -131,7 +130,7 @@ namespace ryu::ide::machine_editor {
             return true;
         });
         _address_space_textbox.on_tab([&]() {
-            focus(ids::name_textbox);
+            focus(_name_textbox.id());
         });
         _address_space_textbox.value(fmt::format("{0:08x}", _machine->address_space()));
         _address_space_textbox.enabled(true);
@@ -148,7 +147,7 @@ namespace ryu::ide::machine_editor {
 
     void editor_view::on_focus_changed() {
         if (focused()) {
-            focus(ids::name_textbox);
+            focus(_name_textbox.id());
         }
     }
 

@@ -8,17 +8,21 @@
 #include "state.h"
 #include "engine.h"
 #include "context.h"
+#include "id_pool.h"
 
 namespace ryu::core {
 
     state::state(
             core::context* context,
-            int id,
             const std::string& name,
-            bool render_parent) : _id(id),
+            bool render_parent) : _id(core::id_pool::instance()->allocate()),
                                   _name(name),
                                   _render_parent(render_parent),
                                   _context(context) {
+    }
+
+    state::~state() {
+        core::id_pool::instance()->release(_id);
     }
 
     void state::draw() {

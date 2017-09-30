@@ -26,16 +26,12 @@ namespace ryu::emulator {
             };
         };
 
-        struct states {
-            enum id {
-                execute = 1,
-            };
-        };
-
-        context(int id, std::string name);
+        explicit context(std::string name);
 
     protected:
         void on_resize() override;
+
+        void on_initialize() override;
 
     private:
         core::palette _palette;

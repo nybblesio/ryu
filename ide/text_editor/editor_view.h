@@ -25,17 +25,9 @@ namespace ryu::ide::text_editor {
         using char_action_callable = std::function<void (int, int)>;
         using execute_command_callable = std::function<void (core::result&, const std::string&)>;
 
-        enum ids {
-            caret = 2,
-            header_label,
-            footer_label,
-            command_line
-        };
-
         editor_view(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
         ~editor_view() override;

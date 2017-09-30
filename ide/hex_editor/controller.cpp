@@ -17,8 +17,7 @@ namespace ryu::ide::hex_editor {
 
     controller::controller(
             core::context* context,
-            int id,
-            const std::string& name) : core::state(context, id, name) {
+            const std::string& name) : core::state(context, name) {
     }
 
     void controller::on_draw() {

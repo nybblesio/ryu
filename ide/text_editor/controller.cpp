@@ -14,9 +14,8 @@ namespace ryu::ide::text_editor {
 
     controller::controller(
             core::context* context,
-            int id,
-            const std::string& name) : core::state(context, id, name),
-                                      _view(context, nullptr, ids::text_editor, "text-editor") {
+            const std::string& name) : core::state(context, name),
+                                      _view(context, nullptr, "text-editor") {
     }
 
     controller::~controller() {
@@ -54,7 +53,7 @@ namespace ryu::ide::text_editor {
                 _view.save(path == "(default)" ? "" : path);
             }
         });
-        _view.focus(ids::text_editor);
+        _view.focus(_view.id());
         _initialized = true;
     }
 

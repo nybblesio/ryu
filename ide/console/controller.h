@@ -21,14 +21,7 @@ namespace ryu::ide::console {
 
     class controller : public core::state {
     public:
-        enum ids {
-            console = 1
-        };
-
-        controller(
-                core::context* context,
-                int id,
-                const std::string& name);
+        controller(core::context* context, const std::string& name);
 
         ~controller() override;
 

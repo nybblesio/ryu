@@ -17,13 +17,7 @@ namespace ryu::emulator {
 
     class controller  : public core::state {
     public:
-        enum ids {
-        };
-
-        controller(
-                core::context* context,
-                int id,
-                const std::string& name);
+        controller(core::context* context, const std::string& name);
 
         ~controller() override;
 

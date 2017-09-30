@@ -12,9 +12,9 @@
 
 namespace ryu::emulator {
 
-    context::context(int id, std::string name) : core::context(id, name),
-                                                 _palette(),
-                                                 _emulator_state(this, states::execute, "execute") {
+    context::context(std::string name) : core::context(name),
+                                         _palette(),
+                                         _emulator_state(this, "execute") {
         add_state(&_emulator_state);
 
         auto& black = _palette[colors::indexes::black];
@@ -34,6 +34,10 @@ namespace ryu::emulator {
 
     void context::on_resize() {
         _emulator_state.resize();
+    }
+
+    void context::on_initialize() {
+        push_state(_emulator_state.id(), {});
     }
 
 }

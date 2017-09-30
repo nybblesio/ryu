@@ -63,16 +63,7 @@ namespace ryu::ide {
             };
         };
 
-        struct states {
-            enum id {
-                text_editor = 1,
-                console,
-                hex_editor,
-                machine_editor,
-            };
-        };
-
-        context(int id, std::string name);
+        explicit context(std::string name);
 
         core::project* project();
 
@@ -80,6 +71,8 @@ namespace ryu::ide {
 
     protected:
         void on_resize() override;
+
+        void on_initialize() override;
 
     private:
         core::palette _palette;

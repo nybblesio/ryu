@@ -10,17 +10,16 @@
 
 #include <iostream>
 #include <hardware/hardware.h>
-#include "ryu_types.h"
 #include "application.h"
 
 namespace ryu {
 
     application::application() : _engine(display_width, display_height),
-                                 _ide_context(app::contexts::ide, "ide"),
-                                 _emulator_context(app::contexts::emulator, "emulator") {
+                                 _ide_context("ide"),
+                                 _emulator_context("emulator") {
     }
 
-    bool application::init() {
+    bool application::init(int argc, char** argv) {
         hardware::initialize();
 
         core::result result;
@@ -61,10 +60,10 @@ namespace ryu {
     }
 
     int application::run(int argc, char** argv) {
-        if (!init())
+        if (!init(argc, argv))
             return 1;
 
-        _engine.focus(app::contexts::ide);
+        _engine.focus(_ide_context.id());
 
         core::result result;
 
@@ -85,7 +84,6 @@ namespace ryu {
                 &_engine,
                 ide_bounds({0, 0, display_width, display_height}),
                 ide::context::colors::fill_color);
-        _ide_context.push_state(ide::context::states::console, {});
         _engine.add_context(&_ide_context);
     }
 
@@ -94,7 +92,6 @@ namespace ryu {
                 &_engine,
                 emulator_bounds({0, 0, display_width, display_height}),
                 emulator::context::colors::fill_color);
-        _emulator_context.push_state(emulator::context::states::execute, {});
         _engine.add_context(&_emulator_context);
     }
 

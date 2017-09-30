@@ -23,16 +23,9 @@ namespace ryu::ide::console {
     public:
         using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
 
-        enum ids {
-            caret = 2,
-            header_label,
-            footer_label,
-        };
-
         view(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
         ~view() override;

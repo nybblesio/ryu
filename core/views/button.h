@@ -21,7 +21,6 @@ namespace ryu::core {
         button(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
         ~button() override;

@@ -15,7 +15,13 @@ namespace ryu::core {
 
     class timer {
     public:
-        explicit timer(int id, uint32_t duration);
+        explicit timer(uint32_t duration);
+
+        virtual ~timer();
+
+        int id() const {
+            return _id;
+        }
 
         void kill();
 

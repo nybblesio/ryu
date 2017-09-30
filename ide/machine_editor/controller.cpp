@@ -18,9 +18,8 @@ namespace ryu::ide::machine_editor {
 
     controller::controller(
             core::context* context,
-            int id,
-            const std::string& name) : core::state(context, id, name),
-                                       _view(context, nullptr, ids::editor, "editor") {
+            const std::string& name) : core::state(context, name),
+                                       _view(context, nullptr, "editor") {
     }
 
     void controller::on_draw() {
@@ -40,7 +39,7 @@ namespace ryu::ide::machine_editor {
     void controller::on_initialize() {
         _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize(machine());
-        _view.focus(ids::editor);
+        _view.focus(_view.id());
         _initialized = true;
 
 //        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();

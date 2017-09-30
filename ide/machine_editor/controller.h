@@ -19,13 +19,8 @@ namespace ryu::ide::machine_editor {
 
     class controller : public ryu::core::state {
     public:
-        enum ids {
-            editor = 1
-        };
-
         controller(
                 core::context* context,
-                int id,
                 const std::string& name);
 
         hardware::machine* machine();

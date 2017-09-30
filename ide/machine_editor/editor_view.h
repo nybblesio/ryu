@@ -19,20 +19,9 @@ namespace ryu::ide::machine_editor {
 
     class editor_view : public core::view {
     public:
-        enum ids {
-            header_label = 100,
-            footer_label = 101,
-            name_label = 102,
-            name_textbox = 103,
-            display_label = 104,
-            address_space_label = 105,
-            address_space_textbox = 106,
-        };
-
         editor_view(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
         ~editor_view() override;

@@ -28,14 +28,9 @@ namespace ryu::core {
             };
         };
 
-        enum ids {
-            blink_timer = 200
-        };
-
         caret(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
         void select();

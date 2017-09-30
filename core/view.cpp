@@ -11,6 +11,7 @@
 #include <utility>
 #include "view.h"
 #include "engine.h"
+#include "id_pool.h"
 
 namespace ryu::core {
 
@@ -18,8 +19,7 @@ namespace ryu::core {
             core::context* context,
             core::view* parent,
             types::id type,
-            int id,
-            std::string name) : _id(id),
+            std::string name) : _id(core::id_pool::instance()->allocate()),
                                 _name(std::move(name)),
                                 _parent(parent),
                                 _type(type),
@@ -29,6 +29,10 @@ namespace ryu::core {
 
         enabled(true);
         visible(true);
+    }
+
+    view::~view() {
+        core::id_pool::instance()->release(_id);
     }
 
     void view::draw() {

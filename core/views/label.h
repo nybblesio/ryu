@@ -19,7 +19,6 @@ namespace ryu::core {
         label(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
         std::string value() const;

@@ -23,7 +23,6 @@ namespace ryu::core {
         textbox(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
         void clear();

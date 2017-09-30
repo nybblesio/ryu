@@ -19,7 +19,6 @@ namespace ryu::core {
         panel(
                 core::context* context,
                 core::view* parent,
-                int id,
                 const std::string& name);
 
     protected:

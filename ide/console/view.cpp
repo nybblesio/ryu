@@ -20,11 +20,10 @@ namespace ryu::ide::console {
     view::view(
             core::context* context,
             core::view* parent,
-            int id,
-            const std::string& name) : core::view(context, parent, core::view::types::custom, id, name),
-                                       _caret(context, this, ids::caret, "console-caret"),
-                                       _header(context, this, ids::header_label, "header-label"),
-                                       _footer(context, this, ids::footer_label, "footer-label") {
+            const std::string& name) : core::view(context, parent, core::view::types::custom, name),
+                                       _caret(context, this, "console-caret"),
+                                       _header(context, this, "header-label"),
+                                       _footer(context, this, "footer-label") {
     }
 
     view::~view() {

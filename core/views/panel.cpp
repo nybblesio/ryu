@@ -15,8 +15,7 @@ namespace ryu::core {
     panel::panel(
             core::context* context,
             core::view* parent,
-            int id,
-            const std::string& name) : core::view(context, parent, types::custom, id, name) {
+            const std::string& name) : core::view(context, parent, types::custom, name) {
     }
 
     void panel::on_draw() {

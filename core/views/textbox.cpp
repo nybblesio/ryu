@@ -16,9 +16,8 @@ namespace ryu::core {
     textbox::textbox(
             core::context* context,
             core::view* parent,
-            int id,
-            const std::string& name) : core::view(context, parent, types::label, id, name),
-                                       _caret(context, this, -id, "textbox-caret") {
+            const std::string& name) : core::view(context, parent, types::label, name),
+                                       _caret(context, this, "textbox-caret") {
     }
 
     void textbox::clear() {

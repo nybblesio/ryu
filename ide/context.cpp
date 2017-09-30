@@ -12,23 +12,23 @@
 
 namespace ryu::ide {
 
-    context::context(int id, std::string name) : core::context(id, name),
-                                                 _palette(),
-                                                 _console_state(this, states::console, "console"),
-                                                 _hex_editor_state(this, states::hex_editor, "hex editor"),
-                                                 _text_editor_state(this, states::text_editor, "text editor"),
-                                                 _machine_editor_state(this, states::machine_editor, "machine editor") {
+    context::context(std::string name) : core::context(name),
+                                         _palette(),
+                                         _console_state(this, "console"),
+                                         _hex_editor_state(this, "hex editor"),
+                                         _text_editor_state(this, "text editor"),
+                                         _machine_editor_state(this, "machine editor") {
         add_state(
                 &_console_state,
                 [this](auto state, auto& command, auto& params) {
                     if (command == "text_editor") {
-                        push_state(states::text_editor, params);
+                        push_state(_text_editor_state.id(), params);
                         return true;
                     } else if (command == "hex_editor") {
-                        push_state(states::hex_editor, params);
+                        push_state(_hex_editor_state.id(), params);
                         return true;
                     } else if (command == "machine_editor") {
-                        push_state(states::machine_editor, params);
+                        push_state(_machine_editor_state.id(), params);
                         return true;
                     }
                     return false;
@@ -142,6 +142,10 @@ namespace ryu::ide {
         _hex_editor_state.resize();
         _text_editor_state.resize();
         _machine_editor_state.resize();
+    }
+
+    void context::on_initialize() {
+        push_state(_console_state.id(), {});
     }
 
     core::project* context::project() {

@@ -19,11 +19,10 @@ namespace ryu::core {
     public:
         state(
                 core::context* context,
-                int id,
                 const std::string& name,
                 bool render_parent = false);
 
-        virtual ~state() = default;
+        virtual ~state();
 
         void draw();
 

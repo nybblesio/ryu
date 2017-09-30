@@ -14,11 +14,16 @@
 #include "timer.h"
 #include "context.h"
 #include "engine.h"
+#include "id_pool.h"
 
 namespace ryu::core {
 
-    context::context(int id, std::string name) : _id(id),
-                                                 _name(std::move(name)) {
+    context::context(std::string name) : _id(core::id_pool::instance()->allocate()),
+                                         _name(std::move(name)) {
+    }
+
+    context::~context() {
+        core::id_pool::instance()->release(_id);
     }
 
     int context::id() const {
@@ -36,6 +41,10 @@ namespace ryu::core {
         _bounds = bounds;
         _renderer = engine->_renderer;
         _fill_color_index = color_index;
+        on_initialize();
+    }
+
+    void context::on_initialize() {
     }
 
     void context::pop_state(int to_id) {

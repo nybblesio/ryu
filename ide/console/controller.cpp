@@ -19,9 +19,8 @@ namespace ryu::ide::console {
 
     controller::controller(
             core::context* context,
-            int id,
-            const std::string& name) : core::state(context, id, name),
-                                       _view(context, nullptr, ids::console, "console") {
+            const std::string& name) : core::state(context, name),
+                                       _view(context, nullptr, "console") {
     }
 
     controller::~controller() {
@@ -52,7 +51,7 @@ namespace ryu::ide::console {
         _view.write_message(" See details in {underline}{bold}LICENSE{} file");
         _view.caret_down();
         _view.write_message("Ready.");
-        _view.focus(ids::console);
+        _view.focus(_view.id());
         _initialized = true;
     }
 

@@ -80,10 +80,9 @@ namespace ryu::core {
                 core::context* context,
                 core::view* parent,
                 types::id type,
-                int id,
                 std::string name);
 
-        virtual ~view() = default;
+        virtual ~view();
 
         void draw();
 

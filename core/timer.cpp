@@ -7,11 +7,16 @@
 
 #include <SDL_timer.h>
 #include "timer.h"
+#include "id_pool.h"
 
 namespace ryu::core {
 
-    timer::timer(int id, uint32_t duration) : _id(id),
-                                              _duration(duration) {
+    timer::timer(uint32_t duration) : _duration(duration) {
+        _id = core::id_pool::instance()->allocate();
+    }
+
+    timer::~timer() {
+        core::id_pool::instance()->release(_id);
     }
 
     void timer::kill() {

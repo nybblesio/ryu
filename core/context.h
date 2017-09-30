@@ -20,9 +20,9 @@ namespace ryu::core {
 
     class context {
     public:
-        context(int id, std::string name);
+        explicit context(std::string name);
 
-        virtual ~context() = default;
+        virtual ~context();
 
         int id() const;
 
@@ -86,6 +86,8 @@ namespace ryu::core {
 
     protected:
         virtual void on_resize();
+
+        virtual void on_initialize();
 
     private:
         int _id;

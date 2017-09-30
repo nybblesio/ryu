@@ -15,8 +15,7 @@ namespace ryu::core {
     label::label(
             core::context* context,
             core::view* parent,
-            int id,
-            const std::string& name) : core::view(context, parent, types::label, id, name) {
+            const std::string& name) : core::view(context, parent, types::label, name) {
     }
 
     std::string label::value() const {
