@@ -21,7 +21,7 @@ namespace ryu::ide::console {
 
     class controller : public core::state {
     public:
-        controller(core::context* context, const std::string& name);
+        explicit controller(const std::string& name);
 
         ~controller() override;
 
@@ -36,9 +36,11 @@ namespace ryu::ide::console {
 
         bool on_process_event(const SDL_Event* e) override;
 
+        void on_activate(const core::parameter_dict& params) override;
+
     private:
+        bool _show_banner = true;
         environment _environment;
-        bool _initialized = false;
         console::console_view _view;
     };
 

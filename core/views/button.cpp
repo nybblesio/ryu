@@ -12,9 +12,7 @@
 
 namespace ryu::core {
 
-    button::button(
-            core::context* context,
-            const std::string& name) : core::view(context, core::view::types::control, name) {
+    button::button(const std::string& name) : core::view(core::view::types::control, name) {
     }
 
     std::string button::value() const {
@@ -29,17 +27,14 @@ namespace ryu::core {
         _border = value;
     }
 
-    void button::value(const std::string& value) {
-        _value = value;
-    }
-
-    void button::on_draw() {
-        push_blend_mode(SDL_BLENDMODE_BLEND);
+    void button::on_draw(SDL_Renderer* renderer) {
+        push_blend_mode(renderer, SDL_BLENDMODE_BLEND);
 
         auto bounds = client_bounds();
 
-        auto fg = (*context()->palette())[fg_color()];
-        auto bg = (*context()->palette())[bg_color()];
+        auto pal = *palette();
+        auto fg = pal[fg_color()];
+        auto bg = pal[bg_color()];
 
         if (!enabled()) {
             fg = fg - 45;
@@ -49,18 +44,22 @@ namespace ryu::core {
             bg = bg - 35;
         }
 
-        set_color(bg);
-        fill_rect(bounds);
+        set_color(renderer, bg);
+        fill_rect(renderer, bounds);
 
         set_font_color(fg);
-        draw_text_aligned(_value, bounds, _halign, _valign);
+        draw_text_aligned(renderer, _value, bounds, _halign, _valign);
 
         if (_border == border::types::solid) {
-            set_color(fg);
-            draw_rect(bounds);
+            set_color(renderer, fg);
+            draw_rect(renderer, bounds);
         }
 
-        pop_blend_mode();
+        pop_blend_mode(renderer);
+    }
+
+    void button::value(const std::string& value) {
+        _value = value;
     }
 
     bool button::on_process_event(const SDL_Event* e) {

@@ -1,4 +1,4 @@
 add_library(
         emulator
         controller.cpp controller.h
-        context.cpp context.h)
+        emulator_context.cpp emulator_context.h)

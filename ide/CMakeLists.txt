@@ -9,7 +9,7 @@ add_library(
         hex_editor
         text_editor
         machine_editor
-        context.cpp context.h
+        ide_context.cpp ide_context.h
         environment.cpp environment.h)
 target_link_libraries(
         ide

@@ -17,10 +17,7 @@ namespace ryu::core {
 
     class state {
     public:
-        state(
-                core::context* context,
-                const std::string& name,
-                bool render_parent = false);
+        explicit state(const std::string& name, bool render_parent = false);
 
         virtual ~state();
 
@@ -34,6 +31,8 @@ namespace ryu::core {
 
         void deactivate();
 
+        core::context* context();
+
         void update(uint32_t dt);
 
         std::string name() const;
@@ -41,6 +40,8 @@ namespace ryu::core {
         bool render_parent() const;
 
         bool is_initialized() const;
+
+        void context(core::context* value);
 
         bool process_event(const SDL_Event* e);
 
@@ -90,7 +91,7 @@ namespace ryu::core {
         std::string _name;
         bool _initialized = false;
         bool _render_parent = false;
+        core::context* _context = nullptr;
         state_transition_callable _callback {};
-        ryu::core::context* _context = nullptr;
     };
 };

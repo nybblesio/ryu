@@ -20,7 +20,7 @@
 
 namespace ryu::ide {
 
-    class context : public core::context {
+    class ide_context : public core::context {
     public:
         struct colors {
             enum indexes {
@@ -65,7 +65,7 @@ namespace ryu::ide {
             };
         };
 
-        explicit context(const std::string& name);
+        explicit ide_context(const std::string& name);
 
         core::project* project();
 
@@ -73,6 +73,9 @@ namespace ryu::ide {
 
     protected:
         void on_initialize() override;
+
+    private:
+        void configure_palette();
 
     private:
         core::palette _palette;

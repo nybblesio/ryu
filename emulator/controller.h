@@ -17,7 +17,7 @@ namespace ryu::emulator {
 
     class controller  : public core::state {
     public:
-        controller(core::context* context, const std::string& name);
+        explicit controller(const std::string& name);
 
         ~controller() override;
 

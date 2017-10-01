@@ -12,48 +12,42 @@
 #include <iostream>
 #include <fmt/format.h>
 #include <core/engine.h>
-#include <ide/context.h>
+#include <ide/ide_context.h>
 #include "controller.h"
 
 namespace ryu::ide::console {
 
-    controller::controller(
-            core::context* context,
-            const std::string& name) : core::state(context, name),
-                                       _environment(),
-                                       _view(context, "console") {
+    controller::controller(const std::string& name) : core::state(name),
+                                                      _environment(),
+                                                      _view("console") {
     }
 
     controller::~controller() {
     }
 
     void controller::on_draw() {
-        _view.draw();
+        _view.draw(context()->renderer());
     }
 
     void controller::on_resize() {
-        if (!_initialized)
-            return;
-        _view.resize();
+        _view.resize(context()->bounds());
     }
 
     void controller::on_initialize() {
+        _view.palette(context()->palette());
         _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize();
-        _view.on_transition([&](auto* state, const std::string& name, const core::parameter_dict& params) {
+        _view.on_transition([&](const std::string& name, const core::parameter_dict& params) {
             return transition_to(name, params);
         });
         _view.on_execute_command([&](core::result& result, const std::string& input) {
-            return _environment.execute(result, input);
+            auto success = _environment.execute(result, input);
+            if (success && result.has_code("C001")) {
+                context()->engine()->quit();
+            }
+            return success;
         });
-
-        _view.write_message("{rev} {bold}Ryu: {italic}The Arcade Construction Kit {}");
-        _view.write_message(" Copyright (C) 2017 Jeff Panici");
-        _view.write_message(" See details in {underline}{bold}LICENSE{} file");
-        _view.caret_down();
-        _view.write_message("Ready.");
         _view.focus(_view.id());
-        _initialized = true;
     }
 
     void controller::on_update(uint32_t dt) {
@@ -61,6 +55,17 @@ namespace ryu::ide::console {
 
     bool controller::on_process_event(const SDL_Event* e) {
         return _view.process_event(e);
+    }
+
+    void controller::on_activate(const core::parameter_dict& params) {
+        if (_show_banner) {
+            _view.write_message("{rev} {bold}Ryu: {italic}The Arcade Construction Kit {}");
+            _view.write_message(" Copyright (C) 2017 Jeff Panici");
+            _view.write_message(" See details in {underline}{bold}LICENSE{} file");
+            _view.caret_down();
+            _view.write_message("Ready.");
+            _show_banner = false;
+        }
     }
 
 }

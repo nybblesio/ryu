@@ -19,7 +19,7 @@ namespace ryu::ide::machine_editor {
 
     class controller : public ryu::core::state {
     public:
-        controller(core::context* context, const std::string& name);
+        explicit controller(const std::string& name);
 
         hardware::machine* machine();
 
@@ -42,7 +42,6 @@ namespace ryu::ide::machine_editor {
 
     private:
         editor_view _view;
-        bool _initialized = false;
         hardware::machine* _machine;
     };
 

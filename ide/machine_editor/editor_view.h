@@ -11,20 +11,29 @@
 #pragma once
 
 #include <core/result.h>
+#include <core/project.h>
 #include <core/views/label.h>
-#include <core/views/textbox.h>
-#include <hardware/machine.h>
 #include <core/views/panel.h>
+#include <hardware/machine.h>
 #include <core/views/button.h>
+#include <core/views/textbox.h>
 #include <core/views/pick_list.h>
 
 namespace ryu::ide::machine_editor {
 
     class editor_view : public core::view {
     public:
-        editor_view(core::context* context, const std::string& name);
+        explicit editor_view(const std::string& name);
 
-        void initialize(hardware::machine* mach);
+        void initialize();
+
+        core::project* project();
+
+        hardware::machine* machine();
+
+        void project(core::project* value);
+
+        void machine(hardware::machine* value);
 
     protected:
         struct metrics_t {
@@ -32,11 +41,14 @@ namespace ryu::ide::machine_editor {
             const int right_padding = 10;
         };
 
-        void on_draw() override;
-
         void on_focus_changed() override;
 
+        void on_draw(SDL_Renderer* renderer) override;
+
         bool on_process_event(const SDL_Event* e) override;
+
+    private:
+        void update_values();
 
     private:
         metrics_t _metrics;
@@ -52,6 +64,7 @@ namespace ryu::ide::machine_editor {
         core::button _delete_button;
         core::textbox _name_textbox;
         core::label _address_space_label;
+        core::project* _project = nullptr;
         core::pick_list _display_pick_list;
         core::textbox _address_space_textbox;
         hardware::machine* _machine = nullptr;

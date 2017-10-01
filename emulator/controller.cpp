@@ -15,9 +15,7 @@
 
 namespace ryu::emulator {
 
-    controller::controller(
-            core::context* context,
-            const std::string& name) : core::state(context, name) {
+    controller::controller(const std::string& name) : core::state(name) {
     }
 
     controller::~controller() {

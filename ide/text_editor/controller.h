@@ -8,6 +8,8 @@
 #pragma once
 
 #include <core/state.h>
+#include <core/project.h>
+#include <hardware/machine.h>
 #include <common/SDL_FontCache.h>
 #include "editor_view.h"
 
@@ -18,9 +20,17 @@ namespace ryu::ide::text_editor {
         const int rows = 4096;
         const int columns = 128;
 
-        controller(core::context* context, const std::string& name);
+        explicit controller(const std::string& name);
 
         ~controller() override;
+
+        core::project* project();
+
+        hardware::machine* machine();
+
+        void project(core::project* value);
+
+        void machine(hardware::machine* value);
 
     protected:
         void on_draw() override;
@@ -35,8 +45,9 @@ namespace ryu::ide::text_editor {
 
     private:
         editor_view _view;
-        bool _initialized = false;
         environment _command_factory;
+        core::project* _project = nullptr;
+        hardware::machine* _machine = nullptr;
     };
 
 };

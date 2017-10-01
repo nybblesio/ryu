@@ -80,19 +80,17 @@ namespace ryu {
     }
 
     void application::configure_ide() {
-        _ide_context.initialize(
-                &_engine,
-                ide_bounds({0, 0, display_width, display_height}),
-                ide::context::colors::fill_color);
         _engine.add_context(&_ide_context);
+        _ide_context.initialize(
+                ide_bounds({0, 0, display_width, display_height}),
+                ide::ide_context::colors::fill_color);
     }
 
     void application::configure_emulator() {
-        _emulator_context.initialize(
-                &_engine,
-                emulator_bounds({0, 0, display_width, display_height}),
-                emulator::context::colors::fill_color);
         _engine.add_context(&_emulator_context);
+        _emulator_context.initialize(
+                emulator_bounds({0, 0, display_width, display_height}),
+                emulator::emulator_context::colors::fill_color);
     }
 
     core::rect application::ide_bounds(const core::rect& bounds) {

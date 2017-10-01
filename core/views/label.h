@@ -16,7 +16,7 @@ namespace ryu::core {
 
     class label : public core::view {
     public:
-        label(core::context* context, const std::string& name);
+        explicit label(const std::string& name);
 
         std::string value() const;
 
@@ -35,7 +35,7 @@ namespace ryu::core {
         void halign(alignment::horizontal::types value);
 
     protected:
-        void on_draw() override;
+        void on_draw(SDL_Renderer* renderer) override;
 
     private:
         std::string _value;

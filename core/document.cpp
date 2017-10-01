@@ -49,9 +49,9 @@ namespace ryu::core {
     line_t* document::line_at(int row) {
         if (_lines.empty())
             return nullptr;
-        if (row > _lines.size() - 1)
-            return nullptr;
-        return &_lines[row];
+        if (row < _lines.size())
+            return &_lines[row];
+        return nullptr;
     }
 
     void document::delete_line(int row) {
@@ -130,13 +130,14 @@ namespace ryu::core {
         if (line == nullptr)
             return 0;
         auto last_empty = -1;
-        for (auto col = 0; col < _columns; col++) {
-            auto& element = line->elements[col];
+        auto col = 0;
+        for (auto element : line->elements) {
             if (element.value == 0) {
                 if (last_empty == -1)
                     last_empty = col;
             } else
                 last_empty = -1;
+            col++;
         }
         return last_empty == -1 ? 0 : last_empty;
     }
@@ -258,7 +259,7 @@ namespace ryu::core {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto i = 0; i < times && column < _columns; i++, column++) {
+        for (auto i = 0; i < times && column < _columns && column < line->elements.size(); i++, column++) {
             line->elements.insert(line->elements.begin() + column, element_t {0, _default_attr});
         }
     }

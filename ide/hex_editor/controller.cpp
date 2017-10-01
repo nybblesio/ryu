@@ -9,15 +9,12 @@
 //
 
 #include <core/engine.h>
-#include <ide/context.h>
-#include <common/string_support.h>
+#include <ide/ide_context.h>
 #include "controller.h"
 
 namespace ryu::ide::hex_editor {
 
-    controller::controller(
-            core::context* context,
-            const std::string& name) : core::state(context, name) {
+    controller::controller(const std::string& name) : core::state(name) {
     }
 
     void controller::on_draw() {

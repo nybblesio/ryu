@@ -11,17 +11,16 @@
 #include <sstream>
 #include <fmt/format.h>
 #include <core/engine.h>
-#include <ide/context.h>
+#include <ide/ide_context.h>
 #include <common/bytes.h>
 #include "console_view.h"
 
 namespace ryu::ide::console {
 
-    console_view::console_view(core::context* context,
-               const std::string& name) : core::view(context, core::view::types::container, name),
-                                          _caret(context, "console-caret"),
-                                          _header(context, "header-label"),
-                                          _footer(context, "footer-label") {
+    console_view::console_view(const std::string& name) : core::view(core::view::types::container, name),
+                                                          _caret("console-caret"),
+                                                          _header("header-label"),
+                                                          _footer("footer-label") {
     }
 
     console_view::~console_view() {
@@ -63,26 +62,29 @@ namespace ryu::ide::console {
     }
 
     void console_view::initialize() {
-        _color = ryu::ide::context::colors::text;
+        _color = ryu::ide::ide_context::colors::text;
 
+        _header.palette(palette());
         _header.dock(dock::styles::top);
         _header.font_family(font_family());
-        _header.fg_color(ide::context::colors::info_text);
-        _header.bg_color(ide::context::colors::fill_color);
+        _header.fg_color(ide::ide_context::colors::info_text);
+        _header.bg_color(ide::ide_context::colors::fill_color);
         _header.bounds().height(font_face()->line_height);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
+        _footer.palette(palette());
         _footer.dock(dock::styles::bottom);
         _footer.font_family(font_family());
-        _footer.fg_color(ide::context::colors::info_text);
-        _footer.bg_color(ide::context::colors::fill_color);
+        _footer.fg_color(ide::ide_context::colors::info_text);
+        _footer.bg_color(ide::ide_context::colors::fill_color);
         _footer.bounds().height(font_face()->line_height);
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
-        _caret.initialize(0, 0);
         _caret.overwrite();
+        _caret.initialize(0, 0);
+        _caret.palette(palette());
         _caret.font_family(font_family());
-        _caret.fg_color(ide::context::colors::caret);
+        _caret.fg_color(ide::ide_context::colors::caret);
 
         add_child(&_header);
         add_child(&_footer);
@@ -90,8 +92,6 @@ namespace ryu::ide::console {
 
         dock(dock::styles::fill);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-
-        resize();
     }
 
     void console_view::calculate_page_metrics() {
@@ -102,8 +102,8 @@ namespace ryu::ide::console {
         _metrics.page_height = static_cast<short>(rect.height() / font_face()->line_height);
     }
 
-    void console_view::on_resize() {
-        core::view::on_resize();
+    void console_view::on_resize(const core::rect& context_bounds) {
+        core::view::on_resize(context_bounds);
 
         calculate_page_metrics();
         _caret.page_size(_metrics.page_height, _metrics.page_width);
@@ -116,17 +116,17 @@ namespace ryu::ide::console {
         _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
-    void console_view::on_draw() {
+    void console_view::on_draw(SDL_Renderer* renderer) {
         auto bounds = client_bounds();
-        auto palette = *(this->palette());
+        auto pal = *palette();
 
         std::string project_name = "(none)";
         std::string machine_name = "(none)";
-        auto project = dynamic_cast<ide::context*>(context())->project();
-        if (project != nullptr) {
-            project_name = project->name();
-            machine_name = project->machine()->name();
-        }
+//        auto project = dynamic_cast<ide::ide_context*>(context())->project();
+//        if (project != nullptr) {
+//            project_name = project->name();
+//            machine_name = project->machine()->name();
+//        }
         _header.value(fmt::format("project: {0} | machine: {1}", project_name, machine_name));
         _footer.value(fmt::format(
                 "X:{0:03d} Y:{1:02d} | {2}",
@@ -142,16 +142,16 @@ namespace ryu::ide::console {
             auto chunks = _document.get_line_chunks(row, 0, _metrics.page_width);
             for (const auto& chunk : chunks) {
                 auto width = static_cast<int32_t>(face->width * chunk.text.length());
-                auto color = palette[chunk.attr.color];
+                auto color = pal[chunk.attr.color];
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
-                    set_color(color);
-                    color = palette[ide::context::colors::fill_color];
-                    fill_rect(core::rect{x, y, width, face->line_height});
+                    set_color(renderer, color);
+                    color = pal[ide::ide_context::colors::fill_color];
+                    fill_rect(renderer, core::rect{x, y, width, face->line_height});
                 }
 
                 font_style(chunk.attr.style);
-                draw_text(x, y, chunk.text, color);
+                draw_text(renderer, x, y, chunk.text, color);
                 x += width;
             }
             y += face->line_height;
@@ -226,9 +226,7 @@ namespace ryu::ide::console {
 
                             auto consumed = true;
 
-                            if (result.has_code("C001")) {
-                                context()->engine()->quit();
-                            } else if (result.has_code("C004")) {
+                            if (result.has_code("C004")) {
                                 _document.clear();
                                 caret_home();
                                 _caret.row(0);
@@ -352,37 +350,37 @@ namespace ryu::ide::console {
                 } else if (code == "rev") {
                     attr.flags |= core::font::flags::reverse;
                 } else if (code == "black") {
-                    attr.color = ide::context::colors::black;
+                    attr.color = ide::ide_context::colors::black;
                 } else if (code == "white") {
-                    attr.color = ide::context::colors::white;
+                    attr.color = ide::ide_context::colors::white;
                 } else if (code == "red") {
-                    attr.color = ide::context::colors::red;
+                    attr.color = ide::ide_context::colors::red;
                 } else if (code == "cyan") {
-                    attr.color = ide::context::colors::cyan;
+                    attr.color = ide::ide_context::colors::cyan;
                 } else if (code == "purple") {
-                    attr.color = ide::context::colors::purple;
+                    attr.color = ide::ide_context::colors::purple;
                 } else if (code == "green") {
-                    attr.color = ide::context::colors::green;
+                    attr.color = ide::ide_context::colors::green;
                 } else if (code == "blue") {
-                    attr.color = ide::context::colors::blue;
+                    attr.color = ide::ide_context::colors::blue;
                 } else if (code == "yellow") {
-                    attr.color = ide::context::colors::yellow;
+                    attr.color = ide::ide_context::colors::yellow;
                 } else if (code == "orange") {
-                    attr.color = ide::context::colors::orange;
+                    attr.color = ide::ide_context::colors::orange;
                 } else if (code == "brown") {
-                    attr.color = ide::context::colors::brown;
+                    attr.color = ide::ide_context::colors::brown;
                 } else if (code == "pink") {
-                    attr.color = ide::context::colors::pink;
+                    attr.color = ide::ide_context::colors::pink;
                 } else if (code == "dgrey") {
-                    attr.color = ide::context::colors::dark_grey;
+                    attr.color = ide::ide_context::colors::dark_grey;
                 } else if (code == "grey") {
-                    attr.color = ide::context::colors::grey;
+                    attr.color = ide::ide_context::colors::grey;
                 } else if (code == "lgreen") {
-                    attr.color = ide::context::colors::light_green;
+                    attr.color = ide::ide_context::colors::light_green;
                 } else if (code == "lblue") {
-                    attr.color = ide::context::colors::light_blue;
+                    attr.color = ide::ide_context::colors::light_blue;
                 } else if (code == "lgrey") {
-                    attr.color = ide::context::colors::light_grey;
+                    attr.color = ide::ide_context::colors::light_grey;
                 } else {
                     attr.color = _color;
                     attr.flags = core::font::flags::none;
@@ -414,8 +412,7 @@ namespace ryu::ide::console {
     bool console_view::transition_to(const std::string& name, const core::parameter_dict& params) {
         bool consumed = false;
         if (_transition_to_callback) {
-            auto ctx = context();
-            consumed = _transition_to_callback(ctx->find_state(ctx->peek_state()), name, params);
+            consumed = _transition_to_callback(name, params);
         }
         return consumed;
     }

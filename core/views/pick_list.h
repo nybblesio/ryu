@@ -18,7 +18,7 @@ namespace ryu::core {
 
     class pick_list : public core::view {
     public:
-        pick_list(core::context* context, const std::string& name);
+        explicit pick_list(const std::string& name);
 
         int length() const;
 
@@ -28,21 +28,38 @@ namespace ryu::core {
 
         void length(int value);
 
+        int visible_items() const;
+
         border::types border() const;
+
+        void visible_items(int value);
 
         void border(border::types value);
 
         void value(const std::string& value);
 
     protected:
-        void on_draw() override;
+        bool move_up();
+
+        bool move_down();
+
+        bool move_row_up();
+
+        bool move_row_down();
+
+        void on_draw(SDL_Renderer* renderer) override;
 
         bool on_process_event(const SDL_Event* e) override;
 
+        void on_resize(const rect& context_bounds) override;
+
     private:
+        int _row = 0;
         int _length = 32;
         std::string _value;
+        int _selection = 0;
         option_list _options {};
+        int _visibile_items = 10;
         border::types _border = border::types::none;
     };
 

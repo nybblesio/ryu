@@ -13,10 +13,8 @@
 
 namespace ryu::core {
 
-    textbox::textbox(
-            core::context* context,
-            const std::string& name) : core::view(context, types::control, name),
-                                       _caret(context, "textbox-caret") {
+    textbox::textbox(const std::string& name) : core::view(types::control, name),
+                                                _caret("textbox-caret") {
     }
 
     void textbox::clear() {
@@ -27,10 +25,6 @@ namespace ryu::core {
     void textbox::caret_end() {
         auto line_end = _document.find_line_end(0);
         _caret.column(line_end != -1 ? line_end : _page_width - 1);
-    }
-
-    void textbox::on_resize() {
-        bounds().size(font_face()->width * _page_width, font_face()->line_height + 10);
     }
 
     void textbox::caret_home() {
@@ -59,7 +53,7 @@ namespace ryu::core {
         _document.page_size(rows, columns);
         _caret.page_size(rows, columns);
         _page_width = columns;
-        on_resize();
+        on_resize({});
     }
 
     void textbox::initialize(int rows, int columns) {
@@ -68,6 +62,7 @@ namespace ryu::core {
 
         _caret.font_family(font_family());
         _caret.fg_color(fg_color());
+        _caret.palette(palette());
         _caret.initialize(0, 0);
         _caret.enabled(false);
         add_child(&_caret);
@@ -81,45 +76,57 @@ namespace ryu::core {
         _document.load(stream);
     }
 
-    void textbox::on_draw() {
+    void textbox::on_draw(SDL_Renderer* renderer) {
         auto bounds = client_bounds();
-        auto fg = (*context()->palette())[fg_color()];
-        auto& bg = (*context()->palette())[bg_color()];
+
+        auto pal = *palette();
+        auto fg = pal[fg_color()];
+        auto& bg = pal[bg_color()];
 
         if (!enabled() || !focused()) {
             fg = fg - 35;
         }
 
-        set_color(bg);
-        fill_rect(bounds);
+        set_color(renderer, bg);
+        fill_rect(renderer, bounds);
 
-        set_color(fg);
+        set_color(renderer, fg);
         set_font_color(fg);
 
         std::stringstream stream;
         _document.write_line(stream, 0, 0, _page_width);
 
-        draw_text(bounds.left(), bounds.top(), stream.str(), fg);
-        draw_line(bounds.left(),
-                  bounds.top() + bounds.height(),
+        draw_text_aligned(renderer,
+                          stream.str(),
+                          bounds,
+                          alignment::horizontal::left,
+                          alignment::vertical::middle);
+        draw_line(renderer,
+                  bounds.left(),
+                  bounds.bottom(),
                   bounds.right() + 5,
-                  bounds.top() + bounds.height());
+                  bounds.bottom());
     }
 
     bool textbox::on_process_event(const SDL_Event* e) {
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
             while (*c != '\0') {
-                if (_on_key_down != nullptr)
-                    if (!_on_key_down(e->key.keysym.sym))
+                if (_on_key_down != nullptr) {
+                    if (!_on_key_down(*c)) {
+                        c++;
                         continue;
+                    }
+                }
 
                 _document.put(
                         0,
                         _caret.column(),
                         core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
+
                 if (caret_right())
                     break;
+
                 c++;
             }
         } else if (e->type == SDL_KEYDOWN) {
@@ -159,6 +166,10 @@ namespace ryu::core {
                 return _on_key_down(e->key.keysym.sym);
         }
         return false;
+    }
+
+    void textbox::on_resize(const core::rect& context_bounds) {
+        bounds().size(font_face()->width * (_page_width + 1), font_face()->line_height + 10);
     }
 
     void textbox::on_key_down(const textbox::on_key_down_callable& callable) {

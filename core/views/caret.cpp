@@ -13,10 +13,24 @@
 
 namespace ryu::core {
 
-    caret::caret(
-            core::context* context,
-            const std::string& name) : core::view(context, core::view::types::control, name),
-                                       _timer(500) {
+    caret::caret(const std::string& name) : core::view(core::view::types::control, name),
+                                            _timer(500) {
+    }
+
+    void caret::select() {
+        _mode = mode::types::select;
+    }
+
+    void caret::insert() {
+        _mode = mode::types::insert;
+    }
+
+    int caret::row() const {
+        return _row;
+    }
+
+    void caret::overwrite() {
+        _mode = mode::types::overwrite;
     }
 
     bool caret::clamp_row() {
@@ -31,6 +45,20 @@ namespace ryu::core {
         return false;
     }
 
+    bool caret::row(int row) {
+        _row = row;
+        return clamp_row();
+    }
+
+    bool caret::up(int rows) {
+        _row -= rows;
+        return clamp_row();
+    }
+
+    int caret::column() const {
+        return _column;
+    }
+
     bool caret::clamp_column() {
         if (_column < 0) {
             _column = 0;
@@ -43,13 +71,13 @@ namespace ryu::core {
         return false;
     }
 
-    bool caret::column(int column) {
-        _column = column;
-        return clamp_column();
+    bool caret::down(int rows) {
+        _row += rows;
+        return clamp_row();
     }
 
-    int caret::column() const {
-        return _column;
+    void caret::column_select() {
+        _mode = mode::types::column_select;
     }
 
     bool caret::left(int columns) {
@@ -62,65 +90,13 @@ namespace ryu::core {
         return clamp_column();
     }
 
-    bool caret::row(int row) {
-        _row = row;
-        return clamp_row();
-    }
-
-    int caret::row() const {
-        return _row;
-    }
-
-    bool caret::down(int rows) {
-        _row += rows;
-        return clamp_row();
-    }
-
-    bool caret::up(int rows) {
-        _row -= rows;
-        return clamp_row();
-    }
-
-    void caret::select() {
-        _mode = mode::types::select;
-    }
-
-    void caret::insert() {
-        _mode = mode::types::insert;
-    }
-
-    void caret::overwrite() {
-        _mode = mode::types::overwrite;
-    }
-
-    void caret::column_select() {
-        _mode = mode::types::column_select;
+    bool caret::column(int column) {
+        _column = column;
+        return clamp_column();
     }
 
     caret::mode::types caret::mode() const {
         return _mode;
-    }
-
-    void caret::on_draw() {
-        if (!enabled())
-            return;
-
-        push_blend_mode(SDL_BLENDMODE_BLEND);
-
-        auto caret_color = (*context()->palette())[fg_color()];
-        caret_color.alpha(0x7f);
-        set_color(caret_color);
-
-        auto parent_bounds = parent()->client_bounds();
-        auto& rect = bounds();
-        auto& pad = padding();
-        rect.pos(
-                (parent_bounds.left() + (_column * rect.width())) + pad.left(),
-                (parent_bounds.top() + (_row * rect.height())) + pad.top());
-        rect.size(font_face()->width, font_face()->line_height);
-        fill_rect(rect);
-
-        pop_blend_mode();
     }
 
     void caret::initialize(int row, int column) {
@@ -131,7 +107,31 @@ namespace ryu::core {
             visible(!visible());
             t->reset();
         });
-        context()->add_timer(&_timer);
+        // TODO:
+        //context()->add_timer(&_timer);
+    }
+
+    void caret::on_draw(SDL_Renderer* renderer) {
+        if (!enabled())
+            return;
+
+        push_blend_mode(renderer, SDL_BLENDMODE_BLEND);
+
+        auto pal = *palette();
+        auto caret_color = pal[fg_color()];
+        caret_color.alpha(0x7f);
+        set_color(renderer, caret_color);
+
+        auto parent_bounds = parent()->client_bounds();
+        auto& rect = bounds();
+        auto& pad = padding();
+        rect.pos(
+                (parent_bounds.left() + (_column * rect.width())) + pad.left(),
+                (parent_bounds.top() + (_row * rect.height())) + pad.top());
+        rect.size(font_face()->width, font_face()->line_height);
+        fill_rect(renderer, rect);
+
+        pop_blend_mode(renderer);
     }
 
     void caret::page_size(int page_height, int page_width) {

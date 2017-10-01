@@ -30,7 +30,7 @@ namespace ryu::core {
     class state;
 
     typedef std::map<std::string, std::string> parameter_dict;
-    typedef std::function<bool (state*, const std::string&, const parameter_dict&)> state_transition_callable;
+    typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
 
     struct state_t {
         state* instance;

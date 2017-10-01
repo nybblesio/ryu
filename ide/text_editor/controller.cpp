@@ -5,41 +5,36 @@
 // All Rights Reserved.
 //
 
-#include <ide/context.h>
 #include <core/engine.h>
-#include <common/string_support.h>
+#include <ide/ide_context.h>
 #include "controller.h"
 
 namespace ryu::ide::text_editor {
 
-    controller::controller(
-            core::context* context,
-            const std::string& name) : core::state(context, name),
-                                      _view(context, "text-editor") {
+    controller::controller(const std::string& name) : core::state(name),
+                                                      _view("text-editor") {
     }
 
     controller::~controller() {
     }
 
     void controller::on_draw() {
-        _view.draw();
+        _view.draw(context()->renderer());
     }
 
     void controller::on_resize() {
-        if (!_initialized)
-            return;
-        _view.resize();
+        _view.resize(context()->bounds());
     }
 
     void controller::on_initialize() {
+        _view.palette(context()->palette());
         _view.font_family(context()->engine()->find_font_family("hack"));
         _view.initialize(rows, columns);
-        _view.on_transition([&](auto* state, const std::string& name, const core::parameter_dict& params) {
+        _view.on_transition([&](const std::string& name, const core::parameter_dict& params) {
             return transition_to(name, params);
         });
         _view.on_execute_command([&](core::result& result, const std::string& input) {
             _command_factory.execute(result, input);
-
             if (result.has_code("C001"))
                 context()->engine()->quit();
             else if (result.has_code("C004")) {
@@ -54,13 +49,41 @@ namespace ryu::ide::text_editor {
             }
         });
         _view.focus(_view.id());
-        _initialized = true;
+    }
+
+    core::project* controller::project() {
+        return _project;
     }
 
     void controller::on_update(uint32_t dt) {
     }
 
+    hardware::machine* controller::machine() {
+        return _machine;
+    }
+
+    void controller::project(core::project* value) {
+        _project = value;
+    }
+
+    void controller::machine(hardware::machine* value) {
+        _machine = value;
+    }
+
     bool controller::on_process_event(const SDL_Event* e) {
+        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
+
+        if (e->type == SDL_KEYDOWN) {
+            switch (e->key.keysym.sym) {
+                case SDLK_ESCAPE: {
+                    if (!ctrl_pressed) {
+                        end_state();
+                        return true;
+                    }
+                    break;
+                }
+            }
+        }
         return _view.process_event(e);
     }
 

@@ -28,7 +28,7 @@ namespace ryu::core {
             };
         };
 
-        caret(core::context* context, const std::string& name);
+        explicit caret(const std::string& name);
 
         void select();
 
@@ -61,7 +61,7 @@ namespace ryu::core {
         void page_size(int page_height, int page_width);
 
     protected:
-        void on_draw() override;
+        void on_draw(SDL_Renderer* renderer) override;
 
     private:
         bool clamp_row();

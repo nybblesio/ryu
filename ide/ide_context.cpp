@@ -8,19 +8,23 @@
 // this source code file.
 //
 
-#include "context.h"
+#include "ide_context.h"
 
 namespace ryu::ide {
 
-    context::context(const std::string& name) : core::context(name),
-                                                _palette(),
-                                                _console_state(this, "console"),
-                                                _hex_editor_state(this, "hex editor"),
-                                                _text_editor_state(this, "text editor"),
-                                                _machine_editor_state(this, "machine editor") {
+    ide_context::ide_context(const std::string& name) : core::context(name),
+                                                        _palette(),
+                                                        _console_state("console"),
+                                                        _hex_editor_state("hex editor"),
+                                                        _text_editor_state("text editor"),
+                                                        _machine_editor_state("machine editor") {
+    }
+
+    void ide_context::on_initialize() {
+        configure_palette();
         add_state(
                 &_console_state,
-                [this](auto state, auto& command, auto& params) {
+                [&](auto& command, auto& params) {
                     if (command == "text_editor") {
                         push_state(_text_editor_state.id(), params);
                         return true;
@@ -33,11 +37,17 @@ namespace ryu::ide {
                     }
                     return false;
                 });
-
         add_state(&_hex_editor_state);
         add_state(&_text_editor_state);
         add_state(&_machine_editor_state);
+        push_state(_console_state.id(), {});
+    }
 
+    core::project* ide_context::project() {
+        return _project;
+    }
+
+    void ide_context::configure_palette() {
         auto& black = _palette[colors::black];
         black.red(0x00);
         black.green(0x00);
@@ -67,7 +77,7 @@ namespace ryu::ide {
         red.green(0x33);
         red.blue(0x32);
         red.alpha(0xff);
-        
+
         auto& cyan = _palette[colors::cyan];
         cyan.red(0x67);
         cyan.green(0xb6);
@@ -79,7 +89,7 @@ namespace ryu::ide {
         purple.green(0x3f);
         purple.blue(0x97);
         purple.alpha(0xff);
-        
+
         auto& green = _palette[colors::green];
         green.red(0x57);
         green.green(0xa0);
@@ -143,15 +153,7 @@ namespace ryu::ide {
         palette(&_palette);
     }
 
-    void context::on_initialize() {
-        push_state(_console_state.id(), {});
-    }
-
-    core::project* context::project() {
-        return _project;
-    }
-
-    void context::project(core::project* project) {
+    void ide_context::project(core::project* project) {
         _project = project;
     }
 

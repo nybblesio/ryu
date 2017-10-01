@@ -18,7 +18,7 @@ namespace ryu::core {
     public:
         using on_clicked_callable = std::function<void ()>;
 
-        button(core::context* context, const std::string& name);
+        explicit button(const std::string& name);
 
         std::string value() const;
 
@@ -39,7 +39,7 @@ namespace ryu::core {
         void on_clicked(const on_clicked_callable& callable);
 
     protected:
-        void on_draw() override;
+        void on_draw(SDL_Renderer* renderer) override;
 
         bool on_process_event(const SDL_Event* e) override;
 

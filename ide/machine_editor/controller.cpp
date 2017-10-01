@@ -16,20 +16,16 @@
 
 namespace ryu::ide::machine_editor {
 
-    controller::controller(
-            core::context* context,
-            const std::string& name) : core::state(context, name),
-                                       _view(context, "editor") {
+    controller::controller(const std::string& name) : core::state(name),
+                                                      _view("editor") {
     }
 
     void controller::on_draw() {
-        _view.draw();
+        _view.draw(context()->renderer());
     }
 
     void controller::on_resize() {
-        if (!_initialized)
-            return;
-        _view.resize();
+        _view.resize(context()->bounds());
     }
 
     void controller::on_deactivate() {
@@ -38,9 +34,9 @@ namespace ryu::ide::machine_editor {
 
     void controller::on_initialize() {
         _view.font_family(context()->engine()->find_font_family("hack"));
-        _view.initialize(machine());
+        _view.palette(context()->palette());
+        _view.initialize();
         _view.focus(_view.id());
-        _initialized = true;
 
 //        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
 //        auto component_types = base.get_derived_classes();
@@ -60,6 +56,7 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::machine(hardware::machine* value) {
+        _view.machine(value);
         _machine = value;
     }
 
@@ -78,11 +75,12 @@ namespace ryu::ide::machine_editor {
     void controller::on_activate(const core::parameter_dict& params) {
         auto it = params.find("name");
         if (it != params.end()) {
-            _machine = hardware::registry::instance()->find_machine(it->second);
-            if (_machine == nullptr) {
-                _machine = hardware::registry::instance()->new_machine();
-                _machine->name(it->second);
+            auto mach = hardware::registry::instance()->find_machine(it->second);
+            if (mach == nullptr) {
+                mach = hardware::registry::instance()->new_machine();
+                mach->name(it->second);
             }
+            machine(mach);
         }
     }
 

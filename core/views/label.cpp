@@ -12,9 +12,7 @@
 
 namespace ryu::core {
 
-    label::label(
-            core::context* context,
-            const std::string& name) : core::view(context, types::control, name) {
+    label::label(const std::string& name) : core::view(types::control, name) {
     }
 
     std::string label::value() const {
@@ -33,19 +31,20 @@ namespace ryu::core {
         _value = value;
     }
 
-    void label::on_draw() {
+    void label::on_draw(SDL_Renderer* renderer) {
         auto bounds = client_bounds();
 
-        auto& fg = (*context()->palette())[fg_color()];
-        auto& bg = (*context()->palette())[bg_color()];
+        auto pal = *palette();
+        auto& fg = pal[fg_color()];
+        auto& bg = pal[bg_color()];
 
-        set_color(bg);
-        fill_rect(bounds);
+        set_color(renderer, bg);
+        fill_rect(renderer, bounds);
         set_font_color(fg);
-        draw_text_aligned(_value, bounds, _halign, _valign);
+        draw_text_aligned(renderer, _value, bounds, _halign, _valign);
         if (_border != border::types::none) {
-            set_color(fg);
-            draw_rect(bounds);
+            set_color(renderer, fg);
+            draw_rect(renderer, bounds);
         }
     }
 

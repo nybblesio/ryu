@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include <ide/context.h>
 #include <core/engine.h>
-#include <emulator/context.h>
+#include <ide/ide_context.h>
+#include <emulator/emulator_context.h>
 
 namespace ryu {
 
@@ -41,8 +41,8 @@ namespace ryu {
 
     private:
         core::engine _engine;
-        ide::context _ide_context;
-        emulator::context _emulator_context;
+        ide::ide_context _ide_context;
+        emulator::emulator_context _emulator_context;
     };
 
 };

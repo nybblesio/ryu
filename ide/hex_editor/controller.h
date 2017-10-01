@@ -16,7 +16,7 @@ namespace ryu::ide::hex_editor {
 
     class controller : public core::state {
     public:
-        controller(core::context* context, const std::string& name);
+        explicit controller(const std::string& name);
 
     protected:
         void on_draw() override;

@@ -15,7 +15,7 @@
 
 namespace ryu::emulator {
 
-    class context : public core::context {
+    class emulator_context : public core::context {
     public:
         struct colors {
             enum indexes {
@@ -26,10 +26,13 @@ namespace ryu::emulator {
             };
         };
 
-        explicit context(const std::string& name);
+        explicit emulator_context(const std::string& name);
 
     protected:
         void on_initialize() override;
+
+    private:
+        void configure_palette();
 
     private:
         core::palette _palette;

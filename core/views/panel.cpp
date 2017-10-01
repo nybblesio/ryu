@@ -12,22 +12,21 @@
 
 namespace ryu::core {
 
-    panel::panel(
-            core::context* context,
-            const std::string& name) : core::view(context, types::container, name) {
+    panel::panel(const std::string& name) : core::view(types::container, name) {
     }
 
-    void panel::on_draw() {
-        push_blend_mode(SDL_BLENDMODE_BLEND);
-        auto& fg = (*context()->palette())[fg_color()];
-        auto& bg = (*context()->palette())[bg_color()];
-        set_color(bg);
+    void panel::on_draw(SDL_Renderer* renderer) {
+        push_blend_mode(renderer, SDL_BLENDMODE_BLEND);
+        auto pal = *palette();
+        auto& fg = pal[fg_color()];
+        auto& bg = pal[bg_color()];
+        set_color(renderer, bg);
         auto client_rect = client_bounds();
-        fill_rect(client_rect);
-        pop_blend_mode();
+        fill_rect(renderer, client_rect);
+        pop_blend_mode(renderer);
         if (_border != border::types::none) {
-            set_color(fg);
-            draw_rect(client_rect);
+            set_color(renderer, fg);
+            draw_rect(renderer, client_rect);
         }
     }
 

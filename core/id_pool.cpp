@@ -34,9 +34,9 @@ namespace ryu::core {
     void id_pool::release(int32_t id) {
         id_set::iterator it = _pool.find(id_interval(id,id));
         if (it != _pool.end()  && it->left() <= id && it->right() > id) {
-            return ;
+            return;
         }
-        it = _pool.upper_bound(id_interval(id,id));
+        it = _pool.upper_bound(id_interval(id, id));
         if (it == _pool.end()) {
             return;
         } else {

@@ -36,17 +36,6 @@ namespace ryu::core {
         return _id;
     }
 
-    void context::initialize(
-            core::engine* engine,
-            const core::rect& bounds,
-            uint8_t color_index) {
-        _engine = engine;
-        _bounds = bounds;
-        _renderer = engine->_renderer;
-        _fill_color_index = color_index;
-        on_initialize();
-    }
-
     void context::on_initialize() {
     }
 
@@ -64,7 +53,9 @@ namespace ryu::core {
     void context::add_state(core::state* state) {
         if (state == nullptr)
             return;
+        state->context(this);
         _stack.add_state(state);
+        state->initialize();
     }
 
     void context::palette(core::palette* palette) {
@@ -72,6 +63,9 @@ namespace ryu::core {
     }
 
     void context::remove_state(core::state* state) {
+        if (state == nullptr)
+            return;
+        state->context(nullptr);
         _stack.remove_state(state);
     }
 
@@ -100,19 +94,18 @@ namespace ryu::core {
 
         for (auto it = _timers.begin(); it != _timers.end();) {
             auto timer = *it;
-            timer->update();
-            if (timer->dead())
+            if (timer->dead()) {
                 it = _timers.erase(it);
+                continue;
+            }
             else
                 ++it;
+            timer->update();
         }
 
         auto current_state_id = _stack.peek();
         if (current_state_id != -1) {
             auto active = _stack.active();
-            if (!active->is_initialized())
-                active->initialize();
-
             if (_engine->_focused_context == _id) {
                 while (!events.empty()) {
                     auto processed = active->process_event(&events.front());
@@ -141,6 +134,12 @@ namespace ryu::core {
         _stack.push(id, params);
     }
 
+    void context::initialize(const core::rect& bounds, uint8_t color_index) {
+        _bounds = bounds;
+        _fill_color_index = color_index;
+        on_initialize();
+    }
+
     void context::blackboard(const std::string& name, const std::string& value) {
         _blackboard[name] = value;
     }
@@ -148,7 +147,9 @@ namespace ryu::core {
     void context::add_state(core::state* state, const state_transition_callable& callback) {
         if (state == nullptr)
             return;
+        state->context(this);
         _stack.add_state(state, callback);
+        state->initialize();
     }
 
 }

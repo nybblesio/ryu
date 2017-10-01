@@ -12,9 +12,10 @@
 #pragma once
 
 #include <string>
+#include "rect.h"
+#include "engine.h"
 #include "palette.h"
 #include "state_stack.h"
-#include "rect.h"
 
 namespace ryu::core {
 
@@ -28,10 +29,7 @@ namespace ryu::core {
 
         int id() const;
 
-        void initialize(
-                core::engine* engine,
-                const core::rect& bounds,
-                uint8_t color_index);
+        void initialize(const core::rect& bounds, uint8_t color_index);
 
         inline int peek_state() const {
             return _stack.peek();
@@ -47,6 +45,11 @@ namespace ryu::core {
 
         inline core::rect bounds() const {
             return _bounds;
+        }
+
+        void engine(core::engine* value) {
+            _engine = value;
+            _renderer = _engine->_renderer;
         }
 
         void palette(core::palette* palette);

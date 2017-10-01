@@ -23,7 +23,7 @@ namespace ryu::ide::console {
     public:
         using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
 
-        console_view(core::context* context, const std::string& name);
+        explicit console_view(const std::string& name);
 
         ~console_view() override;
 
@@ -55,11 +55,11 @@ namespace ryu::ide::console {
             const int right_padding = 10;
         };
 
-        void on_draw() override;
-
-        void on_resize() override;
+        void on_draw(SDL_Renderer* renderer) override;
 
         bool on_process_event(const SDL_Event* e) override;
+
+        void on_resize(const core::rect& context_bounds) override;
 
     private:
         void calculate_page_metrics();

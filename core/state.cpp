@@ -13,12 +13,10 @@
 namespace ryu::core {
 
     state::state(
-            core::context* context,
             const std::string& name,
             bool render_parent) : _id(core::id_pool::instance()->allocate()),
                                   _name(name),
-                                  _render_parent(render_parent),
-                                  _context(context) {
+                                  _render_parent(render_parent) {
     }
 
     state::~state() {
@@ -30,6 +28,8 @@ namespace ryu::core {
     }
 
     void state::resize() {
+        if (!_initialized)
+            return;
         on_resize();
     }
 
@@ -45,6 +45,7 @@ namespace ryu::core {
         if (!_initialized) {
             on_initialize();
             _initialized = true;
+            resize();
         }
     }
 
@@ -56,6 +57,10 @@ namespace ryu::core {
     }
 
     void state::on_deactivate() {
+    }
+
+    core::context* state::context() {
+        return _context;
     }
 
     void state::update(uint32_t dt) {
@@ -72,6 +77,10 @@ namespace ryu::core {
 
     bool state::is_initialized() const {
         return _initialized;
+    }
+
+    void state::context(core::context* value) {
+        _context = value;
     }
 
     bool state::process_event(const SDL_Event* e) {
@@ -103,7 +112,7 @@ namespace ryu::core {
 
     bool state::transition_to(const std::string& name, const parameter_dict& params) {
         if (_callback)
-            return _callback(this, name, params);
+            return _callback(name, params);
         return false;
     }
 

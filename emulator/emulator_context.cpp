@@ -8,15 +8,22 @@
 // this source code file.
 //
 
-#include "context.h"
+#include "emulator_context.h"
 
 namespace ryu::emulator {
 
-    context::context(const std::string& name) : core::context(name),
-                                                _palette(),
-                                                _emulator_state(this, "execute") {
-        add_state(&_emulator_state);
+    emulator_context::emulator_context(const std::string& name) : core::context(name),
+                                                                  _palette(),
+                                                                  _emulator_state("execute") {
+    }
 
+    void emulator_context::on_initialize() {
+        configure_palette();
+        add_state(&_emulator_state);
+        push_state(_emulator_state.id(), {});
+    }
+
+    void emulator_context::configure_palette() {
         auto& black = _palette[colors::indexes::black];
         black.red(0x00);
         black.green(0x00);
@@ -31,9 +38,4 @@ namespace ryu::emulator {
 
         palette(&_palette);
     }
-
-    void context::on_initialize() {
-        push_state(_emulator_state.id(), {});
-    }
-
 }

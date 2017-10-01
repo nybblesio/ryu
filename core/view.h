@@ -106,15 +106,9 @@ namespace ryu::core {
             };
         };
 
-        view(core::context* context,
-             types::id type,
-             const std::string& name);
+        view(types::id type, const std::string& name);
 
         virtual ~view();
-
-        void draw();
-
-        void resize();
 
         int id() const;
 
@@ -154,8 +148,6 @@ namespace ryu::core {
 
         std::string name() const;
 
-        core::context* context();
-
         core::palette* palette();
 
         uint8_t bg_color() const;
@@ -178,6 +170,8 @@ namespace ryu::core {
 
         void add_child(core::view* child);
 
+        void draw(SDL_Renderer* renderer);
+
         void remove_child(core::view* child);
 
         void bounds(const core::rect& value);
@@ -196,44 +190,52 @@ namespace ryu::core {
 
         void on_tab(const on_tab_callable& callable);
 
+        void resize(const core::rect& context_bounds);
+
         inline const core::font_t* font_face() const {
             return font_family()->find_style(_font_style);
         }
 
     protected:
-        void pop_blend_mode();
-
-        virtual void on_draw();
+        void draw_text(
+                SDL_Renderer* renderer,
+                int x,
+                int y,
+                const std::string& value,
+                const core::palette_entry& color);
 
         void focus(bool value);
 
-        virtual void on_resize();
-
-        virtual void on_focus_changed();
-
         void draw_text_aligned(
+                SDL_Renderer* renderer,
                 const std::string& value,
                 const core::rect& bounds,
                 alignment::horizontal::types halign,
                 alignment::vertical::types valign);
 
-        void draw_rect(const core::rect& bounds);
-
-        void fill_rect(const core::rect& bounds);
-
-        void push_blend_mode(SDL_BlendMode mode);
+        virtual void on_focus_changed();
 
         int measure_text(const std::string& value);
 
-        void draw_line(int x1, int y1, int x2, int y2);
+        void pop_blend_mode(SDL_Renderer* renderer);
 
-        void set_color(const core::palette_entry& color);
+        virtual void on_draw(SDL_Renderer* renderer);
 
         virtual bool on_process_event(const SDL_Event* e);
 
         void set_font_color(const core::palette_entry& color);
 
-        void draw_text(int x, int y, const std::string& value, const core::palette_entry& color);
+        virtual void on_resize(const core::rect& context_bounds);
+
+        void draw_rect(SDL_Renderer* renderer, const core::rect& bounds);
+
+        void fill_rect(SDL_Renderer* renderer, const core::rect& bounds);
+
+        void push_blend_mode(SDL_Renderer* renderer, SDL_BlendMode mode);
+
+        void draw_line(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
+
+        void set_color(SDL_Renderer* renderer, const core::palette_entry& color);
 
     private:
         int _id;
@@ -249,13 +251,12 @@ namespace ryu::core {
         types::id _type = types::control;
         on_tab_callable _on_tab_callable;
         bool _in_on_focus_changed = false;
-        core::context* _context = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
-        uint8_t _flags = config::flags::enabled;
         dock::styles _dock = dock::styles::none;
         std::stack<SDL_BlendMode> _mode_stack {};
         uint8_t _font_style = font::styles::normal;
+        uint8_t _flags = config::flags::enabled | config::flags::visible;
     };
 
 };

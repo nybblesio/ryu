@@ -188,6 +188,7 @@ namespace ryu::core {
     void engine::add_context(core::context* context) {
         if (context == nullptr)
             return;
+        context->engine(this);
         _contexts.insert(std::make_pair(context->id(), context));
     }
 
@@ -198,6 +199,7 @@ namespace ryu::core {
     void engine::remove_context(core::context* context) {
         if (context == nullptr)
             return;
+        context->engine(nullptr);
         _contexts.erase(context->id());
     }
 

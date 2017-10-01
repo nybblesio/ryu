@@ -25,7 +25,7 @@ namespace ryu::ide::text_editor {
         using char_action_callable = std::function<void (int, int)>;
         using execute_command_callable = std::function<void (core::result&, const std::string&)>;
 
-        editor_view(core::context* context, const std::string& name);
+        explicit editor_view(const std::string& name);
 
         ~editor_view() override;
 
@@ -33,13 +33,21 @@ namespace ryu::ide::text_editor {
 
         void goto_line(int row);
 
+        core::project* project();
+
+        hardware::machine* machine();
+
         void load(const fs::path& path);
 
         void save(const fs::path& path);
 
+        void project(core::project* value);
+
         void find(const std::string& needle);
 
         void initialize(int rows, int columns);
+
+        void machine(hardware::machine* value);
 
         void on_execute_command(const execute_command_callable& callable);
 
@@ -54,11 +62,11 @@ namespace ryu::ide::text_editor {
             const int right_padding = 10;
         };
 
-        void on_draw() override;
-
-        void on_resize() override;
+        void on_draw(SDL_Renderer* renderer) override;
 
         bool on_process_event(const SDL_Event* e) override;
+
+        void on_resize(const core::rect& context_bounds) override;
 
     private:
         void page_up();
@@ -117,6 +125,8 @@ namespace ryu::ide::text_editor {
         core::document _document;
         core::selection _selection;
         core::textbox _command_line;
+        core::project* _project = nullptr;
+        hardware::machine* _machine = nullptr;
         execute_command_callable _execute_command_callable;
         core::state_transition_callable _transition_callable;
     };

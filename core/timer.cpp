@@ -33,7 +33,7 @@ namespace ryu::core {
     }
 
     void timer::update() {
-        if (_expired)
+        if (_expired || _killed)
             return;
         if (SDL_GetTicks() - _start_time > _duration) {
             _expired = true;
