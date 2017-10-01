@@ -13,38 +13,38 @@
 #include <core/engine.h>
 #include <ide/context.h>
 #include <common/bytes.h>
-#include "view.h"
+#include "console_view.h"
 
 namespace ryu::ide::console {
 
-    view::view(core::context* context,
+    console_view::console_view(core::context* context,
                const std::string& name) : core::view(context, core::view::types::container, name),
                                           _caret(context, "console-caret"),
                                           _header(context, "header-label"),
                                           _footer(context, "footer-label") {
     }
 
-    view::~view() {
+    console_view::~console_view() {
     }
 
-    void view::caret_end() {
+    void console_view::caret_end() {
         _caret.column(_metrics.page_width);
     }
 
-    void view::caret_home() {
+    void console_view::caret_home() {
         _caret.column(0);
     }
 
-    void view::caret_up(int rows) {
+    void console_view::caret_up(int rows) {
         _caret.up(rows);
     }
 
-    void view::caret_down(int rows) {
+    void console_view::caret_down(int rows) {
         if (_caret.down(rows))
             _document.shift_up();
     }
 
-    bool view::caret_left(int columns) {
+    bool console_view::caret_left(int columns) {
         if (_caret.left(columns)) {
             caret_up();
             caret_end();
@@ -53,7 +53,7 @@ namespace ryu::ide::console {
         return false;
     }
 
-    bool view::caret_right(int columns) {
+    bool console_view::caret_right(int columns) {
         if (_caret.right(columns)) {
             caret_down();
             caret_home();
@@ -62,7 +62,7 @@ namespace ryu::ide::console {
         return false;
     }
 
-    void view::initialize() {
+    void console_view::initialize() {
         _color = ryu::ide::context::colors::text;
 
         _header.dock(dock::styles::top);
@@ -94,7 +94,7 @@ namespace ryu::ide::console {
         resize();
     }
 
-    void view::calculate_page_metrics() {
+    void console_view::calculate_page_metrics() {
         auto rect = bounds();
         if (rect.empty())
             return;
@@ -102,7 +102,7 @@ namespace ryu::ide::console {
         _metrics.page_height = static_cast<short>(rect.height() / font_face()->line_height);
     }
 
-    void view::on_resize() {
+    void console_view::on_resize() {
         core::view::on_resize();
 
         calculate_page_metrics();
@@ -116,7 +116,7 @@ namespace ryu::ide::console {
         _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
-    void view::on_draw() {
+    void console_view::on_draw() {
         auto bounds = client_bounds();
         auto palette = *(this->palette());
 
@@ -158,7 +158,7 @@ namespace ryu::ide::console {
         }
     }
 
-    bool view::on_process_event(const SDL_Event* e) {
+    bool console_view::on_process_event(const SDL_Event* e) {
         auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
         auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
         auto mode = _caret.mode();
@@ -326,7 +326,7 @@ namespace ryu::ide::console {
         return false;
     }
 
-    void view::write_message(const std::string& message) {
+    void console_view::write_message(const std::string& message) {
         core::attr_t attr {_color, core::font::styles::normal, core::font::flags::none};
 
         caret_home();
@@ -403,15 +403,15 @@ namespace ryu::ide::console {
         caret_home();
     }
 
-    void view::on_execute_command(const execute_command_callable& callable) {
+    void console_view::on_execute_command(const execute_command_callable& callable) {
         _execute_command_callback = callable;
     }
 
-    void view::on_transition(const core::state_transition_callable& callable) {
+    void console_view::on_transition(const core::state_transition_callable& callable) {
         _transition_to_callback = callable;
     }
 
-    bool view::transition_to(const std::string& name, const core::parameter_dict& params) {
+    bool console_view::transition_to(const std::string& name, const core::parameter_dict& params) {
         bool consumed = false;
         if (_transition_to_callback) {
             auto ctx = context();

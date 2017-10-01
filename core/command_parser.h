@@ -24,10 +24,10 @@ namespace ryu::core {
     public:
         command_parser();
 
-        ast_node_t* parse(const std::string& input) override;
+        ast_node_shared_ptr parse(const std::string& input) override;
 
     protected:
-        ast_node_t* parse_command();
+        ast_node_shared_ptr parse_command();
 
     private:
         static command_table _commands;

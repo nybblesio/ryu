@@ -138,12 +138,12 @@ namespace ryu::core {
     command_parser::command_parser() : parser() {
     }
 
-    ast_node_t* command_parser::parse(const std::string& input) {
+    ast_node_shared_ptr command_parser::parse(const std::string& input) {
         reset(input);
         return parse_command();
     }
 
-    ast_node_t* command_parser::parse_command() {
+    ast_node_shared_ptr command_parser::parse_command() {
         consume_white_space();
         auto token = current_token();
         if (!isspace(*token)) {
@@ -190,7 +190,7 @@ namespace ryu::core {
                 error("P010", "unknown command");
                 return nullptr;
             }
-            auto command_node = new ast_node_t();
+            auto command_node = std::make_shared<ast_node_t>();
             command_node->value = command_t {it->second, stream.str(), size};
             command_node->token = ast_node_t::tokens::command;
 
@@ -198,7 +198,7 @@ namespace ryu::core {
                 auto expr = parse_expression();
                 if (expr == nullptr)
                     break;
-                command_node->children.insert(command_node->children.begin(), expr);
+                command_node->children.push_back(expr);
             }
 
             return is_failed() ? nullptr : command_node;

@@ -14,8 +14,8 @@
 #include <SDL_events.h>
 #include <core/state.h>
 #include <core/views/caret.h>
-#include <ide/command_factory.h>
-#include "view.h"
+#include <ide/environment.h>
+#include "console_view.h"
 
 namespace ryu::ide::console {
 
@@ -37,9 +37,9 @@ namespace ryu::ide::console {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        console::view _view;
+        environment _environment;
         bool _initialized = false;
-        command_factory _command_factory;
+        console::console_view _view;
     };
 
 };

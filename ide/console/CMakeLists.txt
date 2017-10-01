@@ -1,4 +1,4 @@
 add_library(
         console
-        view.cpp view.h
-        controller.cpp controller.h)
+        controller.cpp controller.h
+        console_view.cpp console_view.h)

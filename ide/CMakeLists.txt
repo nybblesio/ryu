@@ -10,7 +10,7 @@ add_library(
         text_editor
         machine_editor
         context.cpp context.h
-        command_factory.cpp command_factory.h)
+        environment.cpp environment.h)
 target_link_libraries(
         ide
         console

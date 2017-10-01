@@ -20,6 +20,7 @@ namespace ryu::ide::console {
     controller::controller(
             core::context* context,
             const std::string& name) : core::state(context, name),
+                                       _environment(),
                                        _view(context, "console") {
     }
 
@@ -43,7 +44,7 @@ namespace ryu::ide::console {
             return transition_to(name, params);
         });
         _view.on_execute_command([&](core::result& result, const std::string& input) {
-            return _command_factory.execute(result, input);
+            return _environment.execute(result, input);
         });
 
         _view.write_message("{rev} {bold}Ryu: {italic}The Arcade Construction Kit {}");

@@ -16,7 +16,7 @@
 #include <boost/filesystem.hpp>
 #include <core/command_parser.h>
 #include <common/string_support.h>
-#include "command_factory.h"
+#include "environment.h"
 
 namespace ryu::ide {
 
@@ -63,7 +63,7 @@ namespace ryu::ide {
                 fmt::format(fmt_spec, signed_value, value, ascii));
     }
 
-    bool command_factory::execute(
+    bool environment::execute(
             core::result& result,
             const std::string& line) {
         using namespace boost::filesystem;
@@ -347,11 +347,11 @@ namespace ryu::ide {
         return true;
     }
 
-    core::symbol_table* command_factory::symbol_table() {
+    core::symbol_table* environment::symbol_table() {
         return &_symbol_table;
     }
 
-    bool command_factory::load(core::result& result, const boost::filesystem::path& path) {
+    bool environment::load(core::result& result, const boost::filesystem::path& path) {
         if (!boost::filesystem::exists(path)) {
             result.add_message(
                     "S404",
@@ -371,7 +371,7 @@ namespace ryu::ide {
         return success;
     }
 
-    bool command_factory::save(core::result& result, const boost::filesystem::path& path) {
+    bool environment::save(core::result& result, const boost::filesystem::path& path) {
         std::ofstream file(path.string());
         for (auto& symbol : _symbol_table.identifiers()) {
             auto value = _symbol_table.get(symbol);

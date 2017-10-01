@@ -19,13 +19,13 @@
 
 namespace ryu::ide::console {
 
-    class view : public core::view {
+    class console_view : public core::view {
     public:
         using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
 
-        view(core::context* context, const std::string& name);
+        console_view(core::context* context, const std::string& name);
 
-        ~view() override;
+        ~console_view() override;
 
         void caret_end();
 
@@ -49,10 +49,8 @@ namespace ryu::ide::console {
 
     protected:
         struct metrics_t {
-            short page_width;
-            short page_height;
-            int footer_padding;
-            int header_padding;
+            short page_width = 1;
+            short page_height = 1;
             const int left_padding = 10;
             const int right_padding = 10;
         };

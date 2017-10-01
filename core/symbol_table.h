@@ -37,9 +37,9 @@ namespace ryu::core {
             return identifiers;
         }
 
-        ast_node_t* get(const std::string& name) const;
+        ast_node_shared_ptr get(const std::string& name) const;
 
-        void put(const std::string& name, ast_node_t* value);
+        void put(const std::string& name, const ast_node_shared_ptr& value);
 
     private:
         symbol_dict _symbols;

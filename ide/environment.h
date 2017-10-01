@@ -15,11 +15,11 @@
 
 namespace ryu::ide {
 
-    class command_factory {
+    class environment {
     public:
-        command_factory() = default;
+        environment() = default;
 
-        ~command_factory() = default;
+        ~environment() = default;
 
         core::symbol_table* symbol_table();
 

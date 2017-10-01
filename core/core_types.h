@@ -395,8 +395,9 @@ namespace ryu::core {
     typedef std::map<std::string, operator_t> operator_dict;
 
     struct ast_node_t;
+    typedef std::shared_ptr<ast_node_t> ast_node_shared_ptr;
 
-    typedef std::vector<ast_node_t*> ast_node_list;
+    typedef std::vector<ast_node_shared_ptr> ast_node_list;
 
     typedef boost::variant<
             radix_number_t,
@@ -409,7 +410,7 @@ namespace ryu::core {
             command_t,
             comment_t> variant_t;
 
-    typedef std::map<std::string, ast_node_t*> symbol_dict;
+    typedef std::map<std::string, ast_node_shared_ptr> symbol_dict;
 
     struct ast_node_t {
         enum tokens {
@@ -466,8 +467,8 @@ namespace ryu::core {
         tokens token;
         variant_t value;
         ast_node_list children;
-        ast_node_t* lhs = nullptr;
-        ast_node_t* rhs = nullptr;
+        ast_node_shared_ptr lhs = nullptr;
+        ast_node_shared_ptr rhs = nullptr;
     };
 
 };

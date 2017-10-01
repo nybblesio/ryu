@@ -36,7 +36,7 @@ namespace ryu::ide::text_editor {
     private:
         editor_view _view;
         bool _initialized = false;
-        command_factory _command_factory;
+        environment _command_factory;
     };
 
 };

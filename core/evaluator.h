@@ -22,7 +22,7 @@ namespace ryu::core {
 
         void symbol_table(core::symbol_table* value);
 
-        variant_t evaluate(core::result& result, const ast_node_t* node);
+        variant_t evaluate(core::result& result, const ast_node_shared_ptr& node);
 
     protected:
         void error(core::result& result, const std::string& code, const std::string& message);
