@@ -55,7 +55,7 @@ namespace ryu::core {
         bool _expired = false;
         uint32_t _duration = 0;
         uint32_t _start_time = 0;
-        timer_callable _callback;
+        timer_callable _callback {};
     };
 
 };

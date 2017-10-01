@@ -11,8 +11,8 @@
 
 namespace ryu::core {
 
-    timer::timer(uint32_t duration) : _duration(duration) {
-        _id = core::id_pool::instance()->allocate();
+    timer::timer(uint32_t duration) : _id(core::id_pool::instance()->allocate()),
+                                      _duration(duration) {
     }
 
     timer::~timer() {

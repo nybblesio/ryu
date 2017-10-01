@@ -57,9 +57,9 @@ namespace ryu::core {
         void update_active_state();
 
     private:
-        state_dict _states;
         int _pending_id = -1;
-        std::vector<int> _stack;
+        state_dict _states {};
+        std::vector<int> _stack {};
         core::state* _active = nullptr;
         core::parameter_dict _pending_params {};
         pending_state::action _pending_action = pending_state::action::none;

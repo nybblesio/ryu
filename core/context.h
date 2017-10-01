@@ -90,13 +90,13 @@ namespace ryu::core {
         virtual void on_initialize();
 
     private:
-        int _id;
-        std::string _name;
-        timer_list _timers;
-        core::rect _bounds;
-        core::state_stack _stack;
-        uint8_t _fill_color_index;
-        core::blackboard _blackboard;
+        int _id = 0;
+        std::string _name {};
+        timer_list _timers {};
+        core::rect _bounds {};
+        core::state_stack _stack {};
+        uint8_t _fill_color_index {};
+        core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
         SDL_Renderer* _renderer = nullptr;
         core::palette* _palette = nullptr;

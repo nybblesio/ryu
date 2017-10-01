@@ -206,14 +206,15 @@ namespace ryu::ide::text_editor {
 
         _header.dock(dock::styles::top);
         _header.font_family(font_family());
-        _header.bg_color(ide::context::colors::fill_color);
         _header.fg_color(ide::context::colors::info_text);
+        _header.bg_color(ide::context::colors::fill_color);
         _header.bounds().height(font_face()->line_height);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
 
         _command_line.dock(dock::styles::top);
         _command_line.font_family(font_family());
         _command_line.fg_color(ide::context::colors::text);
+        _command_line.bg_color(ide::context::colors::fill_color);
         _command_line.on_key_down([&](int keycode) {
             if (keycode == SDLK_ESCAPE) {
                 focus(id());
@@ -236,8 +237,8 @@ namespace ryu::ide::text_editor {
 
         _footer.dock(dock::styles::bottom);
         _footer.font_family(font_family());
-        _footer.bg_color(ide::context::colors::fill_color);
         _footer.fg_color(ide::context::colors::info_text);
+        _footer.bg_color(ide::context::colors::fill_color);
         _footer.bounds().height(font_face()->line_height);
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
@@ -256,7 +257,7 @@ namespace ryu::ide::text_editor {
         add_child(&_caret);
 
         dock(dock::styles::fill);
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
+        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         resize();
     }

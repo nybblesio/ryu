@@ -86,11 +86,11 @@ namespace ryu::core {
         void blackboard(const std::string& name, const std::string& value);
 
     private:
-        int _id;
+        int _id = 0;
         std::string _name;
         bool _initialized = false;
         bool _render_parent = false;
-        state_transition_callable _callback;
+        state_transition_callable _callback {};
         ryu::core::context* _context = nullptr;
     };
 };

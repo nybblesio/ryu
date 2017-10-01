@@ -29,6 +29,7 @@ namespace ryu::ide::machine_editor {
                                        _delete_button(context, "delete-button"),
                                        _name_textbox(context, "name-textbox"),
                                        _address_space_label(context, "address-space-label"),
+                                       _display_pick_list(context, "display-pick-list"),
                                        _address_space_textbox(context, "address-space-textbox") {
     }
 
@@ -104,7 +105,7 @@ namespace ryu::ide::machine_editor {
             return true;
         });
         _address_space_textbox.on_tab([&]() {
-            focus(_map_button.id());
+            focus(_display_pick_list.id());
         });
         _address_space_textbox.value(fmt::format("{0:08x}", _machine->address_space()));
         _address_space_textbox.bounds().size(
@@ -119,6 +120,20 @@ namespace ryu::ide::machine_editor {
         _display_label.bg_color(ide::context::colors::fill_color);
         _display_label.halign(core::alignment::horizontal::left);
         _display_label.bounds().size(measure_text(_display_label.value()), font_face()->line_height);
+
+        auto& displays = _display_pick_list.options();
+        displays.push_back("Wells Gardner");
+        _display_pick_list.margin({5, 0, 5, 0});
+        _display_pick_list.dock(dock::styles::left);
+        _display_pick_list.font_family(font_family());
+        _display_pick_list.fg_color(ide::context::colors::text);
+        _display_pick_list.bg_color(ide::context::colors::fill_color);
+        _display_pick_list.on_tab([&]() {
+            focus(_map_button.id());
+        });
+        _display_pick_list.bounds().size(
+                font_face()->width * _display_pick_list.length(),
+                font_face()->line_height);
 
         _map_button.margin({5, 5, 5, 5});
         _map_button.value("Map");
@@ -167,6 +182,7 @@ namespace ryu::ide::machine_editor {
         _row2_panel.bg_color(ide::context::colors::transparent);
         _row2_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _row2_panel.add_child(&_display_label);
+        _row2_panel.add_child(&_display_pick_list);
 
         _button_panel.dock(dock::styles::bottom);
         _button_panel.bounds().height(font_face()->line_height * 2);

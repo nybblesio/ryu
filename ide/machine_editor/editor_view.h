@@ -16,6 +16,7 @@
 #include <hardware/machine.h>
 #include <core/views/panel.h>
 #include <core/views/button.h>
+#include <core/views/pick_list.h>
 
 namespace ryu::ide::machine_editor {
 
@@ -51,6 +52,7 @@ namespace ryu::ide::machine_editor {
         core::button _delete_button;
         core::textbox _name_textbox;
         core::label _address_space_label;
+        core::pick_list _display_pick_list;
         core::textbox _address_space_textbox;
         hardware::machine* _machine = nullptr;
     };
