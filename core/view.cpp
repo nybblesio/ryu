@@ -17,17 +17,11 @@ namespace ryu::core {
 
     view::view(
             core::context* context,
-            core::view* parent,
             types::id type,
-            std::string name) : _id(core::id_pool::instance()->allocate()),
-                                _name(std::move(name)),
-                                _parent(parent),
+            const std::string& name) : _id(core::id_pool::instance()->allocate()),
+                                _name(name),
                                 _type(type),
                                 _context(context) {
-        if (_parent != nullptr)
-            _parent->_children.push_back(this);
-
-        enabled(true);
         visible(true);
     }
 
@@ -157,6 +151,12 @@ namespace ryu::core {
         return (_flags & config::flags::focused) != 0;
     }
 
+    void view::clear_children() {
+        for (auto child : _children)
+            child->_parent = nullptr;
+        _children.clear();
+    }
+
     void view::pop_blend_mode() {
         if (_mode_stack.empty())
             return;
@@ -277,6 +277,19 @@ namespace ryu::core {
 
     void view::font_style(uint8_t styles) {
         _font_style = styles;
+    }
+
+    void view::add_child(core::view* child) {
+        if (child == nullptr)
+            return;
+        child->_parent = this;
+        _children.push_back(child);
+    }
+
+    void view::remove_child(core::view* child) {
+        if (child == nullptr)
+            return;
+        _children.erase(std::remove(_children.begin(), _children.end(), child));
     }
 
     void view::bounds(const core::rect& value) {

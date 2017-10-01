@@ -58,7 +58,7 @@ namespace ryu::core {
 
     class font_family {
     public:
-        font_family(std::string name, int32_t size, SDL_Renderer* renderer);
+        font_family(const std::string& name, int32_t size, SDL_Renderer* renderer);
 
         ~font_family();
 

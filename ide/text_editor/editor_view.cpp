@@ -18,12 +18,11 @@ namespace ryu::ide::text_editor {
 
     editor_view::editor_view(
             core::context* context,
-            core::view* parent,
-            const std::string& name) : core::view(context, parent, core::view::types::container, name),
-                                       _caret(context, this, "editor-caret"),
-                                       _header(context, this, "header-label"),
-                                       _footer(context, this, "footer-label"),
-                                       _command_line(context, this, "command-line") {
+            const std::string& name) : core::view(context, core::view::types::container, name),
+                                       _caret(context, "editor-caret"),
+                                       _header(context, "header-label"),
+                                       _footer(context, "footer-label"),
+                                       _command_line(context, "command-line") {
     }
 
     editor_view::~editor_view() {
@@ -250,6 +249,11 @@ namespace ryu::ide::text_editor {
         _document.initialize(rows, columns);
         _document.default_attr(core::attr_t {ide::context::colors::text, core::font::styles::normal});
         _document.clear();
+
+        add_child(&_header);
+        add_child(&_command_line);
+        add_child(&_footer);
+        add_child(&_caret);
 
         dock(dock::styles::fill);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 0});

@@ -12,9 +12,9 @@
 
 namespace ryu::emulator {
 
-    context::context(std::string name) : core::context(name),
-                                         _palette(),
-                                         _emulator_state(this, "execute") {
+    context::context(const std::string& name) : core::context(name),
+                                                _palette(),
+                                                _emulator_state(this, "execute") {
         add_state(&_emulator_state);
 
         auto& black = _palette[colors::indexes::black];

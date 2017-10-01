@@ -20,10 +20,7 @@ namespace ryu::core {
     public:
         using on_key_down_callable = std::function<bool (int)>;
 
-        textbox(
-                core::context* context,
-                core::view* parent,
-                const std::string& name);
+        textbox(core::context* context, const std::string& name);
 
         void clear();
 
@@ -59,10 +56,10 @@ namespace ryu::core {
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        int _page_width;
         core::caret _caret;
+        int _page_width = 128;
         core::document _document;
-        on_key_down_callable _on_key_down;
+        on_key_down_callable _on_key_down {};
     };
 
 };

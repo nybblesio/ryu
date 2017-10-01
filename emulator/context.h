@@ -26,7 +26,7 @@ namespace ryu::emulator {
             };
         };
 
-        explicit context(std::string name);
+        explicit context(const std::string& name);
 
     protected:
         void on_initialize() override;

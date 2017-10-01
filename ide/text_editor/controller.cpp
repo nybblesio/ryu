@@ -15,7 +15,7 @@ namespace ryu::ide::text_editor {
     controller::controller(
             core::context* context,
             const std::string& name) : core::state(context, name),
-                                      _view(context, nullptr, "text-editor") {
+                                      _view(context, "text-editor") {
     }
 
     controller::~controller() {

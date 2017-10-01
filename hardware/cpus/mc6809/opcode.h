@@ -34,7 +34,7 @@ namespace ryu::hardware::mc6809 {
                 uint16_t op,
                 uint8_t cycles,
                 uint8_t mode,
-                mnemonic_set mnemonics);
+                const mnemonic_set& mnemonics);
 
         opcode(const opcode& other) : _op(other._op),
                                       _cycles(other._cycles),

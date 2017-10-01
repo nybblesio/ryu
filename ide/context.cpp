@@ -12,12 +12,12 @@
 
 namespace ryu::ide {
 
-    context::context(std::string name) : core::context(name),
-                                         _palette(),
-                                         _console_state(this, "console"),
-                                         _hex_editor_state(this, "hex editor"),
-                                         _text_editor_state(this, "text editor"),
-                                         _machine_editor_state(this, "machine editor") {
+    context::context(const std::string& name) : core::context(name),
+                                                _palette(),
+                                                _console_state(this, "console"),
+                                                _hex_editor_state(this, "hex editor"),
+                                                _text_editor_state(this, "text editor"),
+                                                _machine_editor_state(this, "machine editor") {
         add_state(
                 &_console_state,
                 [this](auto state, auto& command, auto& params) {

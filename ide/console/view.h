@@ -23,10 +23,7 @@ namespace ryu::ide::console {
     public:
         using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
 
-        view(
-                core::context* context,
-                core::view* parent,
-                const std::string& name);
+        view(core::context* context, const std::string& name);
 
         ~view() override;
 

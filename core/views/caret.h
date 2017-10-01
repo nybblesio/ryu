@@ -28,10 +28,7 @@ namespace ryu::core {
             };
         };
 
-        caret(
-                core::context* context,
-                core::view* parent,
-                const std::string& name);
+        caret(core::context* context, const std::string& name);
 
         void select();
 

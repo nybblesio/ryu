@@ -23,7 +23,7 @@ namespace ryu::core {
 
     class project {
     public:
-        explicit project(std::string name);
+        explicit project(const std::string& name);
 
         std::string name() const;
 

@@ -20,7 +20,7 @@ namespace ryu::ide::console {
     controller::controller(
             core::context* context,
             const std::string& name) : core::state(context, name),
-                                       _view(context, nullptr, "console") {
+                                       _view(context, "console") {
     }
 
     controller::~controller() {

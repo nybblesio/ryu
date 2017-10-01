@@ -15,17 +15,13 @@
 #include <core/views/textbox.h>
 #include <hardware/machine.h>
 #include <core/views/panel.h>
+#include <core/views/button.h>
 
 namespace ryu::ide::machine_editor {
 
     class editor_view : public core::view {
     public:
-        editor_view(
-                core::context* context,
-                core::view* parent,
-                const std::string& name);
-
-        ~editor_view() override;
+        editor_view(core::context* context, const std::string& name);
 
         void initialize(hardware::machine* mach);
 
@@ -48,10 +44,14 @@ namespace ryu::ide::machine_editor {
         core::panel _row1_panel;
         core::panel _row2_panel;
         core::label _name_label;
+        core::button _map_button;
+        core::button _add_button;
+        core::panel _button_panel;
+        core::label _display_label;
+        core::button _delete_button;
         core::textbox _name_textbox;
         core::label _address_space_label;
         core::textbox _address_space_textbox;
-        core::label _display_label;
         hardware::machine* _machine = nullptr;
     };
 

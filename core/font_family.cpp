@@ -13,10 +13,10 @@
 namespace ryu::core {
 
     font_family::font_family(
-            std::string name,
+            const std::string& name,
             int32_t size,
             SDL_Renderer* renderer) : _size(size),
-                                      _name(std::move(name)),
+                                      _name(name),
                                       _renderer(renderer) {
     }
 

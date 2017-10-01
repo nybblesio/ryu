@@ -18,14 +18,13 @@ namespace ryu::core {
     public:
         using on_clicked_callable = std::function<void ()>;
 
-        button(
-                core::context* context,
-                core::view* parent,
-                const std::string& name);
-
-        ~button() override;
+        button(core::context* context, const std::string& name);
 
         std::string value() const;
+
+        border::types border() const;
+
+        void border(border::types value);
 
         void value(const std::string& value);
 
@@ -46,9 +45,10 @@ namespace ryu::core {
 
     private:
         std::string _value;
-        on_clicked_callable _on_clicked;
+        on_clicked_callable _on_clicked {};
+        border::types _border = border::types::solid;
         alignment::vertical::types _valign = alignment::vertical::middle;
-        alignment::horizontal::types _halign = alignment::horizontal::none;
+        alignment::horizontal::types _halign = alignment::horizontal::center;
     };
 
 };

@@ -19,9 +19,7 @@ namespace ryu::ide::machine_editor {
 
     class controller : public ryu::core::state {
     public:
-        controller(
-                core::context* context,
-                const std::string& name);
+        controller(core::context* context, const std::string& name);
 
         hardware::machine* machine();
 

@@ -42,8 +42,8 @@ namespace ryu::core {
         }
     }
 
-    void timer::bind(timer_callable callback) {
-        _callback = std::move(callback);
+    void timer::bind(const timer_callable& callback) {
+        _callback = callback;
     }
 
 }

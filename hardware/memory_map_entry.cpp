@@ -14,13 +14,13 @@ namespace ryu::hardware {
     memory_map_entry::memory_map_entry(
             uint32_t offset,
             uint32_t size,
-            std::string name,
-            std::string description,
+            const std::string& name,
+            const std::string& description,
             const read_callable& reader,
             const write_callable& writer) : _size(size),
                                             _offset(offset),
-                                            _name(std::move(name)),
-                                            _description(std::move(description)),
+                                            _name(name),
+                                            _description(description),
                                             _read_callable(reader),
                                             _write_callable(writer) {
     }

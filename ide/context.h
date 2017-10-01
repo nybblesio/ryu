@@ -65,7 +65,7 @@ namespace ryu::ide {
             };
         };
 
-        explicit context(std::string name);
+        explicit context(const std::string& name);
 
         core::project* project();
 

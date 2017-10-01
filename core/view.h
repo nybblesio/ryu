@@ -106,11 +106,9 @@ namespace ryu::core {
             };
         };
 
-        view(
-                core::context* context,
-                core::view* parent,
-                types::id type,
-                std::string name);
+        view(core::context* context,
+             types::id type,
+             const std::string& name);
 
         virtual ~view();
 
@@ -135,6 +133,8 @@ namespace ryu::core {
         bool visible() const;
 
         bool tabstop() const;
+
+        void clear_children();
 
         view_list& children();
 
@@ -175,6 +175,10 @@ namespace ryu::core {
         void dock(dock::styles style);
 
         void font_style(uint8_t styles);
+
+        void add_child(core::view* child);
+
+        void remove_child(core::view* child);
 
         void bounds(const core::rect& value);
 
@@ -233,15 +237,14 @@ namespace ryu::core {
 
     private:
         int _id;
-        short _index;
-        uint8_t _flags;
+        short _index = 0;
         std::string _name;
         core::rect _rect {};
-        view_list _children;
-        core::padding _margin;
         uint8_t _bg_color = 0;
         uint8_t _fg_color = 0;
-        core::padding _padding;
+        view_list _children {};
+        core::padding _margin {};
+        core::padding _padding {};
         core::view* _parent = nullptr;
         types::id _type = types::control;
         on_tab_callable _on_tab_callable;
@@ -249,8 +252,9 @@ namespace ryu::core {
         core::context* _context = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
-        std::stack<SDL_BlendMode> _mode_stack;
+        uint8_t _flags = config::flags::enabled;
         dock::styles _dock = dock::styles::none;
+        std::stack<SDL_BlendMode> _mode_stack {};
         uint8_t _font_style = font::styles::normal;
     };
 

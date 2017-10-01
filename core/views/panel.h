@@ -16,10 +16,7 @@ namespace ryu::core {
 
     class panel  : public core::view {
     public:
-        panel(
-                core::context* context,
-                core::view* parent,
-                const std::string& name);
+        panel(core::context* context, const std::string& name);
 
         border::types border() const;
 

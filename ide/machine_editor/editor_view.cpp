@@ -16,20 +16,20 @@ namespace ryu::ide::machine_editor {
 
     editor_view::editor_view(
             core::context* context,
-            core::view* parent,
-            const std::string& name) : core::view(context, parent, core::view::types::container, name),
-                                       _header(context, this, "header-label"),
-                                       _footer(context, this, "footer-label"),
-                                       _row1_panel(context, this, "row1"),
-                                       _row2_panel(context, this, "row2"),
-                                       _name_label(context, &_row1_panel, "name-label"),
-                                       _name_textbox(context, &_row1_panel, "name-textbox"),
-                                       _address_space_label(context, &_row1_panel, "address-space-label"),
-                                       _address_space_textbox(context, &_row1_panel, "address-space-textbox"),
-                                       _display_label(context, &_row2_panel, "display-label") {
-    }
-
-    editor_view::~editor_view() {
+            const std::string& name) : core::view(context, core::view::types::container, name),
+                                       _header(context, "header-label"),
+                                       _footer(context, "footer-label"),
+                                       _row1_panel(context, "row1"),
+                                       _row2_panel(context, "row2"),
+                                       _name_label(context, "name-label"),
+                                       _map_button(context, "map-button"),
+                                       _add_button(context, "add-button"),
+                                       _button_panel(context, "buttons"),
+                                       _display_label(context, "display-label"),
+                                       _delete_button(context, "delete-button"),
+                                       _name_textbox(context, "name-textbox"),
+                                       _address_space_label(context, "address-space-label"),
+                                       _address_space_textbox(context, "address-space-textbox") {
     }
 
     void editor_view::on_draw() {
@@ -104,7 +104,7 @@ namespace ryu::ide::machine_editor {
             return true;
         });
         _address_space_textbox.on_tab([&]() {
-            focus(_name_textbox.id());
+            focus(_map_button.id());
         });
         _address_space_textbox.value(fmt::format("{0:08x}", _machine->address_space()));
         _address_space_textbox.bounds().size(
@@ -120,15 +120,67 @@ namespace ryu::ide::machine_editor {
         _display_label.halign(core::alignment::horizontal::left);
         _display_label.bounds().size(measure_text(_display_label.value()), font_face()->line_height);
 
+        _map_button.margin({5, 5, 5, 5});
+        _map_button.value("Map");
+        _map_button.dock(dock::styles::left);
+        _map_button.font_family(font_family());
+        _map_button.fg_color(ide::context::colors::light_grey);
+        _map_button.bg_color(ide::context::colors::light_blue);
+        _map_button.on_tab([&]() {
+            focus(_add_button.id());
+        });
+        _map_button.bounds().size(measure_text("Delete") + 50, font_face()->line_height + 30);
+
+        _add_button.margin({5, 5, 5, 5});
+        _add_button.value("Add");
+        _add_button.dock(dock::styles::left);
+        _add_button.font_family(font_family());
+        _add_button.fg_color(ide::context::colors::light_grey);
+        _add_button.bg_color(ide::context::colors::light_blue);
+        _add_button.on_tab([&]() {
+            focus(_delete_button.id());
+        });
+        _add_button.bounds().size(measure_text("Delete") + 50, font_face()->line_height + 30);
+
+        _delete_button.margin({5, 5, 5, 5});
+        _delete_button.value("Delete");
+        _delete_button.dock(dock::styles::left);
+        _delete_button.font_family(font_family());
+        _delete_button.fg_color(ide::context::colors::light_grey);
+        _delete_button.bg_color(ide::context::colors::light_blue);
+        _delete_button.on_tab([&]() {
+            focus(_name_textbox.id());
+        });
+        _delete_button.bounds().size(measure_text(_delete_button.value()) + 50, font_face()->line_height + 30);
+
         _row1_panel.dock(dock::styles::top);
         _row1_panel.bounds().height(font_face()->line_height * 2);
         _row1_panel.bg_color(ide::context::colors::transparent);
         _row1_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+        _row1_panel.add_child(&_name_label);
+        _row1_panel.add_child(&_name_textbox);
+        _row1_panel.add_child(&_address_space_label);
+        _row1_panel.add_child(&_address_space_textbox);
 
         _row2_panel.dock(dock::styles::top);
         _row2_panel.bounds().height(font_face()->line_height * 2);
         _row2_panel.bg_color(ide::context::colors::transparent);
         _row2_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+        _row2_panel.add_child(&_display_label);
+
+        _button_panel.dock(dock::styles::bottom);
+        _button_panel.bounds().height(font_face()->line_height * 2);
+        _button_panel.bg_color(ide::context::colors::transparent);
+        _button_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+        _button_panel.add_child(&_map_button);
+        _button_panel.add_child(&_add_button);
+        _button_panel.add_child(&_delete_button);
+
+        add_child(&_header);
+        add_child(&_row1_panel);
+        add_child(&_row2_panel);
+        add_child(&_footer);
+        add_child(&_button_panel);
 
         dock(dock::styles::fill);
         margin({0, 0, 0, 0});

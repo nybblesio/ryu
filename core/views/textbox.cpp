@@ -15,9 +15,8 @@ namespace ryu::core {
 
     textbox::textbox(
             core::context* context,
-            core::view* parent,
-            const std::string& name) : core::view(context, parent, types::control, name),
-                                       _caret(context, this, "textbox-caret") {
+            const std::string& name) : core::view(context, types::control, name),
+                                       _caret(context, "textbox-caret") {
     }
 
     void textbox::clear() {
@@ -71,6 +70,7 @@ namespace ryu::core {
         _caret.fg_color(fg_color());
         _caret.initialize(0, 0);
         _caret.enabled(false);
+        add_child(&_caret);
 
         padding({5, 5, 5, 5});
         size(rows, columns);

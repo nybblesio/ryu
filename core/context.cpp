@@ -18,8 +18,8 @@
 
 namespace ryu::core {
 
-    context::context(std::string name) : _id(core::id_pool::instance()->allocate()),
-                                         _name(std::move(name)) {
+    context::context(const std::string& name) : _id(core::id_pool::instance()->allocate()),
+                                                _name(name) {
     }
 
     context::~context() {

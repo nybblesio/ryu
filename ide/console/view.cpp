@@ -17,13 +17,11 @@
 
 namespace ryu::ide::console {
 
-    view::view(
-            core::context* context,
-            core::view* parent,
-            const std::string& name) : core::view(context, parent, core::view::types::container, name),
-                                       _caret(context, this, "console-caret"),
-                                       _header(context, this, "header-label"),
-                                       _footer(context, this, "footer-label") {
+    view::view(core::context* context,
+               const std::string& name) : core::view(context, core::view::types::container, name),
+                                          _caret(context, "console-caret"),
+                                          _header(context, "header-label"),
+                                          _footer(context, "footer-label") {
     }
 
     view::~view() {
@@ -67,24 +65,28 @@ namespace ryu::ide::console {
     void view::initialize() {
         _color = ryu::ide::context::colors::text;
 
-        _header.font_family(font_family());
         _header.dock(dock::styles::top);
-        _header.bg_color(ide::context::colors::fill_color);
+        _header.font_family(font_family());
         _header.fg_color(ide::context::colors::info_text);
+        _header.bg_color(ide::context::colors::fill_color);
         _header.bounds().height(font_face()->line_height);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
-        _footer.font_family(font_family());
         _footer.dock(dock::styles::bottom);
-        _footer.bg_color(ide::context::colors::fill_color);
+        _footer.font_family(font_family());
         _footer.fg_color(ide::context::colors::info_text);
+        _footer.bg_color(ide::context::colors::fill_color);
         _footer.bounds().height(font_face()->line_height);
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _caret.initialize(0, 0);
-        _caret.fg_color(ide::context::colors::caret);
         _caret.overwrite();
         _caret.font_family(font_family());
+        _caret.fg_color(ide::context::colors::caret);
+
+        add_child(&_header);
+        add_child(&_footer);
+        add_child(&_caret);
 
         dock(dock::styles::fill);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});

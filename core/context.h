@@ -20,7 +20,7 @@ namespace ryu::core {
 
     class context {
     public:
-        explicit context(std::string name);
+        explicit context(const std::string& name);
 
         virtual ~context();
 

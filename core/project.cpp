@@ -12,7 +12,7 @@
 
 namespace ryu::core {
 
-    project::project(std::string name) : _name(std::move(name)) {
+    project::project(const std::string& name) : _name(name) {
     }
 
     std::string project::name() const {
