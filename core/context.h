@@ -26,14 +26,14 @@ namespace ryu::core {
 
         virtual ~context();
 
-        void resize();
-
-        int id() const;
-
         void update(
                 uint32_t dt,
                 core::renderer& renderer,
                 std::deque<SDL_Event>& events);
+
+        void resize();
+
+        int id() const;
 
         uint8_t fg_color() const {
             return _fg_color;
@@ -57,8 +57,6 @@ namespace ryu::core {
 
         void pop_state(int to_id = -1);
 
-        void remove_timer(timer* timer);
-
         inline core::rect bounds() const {
             return _bounds;
         }
@@ -66,8 +64,6 @@ namespace ryu::core {
         void engine(core::engine* value) {
             _engine = value;
         }
-
-        void add_timer(core::timer* timer);
 
         void add_state(core::state* state);
 
@@ -112,7 +108,6 @@ namespace ryu::core {
         std::string _name {};
         uint8_t _fg_color = 0;
         uint8_t _bg_color = 0;
-        timer_list _timers {};
         core::rect _bounds {};
         core::state_stack _stack {};
         core::blackboard _blackboard {};

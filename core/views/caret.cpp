@@ -9,6 +9,7 @@
 //
 
 #include <core/timer.h>
+#include <core/timer_pool.h>
 #include "caret.h"
 
 namespace ryu::core {
@@ -107,8 +108,7 @@ namespace ryu::core {
             visible(!visible());
             t->reset();
         });
-        // TODO:
-        //context()->add_timer(&_timer);
+        timer_pool::instance()->add_timer(&_timer);
     }
 
     void caret::on_draw(core::renderer& surface) {

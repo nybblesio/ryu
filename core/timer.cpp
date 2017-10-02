@@ -8,6 +8,7 @@
 #include <SDL_timer.h>
 #include "timer.h"
 #include "id_pool.h"
+#include "timer_pool.h"
 
 namespace ryu::core {
 
@@ -16,6 +17,7 @@ namespace ryu::core {
     }
 
     timer::~timer() {
+        timer_pool::instance()->remove_timer(this);
         core::id_pool::instance()->release(_id);
     }
 

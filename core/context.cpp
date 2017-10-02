@@ -33,17 +33,6 @@ namespace ryu::core {
         renderer.set_clip_rect(_bounds);
         renderer.push_blend_mode(SDL_BLENDMODE_NONE);
 
-        for (auto it = _timers.begin(); it != _timers.end();) {
-            auto timer = *it;
-            if (timer->dead()) {
-                it = _timers.erase(it);
-                continue;
-            }
-            else
-                ++it;
-            timer->update();
-        }
-
         auto current_state_id = _stack.peek();
         if (current_state_id != -1) {
             auto active = _stack.active();
@@ -86,13 +75,6 @@ namespace ryu::core {
         _stack.pop(to_id);
     }
 
-    void context::add_timer(core::timer* timer) {
-        if (timer == nullptr)
-            return;
-        _timers.push_back(timer);
-        timer->start();
-    }
-
     void context::add_state(core::state* state) {
         if (state == nullptr)
             return;
@@ -110,12 +92,6 @@ namespace ryu::core {
             return;
         state->context(nullptr);
         _stack.remove_state(state);
-    }
-
-    void context::remove_timer(core::timer* timer) {
-        if (timer == nullptr)
-            return;
-        timer->kill();
     }
 
     void context::initialize(const core::rect& bounds) {

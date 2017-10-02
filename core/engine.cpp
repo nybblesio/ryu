@@ -11,6 +11,7 @@
 #include "state.h"
 #include "engine.h"
 #include "context.h"
+#include "timer_pool.h"
 
 namespace ryu::core {
 
@@ -47,6 +48,8 @@ namespace ryu::core {
         core::renderer surface {_renderer};
 
         while (!_quit) {
+            timer_pool::instance()->update();
+
             auto current_time = SDL_GetTicks();
             auto dt = current_time - last_time;
 
