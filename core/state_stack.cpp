@@ -9,6 +9,7 @@
 //
 
 #include "state.h"
+#include "context.h"
 #include "state_stack.h"
 
 namespace ryu::core {
@@ -55,12 +56,6 @@ namespace ryu::core {
         return _stack.empty() ? -1 : _stack.back();
     }
 
-    void state_stack::push(int id, const core::parameter_dict& params) {
-        _pending_action = pending_state::action::push;
-        _pending_params = params;
-        _pending_id = id;
-    }
-
     bool state_stack::empty() const {
         return _stack.empty();
     }
@@ -70,31 +65,12 @@ namespace ryu::core {
         _pending_id = to_id != -1 ? to_id : peek();
     }
 
-    void state_stack::draw(uint32_t dt) {
-        if (_stack.empty())
-            return;
-
-        auto count = 1;
-        for (auto it = _stack.rbegin(); it != _stack.rend(); ++it) {
-            auto state = find_state(*it);
-            if (!state->render_parent())
-                break;
-            count++;
-        }
-
-        for (auto i = _stack.size() - count; i < _stack.size(); i++) {
-            auto state = find_state(_stack[i]);
-            state->update(dt);
-            state->draw();
-        }
-    }
-
     void state_stack::update_active_state() {
         if (_active != nullptr)
             _active->deactivate();
         _active = find_state(peek());
         _active->activate(_pending_params);
-        _active->resize();
+        _active->resize(_active->context()->bounds());
     }
 
     core::state* state_stack::find_state(int id) {
@@ -117,6 +93,31 @@ namespace ryu::core {
         if (state == nullptr)
             return;
         _states.erase(state->id());
+    }
+
+    void state_stack::draw(uint32_t dt, core::renderer& renderer) {
+        if (_stack.empty())
+            return;
+
+        auto count = 1;
+        for (auto it = _stack.rbegin(); it != _stack.rend(); ++it) {
+            auto state = find_state(*it);
+            if (!state->render_parent())
+                break;
+            count++;
+        }
+
+        for (auto i = _stack.size() - count; i < _stack.size(); i++) {
+            auto state = find_state(_stack[i]);
+            state->update(dt);
+            state->draw(renderer);
+        }
+    }
+
+    void state_stack::push(int id, const core::parameter_dict& params) {
+        _pending_action = pending_state::action::push;
+        _pending_params = params;
+        _pending_id = id;
     }
 
     void state_stack::add_state(core::state* state, const state_transition_callable& callback) {

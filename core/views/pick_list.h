@@ -47,7 +47,7 @@ namespace ryu::core {
 
         bool move_row_down();
 
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw(core::renderer& surface) override;
 
         bool on_process_event(const SDL_Event* e) override;
 

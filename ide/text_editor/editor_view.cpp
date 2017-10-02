@@ -252,7 +252,7 @@ namespace ryu::ide::text_editor {
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
-    void editor_view::on_draw(SDL_Renderer* renderer) {
+    void editor_view::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
         auto pal = *palette();
 
@@ -281,7 +281,7 @@ namespace ryu::ide::text_editor {
         auto row_start = _document.row();
         auto row_stop = row_start + _metrics.page_height;
         for (auto row = row_start; row < row_stop; row++) {
-            draw_text(renderer, bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
+            surface.draw_text(font_face(), bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
 
             auto col_start = _document.column();
             auto col_end = col_start + _metrics.page_width;
@@ -293,16 +293,16 @@ namespace ryu::ide::text_editor {
                 auto color = pal[chunk.attr.color];
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
-                    push_blend_mode(renderer, SDL_BLENDMODE_BLEND);
+                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
                     auto selection_color = pal[ide::ide_context::colors::selection];
                     selection_color.alpha(0x7f);
-                    set_color(renderer, selection_color);
-                    fill_rect(renderer, core::rect{x, y, width, face->line_height});
-                    pop_blend_mode(renderer);
+                    surface.set_color(selection_color);
+                    surface.fill_rect(core::rect{x, y, width, face->line_height});
+                    surface.pop_blend_mode();
                 }
 
                 font_style(chunk.attr.style);
-                draw_text(renderer, x, y, chunk.text, color);
+                surface.draw_text(font_face(), x, y, chunk.text, color);
                 x += width;
             }
 

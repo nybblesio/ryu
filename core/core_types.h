@@ -471,4 +471,54 @@ namespace ryu::core {
         ast_node_shared_ptr rhs = nullptr;
     };
 
+    struct alignment {
+        struct horizontal {
+            enum types {
+                none,
+                left,
+                right,
+                center
+            };
+        };
+
+        struct vertical {
+            enum types {
+                none,
+                top,
+                middle,
+                bottom
+            };
+        };
+
+        static FC_AlignEnum to_font_align(horizontal::types value) {
+            FC_AlignEnum align = FC_AlignEnum::FC_ALIGN_LEFT;
+            switch (value) {
+                case horizontal::none:
+                case horizontal::left:
+                    align = FC_AlignEnum::FC_ALIGN_LEFT;
+                    break;
+                case horizontal::right:
+                    align = FC_AlignEnum::FC_ALIGN_RIGHT;
+                    break;
+                case horizontal::center:
+                    align = FC_AlignEnum::FC_ALIGN_CENTER;
+                    break;
+            }
+            return align;
+        }
+    };
+
+    struct border {
+        enum types {
+            none,
+            solid,
+            dashed,
+            rounded
+        };
+    };
+
+    class view;
+
+    typedef std::vector<view*> view_list;
+
 };

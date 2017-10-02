@@ -61,7 +61,7 @@ namespace ryu::core {
         void page_size(int page_height, int page_width);
 
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw(core::renderer& surface) override;
 
     private:
         bool clamp_row();

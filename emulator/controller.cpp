@@ -21,16 +21,16 @@ namespace ryu::emulator {
     controller::~controller() {
     }
 
-    void controller::on_draw() {
-    }
-
-    void controller::on_resize() {
-    }
-
     void controller::on_initialize() {
     }
 
     void controller::on_update(uint32_t dt) {
+    }
+
+    void controller::on_draw(core::renderer& surface) {
+    }
+
+    void controller::on_resize(const core::rect& bounds) {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

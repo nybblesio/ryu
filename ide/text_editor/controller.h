@@ -33,13 +33,13 @@ namespace ryu::ide::text_editor {
         void machine(hardware::machine* value);
 
     protected:
-        void on_draw() override;
-
-        void on_resize() override;
-
         void on_initialize() override;
 
         void on_update(uint32_t dt) override;
+
+        void on_draw(core::renderer& surface) override;
+
+        void on_resize(const core::rect& bounds) override;
 
         bool on_process_event(const SDL_Event* e) override;
 

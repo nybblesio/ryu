@@ -21,7 +21,6 @@
 namespace ryu::core {
 
     class engine {
-        friend class context;
     public:
         using resize_callable = std::function<void (const core::rect&)>;
 
@@ -30,6 +29,10 @@ namespace ryu::core {
         ~engine() = default;
 
         void quit();
+
+        int focus() const {
+            return _focused_context;
+        }
 
         void focus(int id);
 
@@ -68,7 +71,7 @@ namespace ryu::core {
         core::font_family* add_font_family(uint32_t size, const std::string& name);
 
     private:
-        SDL_Rect bounds();
+        core::rect bounds();
 
     private:
         bool _quit = false;

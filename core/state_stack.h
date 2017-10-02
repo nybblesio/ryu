@@ -11,9 +11,10 @@
 
 #pragma once
 
-#include <vector>
 #include <SDL.h>
+#include <vector>
 #include "core_types.h"
+#include "renderer.h"
 
 namespace ryu::core {
 
@@ -35,8 +36,6 @@ namespace ryu::core {
 
         bool empty() const;
 
-        void draw(uint32_t dt);
-
         void pop(int to_id = -1);
 
         inline core::state* active() {
@@ -48,6 +47,8 @@ namespace ryu::core {
         void add_state(core::state* state);
 
         void remove_state(core::state* state);
+
+        void draw(uint32_t dt, core::renderer& renderer);
 
         void push(int id, const core::parameter_dict& params);
 

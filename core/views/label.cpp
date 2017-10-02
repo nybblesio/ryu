@@ -31,20 +31,20 @@ namespace ryu::core {
         _value = value;
     }
 
-    void label::on_draw(SDL_Renderer* renderer) {
+    void label::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
 
         auto pal = *palette();
         auto& fg = pal[fg_color()];
         auto& bg = pal[bg_color()];
 
-        set_color(renderer, bg);
-        fill_rect(renderer, bounds);
-        set_font_color(fg);
-        draw_text_aligned(renderer, _value, bounds, _halign, _valign);
+        surface.set_color(bg);
+        surface.fill_rect(bounds);
+        surface.set_font_color(font_face(), fg);
+        surface.draw_text_aligned(font_face(), _value, bounds, _halign, _valign);
         if (_border != border::types::none) {
-            set_color(renderer, fg);
-            draw_rect(renderer, bounds);
+            surface.set_color(fg);
+            surface.draw_rect(bounds);
         }
     }
 

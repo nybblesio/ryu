@@ -57,7 +57,9 @@ namespace ryu::ide::machine_editor {
         _name_label.fg_color(ide::ide_context::colors::text);
         _name_label.bg_color(ide::ide_context::colors::fill_color);
         _name_label.halign(core::alignment::horizontal::right);
-        _name_label.bounds().size(measure_text("display:"), font_face()->line_height);
+        _name_label.bounds().size(
+                font_face()->measure_text("display:"),
+                font_face()->line_height);
 
         _name_textbox.enabled(true);
         _name_textbox.palette(palette());
@@ -83,7 +85,9 @@ namespace ryu::ide::machine_editor {
         _address_space_label.fg_color(ide::ide_context::colors::text);
         _address_space_label.bg_color(ide::ide_context::colors::fill_color);
         _address_space_label.halign(core::alignment::horizontal::left);
-        _address_space_label.bounds().size(measure_text(_address_space_label.value()), font_face()->line_height);
+        _address_space_label.bounds().size(
+                font_face()->measure_text(_address_space_label.value()),
+                font_face()->line_height);
 
         _address_space_textbox.enabled(true);
         _address_space_textbox.palette(palette());
@@ -111,7 +115,9 @@ namespace ryu::ide::machine_editor {
         _display_label.fg_color(ide::ide_context::colors::text);
         _display_label.bg_color(ide::ide_context::colors::fill_color);
         _display_label.halign(core::alignment::horizontal::left);
-        _display_label.bounds().size(measure_text(_display_label.value()), font_face()->line_height);
+        _display_label.bounds().size(
+                font_face()->measure_text(_display_label.value()),
+                font_face()->line_height);
 
         auto& displays = _display_pick_list.options();
         displays.push_back("Atari 19\"");
@@ -177,7 +183,9 @@ namespace ryu::ide::machine_editor {
         _map_button.on_tab([&]() {
             focus(_add_button.id());
         });
-        _map_button.bounds().size(measure_text("Delete") + 50, font_face()->line_height + 30);
+        _map_button.bounds().size(
+                font_face()->measure_text("Delete") + 50,
+                font_face()->line_height + 30);
 
         _add_button.value("Add");
         _add_button.palette(palette());
@@ -189,7 +197,9 @@ namespace ryu::ide::machine_editor {
         _add_button.on_tab([&]() {
             focus(_delete_button.id());
         });
-        _add_button.bounds().size(measure_text("Delete") + 50, font_face()->line_height + 30);
+        _add_button.bounds().size(
+                font_face()->measure_text("Delete") + 50,
+                font_face()->line_height + 30);
 
         _delete_button.value("Delete");
         _delete_button.palette(palette());
@@ -201,7 +211,9 @@ namespace ryu::ide::machine_editor {
         _delete_button.on_tab([&]() {
             focus(_name_textbox.id());
         });
-        _delete_button.bounds().size(measure_text(_delete_button.value()) + 50, font_face()->line_height + 30);
+        _delete_button.bounds().size(
+                font_face()->measure_text(_delete_button.value()) + 50,
+                font_face()->line_height + 30);
 
         _row1_panel.palette(palette());
         _row1_panel.dock(dock::styles::top);
@@ -276,7 +288,7 @@ namespace ryu::ide::machine_editor {
         update_values();
     }
 
-    void editor_view::on_draw(SDL_Renderer* renderer) {
+    void editor_view::on_draw(core::renderer& surface) {
     }
 
     void editor_view::machine(hardware::machine* value) {

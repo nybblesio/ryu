@@ -12,8 +12,8 @@
 #include <utility>
 #include "state.h"
 #include "timer.h"
-#include "context.h"
 #include "engine.h"
+#include "context.h"
 #include "id_pool.h"
 
 namespace ryu::core {
@@ -26,10 +26,53 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
+    void context::update(
+            uint32_t dt,
+            core::renderer& renderer,
+            std::deque<SDL_Event>& events) {
+        renderer.set_clip_rect(_bounds);
+        renderer.push_blend_mode(SDL_BLENDMODE_NONE);
+
+        for (auto it = _timers.begin(); it != _timers.end();) {
+            auto timer = *it;
+            if (timer->dead()) {
+                it = _timers.erase(it);
+                continue;
+            }
+            else
+                ++it;
+            timer->update();
+        }
+
+        auto current_state_id = _stack.peek();
+        if (current_state_id != -1) {
+            auto active = _stack.active();
+            if (_engine->focus() == _id) {
+                while (!events.empty()) {
+                    auto processed = active->process_event(&events.front());
+                    if (!processed) {
+                        // XXX: We may need to do something with this event
+                    }
+                    events.pop_front();
+                }
+            }
+        }
+
+        auto pal = *palette();
+        auto& fill_color = pal[_bg_color];
+        renderer.set_color(fill_color);
+        renderer.fill_rect(_bounds);
+
+        _stack.draw(dt, renderer);
+        _stack.update();
+
+        renderer.pop_blend_mode();
+    }
+
     void context::resize() {
         auto active = _stack.find_state(_stack.peek());
         if (active != nullptr)
-            active->resize();
+            active->resize(bounds());
     }
 
     int context::id() const {
@@ -55,7 +98,7 @@ namespace ryu::core {
             return;
         state->context(this);
         _stack.add_state(state);
-        state->initialize();
+        state->initialize(bounds());
     }
 
     void context::palette(core::palette* palette) {
@@ -75,6 +118,11 @@ namespace ryu::core {
         timer->kill();
     }
 
+    void context::initialize(const core::rect& bounds) {
+        _bounds = bounds;
+        on_initialize();
+    }
+
     void context::erase_blackboard(const std::string& name) {
         _blackboard.erase(name);
     }
@@ -87,57 +135,8 @@ namespace ryu::core {
         return "";
     }
 
-    void context::update(uint32_t dt, std::deque<SDL_Event>& events) {
-        auto bounds = _bounds.to_sdl_rect();
-        SDL_RenderSetClipRect(_renderer, &bounds);
-        SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_NONE);
-
-        for (auto it = _timers.begin(); it != _timers.end();) {
-            auto timer = *it;
-            if (timer->dead()) {
-                it = _timers.erase(it);
-                continue;
-            }
-            else
-                ++it;
-            timer->update();
-        }
-
-        auto current_state_id = _stack.peek();
-        if (current_state_id != -1) {
-            auto active = _stack.active();
-            if (_engine->_focused_context == _id) {
-                while (!events.empty()) {
-                    auto processed = active->process_event(&events.front());
-                    if (!processed) {
-                        // XXX: We may need to do something with this event
-                    }
-                    events.pop_front();
-                }
-            }
-        }
-
-        auto& fill_color = (*palette())[_fill_color_index];
-        SDL_SetRenderDrawColor(
-                _renderer,
-                fill_color.red(),
-                fill_color.green(),
-                fill_color.blue(),
-                fill_color.alpha());
-        SDL_RenderFillRect(_renderer, &bounds);
-
-        _stack.draw(dt);
-        _stack.update();
-    }
-
     void context::push_state(int id, const core::parameter_dict& params) {
         _stack.push(id, params);
-    }
-
-    void context::initialize(const core::rect& bounds, uint8_t color_index) {
-        _bounds = bounds;
-        _fill_color_index = color_index;
-        on_initialize();
     }
 
     void context::blackboard(const std::string& name, const std::string& value) {
@@ -149,7 +148,7 @@ namespace ryu::core {
             return;
         state->context(this);
         _stack.add_state(state, callback);
-        state->initialize();
+        state->initialize(bounds());
     }
 
 }

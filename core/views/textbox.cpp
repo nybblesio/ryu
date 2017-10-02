@@ -56,6 +56,44 @@ namespace ryu::core {
         on_resize({});
     }
 
+    void textbox::value(const std::string& value) {
+        std::stringstream stream(value);
+        _document.load(stream);
+    }
+
+    void textbox::on_draw(core::renderer& surface) {
+        auto bounds = client_bounds();
+
+        auto pal = *palette();
+        auto fg = pal[fg_color()];
+        auto& bg = pal[bg_color()];
+
+        if (!enabled() || !focused()) {
+            fg = fg - 35;
+        }
+
+        surface.set_color(bg);
+        surface.fill_rect(bounds);
+
+        surface.set_color(fg);
+        surface.set_font_color(font_face(), fg);
+
+        std::stringstream stream;
+        _document.write_line(stream, 0, 0, _page_width);
+
+        surface.draw_text_aligned(
+            font_face(),
+            stream.str(),
+            bounds,
+            alignment::horizontal::left,
+            alignment::vertical::middle);
+        surface.draw_line(
+            bounds.left(),
+            bounds.bottom(),
+            bounds.right() + 5,
+            bounds.bottom());
+    }
+
     void textbox::initialize(int rows, int columns) {
         _document.initialize(rows, columns);
         _document.clear();
@@ -69,43 +107,6 @@ namespace ryu::core {
 
         padding({5, 5, 5, 5});
         size(rows, columns);
-    }
-
-    void textbox::value(const std::string& value) {
-        std::stringstream stream(value);
-        _document.load(stream);
-    }
-
-    void textbox::on_draw(SDL_Renderer* renderer) {
-        auto bounds = client_bounds();
-
-        auto pal = *palette();
-        auto fg = pal[fg_color()];
-        auto& bg = pal[bg_color()];
-
-        if (!enabled() || !focused()) {
-            fg = fg - 35;
-        }
-
-        set_color(renderer, bg);
-        fill_rect(renderer, bounds);
-
-        set_color(renderer, fg);
-        set_font_color(fg);
-
-        std::stringstream stream;
-        _document.write_line(stream, 0, 0, _page_width);
-
-        draw_text_aligned(renderer,
-                          stream.str(),
-                          bounds,
-                          alignment::horizontal::left,
-                          alignment::vertical::middle);
-        draw_line(renderer,
-                  bounds.left(),
-                  bounds.bottom(),
-                  bounds.right() + 5,
-                  bounds.bottom());
     }
 
     bool textbox::on_process_event(const SDL_Event* e) {

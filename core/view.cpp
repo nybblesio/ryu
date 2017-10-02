@@ -26,21 +26,6 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
-    void view::draw_text(
-            SDL_Renderer* renderer,
-            int x,
-            int y,
-            const std::string& value,
-            const core::palette_entry& color) {
-        FC_DrawColor(
-                font_face()->glyph,
-                renderer,
-                x,
-                y,
-                color.to_sdl_color(),
-                value.c_str());
-    }
-
     int view::id() const {
         return _id;
     }
@@ -62,33 +47,7 @@ namespace ryu::core {
     core::view* view::parent() {
         return _parent;
     }
-
-    void view::draw_text_aligned(
-            SDL_Renderer* renderer,
-            const std::string& value,
-            const core::rect& bounds,
-            alignment::horizontal::types halign,
-            alignment::vertical::types valign) {
-        auto yoffset = 0;
-        switch (valign) {
-            case alignment::vertical::bottom:
-                yoffset = bounds.height() - font_face()->line_height;
-                break;
-            case alignment::vertical::middle:
-                yoffset = (bounds.height() - font_face()->line_height) / 2;
-                break;
-            default:
-                break;
-        }
-        auto box = SDL_Rect{bounds.left(), bounds.top() + yoffset, bounds.width(), bounds.height()};
-        FC_DrawBoxAlign(
-                font_face()->glyph,
-                renderer,
-                box,
-                alignment::to_font_align(halign),
-                value.c_str());
-    }
-
+    
     bool view::enabled() const {
         return (_flags & config::flags::enabled) != 0;
     }
@@ -219,16 +178,13 @@ namespace ryu::core {
         _children.push_back(child);
     }
 
-    void view::draw(SDL_Renderer* renderer) {
+    void view::draw(core::renderer& renderer) {
         if (!visible())
             return;
 
         on_draw(renderer);
         for (auto child : _children)
             child->draw(renderer);
-    }
-
-    void view::on_draw(SDL_Renderer* renderer) {
     }
 
     void view::remove_child(core::view* child) {
@@ -247,6 +203,9 @@ namespace ryu::core {
 
     void view::palette(core::palette* palette) {
         _palette = palette;
+    }
+
+    void view::on_draw(core::renderer& renderer) {
     }
 
     bool view::process_event(const SDL_Event* e) {
@@ -290,18 +249,6 @@ namespace ryu::core {
 
     void view::font_family(core::font_family* font) {
         _font = font;
-    }
-
-    int view::measure_text(const std::string& value) {
-        return FC_GetWidth(font_face()->glyph, value.c_str());
-    }
-
-    void view::pop_blend_mode(SDL_Renderer* renderer) {
-        if (_mode_stack.empty())
-            return;
-        auto mode = _mode_stack.top();
-        _mode_stack.pop();
-        SDL_SetRenderDrawBlendMode(renderer, mode);
     }
 
     void view::resize(const core::rect& context_bounds) {
@@ -378,41 +325,6 @@ namespace ryu::core {
 
     void view::on_tab(const view::on_tab_callable& callable) {
         _on_tab_callable = callable;
-    }
-
-    void view::set_font_color(const core::palette_entry& color) {
-        FC_SetDefaultColor(font_face()->glyph, color.to_sdl_color());
-    }
-
-    void view::draw_rect(SDL_Renderer* renderer, const core::rect& bounds) {
-        auto rect = bounds.to_sdl_rect();
-        SDL_RenderDrawRect(renderer, &rect);
-    }
-
-    void view::fill_rect(SDL_Renderer* renderer, const core::rect& bounds) {
-        auto rect = bounds.to_sdl_rect();
-        SDL_RenderFillRect(renderer, &rect);
-    }
-
-    void view::push_blend_mode(SDL_Renderer* renderer, SDL_BlendMode mode) {
-        SDL_BlendMode previous_blend_mode;
-        SDL_GetRenderDrawBlendMode(renderer, &previous_blend_mode);
-        _mode_stack.push(previous_blend_mode);
-        SDL_SetRenderDrawBlendMode(renderer, mode);
-    }
-
-
-    void view::draw_line(SDL_Renderer* renderer, int x1, int y1, int x2, int y2) {
-        SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
-    }
-
-    void view::set_color(SDL_Renderer* renderer, const core::palette_entry& color) {
-        SDL_SetRenderDrawColor(
-                renderer,
-                color.red(),
-                color.green(),
-                color.blue(),
-                color.alpha());
     }
 
 }

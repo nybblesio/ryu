@@ -19,11 +19,11 @@ namespace ryu::ide::hex_editor {
         explicit controller(const std::string& name);
 
     protected:
-        void on_draw() override;
-
         void on_initialize() override;
 
         void on_update(uint32_t dt) override;
+
+        void on_draw(core::renderer& surface) override;
 
         bool on_process_event(const SDL_Event* e) override;
 

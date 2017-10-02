@@ -23,33 +23,12 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
-    void state::draw() {
-        on_draw();
-    }
-
-    void state::resize() {
-        if (!_initialized)
-            return;
-        on_resize();
-    }
-
     int state::id() const {
         return _id;
     }
 
     void state::end_state() {
         _context->pop_state();
-    }
-
-    void state::initialize() {
-        if (!_initialized) {
-            on_initialize();
-            _initialized = true;
-            resize();
-        }
-    }
-
-    void state::on_resize() {
     }
 
     void state::deactivate() {
@@ -83,8 +62,29 @@ namespace ryu::core {
         _context = value;
     }
 
+    void state::draw(core::renderer& renderer) {
+        on_draw(renderer);
+    }
+
+    void state::resize(const core::rect& bounds) {
+        if (!_initialized)
+            return;
+        on_resize(bounds);
+    }
+
     bool state::process_event(const SDL_Event* e) {
         return on_process_event(e);
+    }
+
+    void state::on_resize(const core::rect& bounds) {
+    }
+
+    void state::initialize(const core::rect& bounds) {
+        if (!_initialized) {
+            on_initialize();
+            _initialized = true;
+            resize(bounds);
+        }
     }
 
     void state::erase_blackboard(const std::string& name) {

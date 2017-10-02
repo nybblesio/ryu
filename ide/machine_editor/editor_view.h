@@ -43,7 +43,7 @@ namespace ryu::ide::machine_editor {
 
         void on_focus_changed() override;
 
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw(core::renderer& surface) override;
 
         bool on_process_event(const SDL_Event* e) override;
 

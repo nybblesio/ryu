@@ -20,14 +20,6 @@ namespace ryu::ide::machine_editor {
                                                       _view("editor") {
     }
 
-    void controller::on_draw() {
-        _view.draw(context()->renderer());
-    }
-
-    void controller::on_resize() {
-        _view.resize(context()->bounds());
-    }
-
     void controller::on_deactivate() {
         _machine = nullptr;
     }
@@ -55,9 +47,17 @@ namespace ryu::ide::machine_editor {
         return _machine;
     }
 
+    void controller::on_draw(core::renderer& surface) {
+        _view.draw(surface);
+    }
+
     void controller::machine(hardware::machine* value) {
         _view.machine(value);
         _machine = value;
+    }
+
+    void controller::on_resize(const core::rect& bounds) {
+        _view.resize(bounds);
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

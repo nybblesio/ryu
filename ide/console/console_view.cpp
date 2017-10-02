@@ -116,7 +116,7 @@ namespace ryu::ide::console {
         _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
-    void console_view::on_draw(SDL_Renderer* renderer) {
+    void console_view::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
         auto pal = *palette();
 
@@ -145,13 +145,13 @@ namespace ryu::ide::console {
                 auto color = pal[chunk.attr.color];
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
-                    set_color(renderer, color);
+                    surface.set_color(color);
                     color = pal[ide::ide_context::colors::fill_color];
-                    fill_rect(renderer, core::rect{x, y, width, face->line_height});
+                    surface.fill_rect(core::rect{x, y, width, face->line_height});
                 }
 
                 font_style(chunk.attr.style);
-                draw_text(renderer, x, y, chunk.text, color);
+                surface.draw_text(font_face(), x, y, chunk.text, color);
                 x += width;
             }
             y += face->line_height;

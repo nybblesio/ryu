@@ -11,6 +11,7 @@
 #include <string>
 #include <SDL_events.h>
 #include <SDL_render.h>
+#include "renderer.h"
 #include "core_types.h"
 
 namespace ryu::core {
@@ -21,13 +22,7 @@ namespace ryu::core {
 
         virtual ~state();
 
-        void draw();
-
         int id() const;
-
-        void resize();
-
-        void initialize();
 
         void deactivate();
 
@@ -43,6 +38,10 @@ namespace ryu::core {
 
         void context(core::context* value);
 
+        void draw(core::renderer& renderer);
+
+        void resize(const core::rect& bounds);
+
         bool process_event(const SDL_Event* e);
 
         inline core::context* context() const {
@@ -52,6 +51,8 @@ namespace ryu::core {
         bool operator< (const state& rhs) const {
             return _id < rhs._id;
         }
+
+        void initialize(const core::rect& bounds);
 
         bool operator== (const state& rhs) const {
             return _id == rhs._id;
@@ -66,10 +67,6 @@ namespace ryu::core {
     protected:
         void end_state();
 
-        virtual void on_resize();
-
-        virtual void on_draw() = 0;
-
         virtual void on_deactivate();
 
         virtual void on_initialize() = 0;
@@ -77,6 +74,10 @@ namespace ryu::core {
         virtual void on_update(uint32_t dt) = 0;
 
         void erase_blackboard(const std::string& name);
+
+        virtual void on_resize(const core::rect& bounds);
+
+        virtual void on_draw(core::renderer& renderer) = 0;
 
         virtual bool on_process_event(const SDL_Event* e) = 0;
 

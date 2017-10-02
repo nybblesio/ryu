@@ -20,59 +20,10 @@
 #include "palette.h"
 #include "context.h"
 #include "padding.h"
+#include "renderer.h"
 #include "font_family.h"
 
 namespace ryu::core {
-
-    struct alignment {
-        struct horizontal {
-            enum types {
-                none,
-                left,
-                right,
-                center
-            };
-        };
-
-        struct vertical {
-            enum types {
-                none,
-                top,
-                middle,
-                bottom
-            };
-        };
-
-        static FC_AlignEnum to_font_align(horizontal::types value) {
-            FC_AlignEnum align = FC_AlignEnum::FC_ALIGN_LEFT;
-            switch (value) {
-                case horizontal::none:
-                case horizontal::left:
-                    align = FC_AlignEnum::FC_ALIGN_LEFT;
-                    break;
-                case horizontal::right:
-                    align = FC_AlignEnum::FC_ALIGN_RIGHT;
-                    break;
-                case horizontal::center:
-                    align = FC_AlignEnum::FC_ALIGN_CENTER;
-                    break;
-            }
-            return align;
-        }
-    };
-
-    struct border {
-        enum types {
-            none,
-            solid,
-            dashed,
-            rounded
-        };
-    };
-
-    class view;
-
-    typedef std::vector<view*> view_list;
 
     class view {
     public:
@@ -170,7 +121,7 @@ namespace ryu::core {
 
         void add_child(core::view* child);
 
-        void draw(SDL_Renderer* renderer);
+        void draw(core::renderer& renderer);
 
         void remove_child(core::view* child);
 
@@ -197,45 +148,15 @@ namespace ryu::core {
         }
 
     protected:
-        void draw_text(
-                SDL_Renderer* renderer,
-                int x,
-                int y,
-                const std::string& value,
-                const core::palette_entry& color);
-
         void focus(bool value);
-
-        void draw_text_aligned(
-                SDL_Renderer* renderer,
-                const std::string& value,
-                const core::rect& bounds,
-                alignment::horizontal::types halign,
-                alignment::vertical::types valign);
 
         virtual void on_focus_changed();
 
-        int measure_text(const std::string& value);
-
-        void pop_blend_mode(SDL_Renderer* renderer);
-
-        virtual void on_draw(SDL_Renderer* renderer);
+        virtual void on_draw(core::renderer& renderer);
 
         virtual bool on_process_event(const SDL_Event* e);
 
-        void set_font_color(const core::palette_entry& color);
-
         virtual void on_resize(const core::rect& context_bounds);
-
-        void draw_rect(SDL_Renderer* renderer, const core::rect& bounds);
-
-        void fill_rect(SDL_Renderer* renderer, const core::rect& bounds);
-
-        void push_blend_mode(SDL_Renderer* renderer, SDL_BlendMode mode);
-
-        void draw_line(SDL_Renderer* renderer, int x1, int y1, int x2, int y2);
-
-        void set_color(SDL_Renderer* renderer, const core::palette_entry& color);
 
     private:
         int _id;
@@ -254,7 +175,6 @@ namespace ryu::core {
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
         dock::styles _dock = dock::styles::none;
-        std::stack<SDL_BlendMode> _mode_stack {};
         uint8_t _font_style = font::styles::normal;
         uint8_t _flags = config::flags::enabled | config::flags::visible;
     };

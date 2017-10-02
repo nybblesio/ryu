@@ -23,7 +23,7 @@ namespace ryu::core {
         void border(border::types value);
 
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw(core::renderer& surface) override;
 
     private:
         border::types _border = border::types::none;

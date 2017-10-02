@@ -25,14 +25,6 @@ namespace ryu::ide::console {
     controller::~controller() {
     }
 
-    void controller::on_draw() {
-        _view.draw(context()->renderer());
-    }
-
-    void controller::on_resize() {
-        _view.resize(context()->bounds());
-    }
-
     void controller::on_initialize() {
         _view.palette(context()->palette());
         _view.font_family(context()->engine()->find_font_family("hack"));
@@ -51,6 +43,14 @@ namespace ryu::ide::console {
     }
 
     void controller::on_update(uint32_t dt) {
+    }
+
+    void controller::on_draw(core::renderer& surface) {
+        _view.draw(surface);
+    }
+
+    void controller::on_resize(const core::rect& bounds) {
+        _view.resize(bounds);
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

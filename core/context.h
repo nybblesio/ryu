@@ -15,6 +15,7 @@
 #include "rect.h"
 #include "engine.h"
 #include "palette.h"
+#include "renderer.h"
 #include "state_stack.h"
 
 namespace ryu::core {
@@ -29,7 +30,26 @@ namespace ryu::core {
 
         int id() const;
 
-        void initialize(const core::rect& bounds, uint8_t color_index);
+        void update(
+                uint32_t dt,
+                core::renderer& renderer,
+                std::deque<SDL_Event>& events);
+
+        uint8_t fg_color() const {
+            return _fg_color;
+        }
+
+        uint8_t bg_color() const {
+            return _bg_color;
+        }
+
+        void fg_color(uint8_t index) {
+            _fg_color = index;
+        }
+
+        void bg_color(uint8_t index) {
+            _bg_color = index;
+        }
 
         inline int peek_state() const {
             return _stack.peek();
@@ -39,18 +59,17 @@ namespace ryu::core {
 
         void remove_timer(timer* timer);
 
-        void add_timer(core::timer* timer);
-
-        void add_state(core::state* state);
-
         inline core::rect bounds() const {
             return _bounds;
         }
 
         void engine(core::engine* value) {
             _engine = value;
-            _renderer = _engine->_renderer;
         }
+
+        void add_timer(core::timer* timer);
+
+        void add_state(core::state* state);
 
         void palette(core::palette* palette);
 
@@ -58,10 +77,6 @@ namespace ryu::core {
 
         inline core::engine* engine() const {
             return _engine;
-        }
-
-        inline SDL_Renderer* renderer() const {
-            return _renderer;
         }
 
         inline core::palette* palette() const {
@@ -72,6 +87,8 @@ namespace ryu::core {
             return _stack.find_state(id);
         }
 
+        void initialize(const core::rect& bounds);
+
         inline void bounds(const core::rect& value) {
             _bounds = value;
             resize();
@@ -80,8 +97,6 @@ namespace ryu::core {
         void erase_blackboard(const std::string& name);
 
         std::string blackboard(const std::string& name) const;
-
-        void update(uint32_t dt, std::deque<SDL_Event>& events);
 
         void push_state(int id, const core::parameter_dict& params);
 
@@ -95,13 +110,13 @@ namespace ryu::core {
     private:
         int _id = 0;
         std::string _name {};
+        uint8_t _fg_color = 0;
+        uint8_t _bg_color = 0;
         timer_list _timers {};
         core::rect _bounds {};
         core::state_stack _stack {};
-        uint8_t _fill_color_index {};
         core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
-        SDL_Renderer* _renderer = nullptr;
         core::palette* _palette = nullptr;
     };
 

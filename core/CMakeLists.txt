@@ -15,6 +15,7 @@ add_library(
         project.cpp project.h
         padding.cpp padding.h
         document.cpp document.h
+        renderer.cpp renderer.h
         selection.cpp selection.h
         evaluator.cpp evaluator.h
         state_stack.cpp state_stack.h

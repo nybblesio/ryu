@@ -35,7 +35,7 @@ namespace ryu::core {
         void halign(alignment::horizontal::types value);
 
     protected:
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw(core::renderer& surface) override;
 
     private:
         std::string _value;

@@ -111,16 +111,16 @@ namespace ryu::core {
         //context()->add_timer(&_timer);
     }
 
-    void caret::on_draw(SDL_Renderer* renderer) {
+    void caret::on_draw(core::renderer& surface) {
         if (!enabled())
             return;
 
-        push_blend_mode(renderer, SDL_BLENDMODE_BLEND);
+        surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
         auto pal = *palette();
         auto caret_color = pal[fg_color()];
         caret_color.alpha(0x7f);
-        set_color(renderer, caret_color);
+        surface.set_color(caret_color);
 
         auto parent_bounds = parent()->client_bounds();
         auto& rect = bounds();
@@ -129,9 +129,9 @@ namespace ryu::core {
                 (parent_bounds.left() + (_column * rect.width())) + pad.left(),
                 (parent_bounds.top() + (_row * rect.height())) + pad.top());
         rect.size(font_face()->width, font_face()->line_height);
-        fill_rect(renderer, rect);
+        surface.fill_rect(rect);
 
-        pop_blend_mode(renderer);
+        surface.pop_blend_mode();
     }
 
     void caret::page_size(int page_height, int page_width) {

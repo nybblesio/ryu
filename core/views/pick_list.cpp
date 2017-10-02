@@ -91,7 +91,7 @@ namespace ryu::core {
         _value = value;
     }
 
-    void pick_list::on_draw(SDL_Renderer* renderer) {
+    void pick_list::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
 
         auto pal = *palette();
@@ -102,22 +102,23 @@ namespace ryu::core {
             fg = fg - 35;
         }
 
-        set_color(renderer, bg);
-        fill_rect(renderer, bounds);
+        surface.set_color(bg);
+        surface.fill_rect(bounds);
 
-        set_font_color(fg);
-        set_color(renderer, fg);
+        surface.set_font_color(font_face(), fg);
+        surface.set_color(fg);
 
-        draw_text_aligned(renderer,
-                          _value,
-                          bounds,
-                          alignment::horizontal::left,
-                          alignment::vertical::middle);
+        surface.draw_text_aligned(
+            font_face(),
+            _value,
+            bounds,
+            alignment::horizontal::left,
+            alignment::vertical::middle);
         if (_border == border::types::solid) {
-            set_color(renderer, fg);
-            draw_rect(renderer, bounds);
+            surface.set_color(fg);
+            surface.draw_rect(bounds);
         } else {
-            draw_line(renderer, bounds.left(), bounds.bottom(), bounds.right() + 5, bounds.bottom());
+            surface.draw_line(bounds.left(), bounds.bottom(), bounds.right() + 5, bounds.bottom());
         }
 
         if (focused()) {
@@ -125,8 +126,8 @@ namespace ryu::core {
                             bounds.bottom(),
                             bounds.width() + 6,
                             (font_face()->line_height * (_visibile_items + 1))};
-            set_color(renderer, fg);
-            draw_rect(renderer, box);
+            surface.set_color(fg);
+            surface.draw_rect(box);
 
             auto y = box.top() + 4;
             auto start = _row;
@@ -135,18 +136,19 @@ namespace ryu::core {
             for (auto row = start; row < stop; ++row) {
                 core::rect line = {bounds.left() + 4, y, bounds.width() - 2, font_face()->line_height};
                 if (row == _row + _selection) {
-                    push_blend_mode(renderer, SDL_BLENDMODE_BLEND);
+                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
                     auto selection_color = pal[fg_color()];
                     selection_color.alpha(0x5f);
-                    set_color(renderer, selection_color);
-                    fill_rect(renderer, line);
-                    pop_blend_mode(renderer);
+                    surface.set_color(selection_color);
+                    surface.fill_rect(line);
+                    surface.pop_blend_mode();
                 }
-                draw_text_aligned(renderer,
-                                  _options[row],
-                                  line,
-                                  alignment::horizontal::left,
-                                  alignment::vertical::middle);
+                surface.draw_text_aligned(
+                    font_face(),
+                    _options[row],
+                    line,
+                    alignment::horizontal::left,
+                    alignment::vertical::middle);
                 y += font_face()->line_height + 1;
             }
         }

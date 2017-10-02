@@ -21,12 +21,12 @@ namespace ryu::core {
         _quit = true;
     }
 
-    SDL_Rect engine::bounds() {
-        return {0, 0, _display_size.first, _display_size.second};
-    }
-
     void engine::focus(int id) {
         _focused_context = id;
+    }
+
+    core::rect engine::bounds() {
+        return {0, 0, _display_size.first, _display_size.second};
     }
 
     short engine::display_width() const {
@@ -44,6 +44,8 @@ namespace ryu::core {
         auto last_fps_time = last_time;
         SDL_StartTextInput();
 
+        core::renderer surface {_renderer};
+
         while (!_quit) {
             auto current_time = SDL_GetTicks();
             auto dt = current_time - last_time;
@@ -55,11 +57,11 @@ namespace ryu::core {
                 last_fps_time = last_time;
             }
 
-            SDL_SetRenderDrawColor(_renderer, 0x00, 0x00, 0x00, 0xff);
-            SDL_RenderClear(_renderer);
+            surface.set_color({0x00, 0x00, 0x00, 0xff});
+            surface.clear();
 
             std::deque<SDL_Event> events;
-            SDL_Event e{};
+            SDL_Event e {};
             while (SDL_PollEvent(&e) != 0) {
                 switch (e.type) {
                     case SDL_WINDOWEVENT:
@@ -82,21 +84,19 @@ namespace ryu::core {
             }
 
             for (auto& it : _contexts)
-                it.second->update(dt, events);
+                it.second->update(dt, surface, events);
 
-            auto clip_rect = bounds();
-            SDL_RenderSetClipRect(_renderer, &clip_rect);
-            FC_SetDefaultColor(_font->glyph, FC_MakeColor(0xff, 0xff, 0xff, 0xff));
+            surface.set_clip_rect(bounds());
             auto fps = fmt::format("FPS: {}", (int) average_fps);
-            int fps_width = FC_GetWidth(_font->glyph, fps.c_str());
-            FC_Draw(
-                    _font->glyph,
-                    _renderer,
+            auto fps_width = surface.measure_text(_font, fps);
+            surface.draw_text(
+                    _font,
                     display_width() - (fps_width + 5),
                     display_height() - (_font->line_height + 4),
-                    fps.c_str());
+                    fps,
+                    {0xff, 0xff, 0xff, 0xff});
 
-            SDL_RenderPresent(_renderer);
+            surface.present();
 
             ++frame_count;
             last_time = current_time;

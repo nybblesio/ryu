@@ -27,8 +27,8 @@ namespace ryu::core {
         _border = value;
     }
 
-    void button::on_draw(SDL_Renderer* renderer) {
-        push_blend_mode(renderer, SDL_BLENDMODE_BLEND);
+    void button::on_draw(core::renderer& surface) {
+        surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
         auto bounds = client_bounds();
 
@@ -44,18 +44,18 @@ namespace ryu::core {
             bg = bg - 35;
         }
 
-        set_color(renderer, bg);
-        fill_rect(renderer, bounds);
+        surface.set_color(bg);
+        surface.fill_rect(bounds);
 
-        set_font_color(fg);
-        draw_text_aligned(renderer, _value, bounds, _halign, _valign);
+        surface.set_font_color(font_face(), fg);
+        surface.draw_text_aligned(font_face(), _value, bounds, _halign, _valign);
 
         if (_border == border::types::solid) {
-            set_color(renderer, fg);
-            draw_rect(renderer, bounds);
+            surface.set_color(fg);
+            surface.draw_rect(bounds);
         }
 
-        pop_blend_mode(renderer);
+        surface.pop_blend_mode();
     }
 
     void button::value(const std::string& value) {

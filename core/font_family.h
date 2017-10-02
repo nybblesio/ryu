@@ -54,6 +54,14 @@ namespace ryu::core {
         int32_t size {};
         int32_t line_height {};
         FC_Font* glyph = nullptr;
+
+        int measure_chars(int count) const {
+            return width * count;
+        }
+
+        int measure_text(const std::string& value) const {
+            return FC_GetWidth(glyph, value.c_str());
+        }
     };
 
     class font_family {
