@@ -30,11 +30,11 @@ namespace ryu::core {
             return _document.columns();
         }
 
-        void size(int rows, int columns);
-
         void value(const std::string& value);
 
-        void initialize(int rows, int columns);
+        void size(uint8_t rows, uint8_t columns);
+
+        void initialize(uint8_t rows, uint8_t columns);
 
         void on_key_down(const on_key_down_callable& callable);
 
@@ -45,9 +45,9 @@ namespace ryu::core {
 
         void on_focus_changed() override;
 
-        bool caret_left(int columns = 1);
+        bool caret_left(uint8_t columns = 1);
 
-        bool caret_right(int columns = 1);
+        bool caret_right(uint8_t columns = 1);
 
         void on_draw(core::renderer& surface) override;
 
@@ -57,8 +57,8 @@ namespace ryu::core {
 
     private:
         core::caret _caret;
-        int _page_width = 128;
         core::document _document;
+        uint8_t _page_width = 128;
         on_key_down_callable _on_key_down {};
     };
 

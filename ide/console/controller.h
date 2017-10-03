@@ -8,13 +8,13 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <SDL_events.h>
 #include <core/state.h>
 #include <core/views/caret.h>
-#include <ide/environment.h>
+#include <core/views/label.h>
+#include <core/views/dock_layout_panel.h>
 #include "console_view.h"
 
 namespace ryu::ide::console {
@@ -23,9 +23,12 @@ namespace ryu::ide::console {
     public:
         explicit controller(const std::string& name);
 
-        ~controller() override;
-
     protected:
+        struct metrics_t {
+            const int left_padding = 10;
+            const int right_padding = 10;
+        };
+
         void on_initialize() override;
 
         void on_update(uint32_t dt) override;
@@ -39,9 +42,12 @@ namespace ryu::ide::console {
         void on_activate(const core::parameter_dict& params) override;
 
     private:
+        metrics_t _metrics;
+        core::label _header;
+        core::label _footer;
         bool _show_banner = true;
-        environment _environment;
-        console::console_view _view;
+        console::console_view _console;
+        core::dock_layout_panel _layout_panel;
     };
 
 };

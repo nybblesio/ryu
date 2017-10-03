@@ -20,95 +20,120 @@ namespace ryu::core {
 
     void caret::select() {
         _mode = mode::types::select;
+        raise_caret_changed();
     }
 
     void caret::insert() {
         _mode = mode::types::insert;
-    }
-
-    int caret::row() const {
-        return _row;
+        raise_caret_changed();
     }
 
     void caret::overwrite() {
         _mode = mode::types::overwrite;
+        raise_caret_changed();
     }
 
-    bool caret::clamp_row() {
-        if (_row < 0) {
-            _row = 0;
-            return true;
-        }
-        if (_row > _page_height - 1) {
-            _row = _page_height - 1;
-            return true;
-        }
-        return false;
+    uint8_t caret::row() const {
+        return _row;
     }
 
-    bool caret::row(int row) {
+    bool caret::row(uint8_t row) {
         _row = row;
-        return clamp_row();
+        auto clamped = clamp_row(_row);
+        raise_caret_changed();
+        return clamped;
     }
 
-    bool caret::up(int rows) {
+    bool caret::up(uint8_t rows) {
+        auto last_row = _row;
         _row -= rows;
-        return clamp_row();
+        auto clamped = clamp_row(last_row);
+        raise_caret_changed();
+        return clamped;
     }
 
-    int caret::column() const {
+    uint8_t caret::column() const {
         return _column;
     }
 
-    bool caret::clamp_column() {
-        if (_column < 0) {
-            _column = 0;
-            return true;
-        }
-        if (_column > _page_width - 1) {
-            _column = _page_width - 1;
-            return true;
-        }
-        return false;
-    }
-
-    bool caret::down(int rows) {
+    bool caret::down(uint8_t rows) {
         _row += rows;
-        return clamp_row();
+        auto clamped = clamp_row(_row);
+        raise_caret_changed();
+        return clamped;
     }
 
     void caret::column_select() {
         _mode = mode::types::column_select;
+        raise_caret_changed();
     }
 
-    bool caret::left(int columns) {
+    bool caret::left(uint8_t columns) {
+        auto last_col = _column;
         _column -= columns;
-        return clamp_column();
+        auto clamped = clamp_column(last_col);
+        raise_caret_changed();
+        return clamped;
     }
 
-    bool caret::right(int columns) {
+    bool caret::right(uint8_t columns) {
         _column += columns;
-        return clamp_column();
+        auto clamped = clamp_column(_column);
+        raise_caret_changed();
+        return clamped;
     }
 
-    bool caret::column(int column) {
+    bool caret::column(uint8_t column) {
         _column = column;
-        return clamp_column();
+        auto clamped = clamp_column(_column);
+        raise_caret_changed();
+        return clamped;
+    }
+
+    void caret::raise_caret_changed() {
+        if (_caret_changed_callback != nullptr)
+            _caret_changed_callback();
     }
 
     caret::mode::types caret::mode() const {
         return _mode;
     }
 
-    void caret::initialize(int row, int column) {
+    void caret::initialize(uint8_t row, uint8_t column) {
         _row = row;
         _column = column;
-
+        raise_caret_changed();
         _timer.bind([&](timer* t) {
             visible(!visible());
             t->reset();
         });
         timer_pool::instance()->add_timer(&_timer);
+    }
+
+    bool caret::clamp_row(uint8_t last_row) {
+        if (_row > last_row) {
+            _row = last_row;
+            return true;
+        }
+        auto clamp = static_cast<uint8_t>(_page_height > 0 ? _page_height - 1 : 0);
+        if (_row > clamp) {
+            _row = clamp;
+            return true;
+        }
+        return false;
+    }
+
+    bool caret::clamp_column(uint8_t last_col) {
+        if (_column > last_col) {
+            _column = last_col;
+            return true;
+        }
+        auto clamp = static_cast<uint8_t>(_page_width > 0 ? _page_width - 1 : 0);
+        if (_column > clamp) {
+            _column = clamp;
+            return true;
+        }
+        return false;
     }
 
     void caret::on_draw(core::renderer& surface) {
@@ -134,9 +159,15 @@ namespace ryu::core {
         surface.pop_blend_mode();
     }
 
-    void caret::page_size(int page_height, int page_width) {
+    void caret::page_size(uint8_t page_height, uint8_t page_width) {
         _page_width = page_width;
         _page_height = page_height;
+        clamp_row(_row);
+        clamp_column(_column);
+    }
+
+    void caret::on_caret_changed(const caret::caret_changed_callable& callable) {
+        _caret_changed_callback = callable;
     }
 
 }

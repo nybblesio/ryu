@@ -19,6 +19,8 @@ namespace ryu::core {
 
     class caret : public core::view {
     public:
+        using caret_changed_callable = std::function<void ()>;
+
         struct mode {
             enum types {
                 insert = 1,
@@ -36,45 +38,50 @@ namespace ryu::core {
 
         void overwrite();
 
+        uint8_t row() const;
+
         void column_select();
 
-        bool up(int rows);
+        bool row(uint8_t row);
 
-        bool down(int rows);
+        bool up(uint8_t rows);
 
-        int row() const;
+        uint8_t column() const;
 
-        bool row(int row);
-
-        bool right(int columns);
-
-        bool left(int columns);
-
-        int column() const;
-
-        bool column(int column);
+        bool down(uint8_t rows);
 
         mode::types mode() const;
 
-        void initialize(int row, int column);
+        bool left(uint8_t columns);
 
-        void page_size(int page_height, int page_width);
+        bool right(uint8_t columns);
+
+        bool column(uint8_t column);
+
+        void initialize(uint8_t row, uint8_t column);
+
+        void page_size(uint8_t page_height, uint8_t page_width);
+
+        void on_caret_changed(const caret_changed_callable& callable);
 
     protected:
+        void raise_caret_changed();
+
         void on_draw(core::renderer& surface) override;
 
     private:
-        bool clamp_row();
+        bool clamp_row(uint8_t last_row);
 
-        bool clamp_column();
+        bool clamp_column(uint8_t last_col);
 
     private:
-        int _row = 0;
-        int _column = 0;
+        uint8_t _row = 0;
+        uint8_t _column = 0;
         core::timer _timer;
-        int _page_width = 0;
-        int _page_height = 0;
+        uint8_t _page_width = 0;
+        uint8_t _page_height = 0;
         mode::types _mode = mode::types::insert;
+        caret_changed_callable _caret_changed_callback;
     };
 
 };

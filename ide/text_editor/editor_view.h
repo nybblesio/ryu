@@ -11,10 +11,11 @@
 #pragma once
 
 #include <core/view.h>
+#include <core/project.h>
 #include <core/document.h>
 #include <core/selection.h>
 #include <core/views/caret.h>
-#include <core/views/textbox.h>
+#include <hardware/machine.h>
 
 namespace ryu::ide::text_editor {
 
@@ -22,20 +23,31 @@ namespace ryu::ide::text_editor {
 
     class editor_view : public core::view {
     public:
-        using char_action_callable = std::function<void (int, int)>;
-        using execute_command_callable = std::function<void (core::result&, const std::string&)>;
+        using document_changed_callable = std::function<void (const core::document&)>;
+        using caret_changed_callable = std::function<void (const core::caret&)>;
+        using char_action_callable = std::function<void (uint32_t, uint16_t)>;
 
         explicit editor_view(const std::string& name);
 
-        ~editor_view() override;
-
         void clear();
 
-        void goto_line(int row);
+        void goto_line(uint32_t row);
 
         core::project* project();
 
+        int page_width() const {
+            return _metrics.page_width;
+        }
+
+        int page_height() const {
+            return _metrics.page_height;
+        }
+
         hardware::machine* machine();
+
+        std::string filename() const {
+            return _document.filename();
+        }
 
         void load(const fs::path& path);
 
@@ -45,22 +57,26 @@ namespace ryu::ide::text_editor {
 
         void find(const std::string& needle);
 
-        void initialize(int rows, int columns);
-
         void machine(hardware::machine* value);
 
-        void on_execute_command(const execute_command_callable& callable);
+        void initialize(uint32_t rows, uint16_t columns);
 
-        void on_transition(const core::state_transition_callable& callable);
+        void on_caret_changed(const caret_changed_callable& callable);
+
+        void on_document_changed(const document_changed_callable& callable);
 
     protected:
         struct metrics_t {
-            int page_width;
-            int page_height;
+            uint8_t page_width;
+            uint8_t page_height;
             int line_number_width;
             const int left_padding = 10;
             const int right_padding = 10;
         };
+
+        void raise_caret_changed();
+
+        void raise_document_changed();
 
         void on_draw(core::renderer& surface) override;
 
@@ -95,9 +111,9 @@ namespace ryu::ide::text_editor {
 
         void delete_selection();
 
-        void caret_up(int rows = 1);
+        void caret_up(uint8_t rows = 1);
 
-        void caret_down(int rows = 1);
+        void caret_down(uint8_t rows = 1);
 
         void calculate_page_metrics();
 
@@ -105,9 +121,9 @@ namespace ryu::ide::text_editor {
 
         void on_focus_changed() override;
 
-        void caret_left(int columns = 1);
+        void caret_left(uint8_t columns = 1);
 
-        bool caret_right(int columns = 1);
+        bool caret_right(uint8_t columns = 1);
 
         void insert_text(const char* text);
 
@@ -116,19 +132,16 @@ namespace ryu::ide::text_editor {
         void for_each_selection_char(const char_action_callable& action);
 
     private:
-        int _vcol;
-        int _vrow;
+        uint16_t _vcol;
+        uint32_t _vrow;
         core::caret _caret;
         metrics_t _metrics;
-        core::label _header;
-        core::label _footer;
         core::document _document;
         core::selection _selection;
-        core::textbox _command_line;
         core::project* _project = nullptr;
         hardware::machine* _machine = nullptr;
-        execute_command_callable _execute_command_callable;
-        core::state_transition_callable _transition_callable;
+        caret_changed_callable _caret_changed_callback;
+        document_changed_callable _document_changed_callback;
     };
 
 };

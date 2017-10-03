@@ -37,6 +37,8 @@ namespace ryu::core {
     protected:
         void on_draw(core::renderer& surface) override;
 
+        void on_resize(const core::rect& context_bounds) override;
+
     private:
         std::string _value;
         border::types _border = border::types::none;

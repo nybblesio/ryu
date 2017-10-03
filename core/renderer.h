@@ -45,6 +45,8 @@ namespace ryu::core {
                 const font_t* font_face,
                 const core::palette_entry& color);
 
+        void pop_clip_rect();
+
         void pop_blend_mode();
 
         void draw_text_aligned(
@@ -62,12 +64,15 @@ namespace ryu::core {
 
         void set_clip_rect(const core::rect& bounds);
 
+        void push_clip_rect(const core::rect& bounds);
+
         void draw_line(int x1, int y1, int x2, int y2);
 
         void set_color(const core::palette_entry& color);
 
     private:
         SDL_Renderer* _surface = nullptr;
+        std::stack<SDL_Rect> _clip_stack {};
         std::stack<SDL_BlendMode> _mode_stack {};
     };
 

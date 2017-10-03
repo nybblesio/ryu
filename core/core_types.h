@@ -517,6 +517,17 @@ namespace ryu::core {
         };
     };
 
+    struct dock {
+        enum styles : uint8_t {
+            none,
+            bottom,
+            fill,
+            left,
+            right,
+            top
+        };
+    };
+
     class view;
 
     typedef std::vector<view*> view_list;

@@ -14,30 +14,23 @@
 
 namespace ryu::core {
 
-    int document::spaces_to_prev_tabstop(int column, int tabsize) {
-        auto spaces = 0;
-        if (column % tabsize == 0)
-            column--;
-        for (auto j = column; j > column - tabsize; j--) {
-            if (j % tabsize == 0) break;
-            spaces++;
-        }
-        return spaces;
-    }
-
-    int document::spaces_to_next_tabstop(int column, int tabsize) {
-        auto spaces = 0;
-        if (column % tabsize == 0)
-            column++;
-        for (auto j = column; j < column + tabsize; j++) {
-            if (j % tabsize == 0) break;
-            spaces++;
-        }
-        return spaces;
+    void document::home() {
+        _column = 0;
+        raise_document_changed();
     }
 
     void document::clear() {
+        _row = 0;
+        _column = 0;
         _lines.clear();
+        raise_document_changed();
+    }
+
+    void document::page_up() {
+        auto last_row = _row;
+        _row -= _page_height;
+        clamp_row(last_row);
+        raise_document_changed();
     }
 
     void document::shift_up() {
@@ -46,7 +39,98 @@ namespace ryu::core {
         _lines.erase(_lines.begin());
     }
 
-    line_t* document::line_at(int row) {
+    void document::page_down() {
+        _row += _page_height;
+        clamp_row(_row);
+        raise_document_changed();
+    }
+
+    void document::last_page() {
+        _row = _rows - _page_height;
+        clamp_row(_row);
+        raise_document_changed();
+    }
+
+    bool document::scroll_up() {
+        auto last_row = _row;
+        --_row;
+        auto clamped = clamp_row(last_row);
+        raise_document_changed();
+        return clamped;
+    }
+
+    void document::first_page() {
+        _row = 0;
+        raise_document_changed();
+    }
+
+    bool document::scroll_left() {
+        auto last_column = _column;
+        --_column;
+        auto clamped = clamp_column(last_column);
+        raise_document_changed();
+        return clamped;
+    }
+
+    bool document::scroll_down() {
+        ++_row;
+        auto clamped = clamp_row(_row);
+        raise_document_changed();
+        return clamped;
+    }
+
+    bool document::scroll_right() {
+        ++_column;
+        auto clamped = clamp_column(_column);
+        raise_document_changed();
+        return clamped;
+    }
+
+    uint32_t document::row() const {
+        return _row;
+    }
+
+    uint32_t document::rows() const {
+        return _rows;
+    }
+
+    bool document::row(uint32_t row) {
+        auto last_row = _row;
+        _row = row;
+        auto clamped = clamp_row(last_row);
+        raise_document_changed();
+        return clamped;
+    }
+
+    uint16_t document::column() const {
+        return _column;
+    }
+
+    uint16_t document::columns() const {
+        return _columns;
+    }
+
+    bool document::initialized() const {
+        return _initialized;
+    }
+
+    void document::end(uint16_t column) {
+        _column = _columns - column;
+        raise_document_changed();
+    }
+
+    std::string document::filename() const {
+        return _path.filename().string();
+    }
+
+    bool document::column(uint16_t column) {
+        _column = column;
+        auto clamped = clamp_column(_column);
+        raise_document_changed();
+        return clamped;
+    }
+
+    line_t* document::line_at(uint32_t row) {
         if (_lines.empty())
             return nullptr;
         if (row < _lines.size())
@@ -54,10 +138,8 @@ namespace ryu::core {
         return nullptr;
     }
 
-    void document::delete_line(int row) {
-        auto previous_row = row - 1;
-        if (previous_row < 0)
-            previous_row = 0;
+    void document::delete_line(uint32_t row) {
+        auto previous_row = row > 0 ? row - 1 : 0;
         if (previous_row < _lines.size())
             _lines.erase(_lines.begin() + previous_row);
     }
@@ -66,14 +148,21 @@ namespace ryu::core {
         return _default_attr;
     }
 
-    line_t* document::insert_line(int row) {
-        if (row > _lines.size() - 1) {
-            for (size_t i = 0; i < row; i++)
-                _lines.push_back(line_t(_columns, _default_attr));
-        } else {
-            _lines.insert(_lines.begin() + row, line_t(_columns, _default_attr));
+    line_t* document::insert_line(uint32_t row) {
+        if (row < _lines.size()) {
+            _lines.insert(_lines.begin() + row, line_t(_default_attr));
+            return &_lines[row];
         }
+
+        auto missing_count = (row - _lines.size()) + 1;
+        for (size_t i = 0; i < missing_count; i++)
+            _lines.push_back(line_t(_default_attr));
         return &_lines[row];
+    }
+
+    void document::raise_document_changed() {
+        if (_document_changed_callback != nullptr)
+            _document_changed_callback();
     }
 
     void document::default_attr(attr_t value) {
@@ -90,14 +179,14 @@ namespace ryu::core {
 
     void document::load(std::istream& stream) {
         clear();
-        auto row = 0;
+        uint32_t row = 0;
         std::string line;
         while (std::getline(stream, line)) {
-            auto col = 0;
+            uint16_t col = 0;
             for (auto c : line) {
                 auto value = static_cast<unsigned char>(c);
                 if (value == 9) {
-                    col += spaces_to_next_tabstop(col, 4);
+                    col += (4 - (col % 4));
                     continue;
                 }
                 put(row, col, element_t {value, _default_attr});
@@ -105,14 +194,16 @@ namespace ryu::core {
             }
             ++row;
         }
+        raise_document_changed();
     }
 
     void document::save(std::ostream& stream) {
-        for (auto row = 0; row < _lines.size(); row++) {
+        for (uint32_t row = 0; row < _lines.size(); row++) {
             std::stringstream line;
             write_line(line, row, 0, _columns);
             stream << ryu::rtrimmed(line.str()) << "\n";
         }
+        raise_document_changed();
     }
 
     void document::save(const fs::path& path) {
@@ -125,24 +216,19 @@ namespace ryu::core {
         file.close();
     }
 
-    int document::find_line_end(int row) {
+    uint16_t document::find_line_end(uint32_t row) {
         auto line = line_at(row);
-        if (line == nullptr)
+        if (line == nullptr || line->elements.empty())
             return 0;
-        auto last_empty = -1;
-        auto col = 0;
-        for (auto element : line->elements) {
-            if (element.value == 0) {
-                if (last_empty == -1)
-                    last_empty = col;
-            } else
-                last_empty = -1;
-            col++;
+        for (size_t col = line->elements.size() - 1; col >= 0; col--) {
+            auto element = line->get(col);
+            if (element->value != 0)
+                return static_cast<uint16_t>(col + 1);
         }
-        return last_empty == -1 ? 0 : last_empty;
+        return 0;
     }
 
-    bool document::is_line_empty(int row) {
+    bool document::is_line_empty(uint32_t row) {
         auto line = line_at(row);
         if (line == nullptr)
             return true;
@@ -156,21 +242,49 @@ namespace ryu::core {
         return empty;
     }
 
-    element_t* document::get(int row, int column) {
+    bool document::clamp_row(uint32_t last_row) {
+        if (_row > last_row) {
+            _row = last_row;
+            return true;
+        }
+
+        auto bottom = _rows - _page_height;
+        if (_row > bottom) {
+            _row = bottom;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool document::clamp_column(uint16_t last_col) {
+        if (_column > last_col) {
+            _column = last_col;
+            return true;
+        }
+
+        auto right = _columns - _page_width;
+        if (_column > right) {
+            _column = right;
+            return true;
+        }
+
+        return false;
+    }
+
+    element_t* document::get(uint32_t row, uint16_t column) {
         auto line = line_at(row);
         if (line == nullptr)
             return nullptr;
-        if (column < line->elements.size())
-            return &line->elements[column];
-        return nullptr;
+        return line->get(column);
     }
 
-    void document::split_line(int row, int column) {
+    void document::split_line(uint32_t row, uint16_t column) {
         insert_line(row + 1);
         auto old_line = line_at(row);
         if (old_line == nullptr)
             return;
-        auto col = 0;
+        uint16_t col = 0;
         for (; column < _columns; column++) {
             auto old_element = get(row, column);
             put(row + 1, col++, old_element != nullptr ? *old_element : element_t {0, _default_attr});
@@ -178,7 +292,7 @@ namespace ryu::core {
         }
     }
 
-    void document::page_size(int height, int width) {
+    void document::page_size(uint16_t height, uint16_t width) {
         _page_width = width;
         if (_columns < _page_width)
             _columns = _page_width;
@@ -196,17 +310,18 @@ namespace ryu::core {
         }
     }
 
-    void document::initialize(int rows, int columns) {
+    void document::initialize(uint32_t rows, uint16_t columns) {
         _rows = rows;
         _columns = columns;
+        raise_document_changed();
         _initialized = true;
     }
 
-    void document::shift_left(int row, int column, int times) {
+    void document::shift_left(uint32_t row, uint16_t column, uint16_t times) {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto i = 0; i < times && column < line->elements.size(); i++, column--) {
+        for (size_t i = 0; i < times && column < line->elements.size(); i++, column--) {
             if (line->elements.empty())
                 break;
             line->elements.erase(line->elements.begin() + column);
@@ -219,11 +334,11 @@ namespace ryu::core {
         }
     }
 
-    void document::shift_right(int row, int column, int times) {
+    void document::shift_right(uint32_t row, uint16_t column, uint16_t times) {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto i = 0; i < times; i++, column++) {
+        for (size_t i = 0; i < times; i++, column++) {
             line->elements.insert(line->elements.begin() + column, element_t {0, _default_attr});
 //            for (auto& below : _lines) {
 //                if (below.row > line->row) {
@@ -233,64 +348,68 @@ namespace ryu::core {
         }
     }
 
-    void document::shift_line_left(int row, int column, int times) {
+    void document::shift_line_left(uint32_t row, uint16_t column, uint16_t times) {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto i = 0; i < times && column < line->elements.size(); i++, column--) {
+        for (size_t i = 0; i < times && column < line->elements.size(); i++, column--) {
             line->elements.erase(line->elements.begin() + column);
         }
     }
 
-    void document::put(int row, int column, const element_t& value) {
+    void document::put(uint32_t row, uint16_t column, const element_t& value) {
         auto line = line_at(row);
         if (line == nullptr) {
             line = insert_line(row);
         }
-        if (column > line->elements.size()) {
-            auto missing_count = column - line->elements.size();
-            for (auto i = 0; i < missing_count; i++)
-                line->elements.push_back(element_t {0, _default_attr});
-        }
-        line->elements[column] = value;
+        line->put(column, value);
     }
 
-    void document::shift_line_right(int row, int column, int times) {
+    void document::shift_line_right(uint32_t row, uint16_t column, uint16_t times) {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto i = 0; i < times && column < _columns && column < line->elements.size(); i++, column++) {
+        for (size_t i = 0; i < times && column < _columns && column < line->elements.size(); i++, column++) {
             line->elements.insert(line->elements.begin() + column, element_t {0, _default_attr});
         }
     }
 
-    attr_chunks document::get_line_chunks(int row, int column, int end_column) {
+    void document::on_document_changed(const document::document_changed_callable& callable) {
+        _document_changed_callback = callable;
+    }
+
+    attr_chunks document::get_line_chunks(uint32_t row, uint16_t column, uint16_t end_column) {
         auto line = line_at(row);
         if (line == nullptr)
             return {};
 
-        auto col = column;
+        uint16_t col = column;
         attr_chunks chunks;
         std::stringstream stream;
-        attr_t last_attr = line->elements[col].attr;
+        auto element = line->get(col);
+        if (element == nullptr)
+            return {};
 
+        auto last_attr = element->attr;
         while (col < end_column && col < line->elements.size()) {
-            auto& element = line->elements[col];
-            if (last_attr != element.attr) {
+            element = line->get(col);
+            if (element == nullptr)
+                break;
+            if (last_attr != element->attr) {
                 auto text = stream.str();
                 if (!text.empty()) {
                     chunks.push_back(attr_chunk_t{last_attr, text});
                     stream.str(std::string());
                     stream.clear();
                 }
-                last_attr = element.attr;
+                last_attr = element->attr;
             }
-            if (element.value == 0)
+            if (element->value == 0)
                 stream << " ";
-            else if (element.value == 37)
+            else if (element->value == 37)
                 stream << "%%";
             else
-                stream << element.value;
+                stream << element->value;
             ++col;
         }
 
@@ -299,18 +418,20 @@ namespace ryu::core {
         return chunks;
     }
 
-    void document::write_line(std::ostream& stream, int row, int column, int end_column) {
+    void document::write_line(std::ostream& stream, uint32_t row, uint16_t column, uint16_t end_column) {
         auto line = line_at(row);
         if (line == nullptr)
             return;
-        for (auto col = column; col < end_column && col < line->elements.size(); col++) {
-            const auto& element = line->elements[col];
-            if (element.value == 0)
+        for (uint16_t col = column; col < end_column && col < line->elements.size(); col++) {
+            auto element = line->get(col);
+            if (element == nullptr)
+                break;
+            if (element->value == 0)
                 stream << " ";
-            else if (element.value == 37)
+            else if (element->value == 37)
                 stream << "%%";
             else
-                stream << element.value;
+                stream << element->value;
         }
     }
 

@@ -29,4 +29,5 @@ add_library(
         views/textbox.cpp views/textbox.h
         palette_entry.cpp palette_entry.h
         command_parser.cpp command_parser.h
-        views/pick_list.cpp views/pick_list.h)
+        views/pick_list.cpp views/pick_list.h
+        views/dock_layout_panel.cpp views/dock_layout_panel.h)

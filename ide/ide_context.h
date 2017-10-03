@@ -8,11 +8,11 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <core/context.h>
 #include <core/project.h>
+#include "environment.h"
 #include "console/controller.h"
 #include "hex_editor/controller.h"
 #include "text_editor/controller.h"
@@ -22,49 +22,6 @@ namespace ryu::ide {
 
     class ide_context : public core::context {
     public:
-        struct colors {
-            enum indexes {
-                black = 0,
-
-                white = 1,
-
-                grey = 2,
-
-                blue = 3,
-                fill_color = 3,
-
-                red = 4,
-
-                cyan = 5,
-
-                purple = 6,
-
-                green = 7,
-
-                yellow = 8,
-
-                orange = 9,
-
-                brown = 10,
-
-                pink = 11,
-
-                dark_grey = 12,
-
-                light_green = 13,
-
-                light_blue = 14,
-                selection = 14,
-                caret = 14,
-                text = 14,
-
-                light_grey = 15,
-                info_text = 15,
-
-                transparent = 16
-            };
-        };
-
         explicit ide_context(const std::string& name);
 
         core::project* project();

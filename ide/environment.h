@@ -17,6 +17,8 @@ namespace ryu::ide {
 
     class environment {
     public:
+        static environment* instance();
+
         environment() = default;
 
         ~environment() = default;

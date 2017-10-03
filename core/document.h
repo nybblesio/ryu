@@ -36,10 +36,22 @@ namespace ryu::core {
     };
 
     struct line_t {
-        explicit line_t(int columns, const attr_t& attr) {
-            for (auto i = 0; i < columns; i++)
-                elements.push_back(element_t{0, attr});
+        explicit line_t(const attr_t& attr) : default_attr(attr) {
         }
+        element_t* get(size_t column) {
+            if (column < elements.size())
+                return &elements[column];
+            return nullptr;
+        }
+        void put(size_t column, const element_t& value) {
+            if (column >= elements.size()) {
+                auto missing_columns = (column - elements.size()) + 1;
+                for (size_t i = 0; i < missing_columns; i++)
+                    elements.push_back(element_t {0, default_attr});
+            }
+            elements[column] = value;
+        }
+        attr_t default_attr;
         std::vector<element_t> elements;
     };
 
@@ -52,108 +64,55 @@ namespace ryu::core {
 
     class document {
     public:
-        static int spaces_to_prev_tabstop(int column, int tabsize);
-
-        static int spaces_to_next_tabstop(int column, int tabsize);
+        using document_changed_callable = std::function<void ()>;
 
         document() = default;
 
         ~document() = default;
 
+        void home();
+
         void clear();
+
+        void page_up();
 
         void shift_up();
 
-        inline void home() {
-            _column = 0;
-        }
+        bool scroll_up();
 
-        inline void page_up() {
-            _row -= _page_height;
-            clamp_row();
-        }
+        void page_down();
 
-        inline int row() const {
-            return _row;
-        }
+        void last_page();
 
-        inline bool scroll_up() {
-            --_row;
-            return clamp_row();
-        }
+        void first_page();
 
-        inline int rows() const {
-            return _rows;
-        }
+        bool scroll_down();
 
-        inline void page_down() {
-            _row += _page_height;
-            clamp_row();
-        }
+        bool scroll_left();
 
-        void delete_line(int row);
+        bool scroll_right();
 
-        inline void last_page() {
-            _row = _rows - _page_height;
-            clamp_row();
-        }
+        uint32_t row() const;
 
-        bool initialized() const {
-            return _initialized;
-        }
+        uint32_t rows() const;
 
-        inline bool row(int row) {
-            _row = row;
-            return clamp_row();
-        }
+        bool row(uint32_t row);
 
-        inline void first_page() {
-            _row = 0;
-        }
+        uint16_t column() const;
 
-        int find_line_end(int row);
+        uint16_t columns() const;
 
-        inline int column() const {
-            return _column;
-        }
+        bool initialized() const;
 
-        inline bool scroll_down() {
-            ++_row;
-            return clamp_row();
-        }
-
-        inline bool scroll_left() {
-            --_column;
-            return clamp_column();
-        }
-
-        line_t* insert_line(int row);
-
-        inline int columns() const {
-            return _columns;
-        }
-
-        inline bool scroll_right() {
-            ++_column;
-            return clamp_column();
-        }
-
-        bool is_line_empty(int row);
-
-        inline void end(int column) {
-            _column = _columns - column;
-        }
-
-        std::string filename() const {
-            return _path.filename().string();
-        }
+        void end(uint16_t column);
 
         attr_t default_attr() const;
 
-        inline bool column(int column) {
-            _column = column;
-            return clamp_column();
-        }
+        bool column(uint16_t column);
+
+        std::string filename() const;
+
+        void delete_line(uint32_t row);
 
         void load(const fs::path& path);
 
@@ -163,74 +122,59 @@ namespace ryu::core {
 
         void default_attr(attr_t value);
 
-        element_t* get(int row, int column);
+        bool is_line_empty(uint32_t row);
 
-        void split_line(int row, int column);
+        line_t* insert_line(uint32_t row);
+
+        uint16_t find_line_end(uint32_t row);
 
         void save(const fs::path& path = "");
 
-        void page_size(int height, int width);
+        element_t* get(uint32_t row, uint16_t column);
 
-        void initialize(int rows, int columns);
+        void split_line(uint32_t row, uint16_t column);
 
-        void shift_left(int row, int column, int times = 1);
+        void page_size(uint16_t height, uint16_t width);
 
-        void shift_right(int row, int column, int times = 1);
+        void initialize(uint32_t rows, uint16_t columns);
 
-        void put(int row, int column, const element_t& value);
+        void put(uint32_t row, uint16_t column, const element_t& value);
 
-        void shift_line_left(int row, int column, int times = 1);
+        void shift_left(uint32_t row, uint16_t column, uint16_t times = 1);
 
-        void shift_line_right(int row, int column, int times = 1);
+        void on_document_changed(const document_changed_callable& callable);
 
-        attr_chunks get_line_chunks(int row, int column, int end_column);
+        void shift_right(uint32_t row, uint16_t column, uint16_t times = 1);
 
-        void write_line(std::ostream& stream, int row, int column, int end_column);
+        void shift_line_left(uint32_t row, uint16_t column, uint16_t times = 1);
 
-    private:
-        line_t* line_at(int row);
+        void shift_line_right(uint32_t row, uint16_t column, uint16_t times = 1);
 
-        bool clamp_column() {
-            if (_column < 0) {
-                _column = 0;
-                return true;
-            }
+        attr_chunks get_line_chunks(uint32_t row, uint16_t column, uint16_t end_column);
 
-            auto right = _columns - _page_width;
-            if (_column > right) {
-                _column = right;
-                return true;
-            }
+        void write_line(std::ostream& stream, uint32_t row, uint16_t column, uint16_t end_column);
 
-            return false;
-        }
+    protected:
+        void raise_document_changed();
 
-        bool clamp_row() {
-            if (_row < 0) {
-                _row = 0;
-                return true;
-            }
+        line_t* line_at(uint32_t row);
 
-            auto bottom = _rows - _page_height;
-            if (_row > bottom) {
-                _row = bottom;
-                return true;
-            }
+        bool clamp_row(uint32_t last_row);
 
-            return false;
-        }
+        bool clamp_column(uint16_t last_col);
 
     private:
-        int _rows;
-        int _columns;
-        int _row = 0;
         fs::path _path;
-        int _column = 0;
-        int _page_width = 0;
-        int _page_height = 0;
+        uint32_t _row = 0;
+        uint32_t _rows = 1;
+        uint16_t _column = 0;
+        uint16_t _columns = 80;
         attr_t _default_attr {};
+        uint16_t _page_width = 0;
+        uint16_t _page_height = 0;
         bool _initialized = false;
         std::vector<line_t> _lines;
+        document_changed_callable _document_changed_callback;
     };
 
 }

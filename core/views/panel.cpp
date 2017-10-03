@@ -24,6 +24,7 @@ namespace ryu::core {
     }
 
     void panel::on_draw(core::renderer& surface) {
+        surface.push_clip_rect(bounds());
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
         auto pal = *palette();
         auto& fg = pal[fg_color()];
@@ -36,6 +37,7 @@ namespace ryu::core {
             surface.set_color(fg);
             surface.draw_rect(client_rect);
         }
+        surface.pop_clip_rect();
     }
 
 }

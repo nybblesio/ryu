@@ -14,6 +14,12 @@
 
 namespace ryu::core {
 
+    struct selection_point_t {
+        uint32_t row;
+        uint16_t column;
+        bool empty = true;
+    };
+
     class selection {
     public:
         selection() = default;
@@ -24,19 +30,19 @@ namespace ryu::core {
 
         bool valid() const;
 
-        void end(int row, int col);
+        selection_point_t end() const;
 
-        void start(int row, int col);
+        selection_point_t start() const;
 
-        std::pair<int, int> end() const;
+        void end(uint32_t row, uint16_t col);
 
-        std::pair<int, int> start() const;
+        void start(uint32_t row, uint16_t col);
 
-        bool selected(int row, int column);
+        bool selected(uint32_t row, uint16_t column);
 
     private:
-        std::pair<int, int> _end = {-1, -1};
-        std::pair<int, int> _start = {-1, -1};
+        selection_point_t _end = {0, 0};
+        selection_point_t _start = {0, 0};
     };
 
 };

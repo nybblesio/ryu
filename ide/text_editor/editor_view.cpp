@@ -10,20 +10,13 @@
 
 #include <sstream>
 #include <fmt/format.h>
-#include <core/engine.h>
-#include <ide/ide_context.h>
+#include <ide/ide_types.h>
 #include "editor_view.h"
 
 namespace ryu::ide::text_editor {
 
     editor_view::editor_view(const std::string& name) : core::view(core::view::types::container, name),
-                                                       _caret("editor-caret"),
-                                                       _header("header-label"),
-                                                       _footer("footer-label"),
-                                                       _command_line("command-line") {
-    }
-
-    editor_view::~editor_view() {
+                                                       _caret("editor-caret") {
     }
 
     void editor_view::clear() {
@@ -50,8 +43,9 @@ namespace ryu::ide::text_editor {
     }
 
     void editor_view::caret_end() {
+        // TODO: fix this, the caret position should be relative to the document position
         auto end_column = _document.find_line_end(_vrow);
-        _caret.column(end_column);
+        _caret.column(static_cast<uint8_t>(end_column));
         update_virtual_position();
     }
 
@@ -93,7 +87,7 @@ namespace ryu::ide::text_editor {
 
         _caret.insert();
 
-        for_each_selection_char([&](int row, int col) {
+        for_each_selection_char([&](uint32_t row, uint16_t col) {
             auto element = _document.get(row, col);
             if (element != nullptr)
                 element->attr.flags &= ~core::font::flags::reverse;
@@ -108,7 +102,7 @@ namespace ryu::ide::text_editor {
 
     void editor_view::update_selection() {
         if (_caret.mode() == core::caret::mode::select) {
-            if (_vrow < _selection.start().first && _vcol < _selection.start().second)
+            if (_vrow < _selection.start().row && _vcol < _selection.start().column)
                 _selection.start(_vrow, _vcol);
             else
                 _selection.end(_vrow, _vcol);
@@ -119,7 +113,7 @@ namespace ryu::ide::text_editor {
         }
     }
 
-    void editor_view::goto_line(int row) {
+    void editor_view::goto_line(uint32_t row) {
         if (row < 1)
             row = 1;
         else if (row > _document.rows())
@@ -128,7 +122,7 @@ namespace ryu::ide::text_editor {
         update_virtual_position();
     }
 
-    void editor_view::caret_up(int rows) {
+    void editor_view::caret_up(uint8_t rows) {
         if (_caret.up(rows))
             scroll_up();
         update_virtual_position();
@@ -138,23 +132,28 @@ namespace ryu::ide::text_editor {
         return _project;
     }
 
-    void editor_view::caret_down(int rows) {
+    void editor_view::caret_down(uint8_t rows) {
         if (_caret.down(rows))
             scroll_down();
         update_virtual_position();
+    }
+
+    void editor_view::raise_caret_changed() {
+        if (_caret_changed_callback != nullptr)
+            _caret_changed_callback(_caret);
     }
 
     hardware::machine* editor_view::machine() {
         return _machine;
     }
 
-    void editor_view::caret_left(int columns) {
+    void editor_view::caret_left(uint8_t columns) {
         if (_caret.left(columns))
             scroll_left();
         update_virtual_position();
     }
 
-    bool editor_view::caret_right(int columns) {
+    bool editor_view::caret_right(uint8_t columns) {
         auto clamped = false;
         if (_caret.right(columns)) {
             clamped = scroll_right();
@@ -165,6 +164,11 @@ namespace ryu::ide::text_editor {
         }
         update_virtual_position();
         return clamped;
+    }
+
+    void editor_view::raise_document_changed() {
+        if (_document_changed_callback != nullptr)
+            _document_changed_callback(_document);
     }
 
     void editor_view::load(const fs::path& path) {
@@ -186,69 +190,28 @@ namespace ryu::ide::text_editor {
     void editor_view::find(const std::string& needle) {
     }
 
-    void editor_view::initialize(int rows, int columns) {
-        _metrics.line_number_width = (5 * font_face()->width) + 2;
+    void editor_view::initialize(uint32_t rows, uint16_t columns) {
+        _metrics.line_number_width = font_face()->measure_chars(5) + 2;
 
         _vcol = 0;
         _vrow = 0;
 
-        _header.palette(palette());
-        _header.dock(dock::styles::top);
-        _header.font_family(font_family());
-        _header.fg_color(ide::ide_context::colors::info_text);
-        _header.bg_color(ide::ide_context::colors::fill_color);
-        _header.bounds().height(font_face()->line_height);
-        _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
-
-        _command_line.palette(palette());
-        _command_line.dock(dock::styles::top);
-        _command_line.font_family(font_family());
-        _command_line.fg_color(ide::ide_context::colors::text);
-        _command_line.bg_color(ide::ide_context::colors::fill_color);
-        _command_line.on_key_down([&](int keycode) {
-            if (keycode == SDLK_ESCAPE) {
-                focus(id());
-                return false;
-            }
-            if (keycode == SDLK_RETURN) {
-                auto input = _command_line.value();
-                if (_execute_command_callable != nullptr) {
-                    core::result result;
-                    _execute_command_callable(result, input);
-                }
-                _command_line.clear();
-                focus(id());
-                return false;
-            }
-            return true;
-        });
-        _command_line.initialize(1, 1);
-        _command_line.margin({_metrics.left_padding, _metrics.right_padding, 0, 10});
-
-        _footer.palette(palette());
-        _footer.dock(dock::styles::bottom);
-        _footer.font_family(font_family());
-        _footer.fg_color(ide::ide_context::colors::info_text);
-        _footer.bg_color(ide::ide_context::colors::fill_color);
-        _footer.bounds().height(font_face()->line_height);
-        _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-
         _caret.palette(palette());
         _caret.font_family(font_family());
+        _caret.fg_color(ide::colors::caret);
         _caret.padding().left(_metrics.line_number_width);
-        _caret.fg_color(ide::ide_context::colors::caret);
+        _caret.on_caret_changed([&]() {
+            raise_caret_changed();
+        });
         _caret.initialize(0, 0);
 
+        _document.on_document_changed([&]() {
+            raise_document_changed();
+        });
         _document.initialize(rows, columns);
-        _document.default_attr(core::attr_t {ide::ide_context::colors::text, core::font::styles::normal});
+        _document.default_attr(core::attr_t {ide::colors::text, core::font::styles::normal});
         _document.clear();
-
-        add_child(&_header);
-        add_child(&_command_line);
-        add_child(&_footer);
         add_child(&_caret);
-
-        dock(dock::styles::fill);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
@@ -256,24 +219,7 @@ namespace ryu::ide::text_editor {
         auto bounds = client_bounds();
         auto pal = *palette();
 
-        auto& info_text_color = pal[ide::ide_context::colors::info_text];
-
-        std::string cpu_name = "(none)";
-        std::string file_name = _document.filename();
-        if (file_name.empty()) {
-            file_name = "(none)";
-        }
-
-        _header.value(fmt::format("cpu: {0} | file: {1}", cpu_name, file_name));
-        _footer.value(fmt::format(
-                "C:{0:03d}/{1:03d} R:{2:04d}/{3:04d} | X:{4:03d} Y:{5:02d} | {6}",
-                _document.column() + 1,
-                _document.columns(),
-                _document.row() + 1,
-                _document.rows(),
-                _caret.column() + 1,
-                _caret.row() + 1,
-                _caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
+        auto& info_text_color = pal[ide::colors::info_text];
 
         // XXX: this may not be correct because the font metrics may change
         auto face = font_face();
@@ -283,8 +229,8 @@ namespace ryu::ide::text_editor {
         for (auto row = row_start; row < row_stop; row++) {
             surface.draw_text(font_face(), bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
 
-            auto col_start = _document.column();
-            auto col_end = col_start + _metrics.page_width;
+            uint16_t col_start = _document.column();
+            uint16_t col_end = col_start + _metrics.page_width;
 
             auto x = bounds.left() + _caret.padding().left();
             auto chunks = _document.get_line_chunks(row, col_start, col_end);
@@ -294,7 +240,7 @@ namespace ryu::ide::text_editor {
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
                     surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                    auto selection_color = pal[ide::ide_context::colors::selection];
+                    auto selection_color = pal[ide::colors::selection];
                     selection_color.alpha(0x7f);
                     surface.set_color(selection_color);
                     surface.fill_rect(core::rect{x, y, width, face->line_height});
@@ -311,9 +257,9 @@ namespace ryu::ide::text_editor {
     }
 
     void editor_view::delete_selection() {
-        auto last_row = -1;
-        auto target_col = 0;
-        for_each_selection_char([&](int row, int col) {
+        uint32_t last_row = 0;
+        uint16_t target_col = 0;
+        for_each_selection_char([&](uint32_t row, uint16_t col) {
             if (last_row != row) {
                 target_col = col;
                 last_row = row;
@@ -323,8 +269,9 @@ namespace ryu::ide::text_editor {
             if (target_col > 0)
                 _document.shift_line_left(row, target_col);
         });
-        _caret.row(_selection.start().first);
-        _caret.column(_selection.start().second);
+        // TODO: fix this, caret should be relative to the document position
+        _caret.row(static_cast<uint8_t>(_selection.start().row));
+        _caret.column(static_cast<uint8_t>(_selection.start().column));
         update_virtual_position();
         end_selection();
     }
@@ -333,8 +280,8 @@ namespace ryu::ide::text_editor {
         auto rect = bounds();
         if (rect.empty())
             return;
-        _metrics.page_width = rect.width() / font_face()->width;
-        _metrics.page_height = rect.height() / font_face()->line_height;
+        _metrics.page_width = static_cast<uint8_t>((rect.width() - _metrics.line_number_width) / font_face()->width);
+        _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
     }
 
     void editor_view::insert_text(const char* text) {
@@ -402,13 +349,6 @@ namespace ryu::ide::text_editor {
                     }
                     break;
                 }
-                case SDLK_ESCAPE: {
-                    if (ctrl_pressed) {
-                        focus(_command_line.id());
-                        return true;
-                    }
-                    break;
-                }
                 case SDLK_RETURN: {
                     if (_caret.mode() == core::caret::mode::insert)
                         _document.split_line(_vrow, _vcol);
@@ -420,11 +360,11 @@ namespace ryu::ide::text_editor {
                     if (shift_pressed) {
                         if (_caret.column() == 0)
                             return true;
-                        auto spaces = core::document::spaces_to_prev_tabstop(_vcol, 4);
+                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
                         caret_left(spaces);
                         _document.shift_line_left(_vrow, _vcol, spaces);
                     } else {
-                        auto spaces = core::document::spaces_to_next_tabstop(_vcol, 4);
+                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
                         _document.shift_line_right(_vrow, _vcol, spaces);
                         for (auto col = _vcol; col < _vcol + spaces; col++)
                             _document.put(_vrow, col, core::element_t {0, _document.default_attr()});
@@ -568,22 +508,15 @@ namespace ryu::ide::text_editor {
 
         calculate_page_metrics();
 
-        _command_line.size(1, _metrics.page_width);
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
-
-        if (_caret.row() > _metrics.page_height)
-            _caret.row(_metrics.page_height - 1);
-
-        if (_caret.column() > _metrics.page_width)
-            _caret.column(_metrics.page_width - 1);
 
         update_virtual_position();
     }
 
     void editor_view::get_selected_text(std::stringstream& stream) {
-        auto last_row = 0;
-        for_each_selection_char([&](int row, int col) {
+        uint32_t last_row = 0;
+        for_each_selection_char([&](uint32_t row, uint16_t col) {
             if (last_row != row) {
                 last_row = row;
                 stream << "\n";
@@ -596,31 +529,31 @@ namespace ryu::ide::text_editor {
         });
     }
 
-    void editor_view::on_execute_command(const execute_command_callable& callable) {
-        _execute_command_callable = callable;
-    }
-
-    void editor_view::on_transition(const core::state_transition_callable& callable) {
-        _transition_callable = callable;
+    void editor_view::on_caret_changed(const caret_changed_callable& callable) {
+        _caret_changed_callback = callable;
     }
 
     void editor_view::for_each_selection_char(const editor_view::char_action_callable& action) {
         _selection.normalize();
-        auto row = _selection.start().first;
-        auto col = _selection.start().second;
+        auto row = _selection.start().row;
+        auto col = _selection.start().column;
         auto line_end = _document.find_line_end(row);
         while (true) {
             action(row, col);
             col++;
             if (col >= line_end
-            || (_selection.end().second > 0 && col > _selection.end().second && row == _selection.end().first)) {
+            || (_selection.end().column > 0 && col > _selection.end().column && row == _selection.end().row)) {
                 col = 0;
                 row++;
-                if (row > _selection.end().first)
+                if (row > _selection.end().row)
                     break;
                 line_end = _document.find_line_end(row);
             }
         }
+    }
+
+    void editor_view::on_document_changed(const editor_view::document_changed_callable& callable) {
+        _document_changed_callback = callable;
     }
 
 }

@@ -63,6 +63,11 @@ namespace ryu::ide {
                 fmt::format(fmt_spec, signed_value, value, ascii));
     }
 
+    environment* environment::instance() {
+        static environment instance;
+        return &instance;
+    }
+
     bool environment::execute(
             core::result& result,
             const std::string& line) {

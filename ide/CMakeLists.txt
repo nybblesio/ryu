@@ -8,6 +8,7 @@ add_library(
         console
         hex_editor
         text_editor
+        ide_types.h
         machine_editor
         ide_context.cpp ide_context.h
         environment.cpp environment.h)

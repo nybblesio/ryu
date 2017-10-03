@@ -9,6 +9,7 @@
 //
 
 #include <iostream>
+#include <ide/ide_types.h>
 #include <hardware/hardware.h>
 #include "application.h"
 
@@ -81,7 +82,7 @@ namespace ryu {
 
     void application::configure_ide() {
         _engine.add_context(&_ide_context);
-        _ide_context.bg_color(ide::ide_context::colors::fill_color);
+        _ide_context.bg_color(ide::colors::fill_color);
         _ide_context.initialize(ide_bounds({0, 0, display_width, display_height}));
     }
 

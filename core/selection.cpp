@@ -14,43 +14,42 @@
 namespace ryu::core {
 
     void selection::clear() {
-        _end = {-1, -1};
-        _start = {-1, -1};
+        _end = {0, 0, true};
+        _start = {0, 0, true};
     }
 
     void selection::normalize() {
-        if (_start.first > _end.first) {
-            auto temp = _start.first;
-            _start.first = _end.first;
-            _end.first = temp;
+        if (_start.row > _end.row) {
+            auto temp = _start.row;
+            _start.row = _end.row;
+            _end.row = temp;
         }
     }
 
     bool selection::valid() const {
-        auto empty = std::pair<int, int>{-1, -1};
-        return start() != empty && end() != empty;
+        return !start().empty && !end().empty;
     }
 
-    void selection::end(int row, int col) {
-        _end = {row, col};
-    }
-
-    void selection::start(int row, int col) {
-        _start = {row, col};
-    }
-
-    std::pair<int, int> selection::end() const {
+    selection_point_t selection::end() const {
         return _end;
     }
 
-    std::pair<int, int> selection::start() const {
+    selection_point_t selection::start() const {
         return _start;
     }
 
-    bool selection::selected(int row, int column) {
+    void selection::end(uint32_t row, uint16_t col) {
+        _end = {row, col, false};
+    }
+
+    void selection::start(uint32_t row, uint16_t col) {
+        _start = {row, col, false};
+    }
+
+    bool selection::selected(uint32_t row, uint16_t column) {
         auto e = end();
         auto s = start();
-        auto selected = row >= s.first && row <= e.first;
+        auto selected = row >= s.row && row <= e.row;
         return selected;
     }
 

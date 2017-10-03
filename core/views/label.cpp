@@ -64,4 +64,23 @@ namespace ryu::core {
         _halign = value;
     }
 
+    void label::on_resize(const core::rect& context_bounds) {
+        switch (sizing()) {
+            case sizing::content: {
+                auto face = font_face();
+                if (face != nullptr)
+                    bounds().size(face->measure_text(value()), face->line_height);
+                break;
+            }
+            case sizing::parent: {
+                auto container = parent();
+                bounds(container != nullptr ? container->bounds() : context_bounds);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
 }

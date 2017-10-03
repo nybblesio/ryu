@@ -24,7 +24,7 @@ namespace ryu::core {
 
     void textbox::caret_end() {
         auto line_end = _document.find_line_end(0);
-        _caret.column(line_end != -1 ? line_end : _page_width - 1);
+        _caret.column(static_cast<uint8_t>(line_end));
     }
 
     void textbox::caret_home() {
@@ -41,19 +41,12 @@ namespace ryu::core {
         _caret.enabled(focused());
     }
 
-    bool textbox::caret_left(int columns) {
+    bool textbox::caret_left(uint8_t columns) {
         return _caret.left(columns);
     }
 
-    bool textbox::caret_right(int columns) {
+    bool textbox::caret_right(uint8_t columns) {
         return _caret.right(columns);
-    }
-
-    void textbox::size(int rows, int columns) {
-        _document.page_size(rows, columns);
-        _caret.page_size(rows, columns);
-        _page_width = columns;
-        on_resize({});
     }
 
     void textbox::value(const std::string& value) {
@@ -94,19 +87,11 @@ namespace ryu::core {
             bounds.bottom());
     }
 
-    void textbox::initialize(int rows, int columns) {
-        _document.initialize(rows, columns);
-        _document.clear();
-
-        _caret.font_family(font_family());
-        _caret.fg_color(fg_color());
-        _caret.palette(palette());
-        _caret.initialize(0, 0);
-        _caret.enabled(false);
-        add_child(&_caret);
-
-        padding({5, 5, 5, 5});
-        size(rows, columns);
+    void textbox::size(uint8_t rows, uint8_t columns) {
+        _document.page_size(rows, columns);
+        _caret.page_size(rows, columns);
+        _page_width = columns;
+        on_resize({});
     }
 
     bool textbox::on_process_event(const SDL_Event* e) {
@@ -167,6 +152,21 @@ namespace ryu::core {
                 return _on_key_down(e->key.keysym.sym);
         }
         return false;
+    }
+
+    void textbox::initialize(uint8_t rows, uint8_t columns) {
+        _document.initialize(rows, columns);
+        _document.clear();
+
+        _caret.font_family(font_family());
+        _caret.fg_color(fg_color());
+        _caret.palette(palette());
+        _caret.initialize(0, 0);
+        _caret.enabled(false);
+        add_child(&_caret);
+
+        padding({5, 5, 5, 5});
+        size(rows, columns);
     }
 
     void textbox::on_resize(const core::rect& context_bounds) {

@@ -29,6 +29,14 @@ namespace ryu::core {
     public:
         using on_tab_callable = std::function<void ()>;
 
+        struct sizing {
+            enum types {
+                content,
+                fixed,
+                parent
+            };
+        };
+
         struct config {
             enum flags : uint8_t {
                 none    = 0b00000000,
@@ -36,17 +44,6 @@ namespace ryu::core {
                 enabled = 0b00000010,
                 tabstop = 0b00000100,
                 focused = 0b00001000,
-            };
-        };
-
-        struct dock {
-            enum styles : uint8_t {
-                none,
-                bottom,
-                fill,
-                left,
-                right,
-                top
             };
         };
 
@@ -121,6 +118,8 @@ namespace ryu::core {
 
         void add_child(core::view* child);
 
+        view::sizing::types sizing() const;
+
         void draw(core::renderer& renderer);
 
         void remove_child(core::view* child);
@@ -128,6 +127,10 @@ namespace ryu::core {
         void bounds(const core::rect& value);
 
         void palette(core::palette* palette);
+
+        const core::font_t* font_face() const;
+
+        void sizing(view::sizing::types value);
 
         bool process_event(const SDL_Event* e);
 
@@ -142,10 +145,6 @@ namespace ryu::core {
         void on_tab(const on_tab_callable& callable);
 
         void resize(const core::rect& context_bounds);
-
-        inline const core::font_t* font_face() const {
-            return font_family()->find_style(_font_style);
-        }
 
     protected:
         void focus(bool value);
@@ -174,8 +173,9 @@ namespace ryu::core {
         bool _in_on_focus_changed = false;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
-        dock::styles _dock = dock::styles::none;
         uint8_t _font_style = font::styles::normal;
+        core::dock::styles _dock = dock::styles::none;
+        view::sizing::types _sizing = view::sizing::types::content;
         uint8_t _flags = config::flags::enabled | config::flags::visible;
     };
 
