@@ -108,10 +108,6 @@ namespace ryu::core {
 
         core::rect client_bounds();
 
-        void bg_color(uint8_t value);
-
-        void fg_color(uint8_t value);
-
         void dock(dock::styles style);
 
         void font_style(uint8_t styles);
@@ -124,9 +120,11 @@ namespace ryu::core {
 
         void remove_child(core::view* child);
 
-        void bounds(const core::rect& value);
+        virtual void bg_color(uint8_t value);
 
-        void palette(core::palette* palette);
+        virtual void fg_color(uint8_t value);
+
+        void bounds(const core::rect& value);
 
         const core::font_t* font_face() const;
 
@@ -140,11 +138,13 @@ namespace ryu::core {
 
         void padding(const core::padding& value);
 
-        void font_family(core::font_family* font);
-
         void on_tab(const on_tab_callable& callable);
 
+        virtual void palette(core::palette* palette);
+
         void resize(const core::rect& context_bounds);
+
+        virtual void font_family(core::font_family* font);
 
     protected:
         void focus(bool value);

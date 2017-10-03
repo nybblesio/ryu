@@ -107,25 +107,25 @@ namespace ryu::ide::text_editor {
 
         void end_selection();
 
-        void update_selection();
-
         void delete_selection();
-
-        void caret_up(uint8_t rows = 1);
-
-        void caret_down(uint8_t rows = 1);
 
         void calculate_page_metrics();
 
         void update_virtual_position();
 
+        void caret_up(uint8_t rows = 1);
+
         void on_focus_changed() override;
+
+        void caret_down(uint8_t rows = 1);
+
+        void insert_text(const char* text);
 
         void caret_left(uint8_t columns = 1);
 
         bool caret_right(uint8_t columns = 1);
 
-        void insert_text(const char* text);
+        void update_selection(uint16_t line_end);
 
         void get_selected_text(std::stringstream& stream);
 

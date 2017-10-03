@@ -62,6 +62,10 @@ namespace ryu::ide::console {
     void console_view::initialize() {
         _color = ide::colors::text;
 
+        _document.default_attr(core::attr_t {_color, core::font::styles::normal, core::font::flags::none});
+        _document.document_size(128, 128);
+        _document.clear();
+
         _caret.overwrite();
         _caret.initialize(0, 0);
         _caret.palette(palette());
@@ -84,15 +88,8 @@ namespace ryu::ide::console {
 
     void console_view::on_resize(const core::rect& context_bounds) {
         core::view::on_resize(context_bounds);
-
         calculate_page_metrics();
         _caret.page_size(_metrics.page_height, _metrics.page_width);
-
-        if (!_document.initialized()) {
-            _document.initialize(_metrics.page_height, _metrics.page_width);
-            _document.default_attr(core::attr_t {_color, core::font::styles::normal, core::font::flags::none});
-            _document.clear();
-        }
         _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 

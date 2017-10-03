@@ -29,7 +29,7 @@ namespace ryu::core {
     void document::page_up() {
         auto last_row = _row;
         _row -= _page_height;
-        clamp_row(last_row);
+        clamp_row(last_row < _page_height ? 0 : last_row);
         raise_document_changed();
     }
 
@@ -110,13 +110,17 @@ namespace ryu::core {
         return _columns;
     }
 
-    bool document::initialized() const {
-        return _initialized;
-    }
-
     void document::end(uint16_t column) {
         _column = _columns - column;
         raise_document_changed();
+    }
+
+    uint8_t document::page_width() const {
+        return _page_width;
+    }
+
+    uint8_t document::page_height() const {
+        return _page_height;
     }
 
     std::string document::filename() const {
@@ -139,9 +143,8 @@ namespace ryu::core {
     }
 
     void document::delete_line(uint32_t row) {
-        auto previous_row = row > 0 ? row - 1 : 0;
-        if (previous_row < _lines.size())
-            _lines.erase(_lines.begin() + previous_row);
+        if (row < _lines.size())
+            _lines.erase(_lines.begin() + row);
     }
 
     attr_t document::default_attr() const {
@@ -220,7 +223,7 @@ namespace ryu::core {
         auto line = line_at(row);
         if (line == nullptr || line->elements.empty())
             return 0;
-        for (size_t col = line->elements.size() - 1; col >= 0; col--) {
+        for (size_t col = line->elements.size() - 1; col != 0; col--) {
             auto element = line->get(col);
             if (element->value != 0)
                 return static_cast<uint16_t>(col + 1);
@@ -292,7 +295,7 @@ namespace ryu::core {
         }
     }
 
-    void document::page_size(uint16_t height, uint16_t width) {
+    void document::page_size(uint8_t height, uint8_t width) {
         _page_width = width;
         if (_columns < _page_width)
             _columns = _page_width;
@@ -301,20 +304,13 @@ namespace ryu::core {
         if (_rows < _page_height)
             _rows = _page_height;
 
-        for (auto& line : _lines) {
-            if (line.elements.size() < _page_width) {
-                auto missing_count = _page_width - line.elements.size();
-                for (auto i = 0; i < missing_count; i++)
-                    line.elements.push_back(element_t {0, _default_attr});
-            }
-        }
+        raise_document_changed();
     }
 
-    void document::initialize(uint32_t rows, uint16_t columns) {
+    void document::document_size(uint32_t rows, uint16_t columns) {
         _rows = rows;
         _columns = columns;
         raise_document_changed();
-        _initialized = true;
     }
 
     void document::shift_left(uint32_t row, uint16_t column, uint16_t times) {

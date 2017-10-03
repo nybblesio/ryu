@@ -102,11 +102,13 @@ namespace ryu::core {
 
         uint16_t columns() const;
 
-        bool initialized() const;
-
         void end(uint16_t column);
 
+        uint8_t page_width() const;
+
         attr_t default_attr() const;
+
+        uint8_t page_height() const;
 
         bool column(uint16_t column);
 
@@ -130,13 +132,13 @@ namespace ryu::core {
 
         void save(const fs::path& path = "");
 
+        void page_size(uint8_t height, uint8_t width);
+
         element_t* get(uint32_t row, uint16_t column);
 
         void split_line(uint32_t row, uint16_t column);
 
-        void page_size(uint16_t height, uint16_t width);
-
-        void initialize(uint32_t rows, uint16_t columns);
+        void document_size(uint32_t rows, uint16_t columns);
 
         void put(uint32_t row, uint16_t column, const element_t& value);
 
@@ -170,9 +172,8 @@ namespace ryu::core {
         uint16_t _column = 0;
         uint16_t _columns = 80;
         attr_t _default_attr {};
-        uint16_t _page_width = 0;
-        uint16_t _page_height = 0;
-        bool _initialized = false;
+        uint8_t _page_width = 0;
+        uint8_t _page_height = 0;
         std::vector<line_t> _lines;
         document_changed_callable _document_changed_callback;
     };

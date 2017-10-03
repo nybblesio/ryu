@@ -90,6 +90,8 @@ namespace ryu::ide::machine_editor {
                 face->measure_text("display:"),
                 face->line_height);
 
+        _name_textbox.width(32);
+        _name_textbox.length(32);
         _name_textbox.enabled(true);
         _name_textbox.font_family(family);
         _name_textbox.margin({5, 0, 3, 0});
@@ -97,14 +99,12 @@ namespace ryu::ide::machine_editor {
         _name_textbox.dock(core::dock::styles::left);
         _name_textbox.fg_color(ide::colors::text);
         _name_textbox.bg_color(ide::colors::fill_color);
-        _name_textbox.initialize(1, 32);
         _name_textbox.on_key_down([&](int keycode) {
             return true;
         });
         _name_textbox.on_tab([&]() {
             _panel.focus(_address_space_textbox.id());
         });
-        _name_textbox.bounds().size(face->width * _name_textbox.length(), face->line_height);
 
         _address_space_label.font_family(family);
         _address_space_label.margin({15, 0, 0, 0});
@@ -119,6 +119,8 @@ namespace ryu::ide::machine_editor {
                 face->measure_text(_address_space_label.value()),
                 face->line_height);
 
+        _address_space_textbox.width(8);
+        _address_space_textbox.length(8);
         _address_space_textbox.enabled(true);
         _address_space_textbox.font_family(family);
         _address_space_textbox.margin({5, 0, 3, 0});
@@ -126,16 +128,12 @@ namespace ryu::ide::machine_editor {
         _address_space_textbox.dock(core::dock::styles::left);
         _address_space_textbox.fg_color(ide::colors::text);
         _address_space_textbox.bg_color(ide::colors::fill_color);
-        _address_space_textbox.initialize(1, 8);
         _address_space_textbox.on_key_down([&](int keycode) {
             return isxdigit(keycode);
         });
         _address_space_textbox.on_tab([&]() {
             _panel.focus(_display_pick_list.id());
         });
-        _address_space_textbox.bounds().size(
-                face->width * _address_space_textbox.length(),
-                face->line_height);
 
         _display_label.value("display:");
         _display_label.font_family(family);

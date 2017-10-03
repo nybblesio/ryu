@@ -26,17 +26,25 @@ namespace ryu::core {
 
         std::string value();
 
-        int length() const {
-            return _document.columns();
-        }
+        uint16_t width() const;
+
+        uint16_t length() const;
+
+        void width(uint8_t value);
+
+        void length(uint16_t value);
 
         void value(const std::string& value);
 
-        void size(uint8_t rows, uint8_t columns);
+        void bg_color(uint8_t value) override;
 
-        void initialize(uint8_t rows, uint8_t columns);
+        void fg_color(uint8_t value) override;
 
         void on_key_down(const on_key_down_callable& callable);
+
+        void palette(core::palette* value) override;
+
+        void font_family(core::font_family* value) override;
 
     protected:
         void caret_end();
@@ -58,7 +66,6 @@ namespace ryu::core {
     private:
         core::caret _caret;
         core::document _document;
-        uint8_t _page_width = 128;
         on_key_down_callable _on_key_down {};
     };
 

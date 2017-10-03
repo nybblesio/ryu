@@ -56,11 +56,14 @@ namespace ryu::ide::text_editor {
         _header.add_child(&_cpu_status);
         _header.add_child(&_file_status);
 
+        _command_line.width(60);
+        _command_line.length(255);
+        _command_line.font_family(family);
         _command_line.palette(context()->palette());
         _command_line.dock(core::dock::styles::top);
-        _command_line.font_family(family);
         _command_line.fg_color(ide::colors::text);
         _command_line.bg_color(ide::colors::fill_color);
+        _command_line.sizing(core::view::sizing::types::parent);
         _command_line.on_key_down([&](int keycode) {
             if (keycode == SDLK_ESCAPE) {
                 _layout_panel.focus(_editor.id());
@@ -89,8 +92,7 @@ namespace ryu::ide::text_editor {
             }
             return true;
         });
-        _command_line.initialize(1, 1);
-        _command_line.margin({_metrics.left_padding, _metrics.right_padding, 0, 10});
+        _command_line.margin({_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
 
         _document_status.font_family(family);
         _document_status.palette(context()->palette());
@@ -179,7 +181,6 @@ namespace ryu::ide::text_editor {
 
     void controller::on_resize(const core::rect& bounds) {
         _layout_panel.resize(bounds);
-        _command_line.size(1, static_cast<uint8_t>(_editor.page_width()));
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

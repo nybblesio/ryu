@@ -228,9 +228,11 @@ namespace ryu::core {
             if (e->type == SDL_KEYDOWN) {
                 switch (e->key.keysym.sym) {
                     case SDLK_TAB: {
-                        if (_on_tab_callable != nullptr)
+                        if (_on_tab_callable != nullptr) {
                             _on_tab_callable();
-                        return true;
+                            return true;
+                        }
+                        break;
                     }
                 }
             }
