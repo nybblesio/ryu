@@ -395,7 +395,7 @@ namespace ryu::ide::text_editor {
                 }
                 case SDLK_BACKSPACE: {
                     if (_document.is_line_empty(_vrow)) {
-                        _document.delete_line(_vrow + 1);
+                        _document.delete_line(_vrow);
                     } else if (_caret.column() == 0) {
                         _document.delete_line(_vrow);
                         caret_up();

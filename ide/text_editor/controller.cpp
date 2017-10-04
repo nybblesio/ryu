@@ -67,7 +67,7 @@ namespace ryu::ide::text_editor {
         _command_line.on_key_down([&](int keycode) {
             if (keycode == SDLK_ESCAPE) {
                 _layout_panel.focus(_editor.id());
-                return false;
+                return true;
             }
             if (keycode == SDLK_RETURN) {
                 auto input = _command_line.value();
@@ -88,7 +88,7 @@ namespace ryu::ide::text_editor {
                 }
                 _command_line.clear();
                 _layout_panel.focus(_editor.id());
-                return false;
+                return true;
             }
             return true;
         });
