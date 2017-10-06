@@ -59,11 +59,11 @@ add_executable(
         ryu
         ide
         assets
-        common
         emulator
         hardware
         core
         ide
+        common
         LICENSE
         README.md
         .gitignore

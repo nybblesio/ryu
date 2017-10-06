@@ -216,17 +216,36 @@ namespace ryu::ide {
             case core::command_types::dir: {
                 auto cwd = current_path();
                 if (is_directory(cwd)) {
+                    auto format_entries = [&](const std::vector<directory_entry*>& list) {
+                        for (auto entry : list) {
+                            std::pair<std::string, std::string> size;
+                            if (boost::filesystem::is_regular(entry->path()))
+                                size = ryu::size_to_units(boost::filesystem::file_size(entry->path()));
+                            result.add_message(
+                                    "C005",
+                                    fmt::format("  {0:<41}  {1:>10} {2:<5}",
+                                                fmt::format("\"{}\"", entry->path().filename().string()),
+                                                size.first,
+                                                size.second));
+                        }
+                    };
                     result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<58} ", cwd.string()));
-                    result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<53} Size ", "Filename"));
+                    result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<41}   {1:<15}", "Filename", "Size"));
                     std::vector<directory_entry> entries;
+                    std::vector<directory_entry*> dir_entries;
+                    std::vector<directory_entry*> file_entries;
                     copy(directory_iterator(cwd), directory_iterator(), back_inserter(entries));
                     for (auto& entry : entries) {
-                        result.add_message(
-                                "C005",
-                                fmt::format("  {0:<53} {1:>4d}",
-                                            fmt::format("\"{}\"", entry.path().filename().string()),
-                                            0));
+                        if (entry.status().type() == file_type::directory_file) {
+                            dir_entries.push_back(&entry);
+                        } else {
+                            file_entries.push_back(&entry);
+                        }
                     }
+                    std::sort(dir_entries.begin(), dir_entries.end());
+                    std::sort(file_entries.begin(), file_entries.end());
+                    format_entries(dir_entries);
+                    format_entries(file_entries);
                 }
                 break;
             }

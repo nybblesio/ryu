@@ -31,8 +31,6 @@ namespace ryu {
         rtrim(s);
     }
 
-    std::string size_to_units(size_t size);
-
     // trim from start (copying)
     inline std::string ltrimmed(std::string s) {
         ltrim(s);
@@ -52,6 +50,8 @@ namespace ryu {
     }
 
     std::string hex_dump(const void* data, size_t size);
+
+    std::pair<std::string, std::string> size_to_units(size_t size);
 
     std::string list_to_string(const std::vector<std::string>& list, const char& sep = ',');
 

@@ -12,18 +12,8 @@
 
 namespace ryu {
 
-    std::string size_to_units(double size) {
-        auto i = 0;
-        const char* units[] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
-        while (size > 1024) {
-            size /= 1024;
-            i++;
-        }
-        return fmt::format("{}.{} {}", i, size, units[i]);
-    }
-
     std::string hex_dump(const void* data, size_t size) {
-        unsigned char *buf = (unsigned char*)data;
+        auto* buf = (unsigned char*)data;
         int i, j;
         std::stringstream stream;
         for (i=0; i<size; i+=16) {
@@ -40,6 +30,16 @@ namespace ryu {
             stream << "\n";
         }
         return stream.str();
+    }
+
+    std::pair<std::string, std::string> size_to_units(size_t size) {
+        auto i = 0;
+        const char* units[] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+        while (size > 1024) {
+            size /= 1024;
+            i++;
+        }
+        return std::make_pair(i > 0 ? fmt::format("{}.{}", i, size) : fmt::format("{}", size), units[i]);
     }
 
     std::string list_to_string(const std::vector<std::string>& list, const char& sep) {

@@ -89,10 +89,12 @@ namespace ryu::core {
         return top;
     }
 
-    void parser::forget_top_position() {
+    int parser::forget_top_position() {
         if (_position_stack.empty())
-            return;
+            return _index;
+        auto pos = _position_stack.top();
         _position_stack.pop();
+        return pos.index;
     }
 
     char* parser::move_to_next_token() {
@@ -358,9 +360,11 @@ namespace ryu::core {
             }
 
             push_position();
+
             auto op = parse_operator();
             if (_result.is_failed())
                 return nullptr;
+
             if (op != nullptr) {
                 if (op->symbol == "(") {
                     auto top = peek_operator();
@@ -371,7 +375,7 @@ namespace ryu::core {
                     push_operator(op);
                 } else if (op->symbol == ")") {
                     while (has_operator()) {
-                        auto op = pop_operator();
+                        op = pop_operator();
                         if (op == &_operators["("]) {
                             auto subexpression = std::make_shared<ast_node_t>();
                             subexpression->token = ast_node_t::tokens::expression;
@@ -434,7 +438,9 @@ namespace ryu::core {
                 }
             }
 
-            forget_top_position();
+            auto start_pos = forget_top_position();
+            if (start_pos == _index)
+                return nullptr;
         }
 
         while (has_operator()) {

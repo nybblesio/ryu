@@ -66,7 +66,7 @@ namespace ryu::core {
             return _result.is_failed();
         }
 
-        void forget_top_position();
+        int forget_top_position();
 
         char* move_to_next_token();
 
