@@ -29,6 +29,7 @@ namespace ryu::core {
 
     void label::value(const std::string& value) {
         _value = value;
+        find_root()->dirty(true);
     }
 
     void label::on_draw(core::renderer& surface) {

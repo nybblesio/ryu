@@ -43,8 +43,6 @@ namespace ryu::ide::text_editor {
         _file_status.dock(core::dock::styles::left);
         _file_status.fg_color(ide::colors::info_text);
         _file_status.bg_color(ide::colors::fill_color);
-        _file_status.sizing(core::view::sizing::types::fixed);
-        _file_status.bounds().size(face->measure_chars(46), face->line_height);
 
         _header.font_family(family);
         _header.palette(context()->palette());
@@ -102,11 +100,11 @@ namespace ryu::ide::text_editor {
         _document_status.margin({0, face->width, 0, 0});
 
         _caret_status.font_family(family);
+        _caret_status.margin({0, 0, 0, 0});
         _caret_status.palette(context()->palette());
         _caret_status.dock(core::dock::styles::left);
         _caret_status.fg_color(ide::colors::info_text);
         _caret_status.bg_color(ide::colors::fill_color);
-        _caret_status.margin({0, 0, 0, 0});
 
         _footer.font_family(family);
         _footer.palette(context()->palette());
@@ -176,6 +174,10 @@ namespace ryu::ide::text_editor {
     }
 
     void controller::on_draw(core::renderer& surface) {
+        if (_layout_panel.dirty()) {
+            _layout_panel.resize(context()->bounds());
+            _layout_panel.dirty(false);
+        }
         _layout_panel.draw(surface);
     }
 

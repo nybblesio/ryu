@@ -30,6 +30,21 @@ namespace ryu::core {
         return _id;
     }
 
+    view* view::find_root() {
+        auto current = this;
+        while (true) {
+            auto next = current->parent();
+            if (next == nullptr)
+                break;
+            current = next;
+        }
+        return current;
+    }
+
+    bool view::dirty() const {
+        return (_flags & config::flags::dirty) != 0;
+    }
+
     void view::focus(int id) {
         for (auto child : _children)
             child->focus(id);
@@ -47,7 +62,7 @@ namespace ryu::core {
     core::view* view::parent() {
         return _parent;
     }
-    
+
     bool view::enabled() const {
         return (_flags & config::flags::enabled) != 0;
     }
@@ -84,6 +99,13 @@ namespace ryu::core {
 
     view_list& view::children() {
         return _children;
+    }
+
+    void view::dirty(bool value) {
+        if (value)
+            _flags |= config::flags::dirty;
+        else
+            _flags &= ~config::flags::dirty;
     }
 
     core::padding& view::margin() {

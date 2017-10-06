@@ -44,6 +44,7 @@ namespace ryu::core {
                 enabled = 0b00000010,
                 tabstop = 0b00000100,
                 focused = 0b00001000,
+                dirty   = 0b00010000
             };
         };
 
@@ -64,6 +65,8 @@ namespace ryu::core {
 
         void focus(int id);
 
+        bool dirty() const;
+
         short index() const;
 
         core::rect& bounds();
@@ -80,13 +83,15 @@ namespace ryu::core {
 
         view_list& children();
 
+        void dirty(bool value);
+
         types::id type() const;
 
         core::padding& margin();
 
-        core::padding& padding();
-
         void index(short value);
+
+        core::padding& padding();
 
         void enabled(bool value);
 
@@ -147,6 +152,8 @@ namespace ryu::core {
         virtual void font_family(core::font_family* font);
 
     protected:
+        view* find_root();
+
         void focus(bool value);
 
         virtual void on_focus_changed();
