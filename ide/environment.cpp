@@ -216,11 +216,16 @@ namespace ryu::ide {
             case core::command_types::dir: {
                 auto cwd = current_path();
                 if (is_directory(cwd)) {
-                    result.add_message("C005", fmt::format("{0}:", cwd.string()));
+                    result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<58} ", cwd.string()));
+                    result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<53} Size ", "Filename"));
                     std::vector<directory_entry> entries;
                     copy(directory_iterator(cwd), directory_iterator(), back_inserter(entries));
                     for (auto& entry : entries) {
-                        result.add_message("C005", fmt::format("  {0}", entry.path().filename().string()));
+                        result.add_message(
+                                "C005",
+                                fmt::format("  {0:<53} {1:>4d}",
+                                            fmt::format("\"{}\"", entry.path().filename().string()),
+                                            0));
                     }
                 }
                 break;
