@@ -1,20 +1,20 @@
-add_subdirectory(console)
 add_subdirectory(hex_editor)
-add_subdirectory(text_editor)
+add_subdirectory(console_editor)
+add_subdirectory(source_editor)
 add_subdirectory(machine_editor)
 
 add_library(
         ide
-        console
         hex_editor
-        text_editor
-        ide_types.h
+        source_editor
+        console_editor
         machine_editor
+        ide_types.h
         ide_context.cpp ide_context.h
         environment.cpp environment.h)
 target_link_libraries(
         ide
-        console
         hex_editor
-        text_editor
+        console_editor
+        source_editor
         machine_editor)

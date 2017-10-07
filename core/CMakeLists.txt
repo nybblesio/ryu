@@ -26,8 +26,10 @@ add_library(
         views/panel.cpp views/panel.h
         symbol_table.cpp symbol_table.h
         views/button.cpp views/button.h
+        views/console.cpp views/console.h
         views/textbox.cpp views/textbox.h
         palette_entry.cpp palette_entry.h
         command_parser.cpp command_parser.h
         views/pick_list.cpp views/pick_list.h
+        views/text_editor.cpp views/text_editor.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h)

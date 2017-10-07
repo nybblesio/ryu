@@ -10,13 +10,13 @@
 #include <ide/environment.h>
 #include "controller.h"
 
-namespace ryu::ide::text_editor {
+namespace ryu::ide::source_editor {
 
-    controller::controller(const std::string& name) : core::state(name),
-                                                      _editor("text-editor"),
+    controller::controller(const std::string& name) : ryu::core::state(name),
                                                       _cpu_status("cpu-status-label"),
                                                       _file_status("file-status-label"),
                                                       _caret_status("caret-status-label"),
+                                                      _editor("text-editor"),
                                                       _command_line("command-line"),
                                                       _document_status("document-status-label"),
                                                       _footer("footer-panel"),
@@ -117,8 +117,12 @@ namespace ryu::ide::text_editor {
         _footer.add_child(&_caret_status);
 
         _editor.font_family(family);
-        _editor.dock(core::dock::styles::fill);
         _editor.palette(context()->palette());
+        _editor.dock(core::dock::styles::fill);
+        _editor.fg_color(ide::colors::text);
+        _editor.caret_color(ide::colors::caret);
+        _editor.selection_color(ide::colors::selection);
+        _editor.line_number_color(ide::colors::info_text);
         _editor.on_document_changed([&](const core::document& document) {
             std::string file_name = document.filename();
             if (file_name.empty()) {

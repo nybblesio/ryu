@@ -14,26 +14,23 @@
 #include <core/project.h>
 #include <core/document.h>
 #include <core/selection.h>
-#include <core/views/caret.h>
-#include <hardware/machine.h>
+#include "caret.h"
 
-namespace ryu::ide::text_editor {
+namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
-    class editor_view : public core::view {
+    class text_editor : public core::view {
     public:
         using document_changed_callable = std::function<void (const core::document&)>;
         using caret_changed_callable = std::function<void (const core::caret&)>;
         using char_action_callable = std::function<void (uint32_t, uint16_t)>;
 
-        explicit editor_view(const std::string& name);
+        explicit text_editor(const std::string& name);
 
         void clear();
 
         void goto_line(uint32_t row);
-
-        core::project* project();
 
         int page_width() const {
             return _metrics.page_width;
@@ -43,21 +40,21 @@ namespace ryu::ide::text_editor {
             return _metrics.page_height;
         }
 
-        hardware::machine* machine();
-
         std::string filename() const {
             return _document.filename();
         }
+
+        void caret_color(uint8_t value);
 
         void load(const fs::path& path);
 
         void save(const fs::path& path);
 
-        void project(core::project* value);
+        void selection_color(uint8_t value);
 
         void find(const std::string& needle);
 
-        void machine(hardware::machine* value);
+        void line_number_color(uint8_t value);
 
         void initialize(uint32_t rows, uint16_t columns);
 
@@ -137,9 +134,9 @@ namespace ryu::ide::text_editor {
         core::caret _caret;
         metrics_t _metrics;
         core::document _document;
+        uint8_t _selection_color;
+        uint8_t _line_number_color;
         core::selection _selection;
-        core::project* _project = nullptr;
-        hardware::machine* _machine = nullptr;
         caret_changed_callable _caret_changed_callback;
         document_changed_callable _document_changed_callback;
     };

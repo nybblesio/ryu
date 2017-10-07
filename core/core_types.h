@@ -110,7 +110,7 @@ namespace ryu::core {
         use_machine,
 
         open_editor,
-        text_editor,
+        source_editor,
         memory_editor,
         sprite_editor,
         tile_editor,

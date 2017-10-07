@@ -13,9 +13,9 @@
 #include <core/context.h>
 #include <core/project.h>
 #include "environment.h"
-#include "console/controller.h"
 #include "hex_editor/controller.h"
-#include "text_editor/controller.h"
+#include "source_editor/controller.h"
+#include "console_editor/controller.h"
 #include "machine_editor/controller.h"
 
 namespace ryu::ide {
@@ -37,9 +37,9 @@ namespace ryu::ide {
     private:
         core::palette _palette;
         core::project* _project = nullptr;
-        console::controller _console_state;
         hex_editor::controller _hex_editor_state;
-        text_editor::controller _text_editor_state;
+        console_editor::controller _console_state;
+        source_editor::controller _source_editor_state;
         machine_editor::controller _machine_editor_state;
     };
 

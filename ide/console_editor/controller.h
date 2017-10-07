@@ -12,12 +12,13 @@
 
 #include <SDL_events.h>
 #include <core/state.h>
+#include <ide/ide_types.h>
 #include <core/views/caret.h>
 #include <core/views/label.h>
+#include <core/views/console.h>
 #include <core/views/dock_layout_panel.h>
-#include "console_view.h"
 
-namespace ryu::ide::console {
+namespace ryu::ide::console_editor {
 
     class controller : public core::state {
     public:
@@ -42,11 +43,13 @@ namespace ryu::ide::console {
         void on_activate(const core::parameter_dict& params) override;
 
     private:
+        static const core::code_to_attr_dict _mapper;
+
         metrics_t _metrics;
         core::label _header;
         core::label _footer;
+        core::console _console;
         bool _show_banner = true;
-        console::console_view _console;
         core::dock_layout_panel _layout_panel;
     };
 

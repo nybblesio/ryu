@@ -12,22 +12,27 @@
 
 #include <core/view.h>
 #include <core/document.h>
-#include <core/views/caret.h>
+#include "caret.h"
 
-namespace ryu::ide::console {
+namespace ryu::core {
 
-    class console_view : public core::view {
+    using code_to_attr_callable = std::function<void (attr_t&)>;
+    typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
+
+    class console : public core::view {
     public:
         using caret_changed_callable = std::function<void (const core::caret&)>;
         using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
 
-        explicit console_view(const std::string& name);
+        explicit console(const std::string& name);
 
         void caret_end();
 
         void caret_home();
 
         void initialize();
+
+        void caret_color(uint8_t color);
 
         void caret_up(uint8_t rows = 1);
 
@@ -38,6 +43,8 @@ namespace ryu::ide::console {
         bool caret_right(uint8_t columns = 1);
 
         void write_message(const std::string& message);
+
+        void code_mapper(const code_to_attr_dict& value);
 
         void on_caret_changed(const caret_changed_callable& callable);
 
@@ -67,13 +74,14 @@ namespace ryu::ide::console {
         bool transition_to(const std::string& name, const core::parameter_dict& params);
 
     private:
+        caret _caret;
         uint8_t _color;
-        core::caret _caret;
         metrics_t _metrics;
-        core::document _document;
+        document _document;
+        code_to_attr_dict _code_mapper;
         caret_changed_callable _caret_changed_callback;
+        state_transition_callable _transition_to_callback;
         execute_command_callable _execute_command_callback;
-        core::state_transition_callable _transition_to_callback;
     };
 
 };

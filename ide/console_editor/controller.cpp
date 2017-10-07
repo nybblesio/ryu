@@ -17,9 +17,32 @@
 #include <ide/environment.h>
 #include "controller.h"
 
-namespace ryu::ide::console {
+namespace ryu::ide::console_editor {
 
-    controller::controller(const std::string& name) : core::state(name),
+    const core::code_to_attr_dict controller::_mapper = {
+        {"bold",        [](core::attr_t& attr) { attr.style |= core::font::styles::bold; }},
+        {"italic",      [](core::attr_t& attr) { attr.style |= core::font::styles::italic; }},
+        {"underline",   [](core::attr_t& attr) { attr.style |= core::font::styles::underline; }},
+        {"rev",         [](core::attr_t& attr) { attr.flags |= core::font::flags::reverse; }},
+        {"black",       [](core::attr_t& attr) { attr.color = ide::colors::black; }},
+        {"white",       [](core::attr_t& attr) { attr.color = ide::colors::white; }},
+        {"red",         [](core::attr_t& attr) { attr.color = ide::colors::red; }},
+        {"cyan",        [](core::attr_t& attr) { attr.color = ide::colors::cyan; }},
+        {"purple",      [](core::attr_t& attr) { attr.color = ide::colors::purple; }},
+        {"green",       [](core::attr_t& attr) { attr.color = ide::colors::green; }},
+        {"blue",        [](core::attr_t& attr) { attr.color = ide::colors::blue; }},
+        {"yellow",      [](core::attr_t& attr) { attr.color = ide::colors::yellow; }},
+        {"orange",      [](core::attr_t& attr) { attr.color = ide::colors::orange; }},
+        {"brown",       [](core::attr_t& attr) { attr.color = ide::colors::brown; }},
+        {"pink",        [](core::attr_t& attr) { attr.color = ide::colors::pink; }},
+        {"dgrey",       [](core::attr_t& attr) { attr.color = ide::colors::dark_grey; }},
+        {"grey",        [](core::attr_t& attr) { attr.color = ide::colors::grey; }},
+        {"lgreen",      [](core::attr_t& attr) { attr.color = ide::colors::light_green; }},
+        {"lblue",       [](core::attr_t& attr) { attr.color = ide::colors::light_blue; }},
+        {"lgrey",       [](core::attr_t& attr) { attr.color = ide::colors::light_grey; }},
+    };
+
+    controller::controller(const std::string& name) : ryu::core::state(name),
                                                       _header("header-label"),
                                                       _footer("footer-label"),
                                                       _console("console"),
@@ -29,9 +52,9 @@ namespace ryu::ide::console {
     void controller::on_initialize() {
         auto family = context()->engine()->find_font_family("hack");
 
+        _header.font_family(family);
         _header.palette(context()->palette());
         _header.dock(core::dock::styles::top);
-        _header.font_family(family);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
@@ -47,16 +70,20 @@ namespace ryu::ide::console {
         _header.value(fmt::format("project: {0} | machine: {1}", project_name, machine_name));
         // TODO: ^^^^ temporary
 
+        _footer.font_family(family);
         _footer.palette(context()->palette());
         _footer.dock(core::dock::styles::bottom);
-        _footer.font_family(family);
         _footer.fg_color(ide::colors::info_text);
         _footer.bg_color(ide::colors::fill_color);
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _console.font_family(family);
+        _console.code_mapper(_mapper);
+        _console.fg_color(ide::colors::text);
         _console.palette(context()->palette());
         _console.dock(core::dock::styles::fill);
+        _console.caret_color(ide::colors::caret);
+        _console.bg_color(ide::colors::fill_color);
         _console.on_transition([&](const std::string& name, const core::parameter_dict& params) {
             return transition_to(name, params);
         });

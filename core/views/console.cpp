@@ -10,57 +10,24 @@
 
 #include <sstream>
 #include <fmt/format.h>
-#include <ide/ide_types.h>
-#include "console_view.h"
+#include "console.h"
 
-namespace ryu::ide::console {
+namespace ryu::core {
 
-    console_view::console_view(const std::string& name) : core::view(core::view::types::container, name),
+    console::console(const std::string& name) : core::view(core::view::types::container, name),
                                                           _caret("console-caret") {
     }
 
-    void console_view::caret_end() {
+    void console::caret_end() {
         _caret.column(_metrics.page_width);
     }
 
-    void console_view::caret_home() {
+    void console::caret_home() {
         _caret.column(0);
     }
 
-    void console_view::caret_up(uint8_t rows) {
-        _caret.up(rows);
-    }
-
-    void console_view::caret_down(uint8_t rows) {
-        if (_caret.down(rows))
-            _document.shift_up();
-    }
-
-    void console_view::raise_caret_changed() {
-        if (_caret_changed_callback != nullptr)
-            _caret_changed_callback(_caret);
-    }
-
-    bool console_view::caret_left(uint8_t columns) {
-        if (_caret.left(columns)) {
-            caret_up();
-            caret_end();
-            return true;
-        }
-        return false;
-    }
-
-    bool console_view::caret_right(uint8_t columns) {
-        if (_caret.right(columns)) {
-            caret_down();
-            caret_home();
-            return true;
-        }
-        return false;
-    }
-
-    void console_view::initialize() {
-        _color = ide::colors::text;
+    void console::initialize() {
+        _color = fg_color();
 
         _document.default_attr(core::attr_t {_color, core::font::styles::normal, core::font::flags::none});
         _document.document_size(128, 128);
@@ -70,15 +37,29 @@ namespace ryu::ide::console {
         _caret.initialize(0, 0);
         _caret.palette(palette());
         _caret.font_family(font_family());
-        _caret.fg_color(ide::colors::caret);
         _caret.on_caret_changed([&]() {
             raise_caret_changed();
         });
+
         add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
-    void console_view::calculate_page_metrics() {
+    void console::raise_caret_changed() {
+        if (_caret_changed_callback != nullptr)
+            _caret_changed_callback(_caret);
+    }
+
+    void console::caret_up(uint8_t rows) {
+        _caret.up(rows);
+    }
+
+    void console::caret_down(uint8_t rows) {
+        if (_caret.down(rows))
+            _document.shift_up();
+    }
+
+    void console::calculate_page_metrics() {
         auto rect = bounds();
         if (rect.empty())
             return;
@@ -86,14 +67,40 @@ namespace ryu::ide::console {
         _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
     }
 
-    void console_view::on_resize(const core::rect& context_bounds) {
+    void console::caret_color(uint8_t color) {
+        _caret.fg_color(color);
+    }
+
+    bool console::caret_left(uint8_t columns) {
+        if (_caret.left(columns)) {
+            caret_up();
+            caret_end();
+            return true;
+        }
+        return false;
+    }
+
+    bool console::caret_right(uint8_t columns) {
+        if (_caret.right(columns)) {
+            caret_down();
+            caret_home();
+            return true;
+        }
+        return false;
+    }
+
+    void console::code_mapper(const code_to_attr_dict& value) {
+        _code_mapper = value;
+    }
+
+    void console::on_resize(const core::rect& context_bounds) {
         core::view::on_resize(context_bounds);
         calculate_page_metrics();
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
-    void console_view::on_draw(core::renderer& surface) {
+    void console::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
         auto pal = *palette();
 
@@ -109,7 +116,7 @@ namespace ryu::ide::console {
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
                     surface.set_color(color);
-                    color = pal[ide::colors::fill_color];
+                    color = pal[bg_color()];
                     surface.fill_rect(core::rect{x, y, width, face->line_height});
                 }
 
@@ -121,7 +128,7 @@ namespace ryu::ide::console {
         }
     }
 
-    bool console_view::on_process_event(const SDL_Event* e) {
+    bool console::on_process_event(const SDL_Event* e) {
         auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
         auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
         auto mode = _caret.mode();
@@ -141,8 +148,107 @@ namespace ryu::ide::console {
             }
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
+                case SDLK_1: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("black");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_2: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("white");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_3: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("red");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_4: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("cyan");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_5: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("purple");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_6: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("green");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_7: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("blue");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_8: {
+                    if (ctrl_pressed) {
+                        core::attr_t a {};
+                        auto it = _code_mapper.find("yellow");
+                        if (it != _code_mapper.end()) {
+                            it->second(a);
+                            _color = a.color;
+                            return true;
+                        }
+                    }
+                    break;
+                }
+                case SDLK_9: {
+                    break;
+                }
                 case SDLK_ESCAPE: {
-                    return transition_to("text_editor", {});
+                    return transition_to("source_editor", {});
                 }
                 case SDLK_RETURN: {
                     core::result result;
@@ -201,7 +307,7 @@ namespace ryu::ide::console {
 
                                 code = result.find_code("C002");
                                 if (code != nullptr) {
-                                    consumed = transition_to("text_editor", code->params());
+                                    consumed = transition_to("source_editor", code->params());
                                 }
 
                                 code = result.find_code("C024");
@@ -218,7 +324,7 @@ namespace ryu::ide::console {
                                         if (type == "MACH") {
                                             consumed = transition_to("machine_editor", params);
                                         } else if (type == "TEXT") {
-                                            consumed = transition_to("text_editor", params);
+                                            consumed = transition_to("source_editor", params);
                                         } else if (type == "DATA") {
                                             consumed = transition_to("hex_editor", params);
                                         }
@@ -287,7 +393,7 @@ namespace ryu::ide::console {
         return false;
     }
 
-    void console_view::write_message(const std::string& message) {
+    void console::write_message(const std::string& message) {
         core::attr_t attr {_color, core::font::styles::normal, core::font::flags::none};
 
         caret_home();
@@ -304,51 +410,16 @@ namespace ryu::ide::console {
                 while (*(++token) != '}') {
                     code += *token;
                 }
-                if (code == "bold") {
-                    attr.style |= core::font::styles::bold;
-                } else if (code == "italic") {
-                    attr.style |= core::font::styles::italic;
-                } else if (code == "underline") {
-                    attr.style |= core::font::styles::underline;
-                } else if (code == "rev") {
-                    attr.flags |= core::font::flags::reverse;
-                } else if (code == "black") {
-                    attr.color = ide::colors::black;
-                } else if (code == "white") {
-                    attr.color = ide::colors::white;
-                } else if (code == "red") {
-                    attr.color = ide::colors::red;
-                } else if (code == "cyan") {
-                    attr.color = ide::colors::cyan;
-                } else if (code == "purple") {
-                    attr.color = ide::colors::purple;
-                } else if (code == "green") {
-                    attr.color = ide::colors::green;
-                } else if (code == "blue") {
-                    attr.color = ide::colors::blue;
-                } else if (code == "yellow") {
-                    attr.color = ide::colors::yellow;
-                } else if (code == "orange") {
-                    attr.color = ide::colors::orange;
-                } else if (code == "brown") {
-                    attr.color = ide::colors::brown;
-                } else if (code == "pink") {
-                    attr.color = ide::colors::pink;
-                } else if (code == "dgrey") {
-                    attr.color = ide::colors::dark_grey;
-                } else if (code == "grey") {
-                    attr.color = ide::colors::grey;
-                } else if (code == "lgreen") {
-                    attr.color = ide::colors::light_green;
-                } else if (code == "lblue") {
-                    attr.color = ide::colors::light_blue;
-                } else if (code == "lgrey") {
-                    attr.color = ide::colors::light_grey;
-                } else {
+
+                auto it = _code_mapper.find(code);
+                if (it == _code_mapper.end()) {
                     attr.color = _color;
                     attr.flags = core::font::flags::none;
                     attr.style = core::font::styles::normal;
+                } else {
+                    it->second(attr);
                 }
+
                 ++token;
                 continue;
             }
@@ -364,19 +435,19 @@ namespace ryu::ide::console {
         caret_home();
     }
 
-    void console_view::on_execute_command(const execute_command_callable& callable) {
+    void console::on_execute_command(const execute_command_callable& callable) {
         _execute_command_callback = callable;
     }
 
-    void console_view::on_transition(const core::state_transition_callable& callable) {
+    void console::on_transition(const core::state_transition_callable& callable) {
         _transition_to_callback = callable;
     }
 
-    void console_view::on_caret_changed(const console_view::caret_changed_callable& callable) {
+    void console::on_caret_changed(const console::caret_changed_callable& callable) {
         _caret_changed_callback = callable;
     }
 
-    bool console_view::transition_to(const std::string& name, const core::parameter_dict& params) {
+    bool console::transition_to(const std::string& name, const core::parameter_dict& params) {
         bool consumed = false;
         if (_transition_to_callback) {
             consumed = _transition_to_callback(name, params);

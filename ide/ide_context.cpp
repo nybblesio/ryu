@@ -15,9 +15,9 @@ namespace ryu::ide {
 
     ide_context::ide_context(const std::string& name) : core::context(name),
                                                         _palette(),
-                                                        _console_state("console"),
                                                         _hex_editor_state("hex editor"),
-                                                        _text_editor_state("text editor"),
+                                                        _console_state("console"),
+                                                        _source_editor_state("text editor"),
                                                         _machine_editor_state("machine editor") {
     }
 
@@ -26,8 +26,8 @@ namespace ryu::ide {
         add_state(
                 &_console_state,
                 [&](auto& command, auto& params) {
-                    if (command == "text_editor") {
-                        push_state(_text_editor_state.id(), params);
+                    if (command == "source_editor") {
+                        push_state(_source_editor_state.id(), params);
                         return true;
                     } else if (command == "hex_editor") {
                         push_state(_hex_editor_state.id(), params);
@@ -39,7 +39,7 @@ namespace ryu::ide {
                     return false;
                 });
         add_state(&_hex_editor_state);
-        add_state(&_text_editor_state);
+        add_state(&_source_editor_state);
         add_state(&_machine_editor_state);
         push_state(_console_state.id(), {});
     }

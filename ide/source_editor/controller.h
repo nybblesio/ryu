@@ -12,11 +12,10 @@
 #include <hardware/machine.h>
 #include <core/views/label.h>
 #include <core/views/textbox.h>
-#include <common/SDL_FontCache.h>
+#include <core/views/text_editor.h>
 #include <core/views/dock_layout_panel.h>
-#include "editor_view.h"
 
-namespace ryu::ide::text_editor {
+namespace ryu::ide::source_editor {
 
     class controller : public ryu::core::state {
     public:
@@ -51,10 +50,10 @@ namespace ryu::ide::text_editor {
 
     private:
         metrics_t _metrics;
-        editor_view _editor;
         core::label _cpu_status;
         core::label _file_status;
         core::label _caret_status;
+        core::text_editor _editor;
         core::textbox _command_line;
         core::label _document_status;
         core::dock_layout_panel _footer;

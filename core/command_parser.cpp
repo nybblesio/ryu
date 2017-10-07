@@ -65,7 +65,7 @@ namespace ryu::core {
             {"!",           {command_types::quit,                       {}}},
             {"?",           {command_types::evaluate,                   {{"...",  variant::types::variadic}}}},
             {"a",           {command_types::assemble,                   {{"addr", variant::types::numeric_literal, false}}}},
-            {"e",           {command_types::text_editor,                {{"name", variant::types::string_literal, false}}}},
+            {"e",           {command_types::source_editor,                {{"name", variant::types::string_literal, false}}}},
             {"m",           {command_types::memory_editor,              {{"addr", variant::types::numeric_literal}}}},
             {"d",           {command_types::disassemble,                {{"addr", variant::types::numeric_literal}}}},
             {"h",           {command_types::hex_dump,                   {{"addr", variant::types::numeric_literal}}}},

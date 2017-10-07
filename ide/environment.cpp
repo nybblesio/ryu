@@ -294,7 +294,7 @@ namespace ryu::ide {
                 result.add_data("C024", {});
                 break;
             }
-            case core::command_types::text_editor: {
+            case core::command_types::source_editor: {
                 result.add_data("C002", {});
                 break;
             }
