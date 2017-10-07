@@ -65,6 +65,7 @@ namespace ryu::core {
 
     void pick_list::length(int value) {
         _length = value;
+        requires_layout();
     }
 
     option_list& pick_list::options() {

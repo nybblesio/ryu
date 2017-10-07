@@ -22,6 +22,13 @@ namespace ryu::core {
                               _height(height) {
     }
 
+    rect::rect(const SDL_Rect& sdl_rect) {
+        _left = sdl_rect.x;
+        _top = sdl_rect.y;
+        _width = sdl_rect.w;
+        _height = sdl_rect.h;
+    }
+
     int32_t rect::top() const {
         return _top;
     }

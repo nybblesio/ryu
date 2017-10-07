@@ -45,14 +45,6 @@ namespace ryu::core {
         FC_SetDefaultColor(font_face->glyph, color.to_sdl_color());
     }
 
-    void renderer::pop_clip_rect() {
-        if (_clip_stack.empty())
-            return;
-        auto rect = _clip_stack.top();
-        _clip_stack.pop();
-        SDL_RenderSetClipRect(_surface, &rect);
-    }
-
     void renderer::pop_blend_mode() {
         if (_mode_stack.empty())
             return;
@@ -87,6 +79,21 @@ namespace ryu::core {
                 value.c_str());
     }
 
+    core::rect renderer::pop_clip_rect() {
+        if (_clip_stack.empty())
+            return {};
+        auto rect = _clip_stack.back();
+        _clip_stack.pop_back();
+        _bounds = rect;
+        auto sdl_rect = rect.to_sdl_rect();
+        SDL_RenderSetClipRect(_surface, &sdl_rect);
+        return rect;
+    }
+
+    const core::rect& renderer::bounds() const {
+        return _bounds;
+    }
+
     void renderer::draw_rect(const core::rect& bounds) {
         auto rect = bounds.to_sdl_rect();
         SDL_RenderDrawRect(_surface, &rect);
@@ -112,9 +119,10 @@ namespace ryu::core {
     void renderer::push_clip_rect(const core::rect& bounds) {
         SDL_Rect rect {};
         SDL_RenderGetClipRect(_surface, &rect);
-        _clip_stack.push(rect);
+        _clip_stack.emplace_back(rect);
         SDL_Rect clip_rect = bounds.to_sdl_rect();
         SDL_RenderSetClipRect(_surface, &clip_rect);
+        _bounds = bounds;
     }
 
     void renderer::draw_line(int x1, int y1, int x2, int y2) {

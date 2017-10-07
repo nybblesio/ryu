@@ -21,6 +21,8 @@ namespace ryu::core {
     public:
         rect() = default;
 
+        rect(const SDL_Rect& sdl_rect);
+
         rect(int32_t left, int32_t top, int32_t width, int32_t height);
 
         bool empty() const {

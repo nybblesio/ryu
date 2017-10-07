@@ -30,7 +30,7 @@ namespace ryu::core {
             uint32_t dt,
             core::renderer& renderer,
             std::deque<SDL_Event>& events) {
-        renderer.set_clip_rect(_bounds);
+        renderer.push_clip_rect(_bounds);
         renderer.push_blend_mode(SDL_BLENDMODE_NONE);
 
         auto current_state_id = _stack.peek();
@@ -56,6 +56,7 @@ namespace ryu::core {
         _stack.update();
 
         renderer.pop_blend_mode();
+        renderer.pop_clip_rect();
     }
 
     void context::resize() {

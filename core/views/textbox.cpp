@@ -64,10 +64,12 @@ namespace ryu::core {
     void textbox::width(uint8_t value) {
         _document.page_size(1, value);
         _caret.page_size(1, value);
+        requires_layout();
     }
 
     void textbox::length(uint16_t value) {
         _document.document_size(1, value);
+        requires_layout();
     }
 
     void textbox::fg_color(uint8_t value) {

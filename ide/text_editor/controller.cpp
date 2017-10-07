@@ -174,10 +174,6 @@ namespace ryu::ide::text_editor {
     }
 
     void controller::on_draw(core::renderer& surface) {
-        if (_layout_panel.dirty()) {
-            _layout_panel.resize(context()->bounds());
-            _layout_panel.dirty(false);
-        }
         _layout_panel.draw(surface);
     }
 

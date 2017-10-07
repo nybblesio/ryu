@@ -41,8 +41,8 @@ namespace ryu::core {
         return current;
     }
 
-    bool view::dirty() const {
-        return (_flags & config::flags::dirty) != 0;
+    bool view::layout() const {
+        return (_flags & config::flags::layout) != 0;
     }
 
     void view::focus(int id) {
@@ -101,11 +101,19 @@ namespace ryu::core {
         return _children;
     }
 
-    void view::dirty(bool value) {
-        if (value)
-            _flags |= config::flags::dirty;
+    void view::requires_layout() {
+        auto container = parent();
+        if (container != nullptr)
+            container->layout(true);
         else
-            _flags &= ~config::flags::dirty;
+            layout(true);
+    }
+
+    void view::layout(bool value) {
+        if (value)
+            _flags |= config::flags::layout;
+        else
+            _flags &= ~config::flags::layout;
     }
 
     core::padding& view::margin() {
@@ -212,6 +220,10 @@ namespace ryu::core {
         if (!visible())
             return;
 
+        if (layout()) {
+            resize(renderer.bounds());
+        }
+
         on_draw(renderer);
         for (auto child : _children)
             child->draw(renderer);
@@ -220,7 +232,7 @@ namespace ryu::core {
     void view::remove_child(core::view* child) {
         if (child == nullptr)
             return;
-        _children.erase(std::remove(_children.begin(), _children.end(), child));
+        _children.erase(std::find(_children.begin(), _children.end(), child));
     }
 
     void view::bounds(const core::rect& value) {
@@ -291,6 +303,7 @@ namespace ryu::core {
     }
 
     void view::resize(const core::rect& context_bounds) {
+        layout(false);
         on_resize(context_bounds);
         for (auto child : _children)
             child->resize(context_bounds);

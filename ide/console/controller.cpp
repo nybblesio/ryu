@@ -23,19 +23,17 @@ namespace ryu::ide::console {
                                                       _header("header-label"),
                                                       _footer("footer-label"),
                                                       _console("console"),
-                                                      _layout_panel("panel") {
+                                                      _layout_panel("layout-panel") {
     }
 
     void controller::on_initialize() {
         auto family = context()->engine()->find_font_family("hack");
-        auto face = family->find_style(core::font::styles::normal);
 
         _header.palette(context()->palette());
         _header.dock(core::dock::styles::top);
         _header.font_family(family);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
-        _header.bounds().height(face->line_height);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         // TODO: this is temporarily located here, it needs to be in its own method
@@ -54,7 +52,6 @@ namespace ryu::ide::console {
         _footer.font_family(family);
         _footer.fg_color(ide::colors::info_text);
         _footer.bg_color(ide::colors::fill_color);
-        _footer.bounds().height(face->line_height);
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _console.font_family(family);

@@ -44,7 +44,7 @@ namespace ryu::core {
                 enabled = 0b00000010,
                 tabstop = 0b00000100,
                 focused = 0b00001000,
-                dirty   = 0b00010000
+                layout  = 0b00010000
             };
         };
 
@@ -65,7 +65,7 @@ namespace ryu::core {
 
         void focus(int id);
 
-        bool dirty() const;
+        bool layout() const;
 
         short index() const;
 
@@ -83,9 +83,9 @@ namespace ryu::core {
 
         view_list& children();
 
-        void dirty(bool value);
-
         types::id type() const;
+
+        void layout(bool value);
 
         core::padding& margin();
 
@@ -153,6 +153,8 @@ namespace ryu::core {
 
     protected:
         view* find_root();
+
+        void requires_layout();
 
         void focus(bool value);
 

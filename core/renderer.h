@@ -22,10 +22,6 @@ namespace ryu::core {
     public:
         explicit renderer(SDL_Renderer* surface);
 
-        SDL_Renderer* ptr() {
-            return _surface;
-        }
-
         void clear();
 
         void present();
@@ -45,8 +41,6 @@ namespace ryu::core {
                 const font_t* font_face,
                 const core::palette_entry& color);
 
-        void pop_clip_rect();
-
         void pop_blend_mode();
 
         void draw_text_aligned(
@@ -55,6 +49,10 @@ namespace ryu::core {
                 const core::rect& bounds,
                 alignment::horizontal::types halign,
                 alignment::vertical::types valign);
+
+        core::rect pop_clip_rect();
+
+        const core::rect& bounds() const;
 
         void draw_rect(const core::rect& bounds);
 
@@ -71,8 +69,9 @@ namespace ryu::core {
         void set_color(const core::palette_entry& color);
 
     private:
+        core::rect _bounds;
         SDL_Renderer* _surface = nullptr;
-        std::stack<SDL_Rect> _clip_stack {};
+        std::vector<core::rect> _clip_stack {};
         std::stack<SDL_BlendMode> _mode_stack {};
     };
 
