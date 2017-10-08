@@ -141,6 +141,8 @@ namespace ryu::core {
 
         core::font_family* font_family() const;
 
+        core::view* get_child_at(size_t index);
+
         void margin(const core::padding& value);
 
         void padding(const core::padding& value);

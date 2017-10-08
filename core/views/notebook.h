@@ -14,11 +14,6 @@
 
 namespace ryu::core {
 
-    struct tab_t {
-        std::string title;
-        core::view* content = nullptr;
-    };
-
     class notebook : public core::view {
     public:
         explicit notebook(const std::string& name);
@@ -32,6 +27,8 @@ namespace ryu::core {
         void add_tab(const std::string& title, core::view* content);
 
     protected:
+        const int width = 150;
+
         void on_draw(core::renderer& surface) override;
 
         bool on_process_event(const SDL_Event* e) override;
@@ -40,7 +37,7 @@ namespace ryu::core {
 
     private:
         int _index = 0;
-        std::vector<tab_t> _tabs;
+        std::vector<std::string> _tabs;
     };
 
 };

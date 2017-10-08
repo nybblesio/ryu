@@ -282,6 +282,12 @@ namespace ryu::core {
         return false;
     }
 
+    core::view* view::get_child_at(size_t index) {
+        if (index < _children.size())
+            return _children[index];
+        return nullptr;
+    }
+
     core::font_family* view::font_family() const {
         return _font;
     }

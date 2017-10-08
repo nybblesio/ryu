@@ -13,6 +13,7 @@
 namespace ryu::core {
 
     notebook::notebook(const std::string& name) : core::view(types::control, name) {
+        margin({width, 0, 0, 0});
     }
 
     int notebook::active_tab() const {
@@ -28,46 +29,46 @@ namespace ryu::core {
     }
 
     void notebook::on_draw(core::renderer& surface) {
-        const auto width = 150;
-
-        auto bounds = client_bounds();
+        auto rect = bounds();
 
         auto pal = *palette();
         auto& fg = pal[fg_color()];
         auto& bg = pal[bg_color()];
 
-//        if (!enabled() || !focused())
-//            fg = fg - 35;
+        if (!enabled() || !focused())
+            fg = fg - 35;
 
         surface.set_color(fg);
 
         auto& margins = margin();
         core::rect content_rect {width,
-                                 bounds.top() + margins.top(),
-                                 bounds.right() - margins.right() - width,
-                                 bounds.bottom() - margins.bottom()};
-        auto index = 0;
-        auto y = bounds.top();
+                                 rect.top() + margins.top(),
+                                 rect.right() - margins.right() - width,
+                                 rect.bottom() - margins.bottom()};
+        size_t index = 0;
+        auto y = rect.top();
         for (const auto& tab : _tabs) {
             core::rect tab_rect {0, y, width, 50};
+
             if (index == _index) {
                 surface.set_font_color(font_face(), bg);
                 surface.fill_rect(tab_rect);
-                if (tab.content != nullptr) {
-                    surface.push_clip_rect(content_rect);
-                    tab.content->draw(surface);
-                    surface.pop_clip_rect();
-                }
             } else {
                 surface.set_font_color(font_face(), fg);
                 surface.draw_rect(tab_rect);
             }
+
+            auto child = get_child_at(index);
+            if (child != nullptr)
+                child->visible(index == _index);
+
             surface.draw_text_aligned(
                     font_face(),
-                    tab.title,
+                    tab,
                     tab_rect,
                     alignment::horizontal::center,
                     alignment::vertical::middle);
+
             y += 50;
             index++;
         }
@@ -96,34 +97,19 @@ namespace ryu::core {
                 }
             }
         }
-        if (!_tabs.empty()) {
-            const auto& tab = _tabs[_index];
-            if (tab.content != nullptr)
-                return tab.content->process_event(e);
-        }
         return false;
     }
 
     void notebook::on_resize(const core::rect& context_bounds) {
-//        switch (sizing()) {
-//            case sizing::parent: {
-//                auto container = parent();
-//                bounds(container != nullptr ? container->bounds() : context_bounds);
-//                break;
-//            }
-//            default: {
-//                break;
-//            }
-//        }
-        if (!_tabs.empty()) {
-            const auto& tab = _tabs[_index];
-            if (tab.content != nullptr)
-                return tab.content->requires_layout();
-        }
+        core::view::on_resize(context_bounds);
     }
 
     void notebook::add_tab(const std::string& title, core::view* content) {
-        _tabs.push_back(tab_t {title, content});
+        _tabs.push_back(title);
+        if (content != nullptr) {
+            content->visible(false);
+            add_child(content);
+        }
     }
 
 }
