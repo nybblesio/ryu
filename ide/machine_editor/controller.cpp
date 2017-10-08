@@ -20,20 +20,22 @@ namespace ryu::ide::machine_editor {
     controller::controller(const std::string& name) : core::state(name),
                                                       _header("header-label"),
                                                       _footer("footer-label"),
-                                                      _editor("editor"),
                                                       _name_label("name-label"),
+                                                      _notebook("notebook"),
                                                       _map_button("map-button"),
                                                       _add_button("add-button"),
                                                       _display_label("display-label"),
                                                       _delete_button("delete-button"),
                                                       _name_textbox("name-textbox"),
-                                                      _panel("layout-panel"),
+                                                      _panel("panel"),
                                                       _address_space_label("address-space-label"),
                                                       _display_pick_list("display-pick-list"),
                                                       _row1_panel("row1"),
                                                       _row2_panel("row2"),
+                                                      _row3_panel("roe3"),
                                                       _address_space_textbox("address-space-textbox"),
-                                                      _button_panel("buttons") {
+                                                      _button_panel("buttons"),
+                                                      _general_panel("layout-panel") {
     }
 
     void controller::on_deactivate() {
@@ -61,6 +63,7 @@ namespace ryu::ide::machine_editor {
     void controller::on_initialize() {
         auto family = context()->engine()->find_font_family("hack");
         auto face = family->find_style(core::font::styles::normal);
+        auto address_space_label_width = face->measure_text("address space: $");
 
         _header.font_family(family);
         _header.palette(context()->palette());
@@ -86,15 +89,16 @@ namespace ryu::ide::machine_editor {
         _name_label.bg_color(ide::colors::fill_color);
         _name_label.sizing(core::view::sizing::types::fixed);
         _name_label.halign(core::alignment::horizontal::right);
-        _name_label.bounds().size(
-                face->measure_text("display:"),
-                face->line_height);
+        _name_label.bounds().size(address_space_label_width, face->line_height);
 
         _name_textbox.width(32);
         _name_textbox.length(32);
         _name_textbox.enabled(true);
+        _name_textbox.on_tab([&]() {
+            _general_panel.focus(_address_space_textbox.id());
+        });
         _name_textbox.font_family(family);
-        _name_textbox.margin({5, 0, 3, 0});
+        _name_textbox.margin({15, 0, 3, 0});
         _name_textbox.palette(context()->palette());
         _name_textbox.dock(core::dock::styles::left);
         _name_textbox.fg_color(ide::colors::text);
@@ -102,37 +106,32 @@ namespace ryu::ide::machine_editor {
         _name_textbox.on_key_down([&](int keycode) {
             return true;
         });
-        _name_textbox.on_tab([&]() {
-            _panel.focus(_address_space_textbox.id());
-        });
 
         _address_space_label.font_family(family);
-        _address_space_label.margin({15, 0, 0, 0});
+        _address_space_label.margin({0, 0, 0, 0});
         _address_space_label.value("address space: $");
         _address_space_label.palette(context()->palette());
         _address_space_label.dock(core::dock::styles::left);
         _address_space_label.fg_color(ide::colors::text);
         _address_space_label.bg_color(ide::colors::fill_color);
         _address_space_label.sizing(core::view::sizing::types::fixed);
-        _address_space_label.halign(core::alignment::horizontal::left);
-        _address_space_label.bounds().size(
-                face->measure_text(_address_space_label.value()),
-                face->line_height);
+        _address_space_label.halign(core::alignment::horizontal::right);
+        _address_space_label.bounds().size(address_space_label_width, face->line_height);
 
         _address_space_textbox.width(8);
         _address_space_textbox.length(8);
         _address_space_textbox.enabled(true);
+        _address_space_textbox.on_tab([&]() {
+            _general_panel.focus(_display_pick_list.id());
+        });
         _address_space_textbox.font_family(family);
-        _address_space_textbox.margin({5, 0, 3, 0});
+        _address_space_textbox.margin({15, 0, 3, 0});
         _address_space_textbox.palette(context()->palette());
         _address_space_textbox.dock(core::dock::styles::left);
         _address_space_textbox.fg_color(ide::colors::text);
         _address_space_textbox.bg_color(ide::colors::fill_color);
         _address_space_textbox.on_key_down([&](int keycode) {
             return isxdigit(keycode);
-        });
-        _address_space_textbox.on_tab([&]() {
-            _panel.focus(_display_pick_list.id());
         });
 
         _display_label.value("display:");
@@ -143,10 +142,8 @@ namespace ryu::ide::machine_editor {
         _display_label.fg_color(ide::colors::text);
         _display_label.bg_color(ide::colors::fill_color);
         _display_label.sizing(core::view::sizing::types::fixed);
-        _display_label.halign(core::alignment::horizontal::left);
-        _display_label.bounds().size(
-                face->measure_text(_display_label.value()),
-                face->line_height);
+        _display_label.halign(core::alignment::horizontal::right);
+        _display_label.bounds().size(address_space_label_width, face->line_height);
 
         auto& displays = _display_pick_list.options();
         displays.push_back("Atari 19\"");
@@ -190,7 +187,7 @@ namespace ryu::ide::machine_editor {
         displays.push_back("Williams Raster");
         displays.push_back("Zenith CD-19MRF06");
         _display_pick_list.font_family(family);
-        _display_pick_list.margin({10, 0, 4, 0});
+        _display_pick_list.margin({15, 0, 4, 0});
         _display_pick_list.palette(context()->palette());
         _display_pick_list.dock(core::dock::styles::left);
         _display_pick_list.fg_color(ide::colors::text);
@@ -251,16 +248,22 @@ namespace ryu::ide::machine_editor {
         _row1_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _row1_panel.add_child(&_name_label);
         _row1_panel.add_child(&_name_textbox);
-        _row1_panel.add_child(&_address_space_label);
-        _row1_panel.add_child(&_address_space_textbox);
 
         _row2_panel.palette(context()->palette());
         _row2_panel.dock(core::dock::styles::top);
         _row2_panel.bg_color(ide::colors::transparent);
         _row2_panel.bounds().height(face->line_height * 2);
         _row2_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _row2_panel.add_child(&_display_label);
-        _row2_panel.add_child(&_display_pick_list);
+        _row2_panel.add_child(&_address_space_label);
+        _row2_panel.add_child(&_address_space_textbox);
+
+        _row3_panel.palette(context()->palette());
+        _row3_panel.dock(core::dock::styles::top);
+        _row3_panel.bg_color(ide::colors::transparent);
+        _row3_panel.bounds().height(face->line_height * 2);
+        _row3_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+        _row3_panel.add_child(&_display_label);
+        _row3_panel.add_child(&_display_pick_list);
 
         _button_panel.palette(context()->palette());
         _button_panel.dock(core::dock::styles::bottom);
@@ -271,22 +274,36 @@ namespace ryu::ide::machine_editor {
         _button_panel.add_child(&_add_button);
         _button_panel.add_child(&_delete_button);
 
+        _general_panel.font_family(family);
+        _general_panel.palette(context()->palette());
+        _general_panel.dock(core::dock::styles::fill);
+        _general_panel.fg_color(ide::colors::info_text);
+        _general_panel.bg_color(ide::colors::fill_color);
+        _general_panel.add_child(&_row1_panel);
+        _general_panel.add_child(&_row2_panel);
+        _general_panel.add_child(&_row3_panel);
+
         _panel.font_family(family);
         _panel.palette(context()->palette());
         _panel.dock(core::dock::styles::fill);
         _panel.fg_color(ide::colors::info_text);
         _panel.bg_color(ide::colors::fill_color);
         _panel.add_child(&_header);
-        _panel.add_child(&_row1_panel);
-        _panel.add_child(&_row2_panel);
         _panel.add_child(&_footer);
         _panel.add_child(&_button_panel);
-        _panel.focus(_name_textbox.id());
-        
-        _editor.font_family(family);
-        _editor.palette(context()->palette());
-        _editor.initialize();
-//        _editor.focus(_editor.id());
+        _panel.add_child(&_notebook);
+
+        _notebook.on_tab([&]() {
+            _panel.focus(_name_textbox.id());
+        });
+        _notebook.font_family(family);
+        _notebook.palette(context()->palette());
+        _notebook.dock(core::dock::styles::fill);
+        _notebook.fg_color(ide::colors::info_text);
+        _notebook.bg_color(ide::colors::fill_color);
+        _notebook.add_tab("General", &_general_panel);
+        _notebook.add_tab("Components", nullptr);
+        _notebook.add_tab("Settings", nullptr);
 
 //        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
 //        auto component_types = base.get_derived_classes();

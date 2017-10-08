@@ -13,6 +13,7 @@
 
 #include <core/state.h>
 #include <hardware/machine.h>
+#include <core/views/notebook.h>
 #include <core/views/dock_layout_panel.h>
 #include "editor_view.h"
 
@@ -53,8 +54,8 @@ namespace ryu::ide::machine_editor {
         metrics_t _metrics;
         core::label _header;
         core::label _footer;
-        editor_view _editor;
         core::label _name_label;
+        core::notebook _notebook;
         core::button _map_button;
         core::button _add_button;
         core::label _display_label;
@@ -66,8 +67,10 @@ namespace ryu::ide::machine_editor {
         core::pick_list _display_pick_list;
         core::dock_layout_panel _row1_panel;
         core::dock_layout_panel _row2_panel;
+        core::dock_layout_panel _row3_panel;
         core::textbox _address_space_textbox;
         core::dock_layout_panel _button_panel;
+        core::dock_layout_panel _general_panel;
     };
 
 };

@@ -83,6 +83,8 @@ namespace ryu::core {
 
         view_list& children();
 
+        void requires_layout();
+
         types::id type() const;
 
         void layout(bool value);
@@ -153,8 +155,6 @@ namespace ryu::core {
 
     protected:
         view* find_root();
-
-        void requires_layout();
 
         void focus(bool value);
 

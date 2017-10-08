@@ -14,7 +14,7 @@
 
 namespace ryu::core {
 
-    class panel  : public core::view {
+    class panel : public core::view {
     public:
         explicit panel(const std::string& name);
 

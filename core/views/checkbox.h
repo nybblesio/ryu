@@ -14,7 +14,7 @@
 
 namespace ryu::core {
 
-    class checkbox  : public core::view {
+    class checkbox : public core::view {
     public:
         explicit checkbox(const std::string& name);
 
