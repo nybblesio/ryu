@@ -15,6 +15,22 @@ namespace ryu::core {
     button::button(const std::string& name) : core::view(core::view::types::control, name) {
     }
 
+    int button::width() const {
+        return _width;
+    }
+
+    int button::height() const {
+        return _height;
+    }
+
+    void button::width(int value) {
+        _width = value;
+    }
+
+    void button::height(int value) {
+        _height = value;
+    }
+
     std::string button::value() const {
         return _value;
     }
@@ -25,6 +41,10 @@ namespace ryu::core {
 
     void button::border(border::types value) {
         _border = value;
+    }
+
+    void button::value(const std::string& value) {
+        _value = value;
     }
 
     void button::on_draw(core::renderer& surface) {
@@ -58,10 +78,6 @@ namespace ryu::core {
         surface.pop_blend_mode();
     }
 
-    void button::value(const std::string& value) {
-        _value = value;
-    }
-
     bool button::on_process_event(const SDL_Event* e) {
         if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
@@ -90,6 +106,23 @@ namespace ryu::core {
 
     void button::halign(alignment::horizontal::types value) {
         _halign = value;
+    }
+
+    void button::on_resize(const core::rect& context_bounds) {
+        switch (sizing()) {
+            case sizing::content: {
+                bounds().size(_width, _height);
+                break;
+            }
+            case sizing::parent: {
+                auto container = parent();
+                bounds(container != nullptr ? container->bounds() : context_bounds);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     }
 
     void button::on_clicked(const button::on_clicked_callable& callable) {

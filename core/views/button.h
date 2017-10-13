@@ -20,6 +20,14 @@ namespace ryu::core {
 
         explicit button(const std::string& name);
 
+        int width() const;
+
+        int height() const;
+
+        void width(int value);
+
+        void height(int value);
+
         std::string value() const;
 
         border::types border() const;
@@ -43,7 +51,11 @@ namespace ryu::core {
 
         bool on_process_event(const SDL_Event* e) override;
 
+        void on_resize(const rect& context_bounds) override;
+
     private:
+        int _width = 120;
+        int _height = 50;
         std::string _value;
         on_clicked_callable _on_clicked {};
         border::types _border = border::types::solid;

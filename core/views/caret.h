@@ -76,6 +76,7 @@ namespace ryu::core {
 
     private:
         uint8_t _row = 0;
+        bool _show = true;
         uint8_t _column = 0;
         core::timer _timer;
         uint8_t _page_width = 0;

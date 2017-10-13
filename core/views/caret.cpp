@@ -104,7 +104,7 @@ namespace ryu::core {
         _column = column;
         raise_caret_changed();
         _timer.bind([&](timer* t) {
-            visible(!visible());
+            _show = !_show;
             t->reset();
         });
         timer_pool::instance()->add_timer(&_timer);
@@ -137,7 +137,7 @@ namespace ryu::core {
     }
 
     void caret::on_draw(core::renderer& surface) {
-        if (!enabled())
+        if (!enabled() || !_show)
             return;
 
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);

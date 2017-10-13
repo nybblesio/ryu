@@ -27,7 +27,7 @@ namespace ryu::core {
 
     class view {
     public:
-        using on_tab_callable = std::function<void ()>;
+        using on_tab_callable = std::function<const core::view* ()>;
 
         struct sizing {
             enum types {
@@ -61,10 +61,6 @@ namespace ryu::core {
 
         int id() const;
 
-        view* parent();
-
-        void focus(int id);
-
         bool layout() const;
 
         short index() const;
@@ -78,6 +74,8 @@ namespace ryu::core {
         bool visible() const;
 
         bool tabstop() const;
+
+        core::view* parent();
 
         void clear_children();
 
@@ -113,8 +111,6 @@ namespace ryu::core {
 
         uint8_t font_style() const;
 
-        core::rect client_bounds();
-
         void dock(dock::styles style);
 
         void font_style(uint8_t styles);
@@ -123,7 +119,11 @@ namespace ryu::core {
 
         view::sizing::types sizing() const;
 
+        virtual core::rect client_bounds();
+
         void draw(core::renderer& renderer);
+
+        void focus(const core::view* target);
 
         void remove_child(core::view* child);
 
@@ -156,15 +156,17 @@ namespace ryu::core {
         virtual void font_family(core::font_family* font);
 
     protected:
-        view* find_root();
+        core::view* find_root();
 
-        void focus(bool value);
+        void inner_focus(bool value);
 
         virtual void on_focus_changed();
 
         virtual void on_draw(core::renderer& renderer);
 
         virtual bool on_process_event(const SDL_Event* e);
+
+        virtual void draw_children(core::renderer& renderer);
 
         virtual void on_resize(const core::rect& context_bounds);
 
@@ -181,7 +183,6 @@ namespace ryu::core {
         core::view* _parent = nullptr;
         types::id _type = types::control;
         on_tab_callable _on_tab_callable;
-        bool _in_on_focus_changed = false;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
         uint8_t _font_style = font::styles::normal;

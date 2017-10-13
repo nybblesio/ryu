@@ -64,7 +64,7 @@ namespace ryu::ide::source_editor {
         _command_line.sizing(core::view::sizing::types::parent);
         _command_line.on_key_down([&](int keycode) {
             if (keycode == SDLK_ESCAPE) {
-                _layout_panel.focus(_editor.id());
+                _layout_panel.focus(&_editor);
                 return true;
             }
             if (keycode == SDLK_RETURN) {
@@ -85,7 +85,7 @@ namespace ryu::ide::source_editor {
                     _editor.save(path == "(default)" ? "" : path);
                 }
                 _command_line.clear();
-                _layout_panel.focus(_editor.id());
+                _layout_panel.focus(&_editor);
                 return true;
             }
             return true;
@@ -155,7 +155,7 @@ namespace ryu::ide::source_editor {
         _layout_panel.add_child(&_footer);
         _layout_panel.add_child(&_editor);
 
-        _layout_panel.focus(_editor.id());
+        _layout_panel.focus(&_editor);
     }
 
     core::project* controller::project() {
@@ -195,7 +195,7 @@ namespace ryu::ide::source_editor {
                         end_state();
                         return true;
                     } else {
-                        _layout_panel.focus(_command_line.id());
+                        _layout_panel.focus(&_command_line);
                         return true;
                     }
                 }

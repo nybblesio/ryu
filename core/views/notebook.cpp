@@ -13,7 +13,6 @@
 namespace ryu::core {
 
     notebook::notebook(const std::string& name) : core::view(types::control, name) {
-        margin({width, 0, 0, 0});
     }
 
     int notebook::active_tab() const {
@@ -28,8 +27,18 @@ namespace ryu::core {
         _tabs.erase(_tabs.begin() + index);
     }
 
+    core::rect notebook::client_bounds() {
+        auto& rect = bounds();
+        auto& margins = margin();
+        return {rect.left() + (tab_width + 1),
+                rect.top() + 1,
+                rect.width() - ((tab_width + 1) + margins.left() + margins.right()),
+                rect.height() - 2};
+    }
+
     void notebook::on_draw(core::renderer& surface) {
-        auto rect = bounds();
+        auto& rect = bounds();
+        auto& pads = padding();
 
         auto pal = *palette();
         auto& fg = pal[fg_color()];
@@ -40,15 +49,11 @@ namespace ryu::core {
 
         surface.set_color(fg);
 
-        auto& margins = margin();
-        core::rect content_rect {width,
-                                 rect.top() + margins.top(),
-                                 rect.right() - margins.right() - width,
-                                 rect.bottom() - margins.bottom()};
         size_t index = 0;
-        auto y = rect.top();
+        auto y = rect.top() + pads.top();
+        auto x = rect.left() + pads.left();
         for (const auto& tab : _tabs) {
-            core::rect tab_rect {0, y, width, 50};
+            core::rect tab_rect {x, y, tab_width, tab_height};
 
             if (index == _index) {
                 surface.set_font_color(font_face(), bg);
@@ -69,10 +74,13 @@ namespace ryu::core {
                     alignment::horizontal::center,
                     alignment::vertical::middle);
 
-            y += 50;
+            y += (tab_height - 1);
             index++;
         }
 
+        auto content_rect = bounds();
+        content_rect.pos(rect.left() + (tab_width - 1), rect.top())
+                    .size(rect.width() - (tab_width + 1), rect.height());
         surface.draw_rect(content_rect);
     }
 
@@ -100,8 +108,20 @@ namespace ryu::core {
         return false;
     }
 
+    void notebook::draw_children(core::renderer& surface) {
+        surface.push_clip_rect(client_bounds());
+        view::draw_children(surface);
+        surface.pop_clip_rect();
+    }
+
     void notebook::on_resize(const core::rect& context_bounds) {
         core::view::on_resize(context_bounds);
+
+        auto rect = bounds();
+        bounds({rect.left(),
+                rect.top(),
+                rect.width(),
+                rect.height()});
     }
 
     void notebook::add_tab(const std::string& title, core::view* content) {

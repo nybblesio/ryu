@@ -102,7 +102,7 @@ namespace ryu::ide::console_editor {
             return success;
         });
         _console.initialize();
-        _console.focus(_console.id());
+        _console.focus(&_console);
 
         _layout_panel.font_family(family);
         _layout_panel.palette(context()->palette());

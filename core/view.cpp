@@ -30,25 +30,8 @@ namespace ryu::core {
         return _id;
     }
 
-    view* view::find_root() {
-        auto current = this;
-        while (true) {
-            auto next = current->parent();
-            if (next == nullptr)
-                break;
-            current = next;
-        }
-        return current;
-    }
-
     bool view::layout() const {
         return (_flags & config::flags::layout) != 0;
-    }
-
-    void view::focus(int id) {
-        for (auto child : _children)
-            child->focus(id);
-        focus(id == _id);
     }
 
     short view::index() const {
@@ -85,18 +68,6 @@ namespace ryu::core {
         _children.clear();
     }
 
-    void view::focus(bool value) {
-        if (value)
-            _flags |= config::flags::focused;
-        else
-            _flags &= ~config::flags::focused;
-        if (_in_on_focus_changed)
-            return;
-        _in_on_focus_changed = true;
-        on_focus_changed();
-        _in_on_focus_changed = false;
-    }
-
     view_list& view::children() {
         return _children;
     }
@@ -124,6 +95,20 @@ namespace ryu::core {
         _index = value;
     }
 
+    void view::on_focus_changed() {
+    }
+
+    core::view* view::find_root() {
+        auto current = this;
+        while (true) {
+            auto next = current->parent();
+            if (next == nullptr)
+                break;
+            current = next;
+        }
+        return current;
+    }
+
     core::palette* view::palette() {
         return _palette;
     }
@@ -144,6 +129,9 @@ namespace ryu::core {
             _flags |= config::flags::visible;
         else
             _flags &= ~config::flags::visible;
+
+        for (auto child : _children)
+            child->visible(value);
     }
 
     void view::tabstop(bool value) {
@@ -151,9 +139,6 @@ namespace ryu::core {
             _flags |= config::flags::tabstop;
         else
             _flags &= ~config::flags::tabstop;
-    }
-
-    void view::on_focus_changed() {
     }
 
     std::string view::name() const {
@@ -193,6 +178,14 @@ namespace ryu::core {
         return _type;
     }
 
+    void view::inner_focus(bool value) {
+        if (value)
+            _flags |= config::flags::focused;
+        else
+            _flags &= ~config::flags::focused;
+        on_focus_changed();
+    }
+
     core::dock::styles view::dock() const {
         return _dock;
     }
@@ -225,8 +218,7 @@ namespace ryu::core {
         }
 
         on_draw(renderer);
-        for (auto child : _children)
-            child->draw(renderer);
+        draw_children(renderer);
     }
 
     void view::remove_child(core::view* child) {
@@ -259,19 +251,34 @@ namespace ryu::core {
 
     bool view::process_event(const SDL_Event* e) {
         if (focused()) {
-            if (e->type == SDL_KEYDOWN) {
-                switch (e->key.keysym.sym) {
-                    case SDLK_TAB: {
-                        if (_on_tab_callable != nullptr) {
-                            _on_tab_callable();
-                            return true;
-                        }
+            if (!visible()) {
+                const auto* current = this;
+                while (!current->visible()) {
+                    if (current->_on_tab_callable != nullptr) {
+                        current = current->_on_tab_callable();
+                    } else {
                         break;
                     }
                 }
+                find_root()->focus(current);
+            } else {
+                if (e->type == SDL_KEYDOWN) {
+                    switch (e->key.keysym.sym) {
+                        case SDLK_TAB: {
+                            if (_on_tab_callable != nullptr) {
+                                const auto* next_view = _on_tab_callable();
+                                if (next_view != nullptr) {
+                                    find_root()->focus(next_view);
+                                    return true;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (on_process_event(e))
+                    return true;
             }
-            if (on_process_event(e))
-                return true;
         }
 
         for (auto child : _children) {
@@ -280,6 +287,16 @@ namespace ryu::core {
         }
 
         return false;
+    }
+
+    void view::focus(const core::view* target) {
+        if (target == nullptr)
+            return;
+
+        for (auto child : _children)
+            child->focus(target);
+
+        inner_focus(target->_id == this->_id);
     }
 
     core::view* view::get_child_at(size_t index) {
@@ -306,6 +323,11 @@ namespace ryu::core {
 
     void view::font_family(core::font_family* font) {
         _font = font;
+    }
+
+    void view::draw_children(core::renderer& renderer) {
+        for (auto child : _children)
+            child->draw(renderer);
     }
 
     void view::resize(const core::rect& context_bounds) {

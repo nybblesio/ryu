@@ -94,9 +94,7 @@ namespace ryu::ide::machine_editor {
         _name_textbox.width(32);
         _name_textbox.length(32);
         _name_textbox.enabled(true);
-        _name_textbox.on_tab([&]() {
-            _panel.focus(_address_space_textbox.id());
-        });
+        _name_textbox.on_tab([&]() -> const core::view* { return &_address_space_textbox; });
         _name_textbox.font_family(family);
         _name_textbox.margin({15, 0, 3, 0});
         _name_textbox.palette(context()->palette());
@@ -121,9 +119,7 @@ namespace ryu::ide::machine_editor {
         _address_space_textbox.width(8);
         _address_space_textbox.length(8);
         _address_space_textbox.enabled(true);
-        _address_space_textbox.on_tab([&]() {
-            _panel.focus(_display_pick_list.id());
-        });
+        _address_space_textbox.on_tab([&]() -> const core::view* { return &_display_pick_list; });
         _address_space_textbox.font_family(family);
         _address_space_textbox.margin({15, 0, 3, 0});
         _address_space_textbox.palette(context()->palette());
@@ -192,9 +188,7 @@ namespace ryu::ide::machine_editor {
         _display_pick_list.dock(core::dock::styles::left);
         _display_pick_list.fg_color(ide::colors::text);
         _display_pick_list.bg_color(ide::colors::fill_color);
-        _display_pick_list.on_tab([&]() {
-            _panel.focus(_map_button.id());
-        });
+        _display_pick_list.on_tab([&]() -> const core::view* { return &_map_button; });
         _display_pick_list.bounds().size(
                 face->width * _display_pick_list.length(),
                 face->line_height);
@@ -206,12 +200,7 @@ namespace ryu::ide::machine_editor {
         _map_button.dock(core::dock::styles::left);
         _map_button.fg_color(ide::colors::light_grey);
         _map_button.bg_color(ide::colors::light_blue);
-        _map_button.on_tab([&]() {
-            _panel.focus(_add_button.id());
-        });
-        _map_button.bounds().size(
-                face->measure_text("Delete") + 50,
-                face->line_height + 30);
+        _map_button.on_tab([&]() -> const core::view* { return &_add_button; });
 
         _add_button.value("Add");
         _add_button.font_family(family);
@@ -220,12 +209,7 @@ namespace ryu::ide::machine_editor {
         _add_button.dock(core::dock::styles::left);
         _add_button.fg_color(ide::colors::light_grey);
         _add_button.bg_color(ide::colors::light_blue);
-        _add_button.on_tab([&]() {
-            _panel.focus(_delete_button.id());
-        });
-        _add_button.bounds().size(
-                face->measure_text("Delete") + 50,
-                face->line_height + 30);
+        _add_button.on_tab([&]() -> const core::view* { return &_delete_button; });
 
         _delete_button.value("Delete");
         _delete_button.font_family(family);
@@ -234,12 +218,7 @@ namespace ryu::ide::machine_editor {
         _delete_button.dock(core::dock::styles::left);
         _delete_button.fg_color(ide::colors::light_grey);
         _delete_button.bg_color(ide::colors::light_blue);
-        _delete_button.on_tab([&]() {
-            _panel.focus(_notebook.id());
-        });
-        _delete_button.bounds().size(
-                face->measure_text(_delete_button.value()) + 50,
-                face->line_height + 30);
+        _delete_button.on_tab([&]() -> const core::view* { return &_notebook; });
 
         _row1_panel.palette(context()->palette());
         _row1_panel.dock(core::dock::styles::top);
@@ -268,7 +247,7 @@ namespace ryu::ide::machine_editor {
         _button_panel.palette(context()->palette());
         _button_panel.dock(core::dock::styles::bottom);
         _button_panel.bg_color(ide::colors::transparent);
-        _button_panel.bounds().height(face->line_height * 2);
+        _button_panel.bounds().height(face->line_height * 3);
         _button_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _button_panel.add_child(&_map_button);
         _button_panel.add_child(&_add_button);
@@ -283,14 +262,13 @@ namespace ryu::ide::machine_editor {
         _general_panel.add_child(&_row2_panel);
         _general_panel.add_child(&_row3_panel);
 
-        _notebook.on_tab([&]() {
-            _panel.focus(_name_textbox.id());
-        });
+        _notebook.on_tab([&]() -> const core::view* { return &_name_textbox; });
         _notebook.font_family(family);
         _notebook.palette(context()->palette());
         _notebook.dock(core::dock::styles::fill);
         _notebook.fg_color(ide::colors::info_text);
         _notebook.bg_color(ide::colors::fill_color);
+        _notebook.margin({_metrics.left_padding, _metrics.right_padding, 5, 15});
         _notebook.add_tab("General", &_general_panel);
         _notebook.add_tab("Components", nullptr);
         _notebook.add_tab("Settings", nullptr);
@@ -304,7 +282,7 @@ namespace ryu::ide::machine_editor {
         _panel.add_child(&_footer);
         _panel.add_child(&_button_panel);
         _panel.add_child(&_notebook);
-        _panel.focus(_notebook.id());
+        _panel.focus(&_notebook);
 
 //        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
 //        auto component_types = base.get_derived_classes();

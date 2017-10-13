@@ -23,9 +23,9 @@ namespace ryu::core {
         auto parent_view = parent();
         if (parent_view != nullptr) {
             if (parent_view->type() == types::container)
-                bounds = this->bounds();
+                bounds = client_bounds();
             else
-                bounds = parent_view->bounds();
+                bounds = parent_view->client_bounds();
         } else {
             bounds = context_bounds;
         }
