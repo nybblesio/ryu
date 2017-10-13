@@ -10,20 +10,13 @@
 
 #pragma once
 
-#include <core/result.h>
-#include <core/project.h>
-#include <core/views/label.h>
-#include <core/views/panel.h>
-#include <hardware/machine.h>
-#include <core/views/button.h>
-#include <core/views/textbox.h>
-#include <core/views/pick_list.h>
+#include <core/view.h>
 
 namespace ryu::ide::machine_editor {
 
-    class editor_view : public core::view {
+    class components_tab : public core::view {
     public:
-        explicit editor_view(const std::string& name);
+        explicit components_tab(const std::string& name);
 
         void initialize();
 

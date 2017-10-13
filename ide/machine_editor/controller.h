@@ -15,7 +15,7 @@
 #include <hardware/machine.h>
 #include <core/views/notebook.h>
 #include <core/views/dock_layout_panel.h>
-#include "editor_view.h"
+#include "general_tab.h"
 
 namespace ryu::ide::machine_editor {
 
