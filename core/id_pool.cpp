@@ -32,7 +32,7 @@ namespace ryu::core {
     }
 
     void id_pool::release(int32_t id) {
-        id_set::iterator it = _pool.find(id_interval(id,id));
+        auto it = _pool.find(id_interval(id,id));
         if (it != _pool.end()  && it->left() <= id && it->right() > id) {
             return;
         }
@@ -67,7 +67,7 @@ namespace ryu::core {
     }
 
     bool id_pool::mark_used(int32_t id) {
-        id_set::iterator it = _pool.find(id_interval(id,id));
+        auto it = _pool.find(id_interval(id,id));
         if (it == _pool.end()) {
             return false;
         } else {
