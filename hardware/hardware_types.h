@@ -37,4 +37,5 @@ namespace ryu::hardware {
     typedef std::vector<component*> component_list;
     typedef std::map<int, component*> component_dict;
 
+    typedef std::vector<display> display_list;
 };

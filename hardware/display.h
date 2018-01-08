@@ -8,11 +8,16 @@
 #pragma once
 
 #include <string>
+#include "hardware_types.h"
 
 namespace ryu::hardware {
 
     class display {
     public:
+        static display_list& catalog();
+
+        static display* find(int id);
+
         display(
                 int id,
                 const std::string& name,
@@ -31,6 +36,8 @@ namespace ryu::hardware {
         std::string name() const;
 
     private:
+        static display_list _displays;
+
         int _id = -1;
         int _width = 0;
         int _height = 0;
