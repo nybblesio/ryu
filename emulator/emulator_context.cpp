@@ -17,10 +17,11 @@ namespace ryu::emulator {
                                                                   _emulator_state("execute") {
     }
 
-    void emulator_context::on_initialize() {
+    bool emulator_context::on_initialize(core::result& result) {
         configure_palette();
         add_state(&_emulator_state);
         push_state(_emulator_state.id(), {});
+        return true;
     }
 
     void emulator_context::configure_palette() {

@@ -83,7 +83,7 @@ namespace ryu::core {
             return _stack.find_state(id);
         }
 
-        void initialize(const core::rect& bounds);
+        bool initialize(core::result& result, const core::rect& bounds);
 
         inline void bounds(const core::rect& value) {
             _bounds = value;
@@ -101,7 +101,7 @@ namespace ryu::core {
         void add_state(core::state* state, const state_transition_callable& callback);
 
     protected:
-        virtual void on_initialize();
+        virtual bool on_initialize(core::result& result);
 
     private:
         int _id = 0;

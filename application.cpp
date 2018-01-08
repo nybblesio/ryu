@@ -20,27 +20,42 @@ namespace ryu {
                                  _emulator_context("emulator") {
     }
 
+    void application::show_result_messages(core::result& result) {
+        for (auto& message : result.messages())
+            std::cout << message.code() << ": "
+                      << message.message() << "\n"
+                      << "\t" << message.details() << "\n";
+    }
+
     bool application::init(int argc, char** argv) {
         hardware::initialize();
 
         core::result result;
 
         if (!_engine.initialize(result)) {
-            std::cout << "initialize failed: " << std::endl;
-            for (auto& message : result.messages())
-                std::cout << message.code() << ": "
-                          << message.message() << std::endl
-                          << "\t" << message.details() << std::endl;
+            std::cout << "initialize failed:\n";
+            show_result_messages(result);
             return false;
         }
 
-        configure_ide();
-        configure_emulator();
+        if (!configure_ide(result)) {
+            std::cout << "configure_ide failed:\n";
+            show_result_messages(result);
+            return false;
+        }
+
+        if (!configure_emulator(result)) {
+            std::cout << "configure_emulator failed:\n";
+            show_result_messages(result);
+            return false;
+        }
 
         _engine.on_resize([&](const core::rect& bounds) {
             _ide_context.bounds(ide_bounds(bounds));
             _emulator_context.bounds(emulator_bounds(bounds));
         });
+
+        std::cout << std::endl;
 
         return true;
     }
@@ -49,13 +64,12 @@ namespace ryu {
         core::result result;
 
         if (!_engine.shutdown(result)) {
-            std::cout << "shutdown failed: " << std::endl;
-            for (auto& message : result.messages())
-                std::cout << message.code() << ": "
-                          << message.message() << std::endl
-                          << "\t" << message.details() << std::endl;
+            std::cout << "shutdown failed:\n";
+            show_result_messages(result);
             return false;
         }
+
+        std::cout << std::endl;
 
         return true;
     }
@@ -69,27 +83,30 @@ namespace ryu {
         core::result result;
 
         if (!_engine.run(result)) {
-            std::cout << "run failed: " << std::endl;
-            for (auto& message : result.messages())
-                std::cout << message.code() << ": "
-                          << message.message() << std::endl
-                          << "\t" << message.details() << std::endl;
+            std::cout << "run failed:\n";
+            show_result_messages(result);
             return 1;
         }
+
+        std::cout << std::endl;
 
         return !shutdown() ? 1 : 0;
     }
 
-    void application::configure_ide() {
+    bool application::configure_ide(core::result& result) {
         _engine.add_context(&_ide_context);
         _ide_context.bg_color(ide::colors::fill_color);
-        _ide_context.initialize(ide_bounds({0, 0, display_width, display_height}));
+        return _ide_context.initialize(
+                result,
+                ide_bounds({0, 0, display_width, display_height}));
     }
 
-    void application::configure_emulator() {
+    bool application::configure_emulator(core::result& result) {
         _engine.add_context(&_emulator_context);
         _emulator_context.bg_color(emulator::emulator_context::colors::fill_color);
-        _emulator_context.initialize(emulator_bounds({0, 0, display_width, display_height}));
+        return _emulator_context.initialize(
+                result,
+                emulator_bounds({0, 0, display_width, display_height}));
     }
 
     core::rect application::ide_bounds(const core::rect& bounds) {

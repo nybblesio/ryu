@@ -29,7 +29,7 @@ namespace ryu::emulator {
         explicit emulator_context(const std::string& name);
 
     protected:
-        void on_initialize() override;
+        bool on_initialize(core::result& result) override;
 
     private:
         void configure_palette();

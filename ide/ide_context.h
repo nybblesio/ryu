@@ -29,7 +29,7 @@ namespace ryu::ide {
         void project(core::project* project);
 
     protected:
-        void on_initialize() override;
+        bool on_initialize(core::result& result) override;
 
     private:
         void configure_palette();

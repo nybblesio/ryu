@@ -49,7 +49,35 @@ namespace ryu::hardware {
     }
 
     bool registry::load(core::result& result, const fs::path& path) {
-        return false;
+        _machines.clear();
+
+        auto root = YAML::LoadFile(path.string());
+
+        auto machines = root["machines"];
+        if (machines != nullptr && machines.IsSequence()) {
+            for (auto it = machines.begin(); it != machines.end(); ++it) {
+                auto node = *it;
+                if (!node.IsMap())
+                    continue;
+                if (node["id"] == nullptr) {
+                    result.add_message("R004", "Machine node requires id.", true);
+                    result.fail();
+                    break;
+                }
+                if (node["name"] == nullptr) {
+                    result.add_message("R004", "Machine node requires name.", true);
+                    result.fail();
+                    break;
+                }
+                auto id = node["id"].as<int>();
+                auto name = node["name"].as<std::string>();
+                auto machine = hardware::machine(id);
+                machine.name(name);
+                _machines.insert(std::make_pair(id, machine));
+            }
+        }
+
+        return !result.is_failed();
     }
 
     bool registry::save(core::result& result, const fs::path& path) {

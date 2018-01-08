@@ -31,11 +31,13 @@ namespace ryu {
         bool init(int argc, char** argv);
 
     private:
-        void configure_ide();
+        bool configure_ide(core::result& result);
 
-        void configure_emulator();
+        bool configure_emulator(core::result& result);
 
         core::rect ide_bounds(const core::rect& bounds);
+
+        void show_result_messages(core::result& result);
 
         core::rect emulator_bounds(const core::rect& bounds);
 

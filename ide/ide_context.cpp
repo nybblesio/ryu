@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <hardware/registry.h>
 #include "ide_context.h"
 #include "ide_types.h"
 
@@ -21,7 +22,7 @@ namespace ryu::ide {
                                                         _machine_editor_state("machine editor") {
     }
 
-    void ide_context::on_initialize() {
+    bool ide_context::on_initialize(core::result& result) {
         configure_palette();
         add_state(
                 &_console_state,
@@ -42,6 +43,8 @@ namespace ryu::ide {
         add_state(&_source_editor_state);
         add_state(&_machine_editor_state);
         push_state(_console_state.id(), {});
+
+        return hardware::registry::instance()->load(result, "machines.yaml");
     }
 
     core::project* ide_context::project() {

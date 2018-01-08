@@ -69,7 +69,8 @@ namespace ryu::core {
         return _id;
     }
 
-    void context::on_initialize() {
+    bool context::on_initialize(core::result& result) {
+        return false;
     }
 
     void context::pop_state(int to_id) {
@@ -95,9 +96,9 @@ namespace ryu::core {
         _stack.remove_state(state);
     }
 
-    void context::initialize(const core::rect& bounds) {
+    bool context::initialize(core::result& result, const core::rect& bounds) {
         _bounds = bounds;
-        on_initialize();
+        return on_initialize(result);
     }
 
     void context::erase_blackboard(const std::string& name) {
