@@ -17,7 +17,7 @@ namespace ryu::hardware {
 
     class memory_mapper : public hardware::integrated_circuit {
     public:
-        memory_mapper(int id, const std::string& name);
+        memory_mapper();
 
         void clear();
 

@@ -79,15 +79,6 @@ namespace ryu::hardware {
         return _height;
     }
 
-    display* display::find(int id) {
-        for (size_t i = 0; i < _displays.size(); i++) {
-            if (_displays[i].id() == id) {
-                return &_displays[i];
-            }
-        }
-        return nullptr;
-    }
-
     display_list& display::catalog() {
         return _displays;
     }

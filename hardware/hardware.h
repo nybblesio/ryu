@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <core/result.h>
 #include "hardware_types.h"
 #include "integrated_circuit.h"
 #include "memory_mapper.h"
@@ -19,6 +20,6 @@
 
 namespace ryu::hardware {
 
-    void initialize();
+    bool initialize(core::result& result);
 
 }

@@ -10,7 +10,7 @@
 
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::integrated_circuit>("ryu::hardware::integrated_circuit")
-            .constructor<int, const std::string&>()
+            .constructor<const std::string&>()
             .property_readonly("id", &ryu::hardware::integrated_circuit::id)
             .property_readonly("type", &ryu::hardware::integrated_circuit::type)
             .property_readonly("name", &ryu::hardware::integrated_circuit::name)
@@ -20,8 +20,7 @@ RTTR_REGISTRATION {
 namespace ryu::hardware {
 
     integrated_circuit::integrated_circuit(
-            int id,
-            const std::string& name) : _id(id),
+            const std::string& name) : _id(core::id_pool::instance()->allocate_from_range(256, 32767)),
                                        _name(name) {
     }
 

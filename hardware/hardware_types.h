@@ -9,6 +9,7 @@
 
 #include <map>
 #include <vector>
+#include <core/id_pool.h>
 #include <common/IntervalTree.h>
 
 namespace ryu::hardware {
@@ -31,6 +32,7 @@ namespace ryu::hardware {
     class integrated_circuit;
 
     typedef std::vector<Interval<integrated_circuit*>> ic_interval_list;
+    typedef std::vector<integrated_circuit*> ic_list;
 
     class component;
 

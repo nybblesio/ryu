@@ -20,7 +20,7 @@ namespace ryu::hardware::mc6809 {
 
         static void init();
 
-        cpu(int id, const std::string& name);
+        cpu();
 
         uint32_t address_space() const override;
 

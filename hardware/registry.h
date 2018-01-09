@@ -26,9 +26,17 @@ namespace ryu::hardware {
 
         void remove_machine(int id);
 
+        ic_list integrated_circuits();
+
+        display_list& displays() const;
+
         hardware::machine* new_machine();
 
         hardware::machine* find_machine(int id);
+
+        hardware::display* find_display(int id);
+
+        hardware::integrated_circuit* find_ic(int id);
 
         bool save(core::result& result, const fs::path& path);
 

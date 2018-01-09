@@ -45,6 +45,10 @@ namespace ryu::core {
 
         bool mark_used(int32_t id);
 
+        bool mark_range(int32_t start_id, int32_t end_id);
+
+        int32_t allocate_from_range(int32_t start_id, int32_t end_id);
+
     protected:
         id_pool();
 

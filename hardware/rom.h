@@ -19,7 +19,6 @@ namespace ryu::hardware {
                 public hardware::memory {
     public:
         rom(
-                int id,
                 const std::string& name,
                 uint8_t* buffer,
                 size_t size,

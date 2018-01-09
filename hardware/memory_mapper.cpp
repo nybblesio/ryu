@@ -16,7 +16,7 @@ RTTR_REGISTRATION {
 
 namespace ryu::hardware {
 
-    memory_mapper::memory_mapper(int id, const std::string& name) : integrated_circuit(id, name) {
+    memory_mapper::memory_mapper() : integrated_circuit("memory-mapper-ic") {
     }
 
     void memory_mapper::zero() {

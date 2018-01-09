@@ -32,6 +32,26 @@ namespace ryu::hardware {
         _machines.erase(id);
     }
 
+    display* registry::find_display(int id) {
+        auto& displays = display::catalog();
+        for (size_t i = 0; i < displays.size(); i++) {
+            if (displays[i].id() == id) {
+                return &displays[i];
+            }
+        }
+        return nullptr;
+    }
+
+    ic_list registry::integrated_circuits() {
+        ic_list list;
+        // XXX: use RTTR to reflect the list of integrated_circuits
+        return list;
+    }
+
+    display_list& registry::displays() const {
+        return display::catalog();
+    }
+
     hardware::machine* registry::new_machine() {
         auto id = core::id_pool::instance()->allocate();
         auto it = _machines.insert(std::make_pair(id, hardware::machine(id)));
@@ -46,6 +66,10 @@ namespace ryu::hardware {
         if (it == _machines.end())
             return nullptr;
         return &it->second;
+    }
+
+    hardware::integrated_circuit* registry::find_ic(int id) {
+        return nullptr;
     }
 
     bool registry::load(core::result& result, const fs::path& path) {
@@ -84,7 +108,17 @@ namespace ryu::hardware {
 
                 if (node["display_id"] != nullptr) {
                     auto display_id = node["display_id"].as<int>();
-                    machine.display(display::find(display_id));
+                    machine.display(find_display(display_id));
+                }
+
+                auto components = node["components"];
+                if (components != nullptr && components.IsSequence()) {
+                    for (auto cit = components.begin(); cit != components.end(); ++cit) {
+                        auto component_node = *cit;
+                        if (!component_node.IsMap())
+                            continue;
+                        auto component_id = component_node["id"].as<int>();
+                    }
                 }
 
                 _machines.insert(std::make_pair(id, machine));

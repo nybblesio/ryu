@@ -11,7 +11,7 @@
 namespace ryu::hardware {
 
     machine::machine(int id) : _id(id),
-                               _mapper(core::id_pool::instance()->allocate(), "mapper") {
+                               _mapper() {
     }
 
     int machine::id() const {

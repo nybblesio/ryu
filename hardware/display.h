@@ -16,8 +16,6 @@ namespace ryu::hardware {
     public:
         static display_list& catalog();
 
-        static display* find(int id);
-
         display(
                 int id,
                 const std::string& name,

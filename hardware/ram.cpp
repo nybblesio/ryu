@@ -20,7 +20,7 @@ namespace ryu::hardware {
             int id,
             const std::string& name,
             size_t size,
-            uint32_t address) : integrated_circuit(id, name),
+            uint32_t address) : integrated_circuit(name),
                                 _size(size) {
         _buffer = new uint8_t[size];
         this->address(address);

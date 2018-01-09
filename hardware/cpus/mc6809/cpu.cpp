@@ -267,7 +267,7 @@ namespace ryu::hardware::mc6809 {
         return _opcodes;
     }
 
-    cpu::cpu(int id, const std::string& name) : hardware::integrated_circuit(id, name) {
+    cpu::cpu() : hardware::integrated_circuit("MC6809") {
     }
 
     uint32_t cpu::address_space() const {

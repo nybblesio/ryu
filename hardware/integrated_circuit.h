@@ -16,7 +16,7 @@ namespace ryu::hardware {
 
     class integrated_circuit {
     public:
-        integrated_circuit(int id, const std::string& name);
+        explicit integrated_circuit(const std::string& name);
 
         virtual ~integrated_circuit() = default;
 
@@ -47,7 +47,7 @@ namespace ryu::hardware {
         RTTR_ENABLE()
 
     private:
-        int _id = -1;
+        int _id {};
         std::string _name;
         uint32_t _address = 0;
         hardware::memory_map _memory_map;

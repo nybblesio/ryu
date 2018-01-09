@@ -17,11 +17,10 @@ RTTR_REGISTRATION {
 namespace ryu::hardware {
 
     rom::rom(
-            int id,
             const std::string& name,
             uint8_t* buffer,
             size_t size,
-            uint32_t address) : integrated_circuit(id, name),
+            uint32_t address) : integrated_circuit(name),
                                 _size(size),
                                 _buffer(buffer) {
         if (_buffer == nullptr)

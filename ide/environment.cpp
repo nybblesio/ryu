@@ -63,6 +63,7 @@ namespace ryu::ide {
                 fmt::format(fmt_spec, signed_value, value, ascii));
     }
 
+    // XXX: move this to core and no more singleton
     environment* environment::instance() {
         static environment instance;
         return &instance;
@@ -307,11 +308,11 @@ namespace ryu::ide {
             }
             case core::command_types::machines_list: {
                 auto machines = hardware::registry::instance()->machines();
-                result.add_message("C028", "{rev}{bold}  ID Name                             Type ");
+                result.add_message("C028", "{rev}{bold} ID         Name                             Type ");
                 for (auto machine : machines) {
                     result.add_message(
                             "C028",
-                            fmt::format(" {:>3d} {:<32s} {:<4s}",
+                            fmt::format(" {:>5d}      {:<32s} {:<4s}",
                                         machine->id(),
                                         fmt::format("\"{}\"", machine->name()),
                                         "MACH"));

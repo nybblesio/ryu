@@ -28,9 +28,13 @@ namespace ryu {
     }
 
     bool application::init(int argc, char** argv) {
-        hardware::initialize();
-
         core::result result;
+
+        if (!hardware::initialize(result)) {
+            std::cout << "hardware initialize failed:\n";
+            show_result_messages(result);
+            return false;
+        }
 
         if (!_engine.initialize(result)) {
             std::cout << "initialize failed:\n";
