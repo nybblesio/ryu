@@ -15,6 +15,7 @@ machines:
         address: 0
         ic:
           type_id: 10
+          address_space: 0xffff
       - id: 103
         name: Work RAM
         description:
@@ -22,6 +23,7 @@ machines:
         address: 0xa000
         ic:
           type_id: 3
+          address_space: 0x0fff
       - id: 104
         name: Tiles ROM 1
         description:
@@ -29,6 +31,7 @@ machines:
         address: 0xb000
         ic:
           type_id: 4
+          address_space: 0x0fff
       - id: 105
         name: Tiles ROM 2
         description:
@@ -36,6 +39,7 @@ machines:
         address: 0xc000
         ic:
           type_id: 4
+          address_space: 0x0fff
       - id: 106
         name: Foreground ROM 1
         description:
@@ -43,6 +47,7 @@ machines:
         address: 0xd000
         ic:
           type_id: 4
+          address_space: 0x0fff
       - id: 107
         name: Foreground ROM 2
         description:
@@ -50,3 +55,4 @@ machines:
         address: 0xe000
         ic:
           type_id: 4
+          address_space: 0x0fff

@@ -13,7 +13,9 @@ RTTR_REGISTRATION {
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::integrated_circuit_id),
         rttr::metadata(ryu::hardware::meta_data_key::type_name, "Base IC")
     )
-    .constructor<const std::string&>(rttr::registration::public_access)
+    .constructor<const std::string&>(rttr::registration::public_access) (
+            rttr::policy::ctor::as_raw_ptr
+    )
     .property_readonly("id", &ryu::hardware::integrated_circuit::id)
     .property_readonly("name", &ryu::hardware::integrated_circuit::name);
 }

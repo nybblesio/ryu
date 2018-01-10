@@ -15,7 +15,9 @@ RTTR_REGISTRATION {
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::memory_mapper_id),
         rttr::metadata(ryu::hardware::meta_data_key::type_name, "Memory Mapper IC")
     )
-    .constructor<>(rttr::registration::public_access);
+    .constructor<>(rttr::registration::public_access) (
+            rttr::policy::ctor::as_raw_ptr
+    );
 }
 
 namespace ryu::hardware {

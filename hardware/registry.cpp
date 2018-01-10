@@ -157,6 +157,7 @@ namespace ryu::hardware {
                             auto ic_node = component_node["ic"];
                             if (ic_node.IsMap()) {
                                 auto type_id = ic_node["type_id"].as<uint16_t>();
+
                                 auto ic = new_ic_by_type_id(type_id);
                                 if (ic == nullptr) {
                                     result.add_message(
@@ -165,6 +166,12 @@ namespace ryu::hardware {
                                             true);
                                     result.fail();
                                     break;
+                                }
+
+                                // XXX: at some point this should be required
+                                if (ic_node["address_space"] != nullptr) {
+                                    auto ic_address_space = ic_node["address_space"].as<uint32_t>();
+                                    ic->address_space(ic_address_space);
                                 }
 
                                 auto component = new hardware::component(component_id, nullptr);
@@ -230,9 +237,8 @@ namespace ryu::hardware {
                     .get_metadata(ryu::hardware::meta_data_key::type_id)
                     .to_int();
             if (type_id == ic_type_id) {
-                return type
-                        .create({})
-                        .convert<hardware::integrated_circuit*>();
+                auto instance = type.create({});
+                return instance.get_value<hardware::integrated_circuit*>();
             }
         }
         return nullptr;
