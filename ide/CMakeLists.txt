@@ -10,8 +10,7 @@ add_library(
         console_editor
         machine_editor
         ide_types.h
-        ide_context.cpp ide_context.h
-        environment.cpp environment.h)
+        ide_context.cpp ide_context.h)
 target_link_libraries(
         ide
         hex_editor

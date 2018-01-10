@@ -1,6 +1,5 @@
 add_library(
         hardware
-        memory.h
         hardware.h
         ram.cpp ram.h
         rom.cpp rom.h

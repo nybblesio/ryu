@@ -22,6 +22,10 @@ namespace ryu::ide {
                                                         _machine_editor_state("machine editor") {
     }
 
+    void ide_context::project(core::project* project) {
+        _project = project;
+    }
+
     bool ide_context::on_initialize(core::result& result) {
         configure_palette();
         add_state(
@@ -155,10 +159,6 @@ namespace ryu::ide {
         transparent.alpha(0x00);
 
         palette(&_palette);
-    }
-
-    void ide_context::project(core::project* project) {
-        _project = project;
     }
 
 }

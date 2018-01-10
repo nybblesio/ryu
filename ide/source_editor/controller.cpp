@@ -7,7 +7,7 @@
 
 #include <core/engine.h>
 #include <ide/ide_types.h>
-#include <ide/environment.h>
+#include <core/environment.h>
 #include "controller.h"
 
 namespace ryu::ide::source_editor {
@@ -70,7 +70,7 @@ namespace ryu::ide::source_editor {
             if (keycode == SDLK_RETURN) {
                 auto input = _command_line.value();
                 core::result result;
-                ide::environment::instance()->execute(result, input);
+                context()->environment()->execute(result, input);
                 if (result.has_code("C001"))
                     context()->engine()->quit();
                 else if (result.has_code("C004")) {

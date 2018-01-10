@@ -19,6 +19,7 @@ add_library(
         selection.cpp selection.h
         evaluator.cpp evaluator.h
         timer_pool.cpp timer_pool.h
+        environment.cpp environment.h
         state_stack.cpp state_stack.h
         views/label.cpp views/label.h
         views/caret.cpp views/caret.h

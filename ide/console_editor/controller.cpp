@@ -14,7 +14,7 @@
 #include <core/engine.h>
 #include <core/context.h>
 #include <ide/ide_types.h>
-#include <ide/environment.h>
+#include <core/environment.h>
 #include "controller.h"
 
 namespace ryu::ide::console_editor {
@@ -95,7 +95,7 @@ namespace ryu::ide::console_editor {
                     caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
         });
         _console.on_execute_command([&](core::result& result, const std::string& input) {
-            auto success = ide::environment::instance()->execute(result, input);
+            auto success = context()->environment()->execute(result, input);
             if (success && result.has_code("C001")) {
                 context()->engine()->quit();
             }

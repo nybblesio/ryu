@@ -12,7 +12,7 @@
 
 #include <core/context.h>
 #include <core/project.h>
-#include "environment.h"
+#include "core/environment.h"
 #include "hex_editor/controller.h"
 #include "source_editor/controller.h"
 #include "console_editor/controller.h"

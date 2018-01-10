@@ -18,7 +18,7 @@
 #include <common/string_support.h>
 #include "environment.h"
 
-namespace ryu::ide {
+namespace ryu::core {
 
     static void format_numeric_conversion(
             core::result& result,
@@ -61,12 +61,6 @@ namespace ryu::ide {
         result.add_message(
                 "C003",
                 fmt::format(fmt_spec, signed_value, value, ascii));
-    }
-
-    // XXX: move this to core and no more singleton
-    environment* environment::instance() {
-        static environment instance;
-        return &instance;
     }
 
     bool environment::execute(
@@ -185,7 +179,7 @@ namespace ryu::ide {
                         }
                         case core::variant::types::string_literal: {
                             auto value = boost::get<core::string_literal_t>(param).value;
-                            auto dump = hex_dump(
+                            auto dump = ryu::hex_dump(
                                     static_cast<const void*>(value.c_str()),
                                     value.length());
                             result.add_message("C003", dump);
@@ -379,6 +373,10 @@ namespace ryu::ide {
 
     core::symbol_table* environment::symbol_table() {
         return &_symbol_table;
+    }
+
+    bool environment::assemble(core::result& result, core::project& project) {
+        return false;
     }
 
     bool environment::load(core::result& result, const boost::filesystem::path& path) {

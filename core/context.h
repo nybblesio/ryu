@@ -17,6 +17,7 @@
 #include "palette.h"
 #include "renderer.h"
 #include "state_stack.h"
+#include "environment.h"
 
 namespace ryu::core {
 
@@ -56,6 +57,10 @@ namespace ryu::core {
         }
 
         void pop_state(int to_id = -1);
+
+        inline core::environment* environment() {
+            return &_environment;
+        }
 
         inline core::rect bounds() const {
             return _bounds;
@@ -112,6 +117,7 @@ namespace ryu::core {
         core::state_stack _stack {};
         core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
+        core::environment _environment {};
         core::palette* _palette = nullptr;
     };
 

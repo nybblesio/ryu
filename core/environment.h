@@ -12,23 +12,26 @@
 
 #include <core/result.h>
 #include <core/symbol_table.h>
+#include "project.h"
 
-namespace ryu::ide {
+namespace ryu::core {
 
     class environment {
     public:
-        static environment* instance();
-
         environment() = default;
 
         ~environment() = default;
 
         core::symbol_table* symbol_table();
 
+        bool assemble(core::result& result, core::project& project);
+
         bool execute(core::result& result, const std::string& line);
 
+        // N.B. loads a .s file that has environment config
         bool load(core::result& result, const boost::filesystem::path& path);
 
+        // N.B. saves a .s file that has environment config
         bool save(core::result& result, const boost::filesystem::path& path);
 
     private:
