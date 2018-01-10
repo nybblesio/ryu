@@ -32,6 +32,16 @@ namespace ryu::core {
     //
     class project {
     public:
+        static bool create(
+                core::result& result,
+                const fs::path& path,
+                const std::string& name);
+
+        static bool clone(
+                core::result& result,
+                const fs::path& source_path,
+                const fs::path& target_path);
+
         explicit project(const std::string& name);
 
         std::string name() const;

@@ -68,6 +68,50 @@ namespace ryu::core {
             const std::string& line) {
         using namespace boost::filesystem;
 
+        static std::map<uint8_t, environment::command_handler_callable> command_handlers = {
+            {core::command_types::quit,                   [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_quit(result, command, params, root); }},
+            {core::command_types::clear,                  [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_clear(result, command, params, root); }},
+            {core::command_types::add_symbol,             [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_add_symbol(result, command, params, root); }},
+            {core::command_types::remove_symbol,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_remove_symbol(result, command, params, root); }},
+            {core::command_types::show_symbol_table,      [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_show_symbol_table(result, command, params, root); }},
+            {core::command_types::assemble,               [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_assemble(result, command, params, root); }},
+            {core::command_types::evaluate,               [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_evaluate(result, command, params, root); }},
+            {core::command_types::disassemble,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_disassemble(result, command, params, root); }},
+            {core::command_types::hex_dump,               [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_hex_dump(result, command, params, root); }},
+            {core::command_types::search_memory,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_search_memory(result, command, params, root); }},
+            {core::command_types::fill_memory,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_fill_memory(result, command, params, root); }},
+            {core::command_types::copy_memory,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_copy_memory(result, command, params, root); }},
+            {core::command_types::jump_to_address,        [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_jump_to_address(result, command, params, root); }},
+            {core::command_types::go_to_address,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_go_to_address(result, command, params, root); }},
+            {core::command_types::register_editor,        [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_register_editor(result, command, params, root); }},
+            {core::command_types::dir,                    [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_dir(result, command, params, root); }},
+            {core::command_types::remove_file,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_remove_file(result, command, params, root); }},
+            {core::command_types::change_directory,       [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_change_directory(result, command, params, root); }},
+            {core::command_types::print_working_directory,[&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_print_working_directory(result, command, params, root); }},
+            {core::command_types::new_project,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_new_project(result, command, params, root); }},
+            {core::command_types::load_project,           [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_load_project(result, command, params, root); }},
+            {core::command_types::save_project,           [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_save_project(result, command, params, root); }},
+            {core::command_types::clone_project,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_clone_project(result, command, params, root); }},
+            {core::command_types::machine_editor,         [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_machine_editor(result, command, params, root); }},
+            {core::command_types::machines_list,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_machines_list(result, command, params, root); }},
+            {core::command_types::del_machine,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_del_machine(result, command, params, root); }},
+            {core::command_types::use_machine,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_use_machine(result, command, params, root); }},
+            {core::command_types::open_editor,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_open_editor(result, command, params, root); }},
+            {core::command_types::source_editor,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_source_editor(result, command, params, root); }},
+            {core::command_types::memory_editor,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_memory_editor(result, command, params, root); }},
+            {core::command_types::sprite_editor,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_sprite_editor(result, command, params, root); }},
+            {core::command_types::tile_editor,            [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_tile_editor(result, command, params, root); }},
+            {core::command_types::background_editor,      [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_background_editor(result, command, params, root); }},
+            {core::command_types::tracker,                [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_tracker(result, command, params, root); }},
+            {core::command_types::sounds,                 [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_sounds(result, command, params, root); }},
+            {core::command_types::read_binary_to_memory,  [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_read_binary_to_memory(result, command, params, root); }},
+            {core::command_types::write_memory_to_binary, [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_write_memory_to_binary(result, command, params, root); }},
+            {core::command_types::read_text,              [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_read_text(result, command, params, root); }},
+            {core::command_types::write_text,             [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_write_text(result, command, params, root); }},
+            {core::command_types::goto_line,              [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_goto_line(result, command, params, root); }},
+            {core::command_types::find_text,              [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_find_text(result, command, params, root); }},
+        };
+
         core::command_parser parser;
         parser.symbol_table(&_symbol_table);
 
@@ -83,7 +127,7 @@ namespace ryu::core {
         core::evaluator evaluator;
         evaluator.symbol_table(&_symbol_table);
 
-        std::map<std::string, std::vector<core::variant_t>> params;
+        core::command_parameter_dict params;
         if (root->children.empty()) {
             for (const auto& param_spec : command.spec.params) {
                 if (param_spec.required) {
@@ -154,221 +198,13 @@ namespace ryu::core {
         if (result.is_failed())
             return false;
 
-        switch (command.spec.type) {
-            case core::command_types::quit: {
-                result.add_message("C001", "Goodbye!");
-                break;
-            }
-            case core::command_types::clear: {
-                result.add_message("C004", "Clear screen buffer");
-                break;
-            }
-            case core::command_types::evaluate: {
-                const auto& values = params["..."];
-                for (const auto& param : values) {
-                    switch (param.which()) {
-                        case core::variant::types::char_literal: {
-                            auto value = boost::get<core::char_literal_t>(param).value;
-                            format_numeric_conversion(result, value, command.size);
-                            break;
-                        }
-                        case core::variant::types::numeric_literal: {
-                            auto value = boost::get<core::numeric_literal_t>(param).value;
-                            format_numeric_conversion(result, value, command.size);
-                            break;
-                        }
-                        case core::variant::types::string_literal: {
-                            auto value = boost::get<core::string_literal_t>(param).value;
-                            auto dump = ryu::hex_dump(
-                                    static_cast<const void*>(value.c_str()),
-                                    value.length());
-                            result.add_message("C003", dump);
-                            break;
-                        }
-                        case core::variant::types::boolean_literal: {
-                            auto value = boost::get<core::boolean_literal_t>(param).value;
-                            format_numeric_conversion(result, value, core::command_t::sizes::byte);
-                            break;
-                        }
-                        default: {
-                            break;
-                        }
-                    }
-                }
-                break;
-            }
-            case core::command_types::change_directory: {
-                auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
-                if (!is_directory(value)) {
-                    result.add_message("C007", fmt::format("invalid path: {}", value), true);
-                    return false;
-                }
-                current_path(value);
-                auto cwd = current_path();
-                result.add_message("C007", fmt::format("working path is now: {}", cwd.string()));
-                break;
-            }
-            case core::command_types::dir: {
-                auto cwd = current_path();
-                if (is_directory(cwd)) {
-                    auto format_entries = [&](const std::vector<directory_entry*>& list) {
-                        for (auto entry : list) {
-                            std::pair<std::string, std::string> size;
-                            if (boost::filesystem::is_regular(entry->path()))
-                                size = ryu::size_to_units(boost::filesystem::file_size(entry->path()));
-                            result.add_message(
-                                    "C005",
-                                    fmt::format("  {0:<41}  {1:>10} {2:<5}",
-                                                fmt::format("\"{}\"", entry->path().filename().string()),
-                                                size.first,
-                                                size.second));
-                        }
-                    };
-                    result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<58} ", cwd.string()));
-                    result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<41}   {1:<15}", "Filename", "Size"));
-                    std::vector<directory_entry> entries;
-                    std::vector<directory_entry*> dir_entries;
-                    std::vector<directory_entry*> file_entries;
-                    copy(directory_iterator(cwd), directory_iterator(), back_inserter(entries));
-                    for (auto& entry : entries) {
-                        if (entry.status().type() == file_type::directory_file) {
-                            dir_entries.push_back(&entry);
-                        } else {
-                            file_entries.push_back(&entry);
-                        }
-                    }
-                    std::sort(dir_entries.begin(), dir_entries.end());
-                    std::sort(file_entries.begin(), file_entries.end());
-                    format_entries(dir_entries);
-                    format_entries(file_entries);
-                }
-                break;
-            }
-            case core::command_types::remove_file: {
-                auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
-                if (!is_directory(value) && !is_regular_file(value)) {
-                    result.add_message("C008", fmt::format("invalid path: {}", value), true);
-                    return false;
-                }
-                if (remove(value)) {
-                    result.add_message("C008", fmt::format("{} removed", value));
-                } else {
-                    result.add_message("C008", fmt::format("remove of {} failed", value), true);
-                }
-                break;
-            }
-            case core::command_types::print_working_directory: {
-                auto cwd = current_path();
-                if (is_directory(cwd)) {
-                    result.add_message("C006", cwd.string());
-                }
-                break;
-            }
-            case core::command_types::read_text: {
-                auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
-                if (!is_regular_file(value)) {
-                    result.add_message("C021", fmt::format("invalid path: {}", value), true);
-                    return false;
-                }
-                result.add_message("C021", value);
-                break;
-            }
-            case core::command_types::write_text: {
-                std::string value {"(default)"};
-                if (!root->children.empty()) {
-                    value = boost::get<core::string_literal_t>(params["path"].front()).value;
-                    if (!is_regular_file(value)) {
-                        result.add_message("C022", fmt::format("invalid path: {}", value), true);
-                        return false;
-                    }
-                }
-                result.add_message("C022", value);
-                break;
-            }
-            case core::command_types::memory_editor: {
-                result.add_data("C024", {});
-                break;
-            }
-            case core::command_types::source_editor: {
-                result.add_data("C002", {});
-                break;
-            }
-            case core::command_types::open_editor: {
-                core::parameter_dict dict;
-                dict["name"] = boost::get<core::string_literal_t>(params["name"].front()).value;
-                dict["type"] = boost::get<core::identifier_t>(params["type"].front()).value;
-                result.add_data("C030", dict);
-                break;
-            }
-            case core::command_types::machines_list: {
-                auto machines = hardware::registry::instance()->machines();
-                result.add_message("C028", "{rev}{bold} ID         Name                             Type ");
-                for (auto machine : machines) {
-                    result.add_message(
-                            "C028",
-                            fmt::format(" {:>5d}      {:<32s} {:<4s}",
-                                        machine->id(),
-                                        fmt::format("\"{}\"", machine->name()),
-                                        "MACH"));
-                }
-                result.add_message("C028", fmt::format("{} registered machines", machines.size()));
-                break;
-            }
-            case core::command_types::machine_editor: {
-                result.add_data(
-                        "C023",
-                        {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
-                break;
-            }
-            case core::command_types::use_machine: {
-                result.add_data(
-                        "C026",
-                        {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
-                break;
-            }
-            case core::command_types::del_machine: {
-                result.add_data(
-                        "C027",
-                        {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
-                break;
-            }
-            case core::command_types::goto_line: {
-                result.add_message(
-                        "C020",
-                        std::to_string(boost::get<core::numeric_literal_t>(params["line"].front()).value));
-                break;
-            }
-            case core::command_types::add_symbol: {
-                auto identifier = boost::get<core::identifier_t>(params["name"].front()).value;
-                _symbol_table.put(identifier, root->children[1]);
-                save(result, "global.conf");
-                break;
-            }
-            case core::command_types::remove_symbol: {
-                auto identifier = boost::get<core::identifier_t>(params["name"].front()).value;
-                _symbol_table.remove(identifier);
-                break;
-            }
-            case core::command_types::show_symbol_table: {
-                result.add_message("C029", "{rev}{bold} Identifier                       Value                            ");
-                auto identifiers = _symbol_table.identifiers();
-                for (const auto& symbol : identifiers) {
-                    std::stringstream stream;
-                    _symbol_table.get(symbol)->serialize(stream);
-                    result.add_message(
-                            "C029",
-                            fmt::format(" {:<32s} {:<32s}", symbol, stream.str()));
-                }
-                result.add_message("C029", fmt::format("{} symbols", identifiers.size()));
-                break;
-            }
-            default: {
-                result.add_message("C400", "Command not implemented.", true);
-                return false;
-            }
+        auto handler_it = command_handlers.find(command.spec.type);
+        if (handler_it == command_handlers.end()) {
+            result.add_message("C400", "Command not implemented.", true);
+            return false;
         }
 
-        return true;
+        return handler_it->second(result, command, params, root);
     }
 
     core::symbol_table* environment::symbol_table() {
@@ -409,6 +245,330 @@ namespace ryu::core {
         }
         file << std::endl;
         file.close();
+        return true;
+    }
+
+    bool environment::on_quit(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_message("C001", "Goodbye!");
+        return true;
+    }
+
+    bool environment::on_clear(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_message("C004", "Clear screen buffer");
+        return true;
+    }
+
+    bool environment::on_add_symbol(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        auto identifier = boost::get<core::identifier_t>(params["name"].front()).value;
+        _symbol_table.put(identifier, root->children[1]);
+        save(result, "global.conf");
+        return true;
+    }
+
+    bool environment::on_remove_symbol(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        auto identifier = boost::get<core::identifier_t>(params["name"].front()).value;
+        _symbol_table.remove(identifier);
+        return true;
+    }
+
+    bool environment::on_show_symbol_table(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_message("C029", "{rev}{bold} Identifier                       Value                            ");
+        auto identifiers = _symbol_table.identifiers();
+        for (const auto& symbol : identifiers) {
+            std::stringstream stream;
+            _symbol_table.get(symbol)->serialize(stream);
+            result.add_message(
+                    "C029",
+                    fmt::format(" {:<32s} {:<32s}", symbol, stream.str()));
+        }
+        result.add_message("C029", fmt::format("{} symbols", identifiers.size()));
+        return true;
+    }
+
+    bool environment::on_assemble(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_evaluate(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        const auto& values = params["..."];
+        for (const auto& param : values) {
+            switch (param.which()) {
+                case core::variant::types::char_literal: {
+                    auto value = boost::get<core::char_literal_t>(param).value;
+                    format_numeric_conversion(result, value, command.size);
+                    break;
+                }
+                case core::variant::types::numeric_literal: {
+                    auto value = boost::get<core::numeric_literal_t>(param).value;
+                    format_numeric_conversion(result, value, command.size);
+                    break;
+                }
+                case core::variant::types::string_literal: {
+                    auto value = boost::get<core::string_literal_t>(param).value;
+                    auto dump = ryu::hex_dump(
+                            static_cast<const void*>(value.c_str()),
+                            value.length());
+                    result.add_message("C003", dump);
+                    break;
+                }
+                case core::variant::types::boolean_literal: {
+                    auto value = boost::get<core::boolean_literal_t>(param).value;
+                    format_numeric_conversion(result, value, core::command_t::sizes::byte);
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+
+    bool environment::on_disassemble(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_hex_dump(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_search_memory(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_fill_memory(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_copy_memory(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_jump_to_address(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_go_to_address(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_dir(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        using namespace boost::filesystem;
+
+        auto cwd = current_path();
+        if (is_directory(cwd)) {
+            auto format_entries = [&](const std::vector<directory_entry*>& list) {
+                for (auto entry : list) {
+                    std::pair<std::string, std::string> size;
+                    if (boost::filesystem::is_regular(entry->path()))
+                        size = ryu::size_to_units(boost::filesystem::file_size(entry->path()));
+                    result.add_message(
+                            "C005",
+                            fmt::format("  {0:<41}  {1:>10} {2:<5}",
+                                        fmt::format("\"{}\"", entry->path().filename().string()),
+                                        size.first,
+                                        size.second));
+                }
+            };
+            result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<58} ", cwd.string()));
+            result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<41}   {1:<15}", "Filename", "Size"));
+            std::vector<directory_entry> entries;
+            std::vector<directory_entry*> dir_entries;
+            std::vector<directory_entry*> file_entries;
+            copy(directory_iterator(cwd), directory_iterator(), back_inserter(entries));
+            for (auto& entry : entries) {
+                if (entry.status().type() == file_type::directory_file) {
+                    dir_entries.push_back(&entry);
+                } else {
+                    file_entries.push_back(&entry);
+                }
+            }
+            std::sort(dir_entries.begin(), dir_entries.end());
+            std::sort(file_entries.begin(), file_entries.end());
+            format_entries(dir_entries);
+            format_entries(file_entries);
+        }
+
+        return true;
+    }
+
+    bool environment::on_remove_file(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        using namespace boost::filesystem;
+
+        auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
+        if (!is_directory(value) && !is_regular_file(value)) {
+            result.add_message("C008", fmt::format("invalid path: {}", value), true);
+            return false;
+        }
+        if (remove(value)) {
+            result.add_message("C008", fmt::format("{} removed", value));
+        } else {
+            result.add_message("C008", fmt::format("remove of {} failed", value), true);
+        }
+        return true;
+    }
+
+    bool environment::on_change_directory(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        using namespace boost::filesystem;
+
+        auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
+        if (!is_directory(value)) {
+            result.add_message("C007", fmt::format("invalid path: {}", value), true);
+            return false;
+        }
+        current_path(value);
+        auto cwd = current_path();
+        result.add_message("C007", fmt::format("working path is now: {}", cwd.string()));
+        return true;
+    }
+
+    bool environment::on_print_working_directory(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        using namespace boost::filesystem;
+
+        auto cwd = current_path();
+        if (is_directory(cwd)) {
+            result.add_message("C006", cwd.string());
+        }
+        return true;
+    }
+
+    bool environment::on_new_project(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_load_project(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_save_project(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_clone_project(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_machine_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_data(
+                "C023",
+                {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
+        return true;
+    }
+
+    bool environment::on_machines_list(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        auto machines = hardware::registry::instance()->machines();
+        result.add_message("C028", "{rev}{bold} ID         Name                             Type ");
+        for (auto machine : machines) {
+            result.add_message(
+                    "C028",
+                    fmt::format(" {:>5d}      {:<32s} {:<4s}",
+                                machine->id(),
+                                fmt::format("\"{}\"", machine->name()),
+                                "MACH"));
+        }
+        result.add_message("C028", fmt::format("{} registered machines", machines.size()));
+        return true;
+    }
+
+    bool environment::on_del_machine(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_data(
+                "C027",
+                {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
+        return true;
+    }
+
+    bool environment::on_use_machine(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_data(
+                "C026",
+                {{"name", boost::get<core::string_literal_t>(params["name"].front()).value}});
+        return true;
+    }
+
+    bool environment::on_open_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        core::parameter_dict dict;
+        dict["name"] = boost::get<core::string_literal_t>(params["name"].front()).value;
+        dict["type"] = boost::get<core::identifier_t>(params["type"].front()).value;
+        result.add_data("C030", dict);
+        return true;
+    }
+
+    bool environment::on_source_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_data("C002", {});
+        return true;
+    }
+
+    bool environment::on_memory_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_data("C024", {});
+        return true;
+    }
+
+    bool environment::on_sprite_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_tile_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_background_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_tracker(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_sounds(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_read_binary_to_memory(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_write_memory_to_binary(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_read_text(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        using namespace boost::filesystem;
+
+        auto value = boost::get<core::string_literal_t>(params["path"].front()).value;
+        if (!is_regular_file(value)) {
+            result.add_message("C021", fmt::format("invalid path: {}", value), true);
+            return false;
+        }
+        result.add_message("C021", value);
+        return true;
+    }
+
+    bool environment::on_write_text(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        using namespace boost::filesystem;
+
+        std::string value {"(default)"};
+        if (!root->children.empty()) {
+            value = boost::get<core::string_literal_t>(params["path"].front()).value;
+            if (!is_regular_file(value)) {
+                result.add_message("C022", fmt::format("invalid path: {}", value), true);
+                return false;
+            }
+        }
+        result.add_message("C022", value);
+        return true;
+    }
+
+    bool environment::on_goto_line(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        result.add_message(
+                "C020",
+                std::to_string(boost::get<core::numeric_literal_t>(params["line"].front()).value));
+        return true;
+    }
+
+    bool environment::on_find_text(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_register_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
         return true;
     }
 

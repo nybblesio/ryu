@@ -12,6 +12,20 @@
 
 namespace ryu::core {
 
+    bool project::create(
+            core::result& result,
+            const fs::path& path,
+            const std::string& name) {
+        return false;
+    }
+
+    bool project::clone(
+            core::result& result,
+            const fs::path& source_path,
+            const fs::path& target_path) {
+        return false;
+    }
+
     project::project(const std::string& name) : _name(name) {
     }
 
