@@ -70,6 +70,7 @@ namespace ryu::core {
 
         static std::map<uint8_t, environment::command_handler_callable> command_handlers = {
             {core::command_types::quit,                   [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_quit(result, command, params, root); }},
+            {core::command_types::help,                   [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_help(result, command, params, root); }},
             {core::command_types::clear,                  [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_clear(result, command, params, root); }},
             {core::command_types::add_symbol,             [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_add_symbol(result, command, params, root); }},
             {core::command_types::remove_symbol,          [&](core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) { return on_remove_symbol(result, command, params, root); }},
@@ -569,6 +570,20 @@ namespace ryu::core {
     }
 
     bool environment::on_register_editor(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        return true;
+    }
+
+    bool environment::on_help(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        const auto& commands = core::command_parser::command_catalog();
+        result.add_message("C030", "{rev}{bold} Command                          Help                                   ");
+        for (const auto& c : commands) {
+            result.add_message(
+                    "C030",
+                    fmt::format(" {:<32s} {:<50s}",
+                                c.first,
+                                fmt::format("{}", c.second.help)));
+        }
+        result.add_message("C030", fmt::format("{} available commands", commands.size()));
         return true;
     }
 

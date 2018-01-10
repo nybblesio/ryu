@@ -61,79 +61,86 @@ namespace ryu::core {
     // SYMBOLS                                  - dumps the symbol table
     //
     command_table command_parser::_commands = {
-            // assembler & memory commands
-            {"!",           {command_types::quit,                       {}}},
-            {"?",           {command_types::evaluate,                   {{"...",  variant::types::variadic}}}},
-            {"a",           {command_types::assemble,                   {{"addr", variant::types::numeric_literal, false}}}},
-            {"e",           {command_types::source_editor,                {{"name", variant::types::string_literal, false}}}},
-            {"m",           {command_types::memory_editor,              {{"addr", variant::types::numeric_literal}}}},
-            {"d",           {command_types::disassemble,                {{"addr", variant::types::numeric_literal}}}},
-            {"h",           {command_types::hex_dump,                   {{"addr", variant::types::numeric_literal}}}},
-            {"s",           {command_types::search_memory,
-                                                                        {{"addr",  variant::types::numeric_literal},
-                                                                         {"bytes", variant::types::numeric_literal},
-                                                                         {"value", variant::types::any}}}},
-            {"f",           {command_types::fill_memory,
-                                                                        {{"addr",  variant::types::numeric_literal},
-                                                                         {"bytes", variant::types::numeric_literal},
-                                                                         {"value", variant::types::any}}}},
-            {"c",           {command_types::copy_memory,
-                                                                        {{"dest",  variant::types::numeric_literal},
-                                                                         {"src",   variant::types::numeric_literal},
-                                                                         {"bytes", variant::types::numeric_literal}}}},
-            {"j",           {command_types::jump_to_address,            {{"addr",  variant::types::numeric_literal, false}}}},
-            {"g",           {command_types::go_to_address,              {{"addr",  variant::types::numeric_literal, false}}}},
-            {"r",           {command_types::register_editor,            {}}},
-            {"rb",          {command_types::read_binary_to_memory,
-                                                                        {{"path",  variant::types::string_literal},
-                                                                         {"start", variant::types::numeric_literal},
-                                                                         {"end",   variant::types::numeric_literal, false}}}},
-            {"wb",          {command_types::write_memory_to_binary,
-                                                                        {{"path",  variant::types::string_literal},
-                                                                         {"start", variant::types::numeric_literal},
-                                                                         {"end",   variant::types::numeric_literal, false}}}},
+        // system commands
+        {"help",        {command_types::help,                       {}, "TODO: put help text in here"}},
 
-            // filesystem commands
-            {"rm",          {command_types::remove_file,                {{"path", variant::types::string_literal}}}},
-            {"dir",         {command_types::dir,                        {}}},
-            {"cd",          {command_types::change_directory,           {{"path", variant::types::string_literal}}}},
-            {"pwd",         {command_types::print_working_directory,    {}}},
-            {"clear",       {command_types::clear,                      {}}},
+        // assembler & memory commands
+        {"!",           {command_types::quit,                       {}, "TODO: put help text in here"}},
+        {"?",           {command_types::evaluate,                   {{"...",  variant::types::variadic}}, "TODO: put help text in here"}},
+        {"a",           {command_types::assemble,                   {{"addr", variant::types::numeric_literal, false}}, "TODO: put help text in here"}},
+        {"e",           {command_types::source_editor,                {{"name", variant::types::string_literal, false}}, "TODO: put help text in here"}},
+        {"m",           {command_types::memory_editor,              {{"addr", variant::types::numeric_literal}}, "TODO: put help text in here"}},
+        {"d",           {command_types::disassemble,                {{"addr", variant::types::numeric_literal}}, "TODO: put help text in here"}},
+        {"h",           {command_types::hex_dump,                   {{"addr", variant::types::numeric_literal}}, "TODO: put help text in here"}},
+        {"s",           {command_types::search_memory,
+                                                                    {{"addr",  variant::types::numeric_literal},
+                                                                     {"bytes", variant::types::numeric_literal},
+                                                                     {"value", variant::types::any}}, "TODO: put help text in here"}},
+        {"f",           {command_types::fill_memory,
+                                                                    {{"addr",  variant::types::numeric_literal},
+                                                                     {"bytes", variant::types::numeric_literal},
+                                                                     {"value", variant::types::any}}, "TODO: put help text in here"}},
+        {"c",           {command_types::copy_memory,
+                                                                    {{"dest",  variant::types::numeric_literal},
+                                                                     {"src",   variant::types::numeric_literal},
+                                                                     {"bytes", variant::types::numeric_literal}}, "TODO: put help text in here"}},
+        {"j",           {command_types::jump_to_address,            {{"addr",  variant::types::numeric_literal, false}}, "TODO: put help text in here"}},
+        {"g",           {command_types::go_to_address,              {{"addr",  variant::types::numeric_literal, false}}, "TODO: put help text in here"}},
+        {"r",           {command_types::register_editor,            {}, "TODO: put help text in here"}},
+        {"rb",          {command_types::read_binary_to_memory,
+                                                                    {{"path",  variant::types::string_literal},
+                                                                     {"start", variant::types::numeric_literal},
+                                                                     {"end",   variant::types::numeric_literal, false}}, "TODO: put help text in here"}},
+        {"wb",          {command_types::write_memory_to_binary,
+                                                                    {{"path",  variant::types::string_literal},
+                                                                     {"start", variant::types::numeric_literal},
+                                                                     {"end",   variant::types::numeric_literal, false}}, "TODO: put help text in here"}},
 
-            // project commands
-            {"new",         {command_types::new_project,                {{"path", variant::types::string_literal}}}},
-            {"load",        {command_types::load_project,               {{"path", variant::types::string_literal}}}},
-            {"save",        {command_types::save_project,               {}}},
-            {"clone",       {command_types::clone_project,              {{"path", variant::types::string_literal}}}},
+        // filesystem commands
+        {"rm",          {command_types::remove_file,                {{"path", variant::types::string_literal}}, "TODO: put help text in here"}},
+        {"dir",         {command_types::dir,                        {}, "TODO: put help text in here"}},
+        {"cd",          {command_types::change_directory,           {{"path", variant::types::string_literal}}, "TODO: put help text in here"}},
+        {"pwd",         {command_types::print_working_directory,    {}, "TODO: put help text in here"}},
+        {"clear",       {command_types::clear,                      {}, "TODO: put help text in here"}},
 
-            // text editor commands
-            {"rt",          {command_types::read_text,                  {{"path",   variant::types::string_literal}}}},
-            {"wt",          {command_types::write_text,                 {{"path",   variant::types::string_literal}}}},
-            {":",           {command_types::goto_line,                  {{"line",   variant::types::numeric_literal}}}},
-            {"/",           {command_types::find_text,                  {{"needle", variant::types::string_literal}}}},
+        // project commands
+        {"new",         {command_types::new_project,                {{"path", variant::types::string_literal}}, "TODO: put help text in here"}},
+        {"load",        {command_types::load_project,               {{"path", variant::types::string_literal}}, "TODO: put help text in here"}},
+        {"save",        {command_types::save_project,               {}, "TODO: put help text in here"}},
+        {"clone",       {command_types::clone_project,              {{"path", variant::types::string_literal}}, "TODO: put help text in here"}},
 
-            // machines
-            {"machines",    {command_types::machines_list,              {}}},
-            {"machine",     {command_types::machine_editor,             {{"name", variant::types::string_literal}}}},
-            {"delmachine",  {command_types::del_machine,                {{"name", variant::types::string_literal}}}},
-            {"usemachine",  {command_types::use_machine,                {{"name", variant::types::string_literal}}}},
+        // text editor commands
+        {"rt",          {command_types::read_text,                  {{"path",   variant::types::string_literal}}, "TODO: put help text in here"}},
+        {"wt",          {command_types::write_text,                 {{"path",   variant::types::string_literal}}, "TODO: put help text in here"}},
+        {":",           {command_types::goto_line,                  {{"line",   variant::types::numeric_literal}}, "TODO: put help text in here"}},
+        {"/",           {command_types::find_text,                  {{"needle", variant::types::string_literal}}, "TODO: put help text in here"}},
 
-            // editor and tool commands
-            {"%",           {command_types::open_editor,
-                                                                        {{"name",  variant::types::string_literal},
-                                                                         {"type",  variant::types::identifier, true, false}}}},
-            {"sounds",      {command_types::sounds,                     {}}},
-            {"tracker",     {command_types::tracker,                    {}}},
-            {"tiles",       {command_types::tile_editor,                {}}},
-            {"sprites",     {command_types::sprite_editor,              {}}},
-            {"backgrounds", {command_types::background_editor,          {}}},
+        // machines
+        {"machines",    {command_types::machines_list,              {}, "TODO: put help text in here"}},
+        {"machine",     {command_types::machine_editor,             {{"name", variant::types::string_literal}}, "TODO: put help text in here"}},
+        {"delmachine",  {command_types::del_machine,                {{"name", variant::types::string_literal}}, "TODO: put help text in here"}},
+        {"usemachine",  {command_types::use_machine,                {{"name", variant::types::string_literal}}, "TODO: put help text in here"}},
 
-            // symbol table commands
-            {"set",         {command_types::add_symbol,                 {{"name", variant::types::identifier, true, false},
-                                                                         {"value", variant::types::any,       true, false}}}},
-            {"unset",       {command_types::remove_symbol,              {{"name", variant::types::identifier, true, false}}}},
-            {"symbols",     {command_types::show_symbol_table,          {}}},
+        // editor and tool commands
+        {"%",           {command_types::open_editor,
+                                                                    {{"name",  variant::types::string_literal},
+                                                                     {"type",  variant::types::identifier, true, false}}, "TODO: put help text in here"}},
+        {"sounds",      {command_types::sounds,                     {}, "TODO: put help text in here"}},
+        {"tracker",     {command_types::tracker,                    {}, "TODO: put help text in here"}},
+        {"tiles",       {command_types::tile_editor,                {}, "TODO: put help text in here"}},
+        {"sprites",     {command_types::sprite_editor,              {}, "TODO: put help text in here"}},
+        {"backgrounds", {command_types::background_editor,          {}, "TODO: put help text in here"}},
+
+        // symbol table commands
+        {"set",         {command_types::add_symbol,                 {{"name", variant::types::identifier, true, false},
+                                                                     {"value", variant::types::any,       true, false}}, "TODO: put help text in here"}},
+        {"unset",       {command_types::remove_symbol,              {{"name", variant::types::identifier, true, false}}, "TODO: put help text in here"}},
+        {"symbols",     {command_types::show_symbol_table,          {}, "TODO: put help text in here"}},
     };
+
+    command_table& command_parser::command_catalog() {
+        return _commands;
+    }
 
     command_parser::command_parser() : parser() {
     }

@@ -77,6 +77,7 @@ namespace ryu::core {
 
     enum command_types : uint8_t {
         quit = 1,
+        help,
         clear,
 
         add_symbol,
@@ -136,6 +137,7 @@ namespace ryu::core {
     struct command_spec_t {
         command_types type;
         std::vector<command_parameter_spec_t> params;
+        std::string help;
     };
 
     struct command_t {

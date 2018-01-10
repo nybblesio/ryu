@@ -22,6 +22,8 @@ namespace ryu::core {
 
     class command_parser : public core::parser {
     public:
+        static command_table& command_catalog();
+
         command_parser();
 
         ast_node_shared_ptr parse(const std::string& input) override;

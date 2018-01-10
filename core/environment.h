@@ -123,6 +123,8 @@ namespace ryu::core {
 
         bool on_register_editor(result& result, command_t& command, command_parameter_dict& params, const ast_node_shared_ptr& root);
 
+        bool on_help(result& result, command_t& command, command_parameter_dict& params, const ast_node_shared_ptr& root);
+
     private:
         core::symbol_table _symbol_table;
     };
