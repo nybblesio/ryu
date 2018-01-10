@@ -19,20 +19,30 @@ namespace ryu::hardware {
     class component {
     public:
         component(
-                int id,
+                uint32_t id,
                 hardware::integrated_circuit* ic);
 
-        int id() const;
+        uint32_t id() const;
+
+        uint32_t address() const;
 
         std::string name() const;
+
+        void address(uint32_t value);
+
+        std::string description() const;
 
         void name(const std::string& value);
 
         hardware::integrated_circuit* ic() const;
 
+        void description(const std::string& value);
+
     private:
-        int _id;
+        uint32_t _id;
+        uint32_t _address;
         std::string _name;
+        std::string _description;
         hardware::integrated_circuit* _ic = nullptr;
     };
 

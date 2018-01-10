@@ -15,14 +15,11 @@
 
 namespace ryu::hardware {
 
-    class rom : public hardware::integrated_circuit,
-                public hardware::memory {
+    class rom : public hardware::integrated_circuit {
     public:
-        rom(
-                const std::string& name,
-                uint8_t* buffer,
-                size_t size,
-                uint32_t address);
+        static void init();
+
+        rom();
 
         ~rom() override;
 
@@ -30,26 +27,22 @@ namespace ryu::hardware {
 
         bool write_latch() const;
 
-        size_t size() const override;
-
         void write_latch(bool enabled);
 
         void fill(uint8_t value) override;
-
-        std::string type() const override {
-            return "rom";
-        }
-
-        uint32_t address_space() const override;
 
         uint8_t read_byte(uint32_t address) const override;
 
         void write_byte(uint32_t address, uint8_t value) override;
 
-        RTTR_ENABLE(hardware::integrated_circuit, hardware::memory)
+    protected:
+        void on_address_space_changed() override;
+
+        RTTR_ENABLE(hardware::integrated_circuit)
 
     private:
-        size_t _size;
+        void reallocate();
+
         bool _write_latch = false;
         uint8_t* _buffer = nullptr;
     };

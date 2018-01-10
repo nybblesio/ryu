@@ -251,7 +251,11 @@
 #include "cpu.h"
 
 RTTR_REGISTRATION {
-    rttr::registration::class_<ryu::hardware::mc6809::cpu>("ryu::hardware::mc6809::cpu");
+    rttr::registration::class_<ryu::hardware::mc6809::cpu>("ryu::hardware::mc6809::cpu") (
+            rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::mc6809::cpu::type_id),
+            rttr::metadata(ryu::hardware::meta_data_key::type_name, "Motorola 6809 CPU IC")
+        )
+        .constructor<>(rttr::registration::public_access);
 }
 
 namespace ryu::hardware::mc6809 {
@@ -267,11 +271,7 @@ namespace ryu::hardware::mc6809 {
         return _opcodes;
     }
 
-    cpu::cpu() : hardware::integrated_circuit("MC6809") {
-    }
-
-    uint32_t cpu::address_space() const {
-        return 0xffff;
+    cpu::cpu() : hardware::integrated_circuit("mc6809-ic") {
     }
 
     void cpu::init() {

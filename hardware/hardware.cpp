@@ -13,14 +13,10 @@
 namespace ryu::hardware {
 
     bool initialize(core::result& result) {
-
-        rttr::type::get<integrated_circuit>();
-        rttr::type::get<memory_mapper>();
-        rttr::type::get<ram>();
-        rttr::type::get<rom>();
-        rttr::type::get<mc6809::cpu>();
+        ram::init();
+        rom::init();
+        memory_mapper::init();
         mc6809::cpu::init();
-
         return true;
     }
 

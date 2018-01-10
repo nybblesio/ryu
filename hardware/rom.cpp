@@ -11,21 +11,19 @@
 #include "rom.h"
 
 RTTR_REGISTRATION {
-    rttr::registration::class_<ryu::hardware::rom>("ryu::hardware::rom");
+    rttr::registration::class_<ryu::hardware::rom>("ryu::hardware::rom") (
+        rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::rom_id),
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Pseudo EPROM IC")
+    )
+    .constructor<>(rttr::registration::public_access);
 }
 
 namespace ryu::hardware {
 
-    rom::rom(
-            const std::string& name,
-            uint8_t* buffer,
-            size_t size,
-            uint32_t address) : integrated_circuit(name),
-                                _size(size),
-                                _buffer(buffer) {
-        if (_buffer == nullptr)
-            _buffer = new uint8_t[_size];
-        this->address(address);
+    void rom::init() {
+    }
+
+    rom::rom() : integrated_circuit("rom-ic") {
     }
 
     rom::~rom() {
@@ -35,16 +33,17 @@ namespace ryu::hardware {
 
     void rom::zero() {
         if (_write_latch)
-            std::memset(_buffer, 0, _size);
+            std::memset(_buffer, 0, address_space());
     }
 
-    size_t rom::size() const {
-        return _size;
+    void rom::reallocate() {
+        delete _buffer;
+        _buffer = new uint8_t[address_space()];
     }
 
     void rom::fill(uint8_t value) {
         if (_write_latch)
-            std::memset(_buffer, value, _size);
+            std::memset(_buffer, value, address_space());
     }
 
     bool rom::write_latch() const {
@@ -55,9 +54,8 @@ namespace ryu::hardware {
         _write_latch = enabled;
     }
 
-    uint32_t rom::address_space() const {
-        // max 512MB of ROM per instance
-        return 512 * (1024 * 1024);
+    void rom::on_address_space_changed() {
+        reallocate();
     }
 
     uint8_t rom::read_byte(uint32_t address) const {

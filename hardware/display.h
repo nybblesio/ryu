@@ -17,30 +17,30 @@ namespace ryu::hardware {
         static display_list& catalog();
 
         display(
-                int id,
+                uint32_t id,
                 const std::string& name,
-                int width,
-                int height,
-                int refresh_rate = 60);
+                uint16_t width,
+                uint16_t height,
+                uint8_t refresh_rate = 60);
 
-        int id() const;
+        uint32_t id() const;
 
-        int width() const;
+        uint16_t width() const;
 
-        int height() const;
-
-        int refresh_rate() const;
+        uint16_t height() const;
 
         std::string name() const;
+
+        uint8_t refresh_rate() const;
 
     private:
         static display_list _displays;
 
-        int _id = -1;
-        int _width = 0;
-        int _height = 0;
+        uint32_t _id {};
         std::string _name;
-        int _refresh_rate = 60;
+        uint16_t _width = 0;
+        uint16_t _height = 0;
+        uint8_t _refresh_rate = 60;
     };
 
 };

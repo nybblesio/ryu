@@ -14,11 +14,28 @@
 
 namespace ryu::hardware {
 
+    enum class meta_data_key {
+        type_id,
+        type_name
+    };
+
+    struct integrated_circuit_type_t {
+        uint16_t id {};
+        std::string name {};
+    };
+
+    typedef std::vector<integrated_circuit_type_t> ic_type_list;
+
+    static constexpr uint16_t integrated_circuit_id = 1;
+    static constexpr uint16_t memory_mapper_id = 2;
+    static constexpr uint16_t ram_id = 3;
+    static constexpr uint16_t rom_id = 4;
+
     class memory;
 
     class machine;
 
-    typedef std::map<int, machine> machine_dict;
+    typedef std::map<uint32_t, machine> machine_dict;
     typedef std::vector<machine*> machine_list;
 
     class display;
@@ -37,7 +54,7 @@ namespace ryu::hardware {
     class component;
 
     typedef std::vector<component*> component_list;
-    typedef std::map<int, component*> component_dict;
+    typedef std::map<uint32_t, component*> component_dict;
 
     typedef std::vector<display> display_list;
 };

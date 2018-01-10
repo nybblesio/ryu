@@ -17,21 +17,23 @@ namespace ryu::hardware {
 
     class machine {
     public:
-        explicit machine(int id);
+        explicit machine(uint32_t id);
 
         virtual ~machine() = default;
 
-        int id() const;
-
         void initialize();
+
+        uint32_t id() const;
 
         std::string name() const;
 
-        void remove_component(int id);
-
         uint32_t address_space() const;
 
+        std::string description() const;
+
         hardware::memory_mapper* mapper();
+
+        void remove_component(uint32_t id);
 
         hardware::display* display() const;
 
@@ -43,16 +45,19 @@ namespace ryu::hardware {
 
         void display(hardware::display* display);
 
-        hardware::component* find_component(int id) const;
+        void description(const std::string& value);
 
-        void add_component(hardware::component* component, uint32_t address);
+        void add_component(hardware::component* component);
+
+        hardware::component* find_component(uint32_t id) const;
 
     protected:
         virtual void on_initialize();
 
     private:
-        int _id = -1;
+        uint32_t _id {};
         std::string _name;
+        std::string _description;
         component_dict _components;
         hardware::memory_mapper _mapper;
         uint32_t _address_space = 2048 * 1024;

@@ -13,12 +13,12 @@
 namespace ryu::core {
 
     id_pool::id_pool() {
-        _pool.insert(id_interval(1, std::numeric_limits<int32_t>::max()));
+        _pool.insert(id_interval(1, std::numeric_limits<uint32_t>::max()));
     }
 
-    int32_t id_pool::allocate() {
+    uint32_t id_pool::allocate() {
         id_interval first = *(_pool.begin());
-        int32_t id = first.left();
+        auto id = first.left();
         _pool.erase(_pool.begin());
         if (first.left() + 1 <= first.right()) {
             _pool.insert(id_interval(first.left() + 1 , first.right()));
@@ -31,7 +31,7 @@ namespace ryu::core {
         return &pool;
     }
 
-    void id_pool::release(int32_t id) {
+    void id_pool::release(uint32_t id) {
         auto it = _pool.find(id_interval(id, id));
         if (it != _pool.end() && it->left() <= id && it->right() > id) {
             return;
@@ -66,28 +66,28 @@ namespace ryu::core {
         }
     }
 
-    bool id_pool::mark_used(int32_t id) {
-        auto it = _pool.find(id_interval(id,id));
+    bool id_pool::mark_used(uint32_t id) {
+        auto it = _pool.find(id_interval(id, id));
         if (it == _pool.end()) {
             return false;
         } else {
             id_interval free_interval = *(it);
-            _pool.erase (it);
+            _pool.erase(it);
             if (free_interval.left() < id) {
-                _pool.insert(id_interval(free_interval.left(), id-1));
+                _pool.insert(id_interval(free_interval.left(), id - 1));
             }
-            if (id +1 <= free_interval.right() ) {
-                _pool.insert(id_interval(id+1, free_interval.right()));
+            if (id + 1 <= free_interval.right()) {
+                _pool.insert(id_interval(id + 1, free_interval.right()));
             }
             return true;
         }
     }
 
-    bool id_pool::mark_range(int32_t start_id, int32_t end_id) {
+    bool id_pool::mark_range(uint32_t start_id, uint32_t end_id) {
         for (size_t id = static_cast<size_t>(start_id);
              id < static_cast<size_t>(end_id);
              ++id) {
-            auto success = mark_used(static_cast<int32_t>(id));
+            auto success = mark_used(static_cast<uint32_t>(id));
             if (!success)
                 return false;
         }
@@ -95,15 +95,15 @@ namespace ryu::core {
     }
 
     // XXX: this feels wrong, need to rework this
-    int32_t id_pool::allocate_from_range(int32_t start_id, int32_t end_id) {
+    int32_t id_pool::allocate_from_range(uint32_t start_id, uint32_t end_id) {
         for (size_t id = static_cast<size_t>(start_id);
              id < static_cast<size_t>(end_id);
              ++id) {
-            auto success = mark_used(static_cast<int32_t>(id));
+            auto success = mark_used(static_cast<uint32_t>(id));
             if (success)
-                return static_cast<int32_t>(id);
+                return static_cast<uint32_t>(id);
         }
-        return -1;
+        return 0;
     }
 
 }

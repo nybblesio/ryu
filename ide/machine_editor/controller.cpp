@@ -246,15 +246,6 @@ namespace ryu::ide::machine_editor {
         _panel.add_child(&_button_panel);
         _panel.add_child(&_notebook);
         _panel.focus(&_notebook);
-
-//        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
-//        auto component_types = base.get_derived_classes();
-//        for(auto& t : component_types) {
-//            std::cout << t.get_name() << "\n";
-//            std::cout << "properties:\n";
-//            for (auto& p : t.get_properties())
-//                std::cout << "\tname: " << p.get_name() << "\n";
-//        }
     }
 
     void controller::on_update(uint32_t dt) {

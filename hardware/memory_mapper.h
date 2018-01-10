@@ -17,6 +17,8 @@ namespace ryu::hardware {
 
     class memory_mapper : public hardware::integrated_circuit {
     public:
+        static void init();
+
         memory_mapper();
 
         void clear();
@@ -29,14 +31,6 @@ namespace ryu::hardware {
 
         void fill(uint8_t value) override;
 
-        void address_space(uint32_t value);
-
-        std::string type() const override {
-            return "memory mapper";
-        }
-
-        uint32_t address_space() const override;
-
         uint8_t read_byte(uint32_t address) const override;
 
         void release(hardware::integrated_circuit* component);
@@ -48,7 +42,6 @@ namespace ryu::hardware {
         RTTR_ENABLE(hardware::integrated_circuit)
 
     private:
-        uint32_t _address_space = 0;
         ic_interval_list _components;
     };
 

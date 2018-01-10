@@ -13,17 +13,29 @@
 namespace ryu::hardware {
 
     component::component(
-            int id,
+            uint32_t id,
             hardware::integrated_circuit* ic) : _id(id),
                                                 _ic(ic) {
     }
 
-    int component::id() const {
+    uint32_t component::id() const {
         return _id;
     }
 
     std::string component::name() const {
         return _name;
+    }
+
+    uint32_t component::address() const {
+        return _address;
+    }
+
+    void component::address(uint32_t value) {
+        _address = value;
+    }
+
+    std::string component::description() const {
+        return _description;
     }
 
     void component::name(const std::string& value) {
@@ -32,6 +44,10 @@ namespace ryu::hardware {
 
     hardware::integrated_circuit* component::ic() const {
         return _ic;
+    }
+
+    void component::description(const std::string& value) {
+        _description = value;
     }
 
 }

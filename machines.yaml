@@ -1,0 +1,52 @@
+# machines registry
+
+machines:
+  - id: 101
+    name: Bally Midway MCR
+    description:
+      Bally Midway MCR machines dating from the early 1980s.
+    address_space: 65536
+    display_id: 3
+    components:
+      - id: 102
+        name: Main CPU
+        description:
+          Main game logic CPU.
+        address: 0
+        ic:
+          type_id: 10
+      - id: 103
+        name: Work RAM
+        description:
+          RAM available for the CPU to store state.
+        address: 0xa000
+        ic:
+          type_id: 3
+      - id: 104
+        name: Tiles ROM 1
+        description:
+          ROM bank 1 for background tiles
+        address: 0xb000
+        ic:
+          type_id: 4
+      - id: 105
+        name: Tiles ROM 2
+        description:
+          ROM bank 2 for background tiles
+        address: 0xc000
+        ic:
+          type_id: 4
+      - id: 106
+        name: Foreground ROM 1
+        description:
+          ROM bank 1 for foreground
+        address: 0xd000
+        ic:
+          type_id: 4
+      - id: 107
+        name: Foreground ROM 2
+        description:
+          ROM bank 2 for foreground
+        address: 0xe000
+        ic:
+          type_id: 4

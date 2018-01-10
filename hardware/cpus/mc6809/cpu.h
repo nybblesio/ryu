@@ -14,6 +14,8 @@ namespace ryu::hardware::mc6809 {
 
     class cpu : public hardware::integrated_circuit {
     public:
+        static constexpr uint16_t type_id = 10;
+
         static const mnemonic_set& mnemonics();
 
         static const opcode_dictionary& opcodes();
@@ -21,8 +23,6 @@ namespace ryu::hardware::mc6809 {
         static void init();
 
         cpu();
-
-        uint32_t address_space() const override;
 
         RTTR_ENABLE(hardware::integrated_circuit)
 

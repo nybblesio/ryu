@@ -20,23 +20,17 @@ namespace ryu::hardware {
 
         virtual ~integrated_circuit() = default;
 
-        int id() const;
+        uint32_t id() const;
 
         virtual void zero();
 
-        uint32_t address() const;
-
         std::string name() const;
 
-        uint32_t last_address() const;
-
-        void address(uint32_t address);
+        uint32_t address_space() const;
 
         virtual void fill(uint8_t value);
 
-        virtual std::string type() const;
-
-        virtual uint32_t address_space() const;
+        void address_space(uint32_t value);
 
         const hardware::memory_map& memory_map() const;
 
@@ -46,10 +40,13 @@ namespace ryu::hardware {
 
         RTTR_ENABLE()
 
+    protected:
+        virtual void on_address_space_changed();
+
     private:
-        int _id {};
+        uint32_t _id {};
         std::string _name;
-        uint32_t _address = 0;
+        uint32_t _address_space;
         hardware::memory_map _memory_map;
     };
 

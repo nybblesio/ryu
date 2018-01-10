@@ -24,25 +24,25 @@ namespace ryu::hardware {
 
         machine_list machines();
 
-        void remove_machine(int id);
-
-        ic_list integrated_circuits();
-
         display_list& displays() const;
 
         hardware::machine* new_machine();
 
-        hardware::machine* find_machine(int id);
+        void remove_machine(uint32_t id);
 
-        hardware::display* find_display(int id);
+        hardware::machine* find_machine(uint32_t id);
 
-        hardware::integrated_circuit* find_ic(int id);
+        hardware::display* find_display(uint32_t id);
+
+        ic_type_list integrated_circuit_types() const;
 
         bool save(core::result& result, const fs::path& path);
 
         bool load(core::result& result, const fs::path& path);
 
         hardware::machine* find_machine(const std::string& name);
+
+        hardware::integrated_circuit* new_ic_by_type_id(uint32_t type_id);
 
     protected:
         registry() = default;

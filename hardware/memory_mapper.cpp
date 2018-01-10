@@ -11,10 +11,17 @@
 #include "memory_mapper.h"
 
 RTTR_REGISTRATION {
-    rttr::registration::class_<ryu::hardware::memory_mapper>("ryu::hardware::memory_mapper");
+    rttr::registration::class_<ryu::hardware::memory_mapper>("ryu::hardware::memory_mapper") (
+        rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::memory_mapper_id),
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Memory Mapper IC")
+    )
+    .constructor<>(rttr::registration::public_access);
 }
 
 namespace ryu::hardware {
+
+    void memory_mapper::init() {
+    }
 
     memory_mapper::memory_mapper() : integrated_circuit("memory-mapper-ic") {
     }
@@ -29,8 +36,10 @@ namespace ryu::hardware {
             hardware::integrated_circuit* component) {
         if (component == nullptr)
             return;
-        component->address(address);
-        _components.emplace_back(address, component->last_address(), component);
+        _components.emplace_back(
+                address,
+                address + component->address_space(),
+                component);
     }
 
     void memory_mapper::clear() {
@@ -40,14 +49,6 @@ namespace ryu::hardware {
     void memory_mapper::fill(uint8_t value) {
         for (auto& ic : _components)
             ic.value->fill(value);
-    }
-
-    uint32_t memory_mapper::address_space() const {
-        return _address_space;
-    }
-
-    void memory_mapper::address_space(uint32_t value) {
-        _address_space = value;
     }
 
     uint8_t memory_mapper::read_byte(uint32_t address) const {

@@ -10,11 +10,11 @@
 
 namespace ryu::hardware {
 
-    machine::machine(int id) : _id(id),
-                               _mapper() {
+    machine::machine(uint32_t id) : _id(id),
+                                    _mapper() {
     }
 
-    int machine::id() const {
+    uint32_t machine::id() const {
         return _id;
     }
 
@@ -29,16 +29,20 @@ namespace ryu::hardware {
         return _name;
     }
 
-    void machine::remove_component(int id) {
+    uint32_t machine::address_space() const {
+        return _address_space;
+    }
+
+    std::string machine::description() const {
+        return _description;
+    }
+
+    void machine::remove_component(uint32_t id) {
         auto component = find_component(id);
         if (component != nullptr) {
             _mapper.release(component->ic());
             _components.erase(id);
         }
-    }
-
-    uint32_t machine::address_space() const {
-        return _address_space;
     }
 
     hardware::memory_mapper* machine::mapper() {
@@ -69,18 +73,22 @@ namespace ryu::hardware {
         _display = display;
     }
 
-    hardware::component* machine::find_component(int id) const {
+    void machine::description(const std::string& value) {
+        _description = value;
+    }
+
+    void machine::add_component(hardware::component* component) {
+        if (component == nullptr)
+            return;
+        _components.insert(std::make_pair(component->id(), component));
+        _mapper.reserve(component->address(), component->ic());
+    }
+
+    hardware::component* machine::find_component(uint32_t id) const {
         auto it = _components.find(id);
         if (it != _components.end())
             return it->second;
         return nullptr;
-    }
-
-    void machine::add_component(hardware::component* component, uint32_t address) {
-        if (component == nullptr)
-            return;
-        _components.insert(std::make_pair(component->id(), component));
-        _mapper.reserve(address, component->ic());
     }
 
 }
