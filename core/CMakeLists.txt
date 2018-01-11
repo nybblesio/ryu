@@ -33,6 +33,7 @@ add_library(
         views/checkbox.cpp views/checkbox.h
         command_parser.cpp command_parser.h
         views/notebook.cpp views/notebook.h
+        text_formatter.cpp text_formatter.h
         views/pick_list.cpp views/pick_list.h
         views/text_editor.cpp views/text_editor.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h)

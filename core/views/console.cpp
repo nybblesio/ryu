@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <fmt/format.h>
+#include <core/text_formatter.h>
 #include "console.h"
 
 namespace ryu::core {
@@ -394,43 +395,42 @@ namespace ryu::core {
     }
 
     void console::write_message(const std::string& message) {
-        core::attr_t attr {_color, core::font::styles::normal, core::font::flags::none};
+        core::attr_t attr {
+            _color,
+            core::font::styles::normal,
+            core::font::flags::none
+        };
 
         caret_home();
-        auto token = message.begin();
-        while (token != message.end()) {
-            if (*token == '\n') {
+
+        auto formatted_text = core::text_formatter::format_text(message);
+        for (const auto& span : formatted_text.spans) {
+            if (span.attr_code == "newline") {
                 caret_down();
                 caret_home();
-                ++token;
                 continue;
             }
-            if (*token == '<') {
-                std::string code;
-                while (*(++token) != '>') {
-                    code += *token;
-                }
 
-                auto it = _code_mapper.find(code);
-                if (it == _code_mapper.end()) {
-                    attr.color = _color;
-                    attr.flags = core::font::flags::none;
-                    attr.style = core::font::styles::normal;
-                } else {
-                    it->second(attr);
-                }
-
-                ++token;
-                continue;
+            auto it = _code_mapper.find(span.attr_code);
+            if (it == _code_mapper.end()) {
+                attr.color = _color;
+                attr.flags = core::font::flags::none;
+                attr.style = core::font::styles::normal;
+            } else {
+                it->second(attr);
             }
-            _document.put(
-                    _caret.row(),
-                    _caret.column(),
-                    core::element_t {static_cast<uint8_t>(*token), attr});
 
-            caret_right();
-            ++token;
+            auto token = span.text.begin();
+            while (token != span.text.end()) {
+                _document.put(
+                        _caret.row(),
+                        _caret.column(),
+                        core::element_t {static_cast<uint8_t>(*token), attr});
+                caret_right();
+                ++token;
+            }
         }
+
         caret_down();
         caret_home();
     }

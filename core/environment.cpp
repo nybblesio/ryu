@@ -17,6 +17,7 @@
 #include <core/command_parser.h>
 #include <common/string_support.h>
 #include "environment.h"
+#include "text_formatter.h"
 
 namespace ryu::core {
 
@@ -595,29 +596,13 @@ namespace ryu::core {
                 }
             }
 
-            auto adjusted_length = 0;
-            auto help_line = stream.str();
-            auto inside_token = false;
-            for (const auto& tok : help_line) {
-                if (inside_token) {
-                    if (tok == '>')
-                        inside_token = false;
-                } else {
-                    if (tok == '<')
-                        inside_token = true;
-                    else
-                        adjusted_length++;
-                }
-            }
-
-            while (adjusted_length < 32) {
-                help_line += " ";
-                adjusted_length++;
-            }
+            auto formatted_text = core::text_formatter::format_text_left_padded(
+                    stream.str(),
+                    32);
 
             result.add_message("C030",
                                fmt::format(" {} {}",
-                                           help_line,
+                                           core::text_formatter::formatted_text_to_string(formatted_text),
                                            c.second.help));
         }
 
