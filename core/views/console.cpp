@@ -401,6 +401,7 @@ namespace ryu::core {
             core::font::flags::none
         };
 
+        // XXX: should implement MORE functionality, like unix more or less
         caret_home();
 
         auto formatted_text = core::text_formatter::format_text(message);
