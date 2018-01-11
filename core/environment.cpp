@@ -24,27 +24,30 @@ namespace ryu::core {
     static void format_numeric_conversion(
             core::result& result,
             int32_t value,
-            core::command_t::sizes size) {
+            core::command_size_flags size) {
         std::string ascii;
         std::string fmt_spec;
 
         uint32_t mask = 0;
         auto byte_count = 0;
         switch (size) {
-            case core::command_t::byte:
+            case core::command_size_flags::byte:
                 byte_count = 1;
                 mask = 0xff;
                 fmt_spec = "${0:02x} {1:>3} \"{2:>1}\" %{0:08b}";
                 break;
-            case core::command_t::word:
+            case core::command_size_flags::word:
                 byte_count = 2;
                 mask = 0xffff;
                 fmt_spec = "${0:04x} {1:>5} \"{2:>2}\" %{0:016b}";
                 break;
-            case core::command_t::dword:
+            case core::command_size_flags::dword:
                 byte_count = 4;
                 mask = 0xffffffff;
                 fmt_spec = "${0:08x} {1:>10} \"{2:>4}\" %{0:032b}";
+                break;
+            default:
+                // XXX: support for qword
                 break;
         }
 
@@ -315,7 +318,7 @@ namespace ryu::core {
                 }
                 case core::variant::types::boolean_literal: {
                     auto value = boost::get<core::boolean_literal_t>(param).value;
-                    format_numeric_conversion(result, value, core::command_t::sizes::byte);
+                    format_numeric_conversion(result, value, core::command_size_flags::byte);
                     break;
                 }
                 default: {

@@ -134,24 +134,31 @@ namespace ryu::core {
         bool evaluate = true;
     };
 
+    enum command_size_flags : uint8_t {
+        none =  0b00000000,
+        byte =  0b00000001,
+        word =  0b00000010,
+        dword = 0b00000100,
+        qword = 0b00001000
+    };
+
+    typedef uint8_t command_flags_t;
+
     struct command_spec_t {
         command_types type;
+        command_flags_t valid_sizes = command_size_flags::none;
         std::vector<command_parameter_spec_t> params;
         std::string help;
     };
 
     struct command_t {
-        enum sizes {
-            byte,
-            word,
-            dword,
-        };
-
         command_spec_t spec;
         std::string symbol;
-        sizes size = sizes::dword;
+        command_size_flags size = command_size_flags::dword;
 
-        friend std::ostream& operator<<(std::ostream& stream, const command_t& command) {
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const command_t& command) {
             stream << command.symbol;
             return stream;
         }
