@@ -57,7 +57,7 @@ namespace ryu::core {
                 {
                     {"addr", variant::types::numeric_literal, false}
                 },
-                "Assemble project source files.  Optionally at target address."
+                "Assemble project source files, optionally at target <italic>addr<>."
             }
         },
 
@@ -69,7 +69,7 @@ namespace ryu::core {
                 {
                     {"name", variant::types::string_literal, false}
                 },
-                "Open the assembly source editor."
+                "Open the assembly source editor, optionally for file with <italic>name<>."
             }
         },
 
@@ -181,7 +181,7 @@ namespace ryu::core {
                 command_types::register_editor,
                 command_size_flags::none,
                 {},
-                "View/edit the active CPU registers."
+                "Edit the active CPU registers."
             }
         },
 
@@ -471,7 +471,7 @@ namespace ryu::core {
                 command_types::background_editor,
                 command_size_flags::none,
                 {},
-                "Open the backgrounds editor"
+                "Open the backgrounds editor."
             }
         },
 
@@ -485,7 +485,7 @@ namespace ryu::core {
                     {"name", variant::types::identifier, true, false},
                     {"value", variant::types::any,       true, false}
                 },
-                "Assign the result of <italic>value<> to the symbol of <italic>name<>"
+                "Assign the result of <italic>value<> to the symbol of <italic>name<>."
             }
         },
 

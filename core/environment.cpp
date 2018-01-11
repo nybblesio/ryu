@@ -578,6 +578,9 @@ namespace ryu::core {
     }
 
     bool environment::on_help(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
+        constexpr uint8_t command_column_width = 20;
+        constexpr uint8_t help_column_width = 50;
+
         const auto& commands = core::command_parser::command_catalog();
         result.add_message("C030", "<rev><bold> Command                          Help                                   ");
 
@@ -623,12 +626,12 @@ namespace ryu::core {
 
             auto formatted_text = core::text_formatter::format_text_left_padded(
                     stream.str(),
-                    32);
+                    command_column_width);
 
             result.add_message("C030",
                                fmt::format(" {} {}\n",
                                            core::text_formatter::formatted_text_to_string(formatted_text),
-                                           word_wrap(c.second.help, 40, 34)));
+                                           word_wrap(c.second.help, help_column_width, command_column_width + 2)));
         }
 
         result.add_message("C030", fmt::format("{} available commands", commands.size()));
