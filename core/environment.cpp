@@ -134,7 +134,7 @@ namespace ryu::core {
                 if (param_spec.required) {
                     result.add_message(
                             "C801",
-                            fmt::format("the parameter {{italic}}'{}'{{}} is required.", param_spec.name),
+                            fmt::format("the parameter <italic>'{}'<> is required.", param_spec.name),
                             true);
                     result.fail();
                 }
@@ -154,7 +154,7 @@ namespace ryu::core {
                     if (idx >= root->children.size()) {
                         result.add_message(
                                 "C801",
-                                fmt::format("the parameter {{italic}}'{}'{{}} is required.", param_spec.name),
+                                fmt::format("the parameter <italic>'{}'<> is required.", param_spec.name),
                                 true);
                         result.fail();
                         break;
@@ -170,7 +170,7 @@ namespace ryu::core {
                     if (value.which() != param_spec.type) {
                         result.add_message(
                                 "C801",
-                                fmt::format("the parameter {{italic}}'{}'{{}} must be of type {{italic}}'{}'{{}}.",
+                                fmt::format("the parameter <italic>'{}'<> must be of type <italic>'{}'<>.",
                                             param_spec.name,
                                             core::variant::to_string(param_spec.type)),
                                 true);
@@ -273,7 +273,7 @@ namespace ryu::core {
     }
 
     bool environment::on_show_symbol_table(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
-        result.add_message("C029", "{rev}{bold} Identifier                       Value                            ");
+        result.add_message("C029", "<rev><bold> Identifier                       Value                            ");
         auto identifiers = _symbol_table.identifiers();
         for (const auto& symbol : identifiers) {
             std::stringstream stream;
@@ -371,8 +371,8 @@ namespace ryu::core {
                                         size.second));
                 }
             };
-            result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<58} ", cwd.string()));
-            result.add_message("C005", fmt::format("{{rev}}{{bold}}  {0:<41}   {1:<15}", "Filename", "Size"));
+            result.add_message("C005", fmt::format("<rev><bold>  {0:<58} ", cwd.string()));
+            result.add_message("C005", fmt::format("<rev><bold>  {0:<41}   {1:<15}", "Filename", "Size"));
             std::vector<directory_entry> entries;
             std::vector<directory_entry*> dir_entries;
             std::vector<directory_entry*> file_entries;
@@ -458,7 +458,7 @@ namespace ryu::core {
 
     bool environment::on_machines_list(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
         auto machines = hardware::registry::instance()->machines();
-        result.add_message("C028", "{rev}{bold} ID         Name                             Type ");
+        result.add_message("C028", "<rev><bold> ID         Name                             Type ");
         for (auto machine : machines) {
             result.add_message(
                     "C028",
@@ -575,14 +575,52 @@ namespace ryu::core {
 
     bool environment::on_help(core::result& result, core::command_t& command, core::command_parameter_dict& params, const core::ast_node_shared_ptr& root) {
         const auto& commands = core::command_parser::command_catalog();
-        result.add_message("C030", "{rev}{bold} Command                          Help                                   ");
+        result.add_message("C030", "<rev><bold> Command                          Help                                   ");
+
         for (const auto& c : commands) {
-            result.add_message(
-                    "C030",
-                    fmt::format(" {:<32s} {:<50s}",
-                                c.first,
-                                fmt::format("{}", c.second.help)));
+            std::stringstream stream;
+            stream << c.first;
+
+            if (!c.second.params.empty()) {
+                stream << " ";
+                for (size_t i = 0; i < c.second.params.size(); i++) {
+                    auto param_spec = c.second.params[i];
+                    if (param_spec.required) {
+                        stream << "<bold>" << param_spec.name << "<>";
+                    } else {
+                        stream << "<italic>[" << param_spec.name << "]<>";
+                    }
+                    if (i < c.second.params.size() - 1)
+                        stream << " ";
+                }
+            }
+
+            auto adjusted_length = 0;
+            auto help_line = stream.str();
+            auto inside_token = false;
+            for (const auto& tok : help_line) {
+                if (inside_token) {
+                    if (tok == '>')
+                        inside_token = false;
+                } else {
+                    if (tok == '<')
+                        inside_token = true;
+                    else
+                        adjusted_length++;
+                }
+            }
+
+            while (adjusted_length < 32) {
+                help_line += " ";
+                adjusted_length++;
+            }
+
+            result.add_message("C030",
+                               fmt::format(" {} {}",
+                                           help_line,
+                                           c.second.help));
         }
+
         result.add_message("C030", fmt::format("{} available commands", commands.size()));
         return true;
     }

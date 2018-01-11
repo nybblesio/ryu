@@ -170,10 +170,11 @@ namespace ryu::core {
                                 true);
                         result.fail();
                     } else {
-                        auto topaz = add_font_family(14, "topaz");
+                        // XXX: need to load multiple sizes for user config
+                        auto topaz = add_font_family(24, "topaz");
                         _font = topaz->add_style(font::styles::normal, "assets/Topaz-8.ttf");
 
-                        auto hack = add_font_family(16, "hack");
+                        auto hack = add_font_family(26, "hack");
                         hack->add_style(font::styles::normal,                      "assets/Hack-Regular.ttf");
                         hack->add_style(font::styles::bold,                        "assets/Hack-Bold.ttf");
                         hack->add_style(font::styles::italic,                      "assets/Hack-Italic.ttf");

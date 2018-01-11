@@ -286,7 +286,7 @@ namespace ryu::core {
                             for (const auto& msg : result.messages()) {
                                 if (msg.type() == core::result_message::types::data)
                                     continue;
-                                auto error_part = msg.is_error() ? "{bold}{red}ERROR:{} " : "";
+                                auto error_part = msg.is_error() ? "<bold><red>ERROR:<> " : "";
                                 write_message(fmt::format("{0}{1}", error_part, msg.message()));
                             }
 
@@ -405,9 +405,9 @@ namespace ryu::core {
                 ++token;
                 continue;
             }
-            if (*token == '{') {
+            if (*token == '<') {
                 std::string code;
-                while (*(++token) != '}') {
+                while (*(++token) != '>') {
                     code += *token;
                 }
 

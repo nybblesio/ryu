@@ -131,9 +131,9 @@ namespace ryu::ide::console_editor {
 
     void controller::on_activate(const core::parameter_dict& params) {
         if (_show_banner) {
-            _console.write_message("{rev} {bold}Ryu: {italic}The Arcade Construction Kit {}");
+            _console.write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>");
             _console.write_message(" Copyright (C) 2017 Jeff Panici");
-            _console.write_message(" See details in {underline}{bold}LICENSE{} file");
+            _console.write_message(" See details in <underline><bold>LICENSE<> file");
             _console.caret_down();
             _console.write_message("Ready.");
             _show_banner = false;
