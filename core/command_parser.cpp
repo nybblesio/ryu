@@ -22,7 +22,7 @@ namespace ryu::core {
                 {
                     {"cmd", variant::types::command_literal, false}
                 },
-                "Show help for available commands"
+                "Show help for available commands."
             }
         },
 
@@ -33,7 +33,7 @@ namespace ryu::core {
                 command_types::quit,
                 command_size_flags::none,
                 {},
-                "Exit this application"
+                "Exit this application."
             }
         },
 
@@ -45,7 +45,7 @@ namespace ryu::core {
                 {
                     {"...",  variant::types::variadic}
                 },
-                "Evaluate one or more expressions"
+                "Evaluate one or more expressions with optional size specifier."
             }
         },
 
@@ -69,7 +69,7 @@ namespace ryu::core {
                 {
                     {"name", variant::types::string_literal, false}
                 },
-                "Open the assembly source editor"
+                "Open the assembly source editor."
             }
         },
 
@@ -81,7 +81,7 @@ namespace ryu::core {
                 {
                     {"addr", variant::types::numeric_literal}
                 },
-                "One the memory hex editor"
+                "Open the memory hex editor starting at <italic>addr<>."
             }
         },
 
@@ -93,7 +93,7 @@ namespace ryu::core {
                 {
                     {"addr", variant::types::numeric_literal}
                 },
-                "Disassemble program code starting at addr"
+                "Disassemble program code starting at <italic>addr<>."
             }
         },
 
@@ -105,7 +105,7 @@ namespace ryu::core {
                 {
                     {"addr", variant::types::numeric_literal}
                 },
-                "Dump memory contents at addr to the console"
+                "Dump memory contents at <italic>addr<> to the console."
             }
         },
 
@@ -119,7 +119,7 @@ namespace ryu::core {
                     {"bytes", variant::types::numeric_literal},
                     {"value", variant::types::any}
                 },
-                "Search memory starting at <italic>addr<> for <italic>bytes<> looking for <italic>value<>"
+                "Search memory starting at <italic>addr<> for <italic>bytes<> looking for <italic>value<>."
             }
         },
 
@@ -133,7 +133,7 @@ namespace ryu::core {
                     {"bytes", variant::types::numeric_literal},
                     {"value", variant::types::any}
                 },
-                "Fill memory starting at <italic>addr<> for <italic>bytes<> with <italic>value<>"
+                "Fill memory starting at <italic>addr<> for <italic>bytes<> with <italic>value<>."
             }
         },
 
@@ -147,7 +147,7 @@ namespace ryu::core {
                     {"src",   variant::types::numeric_literal},
                     {"bytes", variant::types::numeric_literal}
                 },
-                "Copy memory to <italic>dest<> from <italic>src<> for <italic>bytes<>"
+                "Copy memory to <italic>dest<> from <italic>src<> for <italic>bytes<>."
             }
         },
 
@@ -159,7 +159,7 @@ namespace ryu::core {
                 {
                     {"addr",  variant::types::numeric_literal, false}
                 },
-                "Jump to <italic>addr<> and begin execution"
+                "Jump to <italic>addr<> and begin execution."
             }
         },
 
@@ -171,7 +171,7 @@ namespace ryu::core {
                 {
                     {"addr",  variant::types::numeric_literal, false}
                 },
-                "Go to <italic>addr<> for execution"
+                "Go to <italic>addr<> for execution."
             }
         },
 
@@ -181,7 +181,7 @@ namespace ryu::core {
                 command_types::register_editor,
                 command_size_flags::none,
                 {},
-                "View/edit the active CPU registers"
+                "View/edit the active CPU registers."
             }
         },
 
@@ -195,7 +195,7 @@ namespace ryu::core {
                     {"start", variant::types::numeric_literal},
                     {"end",   variant::types::numeric_literal, false}
                 },
-                "Read binary from <italic>path<> to address <italic>start<> to <italic>end<>"
+                "Read binary from <italic>path<> to address <italic>start<> to <italic>end<>."
             }
         },
 
@@ -209,7 +209,7 @@ namespace ryu::core {
                     {"start", variant::types::numeric_literal},
                     {"end",   variant::types::numeric_literal, false}
                 },
-                "Write binary from address <italic>start<> to <italic>end<> to disk at <italic>path<>"
+                "Write binary from address <italic>start<> to <italic>end<> to disk at <italic>path<>."
             }
         },
 
@@ -222,7 +222,7 @@ namespace ryu::core {
                 {
                     {"path", variant::types::string_literal}
                 },
-                "Remove file/directory at <italic>path<>"
+                "Remove file/directory at <italic>path<>."
             }
         },
 
@@ -232,7 +232,7 @@ namespace ryu::core {
                 command_types::dir,
                 command_size_flags::none,
                 {},
-                "List the contents of the current working directory"
+                "List the contents of the current working directory."
             }
         },
 
@@ -244,7 +244,7 @@ namespace ryu::core {
                 {
                     {"path", variant::types::string_literal}
                 },
-                "Change working directory to <italic>path<>"
+                "Change working directory to <italic>path<>."
             }
         },
 
@@ -254,7 +254,7 @@ namespace ryu::core {
                 command_types::print_working_directory,
                 command_size_flags::none,
                 {},
-                "Show the current working directory"
+                "Show the current working directory."
             }
         },
 
@@ -264,7 +264,7 @@ namespace ryu::core {
                 command_types::clear,
                 command_size_flags::none,
                 {},
-                "Clear console and home the cursor at the top"
+                "Clear console and home the cursor at the top."
             }
         },
 
@@ -277,7 +277,7 @@ namespace ryu::core {
                 {
                     {"path", variant::types::string_literal}
                 },
-                "Create new project at <italic>path<> on disk"
+                "Create new project at <italic>path<> on disk."
             }
         },
 
@@ -289,7 +289,7 @@ namespace ryu::core {
                 {
                     {"path", variant::types::string_literal}
                 },
-                "Load a project from disk at <italic>path<> into memory"
+                "Load a project from disk at <italic>path<> into memory."
             }
         },
 
@@ -299,7 +299,7 @@ namespace ryu::core {
                 command_types::save_project,
                 command_size_flags::none,
                 {},
-                "Save the currently open project to disk"
+                "Save the currently open project to disk."
             }
         },
 
@@ -311,7 +311,7 @@ namespace ryu::core {
                 {
                     {"path", variant::types::string_literal}
                 },
-                "Clone the currently open project to <italic>path<> on disk"
+                "Clone the currently open project to <italic>path<> on disk."
             }
         },
 
@@ -324,7 +324,7 @@ namespace ryu::core {
                 {
                     {"path",   variant::types::string_literal}
                 },
-                "Read text file at <italic>path<> on disk into editor"
+                "Read text file at <italic>path<> on disk into editor."
             }
         },
 
@@ -336,7 +336,7 @@ namespace ryu::core {
                 {
                     {"path",   variant::types::string_literal}
                 },
-                "Write text in editor to file at <italic>path<> on disk"
+                "Write text in editor to file at <italic>path<> on disk."
             }
         },
 
@@ -348,7 +348,7 @@ namespace ryu::core {
                 {
                     {"line",   variant::types::numeric_literal}
                 },
-                "Jump to the source <italic>line<>"
+                "Jump to the source <italic>line<>."
             }
         },
 
@@ -360,7 +360,7 @@ namespace ryu::core {
                 {
                     {"needle", variant::types::string_literal}
                 },
-                "Find <italic>needle<> in text buffer"
+                "Find <italic>needle<> in text buffer."
             }
         },
 
@@ -371,7 +371,7 @@ namespace ryu::core {
                 command_types::machines_list,
                 command_size_flags::none,
                 {},
-                "List machine registry to console"
+                "List machine registry to console."
             }
         },
 
@@ -383,7 +383,7 @@ namespace ryu::core {
                 {
                     {"name", variant::types::string_literal}
                 },
-                "Create machine with <italic>name<>"
+                "Create machine with <italic>name<>."
             }
         },
 
@@ -395,7 +395,7 @@ namespace ryu::core {
                 {
                     {"name", variant::types::string_literal}
                 },
-                "Remove machine <italic>name<> from the registry"
+                "Remove machine <italic>name<> from the registry."
             }
         },
 
@@ -407,7 +407,7 @@ namespace ryu::core {
                 {
                     {"name", variant::types::string_literal}
                 },
-                "Make machine <italic>name<> active for the open project"
+                "Make machine <italic>name<> active for the open project."
             }
         },
 
@@ -421,7 +421,7 @@ namespace ryu::core {
                     {"name",  variant::types::string_literal},
                     {"type",  variant::types::identifier, true, false}
                 },
-                "Execute editor for <italic>name<> and <italic>type<>"
+                "Execute editor for <italic>name<> and <italic>type<>."
             }
         },
 
@@ -431,7 +431,7 @@ namespace ryu::core {
                 command_types::sounds,
                 command_size_flags::none,
                 {},
-                "Open the sounds editor"
+                "Open the sounds editor."
             }
         },
 
@@ -441,7 +441,7 @@ namespace ryu::core {
                 command_types::tracker,
                 command_size_flags::none,
                 {},
-                "Open the music tracker"
+                "Open the music tracker."
             }
         },
 
@@ -451,7 +451,7 @@ namespace ryu::core {
                 command_types::tile_editor,
                 command_size_flags::none,
                 {},
-                "Open the tile editor"
+                "Open the tile editor."
             }
         },
 
@@ -461,7 +461,7 @@ namespace ryu::core {
                 command_types::sprite_editor,
                 command_size_flags::none,
                 {},
-                "Open the sprite editor"
+                "Open the sprite editor."
             }
         },
 
@@ -497,7 +497,7 @@ namespace ryu::core {
                 {
                     {"name", variant::types::identifier, true, false}
                 },
-                "Remove the symbol <italic>name<> from the symbol table"
+                "Remove the symbol <italic>name<> from the symbol table."
             }
         },
 
@@ -507,7 +507,7 @@ namespace ryu::core {
                 command_types::show_symbol_table,
                 command_size_flags::none,
                 {},
-                "List the symbol table contents to the console"
+                "List the symbol table contents to the console."
             }
         },
     };

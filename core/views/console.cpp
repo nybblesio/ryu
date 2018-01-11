@@ -284,11 +284,18 @@ namespace ryu::core {
                             caret_down();
                             caret_home();
 
-                            for (const auto& msg : result.messages()) {
-                                if (msg.type() == core::result_message::types::data)
-                                    continue;
-                                auto error_part = msg.is_error() ? "<bold><red>ERROR:<> " : "";
-                                write_message(fmt::format("{0}{1}", error_part, msg.message()));
+                            const auto& list = result.messages();
+                            size_t msg_index = 0;
+                            while (msg_index < list.size()) {
+                                while (_caret.row() < _metrics.page_height - 4 && msg_index < list.size()) {
+                                    const auto& msg = list[msg_index++];
+                                    if (msg.type() == core::result_message::types::data)
+                                        continue;
+                                    auto error_part = msg.is_error() ? "<bold><red>ERROR:<> " : "";
+                                    write_message(fmt::format("{0}{1}", error_part, msg.message()));
+                                }
+                                // XXX: ???
+                                break;
                             }
 
                             caret_down();

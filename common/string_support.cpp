@@ -12,6 +12,48 @@
 
 namespace ryu {
 
+    std::string word_wrap(
+            std::string text,
+            size_t width,
+            size_t right_pad,
+            const char& fill) {
+        size_t line_begin = 0;
+
+        while (line_begin < text.size()) {
+            const auto ideal_end = line_begin + width;
+            size_t line_end = ideal_end <= text.size() ?
+                              ideal_end :
+                              text.size() - 1;
+
+            if (line_end == text.size() - 1)
+                ++line_end;
+            else if (std::isspace(text[line_end])) {
+                text[line_end++] = '\n';
+                for (size_t i = 0; i < right_pad; i++)
+                    text.insert(line_end++, 1, fill);
+            } else {
+                auto end = line_end;
+                while (end > line_begin && !std::isspace(text[end]))
+                    --end;
+
+                if (end != line_begin) {
+                    line_end = end;
+                    text[line_end++] = '\n';
+                    for (size_t i = 0; i < right_pad; i++)
+                        text.insert(line_end++, 1, fill);
+                } else {
+                    text.insert(line_end++, 1, '\n');
+                    for (size_t i = 0; i < right_pad; i++)
+                        text.insert(line_end++, 1, fill);
+                }
+            }
+
+            line_begin = line_end;
+        }
+
+        return text;
+    }
+
     std::string hex_dump(const void* data, size_t size) {
         auto* buf = (unsigned char*)data;
         int i, j;

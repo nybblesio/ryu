@@ -51,8 +51,14 @@ namespace ryu::core {
         auto token = text.cbegin();
         while (token != text.cend()) {
             if (*token == '\n') {
+                if (!current_span.attr_code.empty() || !current_span.text.empty()) {
+                    formatted_text.spans.push_back(current_span);
+                    current_span.text = "";
+                }
+
                 formatted_text.spans.push_back({"newline", ""});
                 ++token;
+
                 continue;
             }
 

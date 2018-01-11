@@ -49,6 +49,12 @@ namespace ryu {
         return s;
     }
 
+    std::string word_wrap(
+        std::string text,
+        size_t width,
+        size_t right_pad = 0,
+        const char& fill = ' ');
+
     std::string hex_dump(const void* data, size_t size);
 
     std::pair<std::string, std::string> size_to_units(size_t size);

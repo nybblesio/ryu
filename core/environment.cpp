@@ -585,6 +585,28 @@ namespace ryu::core {
             std::stringstream stream;
             stream << c.first;
 
+            if (c.second.valid_sizes != core::command_size_flags::none) {
+                stream << "<italic>[.";
+
+                if ((c.second.valid_sizes & core::command_size_flags::byte) != 0) {
+                    stream << "b";
+                }
+
+                if ((c.second.valid_sizes & core::command_size_flags::word) != 0) {
+                    stream << "|w";
+                }
+
+                if ((c.second.valid_sizes & core::command_size_flags::dword) != 0) {
+                    stream << "|dw";
+                }
+
+                if ((c.second.valid_sizes & core::command_size_flags::qword) != 0) {
+                    stream << "|qw";
+                }
+
+                stream << "]<>";
+            }
+
             if (!c.second.params.empty()) {
                 stream << " ";
                 for (size_t i = 0; i < c.second.params.size(); i++) {
@@ -604,9 +626,9 @@ namespace ryu::core {
                     32);
 
             result.add_message("C030",
-                               fmt::format(" {} {}",
+                               fmt::format(" {} {}\n",
                                            core::text_formatter::formatted_text_to_string(formatted_text),
-                                           c.second.help));
+                                           word_wrap(c.second.help, 40, 34)));
         }
 
         result.add_message("C030", fmt::format("{} available commands", commands.size()));
