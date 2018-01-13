@@ -72,13 +72,18 @@ namespace ryu::core {
             }
 
             if (*token == '<') {
-                if (!current_span.attr_code.empty() || !current_span.text.empty())
-                    formatted_text.spans.push_back(current_span);
-
+                auto mark = token;
                 std::string code;
                 while (*(++token) != '>') {
+                    if (token == text.cend()) {
+                        token = mark;
+                        goto _escaped;
+                    }
                     code += *token;
                 }
+
+                if (!current_span.attr_code.empty() || !current_span.text.empty())
+                    formatted_text.spans.push_back(current_span);
 
                 current_span.attr_code = code.empty() ? "reset" : code;
                 current_span.text = "";
