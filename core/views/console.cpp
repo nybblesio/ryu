@@ -13,6 +13,11 @@
 #include <core/text_formatter.h>
 #include "console.h"
 
+// TODO
+//
+// - support select, cut, copy, paste (use text_editor implementation for start)
+// - bug fixes
+
 namespace ryu::core {
 
     console::console(const std::string& name) : core::view(core::view::types::container, name),
@@ -44,6 +49,16 @@ namespace ryu::core {
 
         add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+    }
+
+    void console::update(uint32_t) {
+        // TODO: need to add a state member field
+        //       for transitions:
+        //
+        // - editing
+        // - listing/output
+        // - more wait state
+        // - other states?
     }
 
     void console::raise_caret_changed() {
@@ -284,6 +299,11 @@ namespace ryu::core {
                             caret_down();
                             caret_home();
 
+                            // TODO: this data should be placed into a queue
+                            //       and processed within a distinct state
+                            //       of the console, allowing for a state
+                            //       transition to a "WAIT/MORE" for a keypress
+                            //       etc.
                             const auto& list = result.messages();
                             size_t msg_index = 0;
                             while (msg_index < list.size()) {
@@ -303,6 +323,8 @@ namespace ryu::core {
 
                             auto consumed = true;
 
+                            // TODO: move/refactor along with result message
+                            //       processing in block above.
                             if (result.has_code("C004")) {
                                 _document.clear();
                                 caret_home();

@@ -524,6 +524,8 @@ namespace ryu::core {
         return parse_command();
     }
 
+    // TODO: if command_spec_t does not specify valid sizes
+    //       issue parsing error if size is found
     ast_node_shared_ptr command_parser::parse_command() {
         consume_white_space();
         auto token = current_token();

@@ -115,6 +115,7 @@ namespace ryu::ide::console_editor {
     }
 
     void controller::on_update(uint32_t dt) {
+        _console.update(dt);
     }
 
     void controller::on_draw(core::renderer& surface) {

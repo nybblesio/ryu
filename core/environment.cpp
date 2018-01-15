@@ -19,8 +19,18 @@
 #include "environment.h"
 #include "text_formatter.h"
 
+// TODO
+//
+// - refactor usage of core::result::add_message to be ::add_data or
+//   something new that supports passing a display-agnostic table-like
+//   structure back to the caller.
+//
+// - should we support quad-words as a display size
+//
+
 namespace ryu::core {
 
+    // XXX: bug some values result in the ASCII conversion failing
     static void format_numeric_conversion(
             core::result& result,
             int32_t value,

@@ -32,6 +32,8 @@ namespace ryu::core {
 
         void initialize();
 
+        void update(uint32_t dt);
+
         void caret_color(uint8_t color);
 
         void caret_up(uint8_t rows = 1);
