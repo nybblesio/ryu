@@ -24,14 +24,6 @@ namespace ryu::ide::source_editor {
 
         explicit controller(const std::string& name);
 
-        core::project* project();
-
-        hardware::machine* machine();
-
-        void project(core::project* value);
-
-        void machine(hardware::machine* value);
-
     protected:
         struct metrics_t {
             const int left_padding = 10;
@@ -54,12 +46,12 @@ namespace ryu::ide::source_editor {
         core::label _file_status;
         core::label _caret_status;
         core::text_editor _editor;
+        core::label _project_label;
+        core::label _machine_label;
         core::textbox _command_line;
         core::label _document_status;
         core::dock_layout_panel _footer;
         core::dock_layout_panel _header;
-        core::project* _project = nullptr;
-        hardware::machine* _machine = nullptr;
         core::dock_layout_panel _layout_panel;
     };
 

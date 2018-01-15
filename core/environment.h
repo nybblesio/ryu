@@ -16,13 +16,17 @@
 
 namespace ryu::core {
 
+    struct command_handler_context_t {
+        core::command_t& command;
+        core::command_parameter_dict& params;
+        const core::ast_node_shared_ptr& root;
+    };
+
     class environment {
     public:
         using command_handler_callable = std::function<bool (
                 core::result&,
-                core::command_t&,
-                core::command_parameter_dict&,
-                const core::ast_node_shared_ptr&)>;
+                const command_handler_context_t&)>;
 
         environment() = default;
 
@@ -41,89 +45,89 @@ namespace ryu::core {
         bool save(core::result& result, const boost::filesystem::path& path);
 
     private:
-        bool on_quit(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_quit(result& result, const command_handler_context_t& context);
 
-        bool on_clear(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_clear(result& result, const command_handler_context_t& context);
 
-        bool on_add_symbol(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_add_symbol(result& result, const command_handler_context_t& context);
 
-        bool on_remove_symbol(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_remove_symbol(result& result, const command_handler_context_t& context);
 
-        bool on_show_symbol_table(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_show_symbol_table(result& result, const command_handler_context_t& context);
 
-        bool on_assemble(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_assemble(result& result, const command_handler_context_t& context);
 
-        bool on_evaluate(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_evaluate(result& result, const command_handler_context_t& context);
 
-        bool on_disassemble(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_disassemble(result& result, const command_handler_context_t& context);
 
-        bool on_hex_dump(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_hex_dump(result& result, const command_handler_context_t& context);
 
-        bool on_search_memory(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_search_memory(result& result, const command_handler_context_t& context);
 
-        bool on_fill_memory(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_fill_memory(result& result, const command_handler_context_t& context);
 
-        bool on_copy_memory(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_copy_memory(result& result, const command_handler_context_t& context);
 
-        bool on_jump_to_address(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_jump_to_address(result& result, const command_handler_context_t& context);
 
-        bool on_go_to_address(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_go_to_address(result& result, const command_handler_context_t& context);
 
-        bool on_dir(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_dir(result& result, const command_handler_context_t& context);
 
-        bool on_remove_file(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_remove_file(result& result, const command_handler_context_t& context);
 
-        bool on_change_directory(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_change_directory(result& result, const command_handler_context_t& context);
 
-        bool on_print_working_directory(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_print_working_directory(result& result, const command_handler_context_t& context);
 
-        bool on_new_project(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_new_project(result& result, const command_handler_context_t& context);
 
-        bool on_load_project(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_load_project(result& result, const command_handler_context_t& context);
 
-        bool on_save_project(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_save_project(result& result, const command_handler_context_t& context);
 
-        bool on_clone_project(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_clone_project(result& result, const command_handler_context_t& context);
 
-        bool on_find_text(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_find_text(result& result, const command_handler_context_t& context);
 
-        bool on_goto_line(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_goto_line(result& result, const command_handler_context_t& context);
 
-        bool on_write_text(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_write_text(result& result, const command_handler_context_t& context);
 
-        bool on_read_text(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_read_text(result& result, const command_handler_context_t& context);
 
-        bool on_write_memory_to_binary(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_write_memory_to_binary(result& result, const command_handler_context_t& context);
 
-        bool on_read_binary_to_memory(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_read_binary_to_memory(result& result, const command_handler_context_t& context);
 
-        bool on_sounds(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_sounds(result& result, const command_handler_context_t& context);
 
-        bool on_tracker(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_tracker(result& result, const command_handler_context_t& context);
 
-        bool on_background_editor(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_background_editor(result& result, const command_handler_context_t& context);
 
-        bool on_tile_editor(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_tile_editor(result& result, const command_handler_context_t& context);
 
-        bool on_sprite_editor(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_sprite_editor(result& result, const command_handler_context_t& context);
 
-        bool on_memory_editor(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_memory_editor(result& result, const command_handler_context_t& context);
 
-        bool on_source_editor(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_source_editor(result& result, const command_handler_context_t& context);
 
-        bool on_open_editor(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_open_editor(result& result, const command_handler_context_t& context);
 
-        bool on_use_machine(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_use_machine(result& result, const command_handler_context_t& context);
 
-        bool on_del_machine(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_del_machine(result& result, const command_handler_context_t& context);
 
-        bool on_machines_list(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_machines_list(result& result, const command_handler_context_t& context);
 
-        bool on_machine_editor(result& result, command_t& command, command_parameter_dict& params, const core::ast_node_shared_ptr& root);
+        bool on_machine_editor(result& result, const command_handler_context_t& context);
 
-        bool on_register_editor(result& result, command_t& command, command_parameter_dict& params, const ast_node_shared_ptr& root);
+        bool on_register_editor(result& result, const command_handler_context_t& context);
 
-        bool on_help(result& result, command_t& command, command_parameter_dict& params, const ast_node_shared_ptr& root);
+        bool on_help(result& result, const command_handler_context_t& context);
 
     private:
         core::symbol_table _symbol_table;

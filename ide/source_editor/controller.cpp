@@ -17,6 +17,8 @@ namespace ryu::ide::source_editor {
                                                       _file_status("file-status-label"),
                                                       _caret_status("caret-status-label"),
                                                       _editor("text-editor"),
+                                                      _project_label("project-label"),
+                                                      _machine_label("machine-label"),
                                                       _command_line("command-line"),
                                                       _document_status("document-status-label"),
                                                       _footer("footer-panel"),
@@ -28,13 +30,29 @@ namespace ryu::ide::source_editor {
         auto family = context()->engine()->find_font_family("hack");
         auto face = family->find_style(core::font::styles::normal);
 
+        _project_label.font_family(family);
+        _project_label.palette(context()->palette());
+        _project_label.dock(core::dock::styles::left);
+        _project_label.fg_color(ide::colors::info_text);
+        _project_label.bg_color(ide::colors::fill_color);
+        _project_label.margin({0, face->width, 0, 0});
+        _project_label.value("project: (none)");
+
+        _machine_label.font_family(family);
+        _machine_label.palette(context()->palette());
+        _machine_label.dock(core::dock::styles::left);
+        _machine_label.fg_color(ide::colors::info_text);
+        _machine_label.bg_color(ide::colors::fill_color);
+        _machine_label.margin({0, face->width, 0, 0});
+        _machine_label.value("| machine: (none)");
+
         _cpu_status.font_family(family);
         _cpu_status.palette(context()->palette());
         _cpu_status.dock(core::dock::styles::left);
         _cpu_status.fg_color(ide::colors::info_text);
         _cpu_status.bg_color(ide::colors::fill_color);
         _cpu_status.margin({0, face->width, 0, 0});
-        _cpu_status.value("cpu: (none)");
+        _cpu_status.value("| cpu: (none)");
 
         _file_status.font_family(family);
         _file_status.margin({0, 0, 0, 0});
@@ -44,6 +62,23 @@ namespace ryu::ide::source_editor {
         _file_status.fg_color(ide::colors::info_text);
         _file_status.bg_color(ide::colors::fill_color);
 
+        core::project::add_listener([&]() {
+            std::string project_name = "(none)";
+            std::string machine_name = "(none)";
+            project_name = core::project::instance()->name();
+            if (core::project::instance()->machine() != nullptr) {
+                machine_name = core::project::instance()->machine()->name();
+            }
+            _project_label.value(fmt::format("project: {}", project_name));
+            _machine_label.value(fmt::format("| machine: {}", machine_name));
+
+            // TODO: plumb this through project/machine
+            std::string cpu = "(none)";
+            std::string file = "(none)";
+            _cpu_status.value(fmt::format("| cpu: {}", cpu));
+            _file_status.value(fmt::format("| file: {}", file));
+        });
+
         _header.font_family(family);
         _header.palette(context()->palette());
         _header.dock(core::dock::styles::top);
@@ -51,6 +86,8 @@ namespace ryu::ide::source_editor {
         _header.bg_color(ide::colors::fill_color);
         _header.bounds().height(face->line_height);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
+        _header.add_child(&_project_label);
+        _header.add_child(&_machine_label);
         _header.add_child(&_cpu_status);
         _header.add_child(&_file_status);
 
@@ -158,23 +195,7 @@ namespace ryu::ide::source_editor {
         _layout_panel.focus(&_editor);
     }
 
-    core::project* controller::project() {
-        return _project;
-    }
-
     void controller::on_update(uint32_t dt) {
-    }
-
-    hardware::machine* controller::machine() {
-        return _machine;
-    }
-
-    void controller::project(core::project* value) {
-        _project = value;
-    }
-
-    void controller::machine(hardware::machine* value) {
-        _machine = value;
     }
 
     void controller::on_draw(core::renderer& surface) {

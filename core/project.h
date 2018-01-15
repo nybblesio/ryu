@@ -32,31 +32,52 @@ namespace ryu::core {
     //
     class project {
     public:
+        using project_changed_callable = std::function<void ()>;
+
         static bool create(
                 core::result& result,
-                const fs::path& path,
-                const std::string& name);
+                const fs::path& path);
+
+        static bool load(
+                core::result& result,
+                const fs::path& path);
 
         static bool clone(
                 core::result& result,
                 const fs::path& source_path,
                 const fs::path& target_path);
 
-        explicit project(const std::string& name);
+        static core::project* instance();
+
+        static void add_listener(const project_changed_callable& callable);
+
+        fs::path path() const;
 
         std::string name() const;
 
         hardware::machine* machine();
 
+        std::string description() const;
+
         bool save(core::result& result);
 
         void machine(hardware::machine* machine);
 
-        bool load(core::result& result, const fs::path& file_name);
+        void description(const std::string& value);
+
+    protected:
+        explicit project(const fs::path& project_path);
 
     private:
-        std::string _name;
-        fs::path _file_name;
+        static void notify_listeners();
+
+    private:
+        static core::project_shared_ptr _instance;
+        static std::vector<project_changed_callable> _listeners;
+
+        fs::path _path;
+        std::string _name {};
+        std::string _description {};
         hardware::machine* _machine = nullptr;
     };
 

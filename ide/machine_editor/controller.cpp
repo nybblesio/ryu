@@ -52,11 +52,7 @@ namespace ryu::ide::machine_editor {
                 _display_pick_list.value(disp->name());
             _address_space_textbox.value(fmt::format("{0:08x}", _machine->address_space()));
         }
-        std::string project_name = "(none)";
-//        if (_project != nullptr) {
-//            project_name = _project->name();
-//        }
-        _header.value(fmt::format("machine editor | project: {0} | id: {1}", project_name, machine_id));
+        _header.value(fmt::format("machine editor | id: {}", machine_id));
         _header.resize(context()->bounds());
     }
 

@@ -29,7 +29,8 @@ namespace ryu::core {
         void add_tab(const std::string& title, core::view* content);
 
     protected:
-        const int tab_width = 150;
+        // XXX: this should not be hardcoded like this
+        const int tab_width = 200;
         const int tab_height = 50;
 
         void on_draw(core::renderer& surface) override;

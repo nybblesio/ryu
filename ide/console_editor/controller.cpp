@@ -58,17 +58,17 @@ namespace ryu::ide::console_editor {
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+        _header.value("project: (none) | machine: (none)");
 
-        // TODO: this is temporarily located here, it needs to be in its own method
-        std::string project_name = "(none)";
-        std::string machine_name = "(none)";
-//        auto project = dynamic_cast<ide::ide_context*>(context())->project();
-//        if (project != nullptr) {
-//            project_name = project->name();
-//            machine_name = project->machine()->name();
-//        }
-        _header.value(fmt::format("project: {0} | machine: {1}", project_name, machine_name));
-        // TODO: ^^^^ temporary
+        core::project::add_listener([&]() {
+            std::string project_name = "(none)";
+            std::string machine_name = "(none)";
+            project_name = core::project::instance()->name();
+            if (core::project::instance()->machine() != nullptr) {
+                machine_name = core::project::instance()->machine()->name();
+            }
+            _header.value(fmt::format("project: {0} | machine: {1}", project_name, machine_name));
+        });
 
         _footer.font_family(family);
         _footer.palette(context()->palette());

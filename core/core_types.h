@@ -16,6 +16,10 @@
 
 namespace ryu::core {
 
+    class project;
+
+    typedef std::shared_ptr<core::project> project_shared_ptr;
+
     class engine;
 
     class timer;
@@ -542,4 +546,5 @@ namespace ryu::core {
     typedef std::vector<view*> view_list;
 
     typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;
+
 };
