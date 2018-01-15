@@ -14,8 +14,6 @@ namespace ryu::hardware::mc6809 {
 
     class cpu : public hardware::integrated_circuit {
     public:
-        static constexpr uint16_t type_id = 10;
-
         static const mnemonic_set& mnemonics();
 
         static const opcode_dictionary& opcodes();

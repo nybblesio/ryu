@@ -30,6 +30,10 @@ namespace ryu::hardware {
     static constexpr uint16_t memory_mapper_id = 2;
     static constexpr uint16_t ram_id = 3;
     static constexpr uint16_t rom_id = 4;
+    static constexpr uint16_t digital_audio_id = 5;
+    static constexpr uint16_t fm_synthesizer_id = 6;
+    static constexpr uint16_t video_generator_id = 7;
+    static constexpr uint16_t cpu_id = 10;
 
     class memory;
 

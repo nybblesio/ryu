@@ -252,7 +252,7 @@
 
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::mc6809::cpu>("ryu::hardware::mc6809::cpu") (
-            rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::mc6809::cpu::type_id),
+            rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::cpu_id),
             rttr::metadata(ryu::hardware::meta_data_key::type_name, "Motorola 6809 CPU IC")
         )
         .constructor<>(rttr::registration::public_access) (

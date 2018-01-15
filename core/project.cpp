@@ -13,6 +13,7 @@
 #include <hardware/registry.h>
 #include <boost/filesystem/operations.hpp>
 #include "project.h"
+#include "project_file.h"
 
 namespace ryu::core {
 
@@ -185,6 +186,10 @@ namespace ryu::core {
         return _name;
     }
 
+    project_file_list& project::files() {
+        return _files;
+    }
+
     hardware::machine* project::machine() {
         return _machine;
     }
@@ -200,7 +205,8 @@ namespace ryu::core {
         emitter << YAML::Key << "machine" << YAML::Value << machine_id;
 
         emitter << YAML::Key << "files" << YAML::BeginSeq;
-        // XXX: write out project file list
+        for (auto& file : _files)
+            file.save(result, emitter);
         emitter << YAML::EndSeq;
 
         emitter << YAML::Key << "environments" << YAML::BeginSeq;

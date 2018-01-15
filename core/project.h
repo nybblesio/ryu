@@ -34,11 +34,11 @@ namespace ryu::core {
     public:
         using project_changed_callable = std::function<void ()>;
 
-        static bool create(
+        static bool load(
                 core::result& result,
                 const fs::path& path);
 
-        static bool load(
+        static bool create(
                 core::result& result,
                 const fs::path& path);
 
@@ -47,9 +47,9 @@ namespace ryu::core {
                 const fs::path& source_path,
                 const fs::path& target_path);
 
-        static bool close(core::result& result);
-
         static core::project* instance();
+
+        static bool close(core::result& result);
 
         static void add_listener(const project_changed_callable& callable);
 
@@ -58,6 +58,8 @@ namespace ryu::core {
         fs::path path() const;
 
         std::string name() const;
+
+        project_file_list& files();
 
         hardware::machine* machine();
 
@@ -89,6 +91,7 @@ namespace ryu::core {
         fs::path _path;
         bool _dirty = false;
         std::string _name {};
+        project_file_list _files;
         std::string _description {};
         hardware::machine* _machine = nullptr;
     };
