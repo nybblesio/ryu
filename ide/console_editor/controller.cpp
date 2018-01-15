@@ -63,11 +63,15 @@ namespace ryu::ide::console_editor {
         core::project::add_listener([&]() {
             std::string project_name = "(none)";
             std::string machine_name = "(none)";
-            project_name = core::project::instance()->name();
-            if (core::project::instance()->machine() != nullptr) {
-                machine_name = core::project::instance()->machine()->name();
+            if (core::project::instance() != nullptr) {
+                project_name = core::project::instance()->name();
+                if (core::project::instance()->dirty())
+                    project_name += "*";
+                if (core::project::instance()->machine() != nullptr) {
+                    machine_name = core::project::instance()->machine()->name();
+                }
             }
-            _header.value(fmt::format("project: {0} | machine: {1}", project_name, machine_name));
+            _header.value(fmt::format("project: {} | machine: {}", project_name, machine_name));
         });
 
         _footer.font_family(family);

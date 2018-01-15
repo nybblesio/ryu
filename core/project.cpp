@@ -10,11 +10,13 @@
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+#include <hardware/registry.h>
 #include <boost/filesystem/operations.hpp>
 #include "project.h"
 
 namespace ryu::core {
 
+    bool core::project::_notify_enabled = true;
     core::project_shared_ptr core::project::_instance = nullptr;
     std::vector<core::project::project_changed_callable> core::project::_listeners;
 
@@ -56,14 +58,82 @@ namespace ryu::core {
 
         _instance = core::project_shared_ptr(new core::project(project_path));
         _instance->save(result);
-        notify_listeners();
+
         return !result.is_failed();
     }
 
     bool project::load(
             core::result& result,
             const fs::path& path) {
-        return false;
+        fs::path project_path = path;
+
+        if (!project_path.is_absolute()) {
+            project_path = fs::current_path().append(project_path.string());
+        }
+
+        if (!fs::exists(project_path)) {
+            result.add_message(
+                    "C031",
+                    fmt::format("project does not exist: {}", project_path.string()),
+                    true);
+            return false;
+        }
+
+        fs::path project_file(path);
+        project_file
+                .append(".ryu")
+                .append("arcade.rproj");
+
+        suspend_notify();
+
+        auto root = YAML::LoadFile(project_file.string());
+
+        if (root["name"] == nullptr) {
+            result.add_message(
+                    "C031",
+                    "Project requires name.",
+                    true);
+            result.fail();
+            return false;
+        }
+
+        auto name = root["name"];
+        _instance = core::project_shared_ptr(new core::project(path));
+        _instance->name(name.as<std::string>());
+
+        auto description = root["description"];
+        if (description != nullptr) {
+            _instance->description(description.as<std::string>());
+        }
+
+        auto machine_id = root["machine"].as<uint32_t>();
+        if (machine_id != 0) {
+            auto machine = hardware::registry::instance()->find_machine(machine_id);
+            if (machine == nullptr) {
+                result.add_message(
+                        "C031",
+                        fmt::format("no machine exists with id: {}", machine_id),
+                        true);
+                return false;
+            }
+            _instance->machine(machine);
+        }
+
+        auto files = root["files"];
+        if (files != nullptr && files.IsSequence()) {
+            // XXX: need to implement
+        }
+
+        auto environments = root["environments"];
+        if (environments != nullptr && environments.IsSequence()) {
+            // XXX: need to implement
+        }
+
+        _instance->_dirty = false;
+
+        resume_notify();
+
+        return true;
     }
 
     bool project::clone(
@@ -73,7 +143,24 @@ namespace ryu::core {
         return false;
     }
 
+    bool project::close(core::result& result) {
+        _instance = nullptr;
+        notify_listeners();
+        return true;
+    }
+
+    void project::resume_notify() {
+        _notify_enabled = true;
+        notify_listeners();
+    }
+
+    void project::suspend_notify() {
+        _notify_enabled = false;
+    }
+
     void project::notify_listeners() {
+        if (!_notify_enabled)
+            return;
         for (const auto& listener : _listeners)
             listener();
     }
@@ -84,6 +171,10 @@ namespace ryu::core {
 
     project::project(const fs::path& project_path) : _path(project_path),
                                                      _name(project_path.filename().string()) {
+    }
+
+    bool project::dirty() const {
+        return _dirty;
     }
 
     fs::path project::path() const {
@@ -120,7 +211,7 @@ namespace ryu::core {
             fs::path project_file(_path);
             project_file
                     .append(".ryu")
-                    .append(fmt::format("{}.rproj", _name));
+                    .append("arcade.rproj");
 
             std::ofstream file;
             file.open(project_file.string());
@@ -133,19 +224,33 @@ namespace ryu::core {
                     true);
         }
 
-        return true;
+        _dirty = false;
+        if (!result.is_failed())
+            notify_listeners();
+
+        return !result.is_failed();
     }
 
     std::string project::description() const {
         return _description;
     }
 
+    void project::name(const std::string& value) {
+        _name = value;
+        _dirty = true;
+        notify_listeners();
+    }
+
     void project::machine(hardware::machine* machine) {
         _machine = machine;
+        _dirty = true;
+        notify_listeners();
     }
 
     void project::description(const std::string& value) {
         _description = value;
+        _dirty = true;
+        notify_listeners();
     }
 
     void project::add_listener(const project::project_changed_callable& callable) {

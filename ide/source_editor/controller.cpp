@@ -65,16 +65,20 @@ namespace ryu::ide::source_editor {
         core::project::add_listener([&]() {
             std::string project_name = "(none)";
             std::string machine_name = "(none)";
-            project_name = core::project::instance()->name();
-            if (core::project::instance()->machine() != nullptr) {
-                machine_name = core::project::instance()->machine()->name();
-            }
-            _project_label.value(fmt::format("project: {}", project_name));
-            _machine_label.value(fmt::format("| machine: {}", machine_name));
-
-            // TODO: plumb this through project/machine
             std::string cpu = "(none)";
             std::string file = "(none)";
+
+            if (core::project::instance() != nullptr) {
+                project_name = core::project::instance()->name();
+                if (core::project::instance()->dirty())
+                    project_name += "*";
+                if (core::project::instance()->machine() != nullptr) {
+                    machine_name = core::project::instance()->machine()->name();
+                }
+            }
+
+            _project_label.value(fmt::format("project: {}", project_name));
+            _machine_label.value(fmt::format("| machine: {}", machine_name));
             _cpu_status.value(fmt::format("| cpu: {}", cpu));
             _file_status.value(fmt::format("| file: {}", file));
         });

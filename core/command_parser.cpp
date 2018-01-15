@@ -304,6 +304,16 @@ namespace ryu::core {
         },
 
         {
+            "close",
+            {
+                command_types::close_project,
+                command_size_flags::none,
+                {},
+                "Close the currently open project."
+            }
+        },
+
+        {
             "clone",
             {
                 command_types::clone_project,

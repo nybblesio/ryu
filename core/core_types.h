@@ -107,6 +107,7 @@ namespace ryu::core {
         new_project,
         load_project,
         save_project,
+        close_project,
         clone_project,
 
         machine_editor,

@@ -87,6 +87,8 @@ namespace ryu::core {
 
         bool on_save_project(result& result, const command_handler_context_t& context);
 
+        bool on_close_project(result& result, const command_handler_context_t& context);
+
         bool on_clone_project(result& result, const command_handler_context_t& context);
 
         bool on_find_text(result& result, const command_handler_context_t& context);

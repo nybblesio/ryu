@@ -47,9 +47,13 @@ namespace ryu::core {
                 const fs::path& source_path,
                 const fs::path& target_path);
 
+        static bool close(core::result& result);
+
         static core::project* instance();
 
         static void add_listener(const project_changed_callable& callable);
+
+        bool dirty() const;
 
         fs::path path() const;
 
@@ -61,6 +65,8 @@ namespace ryu::core {
 
         bool save(core::result& result);
 
+        void name(const std::string& value);
+
         void machine(hardware::machine* machine);
 
         void description(const std::string& value);
@@ -69,13 +75,19 @@ namespace ryu::core {
         explicit project(const fs::path& project_path);
 
     private:
+        static void resume_notify();
+
+        static void suspend_notify();
+
         static void notify_listeners();
 
     private:
+        static bool _notify_enabled;
         static core::project_shared_ptr _instance;
         static std::vector<project_changed_callable> _listeners;
 
         fs::path _path;
+        bool _dirty = false;
         std::string _name {};
         std::string _description {};
         hardware::machine* _machine = nullptr;

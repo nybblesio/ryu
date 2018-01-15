@@ -106,6 +106,7 @@ namespace ryu::core {
             {core::command_types::new_project,            [&](core::result& result, const command_handler_context_t& context) { return on_new_project(result, context); }},
             {core::command_types::load_project,           [&](core::result& result, const command_handler_context_t& context) { return on_load_project(result, context); }},
             {core::command_types::save_project,           [&](core::result& result, const command_handler_context_t& context) { return on_save_project(result, context); }},
+            {core::command_types::close_project,          [&](core::result& result, const command_handler_context_t& context) { return on_close_project(result, context); }},
             {core::command_types::clone_project,          [&](core::result& result, const command_handler_context_t& context) { return on_clone_project(result, context); }},
             {core::command_types::machine_editor,         [&](core::result& result, const command_handler_context_t& context) { return on_machine_editor(result, context); }},
             {core::command_types::machines_list,          [&](core::result& result, const command_handler_context_t& context) { return on_machines_list(result, context); }},
@@ -520,6 +521,19 @@ namespace ryu::core {
         return core::project::instance()->save(result);
     }
 
+    bool environment::on_close_project(
+            core::result& result,
+            const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            result.add_message(
+                    "C033",
+                    "no project is loaded; close failed",
+                    true);
+            return false;
+        }
+        return core::project::close(result);
+    }
+
     bool environment::on_clone_project(
             core::result& result,
             const command_handler_context_t& context) {
@@ -574,10 +588,24 @@ namespace ryu::core {
     bool environment::on_use_machine(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_data(
-                "C026",
-                {{"name", boost::get<core::string_literal_t>(context.params["name"].front()).value}});
-        return true;
+        if (core::project::instance() == nullptr) {
+            result.add_message(
+                    "C034",
+                    "no project is loaded; use machine failed",
+                    true);
+            return false;
+        }
+        auto machine_name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
+        auto machine = hardware::registry::instance()->find_machine(machine_name);
+        if (machine == nullptr) {
+            result.add_message(
+                    "C034",
+                    "no machine exists with that name",
+                    true);
+            return false;
+        }
+        core::project::instance()->machine(machine);
+        return !result.is_failed();
     }
 
     bool environment::on_open_editor(
