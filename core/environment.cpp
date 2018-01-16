@@ -246,8 +246,8 @@ namespace ryu::core {
             result.add_message(
                     "S404",
                     "File not found",
-                    fmt::format("The path does not exist: {}", path.string()), true);
-            result.fail();
+                    fmt::format("The path does not exist: {}", path.string()),
+                    true);
             return false;
         }
         std::ifstream file(path.string());
@@ -279,14 +279,14 @@ namespace ryu::core {
     bool environment::on_quit(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_message("C001", "Goodbye!");
+        result.add_data("command_result", {{"data", "Goodbye!"}});
         return true;
     }
 
     bool environment::on_clear(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_message("C004", "Clear screen buffer");
+        result.add_data("command_result", {{"data", "Clear screen buffer"}});
         return true;
     }
 
@@ -310,16 +310,23 @@ namespace ryu::core {
     bool environment::on_show_symbol_table(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_message("C029", "<rev><bold> Identifier                       Value                            ");
+        data_table_t table {};
+
+        table.headers.push_back({"Identifier", 16, 32});
+        table.headers.push_back({"Expression", 16, 32});
+        table.footers.push_back({"Symbol Count", 32, 64});
+
         auto identifiers = _symbol_table.identifiers();
         for (const auto& symbol : identifiers) {
             std::stringstream stream;
             _symbol_table.get(symbol)->serialize(stream);
-            result.add_message(
-                    "C029",
-                    fmt::format(" {:<32s} {:<32s}", symbol, stream.str()));
+            table.rows.push_back({{symbol, stream.str()}});
         }
-        result.add_message("C029", fmt::format("{} symbols", identifiers.size()));
+
+        table.rows.push_back({{fmt::format("{} symbols", identifiers.size())}});
+
+        result.add_data("command_result", {{"data", table}});
+
         return true;
     }
 

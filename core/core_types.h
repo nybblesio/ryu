@@ -37,9 +37,6 @@ namespace ryu::core {
 
     class state;
 
-    typedef std::map<std::string, std::string> parameter_dict;
-    typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
-
     struct state_t {
         state* instance;
     };
@@ -555,5 +552,31 @@ namespace ryu::core {
     typedef std::vector<view*> view_list;
 
     typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;
+
+    struct data_table_column_t {
+        std::string text {};
+        uint16_t min_width {};
+        uint16_t max_width {};
+        alignment::horizontal::types alignment = alignment::horizontal::types::left;
+    };
+
+    struct data_table_row_t {
+        std::vector<std::string> columns {};
+    };
+
+    struct data_table_t {
+        std::vector<data_table_column_t> headers {};
+        std::vector<data_table_column_t> footers {};
+        std::vector<data_table_row_t> rows {};
+    };
+
+    typedef boost::variant<
+            data_table_t,
+            std::string,
+            uint32_t,
+            bool> parameter_variant_t;
+
+    typedef std::map<std::string, parameter_variant_t> parameter_dict;
+    typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
 
 };

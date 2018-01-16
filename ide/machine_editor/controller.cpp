@@ -279,10 +279,11 @@ namespace ryu::ide::machine_editor {
     void controller::on_activate(const core::parameter_dict& params) {
         auto it = params.find("name");
         if (it != params.end()) {
-            auto mach = hardware::registry::instance()->find_machine(it->second);
+            auto name_param = boost::get<std::string>(it->second);
+            auto mach = hardware::registry::instance()->find_machine(name_param);
             if (mach == nullptr) {
                 mach = hardware::registry::instance()->new_machine();
-                mach->name(it->second);
+                mach->name(name_param);
             }
             machine(mach);
         }

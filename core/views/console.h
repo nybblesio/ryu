@@ -24,6 +24,12 @@ namespace ryu::core {
         using caret_changed_callable = std::function<void (const core::caret&)>;
         using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
 
+        enum states {
+            input,
+            processing,
+            wait,
+        };
+
         explicit console(const std::string& name);
 
         void caret_end();
@@ -73,6 +79,10 @@ namespace ryu::core {
 
         void calculate_page_metrics();
 
+        std::string find_command_string();
+
+        void process_command_result_queue();
+
         bool transition_to(const std::string& name, const core::parameter_dict& params);
 
     private:
@@ -80,7 +90,9 @@ namespace ryu::core {
         uint8_t _color;
         metrics_t _metrics;
         document _document;
+        states _state = states::input;
         code_to_attr_dict _code_mapper;
+        std::deque<core::result> _command_result_queue;
         caret_changed_callable _caret_changed_callback;
         state_transition_callable _transition_to_callback;
         execute_command_callable _execute_command_callback;

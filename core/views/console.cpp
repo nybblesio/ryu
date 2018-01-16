@@ -52,13 +52,20 @@ namespace ryu::core {
     }
 
     void console::update(uint32_t) {
-        // TODO: need to add a state member field
-        //       for transitions:
-        //
-        // - editing
-        // - listing/output
-        // - more wait state
-        // - other states?
+        switch (_state) {
+            case input: {
+                break;
+            }
+            case processing: {
+                process_command_result_queue();
+                break;
+            }
+            case wait: {
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     void console::raise_caret_changed() {
@@ -144,10 +151,115 @@ namespace ryu::core {
         }
     }
 
+    std::string console::find_command_string() {
+        std::stringstream cmd;
+
+        // first, seek backwards to a null value
+        while (true) {
+            caret_left();
+            if (_caret.row() == 0 && _caret.column() == 0)
+                break;
+            auto element = _document.get(_caret.row(), _caret.column());
+            if (element == nullptr || element->value == 0)
+                break;
+        }
+
+        // second, scan forward to the next null value to build the command
+        //caret_right();
+        while (true) {
+            caret_right();
+            auto element = _document.get(_caret.row(), _caret.column());
+            if (element == nullptr || element->value == 0)
+                break;
+            cmd << element->value;
+        }
+
+        // finally, if we got something, try to execute it
+        return cmd.str();
+    }
+
+    void console::process_command_result_queue() {
+        if (_command_result_queue.empty())
+            return;
+
+        const auto& result = _command_result_queue.front();
+        _command_result_queue.pop_front();
+        auto success = !result.is_failed();
+
+        caret_down();
+        caret_home();
+
+        const auto& list = result.messages();
+        size_t msg_index = 0;
+        while (msg_index < list.size()) {
+            while (_caret.row() < _metrics.page_height - 4 && msg_index < list.size()) {
+                const auto& msg = list[msg_index++];
+                if (msg.type() == core::result_message::types::data)
+                    continue;
+                auto error_part = msg.is_error() ? "<bold><red>ERROR:<> " : "";
+                write_message(fmt::format("{0}{1}", error_part, msg.message()));
+            }
+            // XXX: ???
+            break;
+        }
+
+        caret_down();
+        caret_home();
+
+        if (result.has_code("C004")) {
+            _document.clear();
+            caret_home();
+            _caret.row(0);
+        } else if (success) {
+            auto code = result.find_code("C023");
+            if (code != nullptr) {
+                transition_to("edit_machine", code->params());
+            }
+
+            code = result.find_code("C002");
+            if (code != nullptr) {
+                transition_to("edit_source", code->params());
+            }
+
+            code = result.find_code("C024");
+            if (code != nullptr) {
+                transition_to("edit_memory", code->params());
+            }
+
+            code = result.find_code("C030");
+            if (code != nullptr) {
+                const auto& params = code->params();
+                auto it = params.find("type");
+                if (it != params.end()) {
+                    auto type = boost::get<std::string>(it->second);
+                    if (type == "MACH") {
+                        transition_to("edit_machine", params);
+                    } else if (type == "TEXT") {
+                        transition_to("edit_source", params);
+                    } else if (type == "DATA") {
+                        transition_to("edit_memory", params);
+                    }
+                }
+            }
+        }
+
+        write_message("Ready.");
+    }
+
     bool console::on_process_event(const SDL_Event* e) {
         auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
         auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
         auto mode = _caret.mode();
+
+        if (_state == states::processing) {
+            return false;
+        } else if (_state == states::wait) {
+            if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_SPACE) {
+                _state = states::processing;
+                return true;
+            }
+            return false;
+        }
 
         if (e->type == SDL_TEXTINPUT) {
             if (mode == core::caret::mode::insert) {
@@ -267,103 +379,14 @@ namespace ryu::core {
                     return transition_to("source_editor", {});
                 }
                 case SDLK_RETURN: {
-                    core::result result;
-                    std::stringstream cmd;
-
                     if (!shift_pressed) {
-                        // first, seek backwards to a null value
-                        while (true) {
-                            caret_left();
-                            if (_caret.row() == 0 && _caret.column() == 0)
-                                break;
-                            auto element = _document.get(_caret.row(), _caret.column());
-                            if (element == nullptr || element->value == 0)
-                                break;
-                        }
-
-                        // second, scan forward to the next null value to build the command
-                        //caret_right();
-                        while (true) {
-                            caret_right();
-                            auto element = _document.get(_caret.row(), _caret.column());
-                            if (element == nullptr || element->value == 0)
-                                break;
-                            cmd << element->value;
-                        }
-
-                        // finally, if we got something, try to execute it
-                        auto str = cmd.str();
+                        core::result result;
+                        auto str = find_command_string();
                         if (str.length() > 0 && _execute_command_callback != nullptr) {
-                            auto success = _execute_command_callback(result, str);
-
-                            caret_down();
-                            caret_home();
-
-                            // TODO: this data should be placed into a queue
-                            //       and processed within a distinct state
-                            //       of the console, allowing for a state
-                            //       transition to a "WAIT/MORE" for a keypress
-                            //       etc.
-                            const auto& list = result.messages();
-                            size_t msg_index = 0;
-                            while (msg_index < list.size()) {
-                                while (_caret.row() < _metrics.page_height - 4 && msg_index < list.size()) {
-                                    const auto& msg = list[msg_index++];
-                                    if (msg.type() == core::result_message::types::data)
-                                        continue;
-                                    auto error_part = msg.is_error() ? "<bold><red>ERROR:<> " : "";
-                                    write_message(fmt::format("{0}{1}", error_part, msg.message()));
-                                }
-                                // XXX: ???
-                                break;
-                            }
-
-                            caret_down();
-                            caret_home();
-
-                            auto consumed = true;
-
-                            // TODO: move/refactor along with result message
-                            //       processing in block above.
-                            if (result.has_code("C004")) {
-                                _document.clear();
-                                caret_home();
-                                _caret.row(0);
-                            } else if (success) {
-                                auto code = result.find_code("C023");
-                                if (code != nullptr) {
-                                    consumed = transition_to("edit_machine", code->params());
-                                }
-
-                                code = result.find_code("C002");
-                                if (code != nullptr) {
-                                    consumed = transition_to("edit_source", code->params());
-                                }
-
-                                code = result.find_code("C024");
-                                if (code != nullptr) {
-                                    consumed = transition_to("edit_memory", code->params());
-                                }
-
-                                code = result.find_code("C030");
-                                if (code != nullptr) {
-                                    const auto& params = code->params();
-                                    auto it = params.find("type");
-                                    if (it != params.end()) {
-                                        auto type = it->second;
-                                        if (type == "MACH") {
-                                            consumed = transition_to("edit_machine", params);
-                                        } else if (type == "TEXT") {
-                                            consumed = transition_to("edit_source", params);
-                                        } else if (type == "DATA") {
-                                            consumed = transition_to("edit_memory", params);
-                                        }
-                                    }
-                                }
-                            }
-
-                            write_message("Ready.");
-                            return consumed;
+                            _execute_command_callback(result, str);
+                            _command_result_queue.push_back(result);
+                            _state = states::processing;
+                            return true;
                         }
                     }
 
@@ -430,7 +453,6 @@ namespace ryu::core {
             core::font::flags::none
         };
 
-        // XXX: should implement MORE functionality, like unix more or less
         caret_home();
 
         auto formatted_text = core::text_formatter::format_text(message);
