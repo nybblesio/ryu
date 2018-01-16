@@ -332,17 +332,17 @@ namespace ryu::core {
                             } else if (success) {
                                 auto code = result.find_code("C023");
                                 if (code != nullptr) {
-                                    consumed = transition_to("machine_editor", code->params());
+                                    consumed = transition_to("edit_machine", code->params());
                                 }
 
                                 code = result.find_code("C002");
                                 if (code != nullptr) {
-                                    consumed = transition_to("source_editor", code->params());
+                                    consumed = transition_to("edit_source", code->params());
                                 }
 
                                 code = result.find_code("C024");
                                 if (code != nullptr) {
-                                    consumed = transition_to("hex_editor", code->params());
+                                    consumed = transition_to("edit_memory", code->params());
                                 }
 
                                 code = result.find_code("C030");
@@ -352,11 +352,11 @@ namespace ryu::core {
                                     if (it != params.end()) {
                                         auto type = it->second;
                                         if (type == "MACH") {
-                                            consumed = transition_to("machine_editor", params);
+                                            consumed = transition_to("edit_machine", params);
                                         } else if (type == "TEXT") {
-                                            consumed = transition_to("source_editor", params);
+                                            consumed = transition_to("edit_source", params);
                                         } else if (type == "DATA") {
-                                            consumed = transition_to("hex_editor", params);
+                                            consumed = transition_to("edit_memory", params);
                                         }
                                     }
                                 }

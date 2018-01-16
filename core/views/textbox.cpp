@@ -142,6 +142,8 @@ namespace ryu::core {
     }
 
     bool textbox::on_process_event(const SDL_Event* e) {
+        auto processed = false;
+
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
             while (*c != '\0') {
@@ -166,23 +168,28 @@ namespace ryu::core {
             switch (e->key.keysym.sym) {
                 case SDLK_HOME: {
                     caret_home();
+                    processed = true;
                     break;
                 }
                 case SDLK_END: {
                     caret_end();
+                    processed = true;
                     break;
                 }
                 case SDLK_RIGHT: {
                     caret_right();
+                    processed = true;
                     break;
                 }
                 case SDLK_LEFT: {
                     caret_left();
+                    processed = true;
                     break;
                 }
                 case SDLK_DELETE: {
                     _document.shift_left(0, _document.column() + _caret.column());
-                    return true;
+                    processed = true;
+                    break;
                 }
                 case SDLK_BACKSPACE: {
                     if (_caret.column() == 0) {
@@ -191,14 +198,16 @@ namespace ryu::core {
                         caret_left();
                         _document.shift_left(0, _document.column() + _caret.column());
                     }
-                    return true;
+                    processed = true;
+                    break;
                 }
             }
-
-            if (_on_key_down != nullptr)
-                return _on_key_down(e->key.keysym.sym);
         }
-        return false;
+
+        if (_on_key_down != nullptr)
+            return _on_key_down(e->key.keysym.sym);
+
+        return processed;
     }
 
     void textbox::font_family(core::font_family* value) {

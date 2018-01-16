@@ -103,8 +103,9 @@ namespace ryu::core {
         go_to_address,
         register_editor,
 
-        dir,
+        list_files,
         remove_file,
+        make_directory,
         change_directory,
         print_working_directory,
 
@@ -114,8 +115,8 @@ namespace ryu::core {
         close_project,
         clone_project,
 
-        machine_editor,
-        machines_list,
+        list_machines,
+        edit_machine,
         del_machine,
         use_machine,
 

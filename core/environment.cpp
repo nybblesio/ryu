@@ -99,8 +99,9 @@ namespace ryu::core {
             {core::command_types::jump_to_address,        [&](core::result& result, const command_handler_context_t& context) { return on_jump_to_address(result, context); }},
             {core::command_types::go_to_address,          [&](core::result& result, const command_handler_context_t& context) { return on_go_to_address(result, context); }},
             {core::command_types::register_editor,        [&](core::result& result, const command_handler_context_t& context) { return on_register_editor(result, context); }},
-            {core::command_types::dir,                    [&](core::result& result, const command_handler_context_t& context) { return on_dir(result, context); }},
+            {core::command_types::list_files,             [&](core::result& result, const command_handler_context_t& context) { return on_list_files(result, context); }},
             {core::command_types::remove_file,            [&](core::result& result, const command_handler_context_t& context) { return on_remove_file(result, context); }},
+            {core::command_types::make_directory,         [&](core::result& result, const command_handler_context_t& context) { return on_make_directory(result, context); }},
             {core::command_types::change_directory,       [&](core::result& result, const command_handler_context_t& context) { return on_change_directory(result, context); }},
             {core::command_types::print_working_directory,[&](core::result& result, const command_handler_context_t& context) { return on_print_working_directory(result, context); }},
             {core::command_types::new_project,            [&](core::result& result, const command_handler_context_t& context) { return on_new_project(result, context); }},
@@ -108,8 +109,8 @@ namespace ryu::core {
             {core::command_types::save_project,           [&](core::result& result, const command_handler_context_t& context) { return on_save_project(result, context); }},
             {core::command_types::close_project,          [&](core::result& result, const command_handler_context_t& context) { return on_close_project(result, context); }},
             {core::command_types::clone_project,          [&](core::result& result, const command_handler_context_t& context) { return on_clone_project(result, context); }},
-            {core::command_types::machine_editor,         [&](core::result& result, const command_handler_context_t& context) { return on_machine_editor(result, context); }},
-            {core::command_types::machines_list,          [&](core::result& result, const command_handler_context_t& context) { return on_machines_list(result, context); }},
+            {core::command_types::edit_machine,           [&](core::result& result, const command_handler_context_t& context) { return on_edit_machine(result, context); }},
+            {core::command_types::list_machines,          [&](core::result& result, const command_handler_context_t& context) { return on_list_machines(result, context); }},
             {core::command_types::del_machine,            [&](core::result& result, const command_handler_context_t& context) { return on_del_machine(result, context); }},
             {core::command_types::use_machine,            [&](core::result& result, const command_handler_context_t& context) { return on_use_machine(result, context); }},
             {core::command_types::open_editor,            [&](core::result& result, const command_handler_context_t& context) { return on_open_editor(result, context); }},
@@ -404,7 +405,7 @@ namespace ryu::core {
         return true;
     }
 
-    bool environment::on_dir(
+    bool environment::on_list_files(
             core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
@@ -461,6 +462,16 @@ namespace ryu::core {
         } else {
             result.add_message("C008", fmt::format("remove of {} failed", value), true);
         }
+        return true;
+    }
+
+    bool environment::on_make_directory(
+            core::result& result,
+            const command_handler_context_t& context) {
+        using namespace boost::filesystem;
+
+        auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
+        // TODO: implement this
         return true;
     }
 
@@ -550,7 +561,7 @@ namespace ryu::core {
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
     }
 
-    bool environment::on_machine_editor(
+    bool environment::on_edit_machine(
             core::result& result,
             const command_handler_context_t& context) {
         result.add_data(
@@ -559,7 +570,7 @@ namespace ryu::core {
         return true;
     }
 
-    bool environment::on_machines_list(
+    bool environment::on_list_machines(
             core::result& result,
             const command_handler_context_t& context) {
         auto machines = hardware::registry::instance()->machines();

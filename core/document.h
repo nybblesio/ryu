@@ -157,11 +157,11 @@ namespace ryu::core {
         void write_line(std::ostream& stream, uint32_t row, uint16_t column, uint16_t end_column);
 
     protected:
+        bool clamp_row();
+
         void raise_document_changed();
 
         line_t* line_at(uint32_t row);
-
-        bool clamp_row(uint32_t last_row);
 
         bool clamp_column(uint16_t last_col);
 

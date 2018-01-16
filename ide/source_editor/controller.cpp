@@ -216,13 +216,15 @@ namespace ryu::ide::source_editor {
         if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
                 case SDLK_ESCAPE: {
-                    if (!ctrl_pressed) {
-                        end_state();
-                        return true;
-                    } else {
+                    end_state();
+                    return true;
+                }
+                case SDLK_SPACE: {
+                    if (ctrl_pressed) {
                         _layout_panel.focus(&_command_line);
                         return true;
                     }
+                    break;
                 }
             }
         }

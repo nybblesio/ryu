@@ -27,9 +27,8 @@ namespace ryu::core {
     }
 
     void document::page_up() {
-        auto last_row = _row;
         _row -= _page_height;
-        clamp_row(last_row < _page_height ? 0 : last_row);
+        clamp_row();
         raise_document_changed();
     }
 
@@ -41,22 +40,36 @@ namespace ryu::core {
 
     void document::page_down() {
         _row += _page_height;
-        clamp_row(_row);
+        clamp_row();
         raise_document_changed();
     }
 
     void document::last_page() {
         _row = _rows - _page_height;
-        clamp_row(_row);
+        clamp_row();
         raise_document_changed();
     }
 
     bool document::scroll_up() {
-        auto last_row = _row;
         --_row;
-        auto clamped = clamp_row(last_row);
+        auto clamped = clamp_row();
         raise_document_changed();
         return clamped;
+    }
+
+    bool document::clamp_row() {
+        if (_row > _rows) {
+            _row = 0;
+            return true;
+        }
+
+        auto bottom = _rows - _page_height;
+        if (_row > bottom) {
+            _row = bottom;
+            return true;
+        }
+
+        return false;
     }
 
     void document::first_page() {
@@ -74,7 +87,7 @@ namespace ryu::core {
 
     bool document::scroll_down() {
         ++_row;
-        auto clamped = clamp_row(_row);
+        auto clamped = clamp_row();
         raise_document_changed();
         return clamped;
     }
@@ -95,9 +108,8 @@ namespace ryu::core {
     }
 
     bool document::row(uint32_t row) {
-        auto last_row = _row;
         _row = row;
-        auto clamped = clamp_row(last_row);
+        auto clamped = clamp_row();
         raise_document_changed();
         return clamped;
     }
@@ -243,21 +255,6 @@ namespace ryu::core {
             }
         }
         return empty;
-    }
-
-    bool document::clamp_row(uint32_t last_row) {
-        if (_row > last_row) {
-            _row = last_row;
-            return true;
-        }
-
-        auto bottom = _rows - _page_height;
-        if (_row > bottom) {
-            _row = bottom;
-            return true;
-        }
-
-        return false;
     }
 
     bool document::clamp_column(uint16_t last_col) {

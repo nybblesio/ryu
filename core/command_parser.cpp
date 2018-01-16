@@ -13,7 +13,9 @@
 namespace ryu::core {
 
     command_table command_parser::_commands = {
+        // -------------------------------------------
         // system commands
+        // -------------------------------------------
         {
             "help",
             {
@@ -26,7 +28,6 @@ namespace ryu::core {
             }
         },
 
-        // assembler & memory commands
         {
             "!",
             {
@@ -37,6 +38,32 @@ namespace ryu::core {
             }
         },
 
+        {
+            "%",
+            {
+                command_types::open_editor,
+                command_size_flags::none,
+                {
+                    {"name",  variant::types::string_literal},
+                    {"type",  variant::types::identifier, true, false}
+                },
+                "Execute editor for <italic>name<> and <italic>type<>."
+            }
+        },
+
+        {
+            "clear",
+            {
+                command_types::clear,
+                command_size_flags::none,
+                {},
+                "Clear console and home the cursor at the top."
+            }
+        },
+
+        // -------------------------------------------
+        // assembler & memory commands
+        // -------------------------------------------
         {
             "?",
             {
@@ -86,6 +113,7 @@ namespace ryu::core {
         },
 
         {
+            // XXX: how do we know what CPU type to use for disassembly
             "d",
             {
                 command_types::disassemble,
@@ -110,10 +138,11 @@ namespace ryu::core {
         },
 
         {
+            // XXX: what should the result of this command be?
             "s",
             {
                 command_types::search_memory,
-                command_size_flags::none,
+                command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
                 {
                     {"addr",  variant::types::numeric_literal},
                     {"bytes", variant::types::numeric_literal},
@@ -164,12 +193,13 @@ namespace ryu::core {
         },
 
         {
+            // XXX: what were major differences between j and g?
             "g",
             {
                 command_types::go_to_address,
                 command_size_flags::none,
                 {
-                    {"addr",  variant::types::numeric_literal, false}
+                    {"addr",  variant::types::numeric_literal}
                 },
                 "Go to <italic>addr<> for execution."
             }
@@ -213,7 +243,9 @@ namespace ryu::core {
             }
         },
 
+        // -------------------------------------------
         // filesystem commands
+        // -------------------------------------------
         {
             "rm",
             {
@@ -227,9 +259,9 @@ namespace ryu::core {
         },
 
         {
-            "dir",
+            "ls",
             {
-                command_types::dir,
+                command_types::list_files,
                 command_size_flags::none,
                 {},
                 "List the contents of the current working directory."
@@ -259,18 +291,22 @@ namespace ryu::core {
         },
 
         {
-            "clear",
+            "mkdir",
             {
-                command_types::clear,
+                command_types::make_directory,
                 command_size_flags::none,
-                {},
-                "Clear console and home the cursor at the top."
+                {
+                    {"path", variant::types::string_literal}
+                },
+                "Create a new directory within the current working directory."
             }
         },
 
+        // -------------------------------------------
         // project commands
+        // -------------------------------------------
         {
-            "new",
+            "newproj",
             {
                 command_types::new_project,
                 command_size_flags::none,
@@ -282,7 +318,7 @@ namespace ryu::core {
         },
 
         {
-            "load",
+            "ldproj",
             {
                 command_types::load_project,
                 command_size_flags::none,
@@ -294,7 +330,7 @@ namespace ryu::core {
         },
 
         {
-            "save",
+            "savproj",
             {
                 command_types::save_project,
                 command_size_flags::none,
@@ -304,7 +340,7 @@ namespace ryu::core {
         },
 
         {
-            "close",
+            "clproj",
             {
                 command_types::close_project,
                 command_size_flags::none,
@@ -325,14 +361,16 @@ namespace ryu::core {
             }
         },
 
-        // text editor commands
+        // -------------------------------------------
+        // source editor commands
+        // -------------------------------------------
         {
             "rt",
             {
                 command_types::read_text,
                 command_size_flags::none,
                 {
-                    {"path",   variant::types::string_literal}
+                    {"path", variant::types::string_literal}
                 },
                 "Read text file at <italic>path<> on disk into editor."
             }
@@ -344,7 +382,7 @@ namespace ryu::core {
                 command_types::write_text,
                 command_size_flags::none,
                 {
-                    {"path",   variant::types::string_literal}
+                    {"path", variant::types::string_literal}
                 },
                 "Write text in editor to file at <italic>path<> on disk."
             }
@@ -356,13 +394,14 @@ namespace ryu::core {
                 command_types::goto_line,
                 command_size_flags::none,
                 {
-                    {"line",   variant::types::numeric_literal}
+                    {"line", variant::types::numeric_literal}
                 },
                 "Jump to the source <italic>line<>."
             }
         },
 
         {
+            // XXX: needs to be fixed in the source editor
             "/",
             {
                 command_types::find_text,
@@ -374,11 +413,13 @@ namespace ryu::core {
             }
         },
 
+        // -------------------------------------------
         // machines
+        // -------------------------------------------
         {
-            "machines",
+            "lsmach",
             {
-                command_types::machines_list,
+                command_types::list_machines,
                 command_size_flags::none,
                 {},
                 "List machine registry to console."
@@ -386,9 +427,21 @@ namespace ryu::core {
         },
 
         {
-            "machine",
+            "edmach",
             {
-                command_types::machine_editor,
+                command_types::edit_machine,
+                command_size_flags::none,
+                {
+                    {"name", variant::types::string_literal}
+                },
+                "Open machine editor for <italic>name<> machine in registry."
+            }
+        },
+
+        {
+            "newmach",
+            {
+                command_types::edit_machine,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}
@@ -398,7 +451,7 @@ namespace ryu::core {
         },
 
         {
-            "delmachine",
+            "delmach",
             {
                 command_types::del_machine,
                 command_size_flags::none,
@@ -410,7 +463,7 @@ namespace ryu::core {
         },
 
         {
-            "usemachine",
+            "usemach",
             {
                 command_types::use_machine,
                 command_size_flags::none,
@@ -421,22 +474,11 @@ namespace ryu::core {
             }
         },
 
+        // -------------------------------------------
         // editor and tool commands
+        // -------------------------------------------
         {
-            "%",
-            {
-                command_types::open_editor,
-                command_size_flags::none,
-                {
-                    {"name",  variant::types::string_literal},
-                    {"type",  variant::types::identifier, true, false}
-                },
-                "Execute editor for <italic>name<> and <italic>type<>."
-            }
-        },
-
-        {
-            "sounds",
+            "edsnd",
             {
                 command_types::sounds,
                 command_size_flags::none,
@@ -446,7 +488,7 @@ namespace ryu::core {
         },
 
         {
-            "tracker",
+            "edmusic",
             {
                 command_types::tracker,
                 command_size_flags::none,
@@ -456,7 +498,7 @@ namespace ryu::core {
         },
 
         {
-            "tiles",
+            "edtiles",
             {
                 command_types::tile_editor,
                 command_size_flags::none,
@@ -466,7 +508,7 @@ namespace ryu::core {
         },
 
         {
-            "sprites",
+            "edsprites",
             {
                 command_types::sprite_editor,
                 command_size_flags::none,
@@ -476,7 +518,7 @@ namespace ryu::core {
         },
 
         {
-            "backgrounds",
+            "edbg",
             {
                 command_types::background_editor,
                 command_size_flags::none,
@@ -485,7 +527,9 @@ namespace ryu::core {
             }
         },
 
+        // -------------------------------------------
         // symbol table commands
+        // -------------------------------------------
         {
             "set",
             {

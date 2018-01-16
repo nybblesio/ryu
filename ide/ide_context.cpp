@@ -31,13 +31,13 @@ namespace ryu::ide {
         add_state(
                 &_console_state,
                 [&](auto& command, auto& params) {
-                    if (command == "source_editor") {
+                    if (command == "edit_source") {
                         push_state(_source_editor_state.id(), params);
                         return true;
-                    } else if (command == "hex_editor") {
+                    } else if (command == "edit_memory") {
                         push_state(_hex_editor_state.id(), params);
                         return true;
-                    } else if (command == "machine_editor") {
+                    } else if (command == "edit_machine") {
                         push_state(_machine_editor_state.id(), params);
                         return true;
                     }

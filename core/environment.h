@@ -73,11 +73,13 @@ namespace ryu::core {
 
         bool on_go_to_address(result& result, const command_handler_context_t& context);
 
-        bool on_dir(result& result, const command_handler_context_t& context);
+        bool on_list_files(result& result, const command_handler_context_t& context);
 
         bool on_remove_file(result& result, const command_handler_context_t& context);
 
         bool on_change_directory(result& result, const command_handler_context_t& context);
+
+        bool on_make_directory(result& result, const command_handler_context_t& context);
 
         bool on_print_working_directory(result& result, const command_handler_context_t& context);
 
@@ -123,9 +125,9 @@ namespace ryu::core {
 
         bool on_del_machine(result& result, const command_handler_context_t& context);
 
-        bool on_machines_list(result& result, const command_handler_context_t& context);
+        bool on_list_machines(result& result, const command_handler_context_t& context);
 
-        bool on_machine_editor(result& result, const command_handler_context_t& context);
+        bool on_edit_machine(result& result, const command_handler_context_t& context);
 
         bool on_register_editor(result& result, const command_handler_context_t& context);
 
