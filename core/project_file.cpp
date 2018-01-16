@@ -19,20 +19,28 @@ namespace ryu::core {
             YAML::Node& node) {
         auto path = node["path"];
         if (path == nullptr) {
+            result.add_message(
+                    "C031",
+                    "project_file path is a required value",
+                    true);
             return {};
         }
 
         auto type = node["type"];
         if (type == nullptr) {
+            result.add_message(
+                    "C031",
+                    "project_file type is a required value",
+                    true);
             return {};
         }
 
         project_file file(
                 fs::path(path.as<std::string>()),
-                static_cast<core::project_file_types>(type.as<uint32_t>()));
+                string_to_type(type.as<std::string>()));
 
         auto cpu_component_id = node["cpu_component_id"].as<uint32_t>();
-        if (cpu_component_id != 0) {
+        if (cpu_component_id != 0 && machine != nullptr) {
             auto component = machine->find_component(cpu_component_id);
             if (component == nullptr) {
                 return {};
@@ -45,8 +53,8 @@ namespace ryu::core {
 
     project_file::project_file(
             const fs::path& path,
-            core::project_file_types type) : _path(path),
-                                             _type(type) {
+            project_file::types type) : _path(path),
+                                        _type(type) {
     }
 
     bool project_file::dirty() const {
@@ -69,26 +77,41 @@ namespace ryu::core {
         _path = value;
     }
 
+    project_file::types project_file::type() const {
+        return _type;
+    }
+
     void project_file::cpu(hardware::component* value) {
         _cpu = value;
     }
 
-    core::project_file_types project_file::type() const {
-        return _type;
+    void project_file::type(project_file::types value) {
+        _type = value;
     }
 
-    void project_file::type(core::project_file_types value) {
-        _type = value;
+    std::string project_file::type_to_string(project_file::types type) {
+        switch (type) {
+            case assembly_source: return "assembly_source";
+            default:              return "uninitialized";
+        }
     }
 
     bool project_file::save(core::result& result, YAML::Emitter& emitter) {
         emitter << YAML::BeginMap;
         emitter << YAML::Key << "path" << YAML::Value << _path.string();
-        emitter << YAML::Key << "type" << YAML::Value << _type;
+        emitter << YAML::Key << "type" << YAML::Value << type_to_string(_type);
         if (_cpu != nullptr)
             emitter << YAML::Key << "cpu_component_id" << YAML::Value << _cpu->id();
         emitter << YAML::EndMap;
         return false;
+    }
+
+    project_file::types project_file::string_to_type(const std::string& name) {
+        if (name == "assembly_source") {
+            return project_file::types::assembly_source;
+        } else {
+            return project_file::types::uninitialized;
+        }
     }
 
 }

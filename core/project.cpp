@@ -107,9 +107,10 @@ namespace ryu::core {
             _instance->description(description.as<std::string>());
         }
 
+        hardware::machine* machine = nullptr;
         auto machine_id = root["machine"].as<uint32_t>();
         if (machine_id != 0) {
-            auto machine = hardware::registry::instance()->find_machine(machine_id);
+            machine = hardware::registry::instance()->find_machine(machine_id);
             if (machine == nullptr) {
                 result.add_message(
                         "C031",
@@ -122,12 +123,13 @@ namespace ryu::core {
 
         auto files = root["files"];
         if (files != nullptr && files.IsSequence()) {
-            // XXX: need to implement
-        }
-
-        auto environments = root["environments"];
-        if (environments != nullptr && environments.IsSequence()) {
-            // XXX: need to implement
+            auto& file_list = _instance->files();
+            for (auto it = files.begin(); it != files.end(); ++it) {
+                auto file_node = *it;
+                auto file = core::project_file::load(result, machine, file_node);
+                if (file.type() != core::project_file::types::uninitialized)
+                    file_list.push_back(file);
+            }
         }
 
         _instance->_dirty = false;
@@ -207,10 +209,6 @@ namespace ryu::core {
         emitter << YAML::Key << "files" << YAML::BeginSeq;
         for (auto& file : _files)
             file.save(result, emitter);
-        emitter << YAML::EndSeq;
-
-        emitter << YAML::Key << "environments" << YAML::BeginSeq;
-        // XXX: write out environment file list
         emitter << YAML::EndSeq;
 
         try {

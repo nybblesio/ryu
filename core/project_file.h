@@ -23,6 +23,16 @@ namespace ryu::core {
 
     class project_file {
     public:
+        enum types {
+            uninitialized,
+            assembly_source,
+            environment
+        };
+
+        static std::string type_to_string(project_file::types type);
+
+        static project_file::types string_to_type(const std::string& name);
+
         static project_file load(
                 core::result& result,
                 const hardware::machine* machine,
@@ -32,7 +42,7 @@ namespace ryu::core {
 
         project_file(
                 const fs::path& path,
-                core::project_file_types type);
+                project_file::types type);
 
         bool dirty() const;
 
@@ -42,13 +52,13 @@ namespace ryu::core {
 
         hardware::component* cpu();
 
+        project_file::types type() const;
+
         void path(const fs::path& value);
 
         void cpu(hardware::component* value);
 
-        core::project_file_types type() const;
-
-        void type(core::project_file_types value);
+        void type(project_file::types value);
 
         bool save(core::result& result, YAML::Emitter& emitter);
 
@@ -56,7 +66,7 @@ namespace ryu::core {
         fs::path _path {};
         bool _dirty = false;
         hardware::component* _cpu = nullptr;
-        core::project_file_types _type = core::project_file_types::assembly_source;
+        project_file::types _type = project_file::types::uninitialized;
     };
 
 };

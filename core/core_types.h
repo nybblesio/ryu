@@ -19,10 +19,6 @@ namespace ryu::core {
     class project_file;
 
     typedef std::vector<project_file> project_file_list;
-    
-    enum project_file_types {
-        assembly_source
-    };
 
     class project;
 

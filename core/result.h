@@ -47,6 +47,8 @@ namespace ryu::core {
                     message,
                     std::string(),
                     error ? result_message::types::error : result_message::types::info);
+            if (error)
+                fail();
         }
 
         inline void add_message(
@@ -59,6 +61,8 @@ namespace ryu::core {
                     message,
                     details,
                     error ? result_message::types::error : result_message::types::info);
+            if (error)
+                fail();
         }
 
         inline bool is_failed() const {
