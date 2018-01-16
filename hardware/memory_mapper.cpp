@@ -54,16 +54,16 @@ namespace ryu::hardware {
     }
 
     uint8_t memory_mapper::read_byte(uint32_t address) const {
-        auto ic = circuit_at_address(address);
-        if (ic != nullptr)
-            return ic->read_byte(address);
+        auto circuit = circuit_at_address(access_types::readable, address);
+        if (circuit.ic != nullptr)
+            return circuit.ic->read_byte(address - circuit.start);
         return 0;
     }
 
     void memory_mapper::write_byte(uint32_t address, uint8_t value) {
-        auto ic = circuit_at_address(address);
-        if (ic != nullptr)
-            ic->write_byte(address, value);
+        auto circuit = circuit_at_address(access_types::writable, address);
+        if (circuit.ic != nullptr)
+            circuit.ic->write_byte(address - circuit.start, value);
     }
 
     void memory_mapper::release(hardware::integrated_circuit* component) {
@@ -74,13 +74,50 @@ namespace ryu::hardware {
         }
     }
 
-    integrated_circuit* memory_mapper::circuit_at_address(uint32_t address) const {
+    // XXX: this implementation is not correct, spend time with it
+    memory_mapper::component_address_space_t memory_mapper::circuit_at_address(
+            integrated_circuit::access_types access_type,
+            uint32_t address) const {
         IntervalTree<hardware::integrated_circuit*> tree(const_cast<ic_interval_list&>(_components));
         ic_interval_list results;
-        tree.findContained(address, address, results);
-        if (results.empty())
-            return nullptr;
-        return results[0].value;
+        tree.findOverlapping(address, address, results);
+        if (results.empty()) {
+            return {};
+        }
+        for (auto range : results) {
+            auto ic_access_type = range.value->access_type();
+            if (ic_access_type == access_types::none)
+                continue;
+
+            switch (access_type) {
+                case readable:
+                    if (ic_access_type == access_types::readable
+                    ||  ic_access_type == access_types::writable) {
+                        return {
+                            static_cast<uint32_t>(range.start),
+                            static_cast<uint32_t>(range.stop),
+                            range.value
+                        };
+                    }
+                    break;
+                case writable:
+                    if (ic_access_type == access_types::writable) {
+                        return {
+                            static_cast<uint32_t>(range.start),
+                            static_cast<uint32_t>(range.stop),
+                            range.value
+                        };
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        return {};
+    }
+
+    integrated_circuit::access_types memory_mapper::access_type() const {
+        return writable;
     }
 
 }

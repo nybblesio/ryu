@@ -41,6 +41,12 @@ namespace ryu::hardware {
     void rom::reallocate() {
         delete _buffer;
         _buffer = new uint8_t[address_space()];
+
+        // XXX: this is for debug purposes only, should remove or
+        //        make configurable
+        write_latch(true);
+        fill(0xfe);
+        write_latch(false);
     }
 
     void rom::fill(uint8_t value) {
@@ -68,6 +74,10 @@ namespace ryu::hardware {
         if (!_write_latch)
             return;
         _buffer[address] = value;
+    }
+
+    integrated_circuit::access_types rom::access_type() const {
+        return readable;
     }
 
 }

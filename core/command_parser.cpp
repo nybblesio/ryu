@@ -128,7 +128,7 @@ namespace ryu::core {
         {
             "h",
             {
-                command_types::hex_dump,
+                command_types::dump_memory,
                 command_size_flags::none,
                 {
                     {"addr", variant::types::numeric_literal}

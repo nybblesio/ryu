@@ -52,7 +52,8 @@ namespace ryu::hardware {
 
     class integrated_circuit;
 
-    typedef std::vector<Interval<integrated_circuit*>> ic_interval_list;
+    typedef Interval<integrated_circuit*> ic_interval;
+    typedef std::vector<ic_interval> ic_interval_list;
     typedef std::vector<integrated_circuit*> ic_list;
 
     class component;

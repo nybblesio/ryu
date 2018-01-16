@@ -65,4 +65,8 @@ namespace ryu::hardware {
     void integrated_circuit::write_byte(uint32_t address, uint8_t value) {
     }
 
+    integrated_circuit::access_types integrated_circuit::access_type() const {
+        return none;
+    }
+
 }

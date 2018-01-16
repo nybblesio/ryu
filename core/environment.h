@@ -61,7 +61,7 @@ namespace ryu::core {
 
         bool on_disassemble(result& result, const command_handler_context_t& context);
 
-        bool on_hex_dump(result& result, const command_handler_context_t& context);
+        bool on_dump_memory(result& result, const command_handler_context_t& context);
 
         bool on_search_memory(result& result, const command_handler_context_t& context);
 

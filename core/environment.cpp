@@ -92,7 +92,7 @@ namespace ryu::core {
             {core::command_types::assemble,               [&](core::result& result, const command_handler_context_t& context) { return on_assemble(result, context); }},
             {core::command_types::evaluate,               [&](core::result& result, const command_handler_context_t& context) { return on_evaluate(result, context); }},
             {core::command_types::disassemble,            [&](core::result& result, const command_handler_context_t& context) { return on_disassemble(result, context); }},
-            {core::command_types::hex_dump,               [&](core::result& result, const command_handler_context_t& context) { return on_hex_dump(result, context); }},
+            {core::command_types::dump_memory,            [&](core::result& result, const command_handler_context_t& context) { return on_dump_memory(result, context); }},
             {core::command_types::search_memory,          [&](core::result& result, const command_handler_context_t& context) { return on_search_memory(result, context); }},
             {core::command_types::fill_memory,            [&](core::result& result, const command_handler_context_t& context) { return on_fill_memory(result, context); }},
             {core::command_types::copy_memory,            [&](core::result& result, const command_handler_context_t& context) { return on_copy_memory(result, context); }},
@@ -372,9 +372,43 @@ namespace ryu::core {
         return true;
     }
 
-    bool environment::on_hex_dump(
+    bool environment::on_dump_memory(
             core::result& result,
             const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            result.add_message(
+                    "C033",
+                    "no project is loaded; dump memory failed",
+                    true);
+            return false;
+        }
+
+        auto buffer = new uint8_t[128];
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+
+        auto machine = core::project::instance()->machine();
+        if (machine == nullptr) {
+            result.add_message(
+                    "C033",
+                    "no machine active on loaded project; dump memory failed",
+                    true);
+            return false;
+        }
+
+        for (size_t i = 0; i < 128; i++) {
+            buffer[i] = machine
+                    ->mapper()
+                    ->read_byte(static_cast<uint32_t>(addr + i));
+        }
+
+        auto dump = ryu::hex_dump(
+                static_cast<const void*>(buffer),
+                128);
+
+        result.add_message("C003", dump);
+
+        delete[] buffer;
+
         return true;
     }
 

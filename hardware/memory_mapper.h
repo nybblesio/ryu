@@ -24,8 +24,8 @@ namespace ryu::hardware {
         void clear();
 
         void reserve(
-                uint32_t address,
-                hardware::integrated_circuit* component);
+            uint32_t address,
+            hardware::integrated_circuit* component);
 
         void zero() override;
 
@@ -37,7 +37,18 @@ namespace ryu::hardware {
 
         void write_byte(uint32_t address, uint8_t value) override;
 
-        integrated_circuit* circuit_at_address(uint32_t address) const;
+        integrated_circuit::access_types access_type() const override;
+
+    protected:
+        struct component_address_space_t {
+            uint32_t start {};
+            uint32_t end {};
+            hardware::integrated_circuit* ic = nullptr;
+        };
+
+        memory_mapper::component_address_space_t circuit_at_address(
+            integrated_circuit::access_types access_type,
+            uint32_t address) const;
 
         RTTR_ENABLE(hardware::integrated_circuit)
 

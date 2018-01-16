@@ -33,13 +33,14 @@ namespace ryu::hardware {
     void ram::init() {
     }
 
+    void ram::zero() {
+        std::memset(_buffer, 0, address_space());
+    }
+
     void ram::reallocate() {
         delete _buffer;
         _buffer = new uint8_t[address_space()];
-    }
-
-    void ram::zero() {
-        std::memset(_buffer, 0, address_space());
+        fill(0xa9);
     }
 
     void ram::fill(uint8_t value) {
@@ -56,6 +57,10 @@ namespace ryu::hardware {
 
     void ram::write_byte(uint32_t address, uint8_t value) {
         _buffer[address] = value;
+    }
+
+    hardware::integrated_circuit::access_types ram::access_type() const {
+        return writable;
     }
 
 }

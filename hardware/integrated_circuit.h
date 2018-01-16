@@ -16,6 +16,12 @@ namespace ryu::hardware {
 
     class integrated_circuit {
     public:
+        enum access_types {
+            none,
+            readable,
+            writable
+        };
+
         explicit integrated_circuit(const std::string& name);
 
         virtual ~integrated_circuit() = default;
@@ -37,6 +43,8 @@ namespace ryu::hardware {
         virtual uint8_t read_byte(uint32_t address) const;
 
         virtual void write_byte(uint32_t address, uint8_t value);
+
+        virtual integrated_circuit::access_types access_type() const;
 
         RTTR_ENABLE()
 

@@ -95,7 +95,7 @@ namespace ryu::core {
         assemble,
         evaluate,
         disassemble,
-        hex_dump,
+        dump_memory,
         search_memory,
         fill_memory,
         copy_memory,

@@ -174,7 +174,7 @@ namespace ryu::hardware {
                                     ic->address_space(ic_address_space);
                                 }
 
-                                auto component = new hardware::component(component_id, nullptr);
+                                auto component = new hardware::component(component_id, ic);
                                 component->name(component_name);
                                 component->address(component_address);
 
