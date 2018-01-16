@@ -259,6 +259,19 @@ namespace ryu::core {
         },
 
         {
+            "mv",
+            {
+                command_types::move_file,
+                command_size_flags::none,
+                {
+                    {"src", variant::types::string_literal},
+                    {"dest", variant::types::string_literal}
+                },
+                "Move the file/directory at path <italic>src<> to path <italic>dest<>."
+            }
+        },
+
+        {
             "ls",
             {
                 command_types::list_files,
@@ -329,6 +342,28 @@ namespace ryu::core {
             }
         },
 
+        // XXX: we can open editors for files via %, but how would we
+        //      rename, copy, delete files in the list?
+        {
+            "lsfiles",
+            {
+                command_types::list_project_files,
+                command_size_flags::none,
+                {},
+                "List files for currently loaded project."
+            }
+        },
+
+        {
+            "edproj",
+            {
+                command_types::edit_project,
+                command_size_flags::none,
+                {},
+                "Open the project editor."
+            }
+        },
+
         {
             "savproj",
             {
@@ -350,7 +385,7 @@ namespace ryu::core {
         },
 
         {
-            "clone",
+            "cpyproj",
             {
                 command_types::clone_project,
                 command_size_flags::none,

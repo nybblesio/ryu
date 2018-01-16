@@ -101,14 +101,17 @@ namespace ryu::core {
             {core::command_types::register_editor,        [&](core::result& result, const command_handler_context_t& context) { return on_register_editor(result, context); }},
             {core::command_types::list_files,             [&](core::result& result, const command_handler_context_t& context) { return on_list_files(result, context); }},
             {core::command_types::remove_file,            [&](core::result& result, const command_handler_context_t& context) { return on_remove_file(result, context); }},
+            {core::command_types::move_file,              [&](core::result& result, const command_handler_context_t& context) { return on_move_file(result, context); }},
             {core::command_types::make_directory,         [&](core::result& result, const command_handler_context_t& context) { return on_make_directory(result, context); }},
             {core::command_types::change_directory,       [&](core::result& result, const command_handler_context_t& context) { return on_change_directory(result, context); }},
             {core::command_types::print_working_directory,[&](core::result& result, const command_handler_context_t& context) { return on_print_working_directory(result, context); }},
             {core::command_types::new_project,            [&](core::result& result, const command_handler_context_t& context) { return on_new_project(result, context); }},
+            {core::command_types::edit_project,           [&](core::result& result, const command_handler_context_t& context) { return on_edit_project(result, context); }},
             {core::command_types::load_project,           [&](core::result& result, const command_handler_context_t& context) { return on_load_project(result, context); }},
             {core::command_types::save_project,           [&](core::result& result, const command_handler_context_t& context) { return on_save_project(result, context); }},
             {core::command_types::close_project,          [&](core::result& result, const command_handler_context_t& context) { return on_close_project(result, context); }},
             {core::command_types::clone_project,          [&](core::result& result, const command_handler_context_t& context) { return on_clone_project(result, context); }},
+            {core::command_types::list_project_files,     [&](core::result& result, const command_handler_context_t& context) { return on_list_project_files(result, context); }},
             {core::command_types::edit_machine,           [&](core::result& result, const command_handler_context_t& context) { return on_edit_machine(result, context); }},
             {core::command_types::list_machines,          [&](core::result& result, const command_handler_context_t& context) { return on_list_machines(result, context); }},
             {core::command_types::del_machine,            [&](core::result& result, const command_handler_context_t& context) { return on_del_machine(result, context); }},
@@ -465,6 +468,17 @@ namespace ryu::core {
         return true;
     }
 
+    bool environment::on_move_file(
+            core::result& result,
+            const command_handler_context_t& context) {
+        using namespace boost::filesystem;
+
+        auto src = boost::get<core::string_literal_t>(context.params["src"].front()).value;
+        auto dest = boost::get<core::string_literal_t>(context.params["dest"].front()).value;
+        // TODO: implement this
+        return true;
+    }
+
     bool environment::on_make_directory(
             core::result& result,
             const command_handler_context_t& context) {
@@ -509,6 +523,12 @@ namespace ryu::core {
         return core::project::create(
                 result,
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
+    }
+
+    bool environment::on_edit_project(
+            core::result& result,
+            const command_handler_context_t& context) {
+        return true;
     }
 
     bool environment::on_load_project(
@@ -559,6 +579,12 @@ namespace ryu::core {
                 result,
                 core::project::instance()->path(),
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
+    }
+
+    bool environment::on_list_project_files(
+            core::result& result,
+            const command_handler_context_t& context) {
+        return true;
     }
 
     bool environment::on_edit_machine(

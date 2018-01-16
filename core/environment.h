@@ -73,6 +73,8 @@ namespace ryu::core {
 
         bool on_go_to_address(result& result, const command_handler_context_t& context);
 
+        bool on_move_file(result& result, const command_handler_context_t& context);
+
         bool on_list_files(result& result, const command_handler_context_t& context);
 
         bool on_remove_file(result& result, const command_handler_context_t& context);
@@ -132,6 +134,10 @@ namespace ryu::core {
         bool on_register_editor(result& result, const command_handler_context_t& context);
 
         bool on_help(result& result, const command_handler_context_t& context);
+
+        bool on_list_project_files(result& result, const command_handler_context_t& context);
+
+        bool on_edit_project(result& result, const command_handler_context_t& context);
 
     private:
         core::symbol_table _symbol_table;
