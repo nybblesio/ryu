@@ -43,6 +43,10 @@ namespace ryu::core {
         if (cpu_component_id != 0 && machine != nullptr) {
             auto component = machine->find_component(cpu_component_id);
             if (component == nullptr) {
+                result.add_message(
+                        "C031",
+                        "project_file cpu not found on machine",
+                        true);
                 return {};
             }
             file.cpu(component);
@@ -103,7 +107,7 @@ namespace ryu::core {
         if (_cpu != nullptr)
             emitter << YAML::Key << "cpu_component_id" << YAML::Value << _cpu->id();
         emitter << YAML::EndMap;
-        return false;
+        return true;
     }
 
     project_file::types project_file::string_to_type(const std::string& name) {
