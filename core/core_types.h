@@ -558,6 +558,7 @@ namespace ryu::core {
         uint16_t min_width {};
         uint16_t max_width {};
         alignment::horizontal::types alignment = alignment::horizontal::types::left;
+        uint16_t width {};
     };
 
     struct data_table_row_t {

@@ -26,24 +26,28 @@ namespace ryu::core {
                 console._document.clear();
                 console.caret_home();
                 console._caret.row(0);
+                return false;
             }
         },
         {
             "edit_machine",
             [](core::console& console, auto params) {
                 console.transition_to("edit_machine", params);
+                return true;
             }
         },
         {
             "edit_source",
             [](core::console& console, auto params) {
                 console.transition_to("edit_source", params);
+                return true;
             }
         },
         {
             "edit_memory",
             [](core::console& console, auto params) {
                 console.transition_to("edit_memory", params);
+                return true;
             }
         },
     };
@@ -258,6 +262,7 @@ namespace ryu::core {
                 format = "{:>{}}";
                 break;
             case alignment::horizontal::center:
+                format = "{:^{}}";
                 break;
             default:
                 format = "{:<{}}";
@@ -266,33 +271,56 @@ namespace ryu::core {
         return format;
     }
 
-    void console::format_lines(
-            core::result& result,
-            const std::vector<core::formatted_text_t>& lines) {
-        for (const auto& line : lines) {
-            result.add_message(
-                "output",
-                core::text_formatter::formatted_text_to_string(line));
+    void console::scale_columns(std::vector<data_table_column_t>& columns) {
+        auto target_width = _metrics.page_width - 4;
+
+        auto get_working_size = [&]() {
+            auto working_size = 0;
+            auto clamped_count = 0;
+            for (auto& col : columns) {
+                if (col.width == 0)
+                    col.width = col.max_width;
+                else if (col.width == col.min_width)
+                    clamped_count++;
+                working_size += col.width + 1;
+            }
+            return clamped_count == columns.size() ?
+                   target_width :
+                   working_size;
+        };
+
+        while (true) {
+            auto working_size = get_working_size();
+            if (working_size <= target_width)
+                break;
+            for (auto& col : columns) {
+                col.width--;
+                if (col.width < col.min_width)
+                    col.width = col.min_width;
+            }
         }
     }
 
-    void console::format_command_result(
-            core::result& result,
-            const parameter_variant_t& param) {
+    void console::format_command_result(const parameter_variant_t& param) {
+        std::vector<core::formatted_text_t> lines {};
+
         switch (param.which()) {
             case parameter_dict_types::table: {
                 auto table = boost::get<core::data_table_t>(param);
-                std::vector<core::formatted_text_t> lines {};
+                scale_columns(table.headers);
+                scale_columns(table.footers);
 
                 core::formatted_text_t header_line {};
                 header_line.spans.push_back({"rev", " "});
-                for (const auto& col : table.headers) {
+                for (size_t i = 0; i < table.headers.size(); i++) {
+                    auto column_pad = i < table.headers.size() - 1 ? 1 : 0;
+                    auto& col = table.headers[i];
                     header_line.spans.push_back({
                         "",
                         fmt::format(
                                 get_alignment_format(col.alignment),
-                                col.text,
-                                col.max_width)
+                                col.text.substr(0, col.width),
+                                col.width + column_pad)
                     });
                 }
                 header_line.spans.push_back({"", " "});
@@ -309,14 +337,15 @@ namespace ryu::core {
                     row_line.spans.push_back({"", " "});
 
                     for (size_t j = 0; j < row.columns.size(); j++) {
+                        auto column_pad = j < row.columns.size() - 1 ? 1 : 0;
                         const auto& header = table.headers[j];
                         const auto& col = row.columns[j];
                         row_line.spans.push_back({
                              "",
                              fmt::format(
                                      get_alignment_format(header.alignment),
-                                     col,
-                                     header.max_width)
+                                     col.substr(0, header.width),
+                                     header.width + column_pad)
                         });
                     }
 
@@ -327,40 +356,52 @@ namespace ryu::core {
                 footer_line.spans.push_back({"rev", " "});
                 const auto& footer_data_row = table.rows[table.rows.size() - 1];
                 for (size_t i = 0; i < footer_data_row.columns.size(); i++) {
-                    const auto& footer = table.footers[i];
+                    auto& footer = table.footers[i];
                     const auto& col = footer_data_row.columns[i];
+                    auto column_pad = i < footer_data_row.columns.size() - 1 ? 1 : 0;
+
                     footer_line.spans.push_back({
                         "",
                         fmt::format(
                                 get_alignment_format(footer.alignment),
-                                col,
-                                footer.max_width)
+                                col.substr(0, footer.width),
+                                footer.width + column_pad)
                     });
                 }
-                footer_line.spans.push_back({"", " "});
                 lines.push_back(footer_line);
-
-                format_lines(result, lines);
                 break;
             }
             case parameter_dict_types::string: {
                 auto value = boost::get<std::string>(param);
-                result.add_message("output", value);
+                core::formatted_text_t line {};
+                line.spans.push_back({"", value});
+                lines.push_back(line);
                 break;
             }
             case parameter_dict_types::integer32: {
                 auto value = boost::get<uint32_t>(param);
-                result.add_message("output", std::to_string(value));
+                core::formatted_text_t line {};
+                line.spans.push_back({"", std::to_string(value)});
+                lines.push_back(line);
                 break;
             }
             case parameter_dict_types::boolean: {
                 auto value = boost::get<bool>(param);
-                result.add_message("output", std::to_string(value));
+                core::formatted_text_t line {};
+                line.spans.push_back({"", std::to_string(value)});
+                lines.push_back(line);
                 break;
             }
             default: {
                 break;
             }
+        }
+
+        caret_down();
+        caret_home();
+
+        for (size_t i = 0; i < lines.size(); i++) {
+            write_message(lines[i], i < lines.size() - 1);
         }
     }
 
@@ -370,8 +411,10 @@ namespace ryu::core {
         auto command_result_msg = result.find_code("command_result");
         if (command_result_msg != nullptr) {
             auto params = command_result_msg->params();
-            for (auto it = params.begin(); it != params.end(); ++it) {
-                format_command_result(result, it->second);
+            for (auto& param : params) {
+                caret_down();
+                caret_home();
+                format_command_result(param.second);
             }
         }
 
@@ -391,13 +434,17 @@ namespace ryu::core {
                 auto command = boost::get<std::string>(action_it->second);
                 auto handler_it = _handlers.find(command);
                 if (handler_it != _handlers.end()) {
-                    handler_it->second(*this, params);
+                    if (handler_it->second(*this, params)) {
+                        caret_down();
+                        caret_home();
+                    }
                 }
             }
+        } else {
+            caret_down();
+            caret_home();
         }
 
-        caret_down();
-        caret_home();
         write_message("Ready.");
 
         _command_result_queue.pop_front();
@@ -612,7 +659,7 @@ namespace ryu::core {
     }
 
     uint32_t console::write_message(
-            const std::string& message,
+            const core::formatted_text_t& formatted_text,
             bool last_newline) {
         uint32_t line_count = 0;
 
@@ -624,7 +671,6 @@ namespace ryu::core {
 
         caret_home();
 
-        auto formatted_text = core::text_formatter::format_text(message);
         for (const auto& span : formatted_text.spans) {
             if (span.attr_code == "newline") {
                 caret_down();
@@ -633,13 +679,15 @@ namespace ryu::core {
                 continue;
             }
 
-            auto it = _code_mapper.find(span.attr_code);
-            if (it == _code_mapper.end()) {
-                attr.color = _color;
-                attr.flags = core::font::flags::none;
-                attr.style = core::font::styles::normal;
-            } else {
-                it->second(attr);
+            if (!span.attr_code.empty()) {
+                auto it = _code_mapper.find(span.attr_code);
+                if (it == _code_mapper.end()) {
+                    attr.color = _color;
+                    attr.flags = core::font::flags::none;
+                    attr.style = core::font::styles::normal;
+                } else {
+                    it->second(attr);
+                }
             }
 
             auto token = span.text.begin();
@@ -660,6 +708,14 @@ namespace ryu::core {
         }
 
         return line_count;
+    }
+
+    uint32_t console::write_message(
+            const std::string& message,
+            bool last_newline) {
+        return write_message(
+                core::text_formatter::format_text(message),
+                last_newline);
     }
 
     void console::on_execute_command(const execute_command_callable& callable) {

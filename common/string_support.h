@@ -55,7 +55,11 @@ namespace ryu {
         size_t right_pad = 0,
         const char& fill = ' ');
 
-    std::string hex_dump(const void* data, size_t size);
+    void hex_dump(
+        const void* data,
+        size_t size,
+        uint8_t bytes,
+        std::vector<std::vector<std::string>>& results);
 
     std::pair<std::string, std::string> size_to_units(size_t size);
 

@@ -20,6 +20,7 @@ namespace ryu::core {
         _symbol_table = value;
     }
 
+    // XXX: this does not support recursive references
     variant_t evaluator::evaluate(core::result& result, const ast_node_shared_ptr& node) {
         if (node == nullptr)
             return {};

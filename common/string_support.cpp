@@ -54,24 +54,26 @@ namespace ryu {
         return text;
     }
 
-    std::string hex_dump(const void* data, size_t size) {
+    void hex_dump(
+            const void* data,
+            size_t size,
+            uint8_t bytes,
+            std::vector<std::vector<std::string>>& results) {
         auto* buf = (unsigned char*)data;
         int i, j;
-        std::stringstream stream;
-        for (i=0; i<size; i+=16) {
-            stream << fmt::format("{:06x}: ", i);
-            for (j=0; j<16; j++)
-                if (i+j < size)
-                    stream << fmt::format("{:02x} ", buf[i+j]);
-                else
-                    stream << "   ";
-            stream << " ";
-            for (j=0; j<16; j++)
-                if (i+j < size)
-                    stream << (char)(isprint(buf[i+j]) ? buf[i+j] : '.');
-            stream << "\n";
+        for (i = 0; i < size; i += bytes) {
+            std::vector<std::string> line{};
+            line.push_back(fmt::format("{:06x}", i));
+            std::stringstream byte_stream;
+            std::stringstream ascii_stream;
+            for (j = 0; j < bytes; j++) {
+                byte_stream << fmt::format("{:02x} ", buf[i + j]);
+                ascii_stream << (char) (isprint(buf[i + j]) ? buf[i + j] : '.');
+            }
+            line.push_back(byte_stream.str());
+            line.push_back(ascii_stream.str());
+            results.push_back(line);
         }
-        return stream.str();
     }
 
     std::pair<std::string, std::string> size_to_units(size_t size) {

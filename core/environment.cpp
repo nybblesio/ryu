@@ -32,11 +32,15 @@ namespace ryu::core {
 
     // XXX: bug some values result in the ASCII conversion failing
     static void format_numeric_conversion(
-            core::result& result,
             int32_t value,
-            core::command_size_flags size) {
+            core::command_size_flags size,
+            std::vector<std::string>& results) {
+
         std::string ascii;
-        std::string fmt_spec;
+        std::string signed_fmt_spec,
+                decimal_fmt_spec,
+                ascii_fmt_spec,
+                binary_fmt_spec;
 
         uint32_t mask = 0;
         auto byte_count = 0;
@@ -44,18 +48,27 @@ namespace ryu::core {
             case core::command_size_flags::byte:
                 byte_count = 1;
                 mask = 0xff;
-                fmt_spec = "${0:02x} {1:>3} \"{2:>1}\" %{0:08b}";
+                signed_fmt_spec = "${0:02x}";
+                decimal_fmt_spec = "{0:>3}";
+                ascii_fmt_spec = "\"{0:>1}\"";
+                binary_fmt_spec = "%{0:08b}";
                 break;
             case core::command_size_flags::word:
                 byte_count = 2;
                 mask = 0xffff;
-                fmt_spec = "${0:04x} {1:>5} \"{2:>2}\" %{0:016b}";
+                signed_fmt_spec = "${0:04x}";
+                decimal_fmt_spec = "{0:>5}";
+                ascii_fmt_spec = "\"{0:>2}\"";
+                binary_fmt_spec = "%{0:016b}";
                 break;
             case core::command_size_flags::none:
             case core::command_size_flags::dword:
                 byte_count = 4;
                 mask = 0xffffffff;
-                fmt_spec = "${0:08x} {1:>10} \"{2:>4}\" %{0:032b}";
+                signed_fmt_spec = "${0:08x}";
+                decimal_fmt_spec = "{0:>10}";
+                ascii_fmt_spec = "\"{0:>4}\"";
+                binary_fmt_spec = "%{0:032b}";
                 break;
             default:
                 // XXX: support for qword
@@ -72,10 +85,13 @@ namespace ryu::core {
             else
                 ascii += c;
         }
+
         auto signed_value = value & mask;
-        result.add_message(
-                "C003",
-                fmt::format(fmt_spec, signed_value, value, ascii));
+
+        results.push_back(fmt::format(signed_fmt_spec, signed_value));
+        results.push_back(fmt::format(decimal_fmt_spec, value));
+        results.push_back(fmt::format(ascii_fmt_spec, ascii));
+        results.push_back(fmt::format(binary_fmt_spec, signed_value));
     }
 
     bool environment::execute(
@@ -340,30 +356,69 @@ namespace ryu::core {
     bool environment::on_evaluate(
             core::result& result,
             const command_handler_context_t& context) {
+        data_table_t conversion_table {};
+        conversion_table.headers.push_back({"Hex",          6, 12});
+        conversion_table.headers.push_back({"Dec",          6, 10});
+        conversion_table.headers.push_back({"ASCII",        6,  6});
+        conversion_table.headers.push_back({"Bin",          9, 33});
+        conversion_table.footers.push_back({"Expressions", 17, 71});
+
+        auto dump_count = 0;
+        parameter_dict params;
+
         const auto& values = context.params["..."];
         for (const auto& param : values) {
             switch (param.which()) {
                 case core::variant::types::char_literal: {
                     auto value = boost::get<core::char_literal_t>(param).value;
-                    format_numeric_conversion(result, value, context.command.size);
+                    std::vector<std::string> results;
+                    format_numeric_conversion(
+                            value,
+                            context.command.size,
+                            results);
+                    conversion_table.rows.push_back({results});
                     break;
                 }
                 case core::variant::types::numeric_literal: {
                     auto value = boost::get<core::numeric_literal_t>(param).value;
-                    format_numeric_conversion(result, value, context.command.size);
+                    std::vector<std::string> results;
+                    format_numeric_conversion(
+                            value,
+                            context.command.size,
+                            results);
+                    conversion_table.rows.push_back({results});
                     break;
                 }
                 case core::variant::types::string_literal: {
+                    data_table_t dump_table {};
+                    dump_table.headers.push_back({"Offset",   6,  6});
+                    dump_table.headers.push_back({"Data",    24, 24});
+                    dump_table.headers.push_back({"ASCII",    8,  8});
+                    dump_table.footers.push_back({"Bytes",   20, 20});
+
                     auto value = boost::get<core::string_literal_t>(param).value;
-                    auto dump = ryu::hex_dump(
+                    std::vector<std::vector<std::string>> lines;
+                    ryu::hex_dump(
                             static_cast<const void*>(value.c_str()),
-                            value.length());
-                    result.add_message("C003", dump);
+                            value.length(),
+                            8,
+                            lines);
+                    for (const auto& row : lines) {
+                        dump_table.rows.push_back({row});
+                    }
+                    dump_table.rows.push_back({{fmt::format("{} bytes", value.length())}});
+
+                    params[fmt::format("dump{}", ++dump_count)] = dump_table;
                     break;
                 }
                 case core::variant::types::boolean_literal: {
                     auto value = boost::get<core::boolean_literal_t>(param).value;
-                    format_numeric_conversion(result, value, core::command_size_flags::byte);
+                    std::vector<std::string> results;
+                    format_numeric_conversion(
+                            value,
+                            core::command_size_flags::byte,
+                            results);
+                    conversion_table.rows.push_back({results});
                     break;
                 }
                 default: {
@@ -371,6 +426,12 @@ namespace ryu::core {
                 }
             }
         }
+
+        conversion_table.rows.push_back({{fmt::format("{} expression evaluated", values.size())}});
+        params["data"] = conversion_table;
+
+        result.add_data("command_result", params);
+
         return true;
     }
 
@@ -409,11 +470,20 @@ namespace ryu::core {
                     ->read_byte(static_cast<uint32_t>(addr + i));
         }
 
-        auto dump = ryu::hex_dump(
-                static_cast<const void*>(buffer),
-                128);
+        data_table_t table {};
+        table.headers.push_back({"Offset",   6,  6});
+        table.headers.push_back({"Data",    24, 24});
+        table.headers.push_back({"ASCII",    8,  8});
+        table.footers.push_back({"Bytes",   20, 20});
 
-        result.add_message("C003", dump);
+        std::vector<std::vector<std::string>> lines;
+        ryu::hex_dump(buffer, 128, 8, lines);
+        for (const auto& row : lines) {
+            table.rows.push_back({row});
+        }
+        table.rows.push_back({{fmt::format("{} bytes", 128)}});
+
+        result.add_data("command_result", {{"data", table}});
 
         delete[] buffer;
 

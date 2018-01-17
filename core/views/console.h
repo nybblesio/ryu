@@ -22,9 +22,9 @@ namespace ryu::core {
 
     class console : public core::view {
     public:
-        using caret_changed_callable = std::function<void (const core::caret&)>;
-        using execute_command_callable = std::function<bool (core::result&, const std::string&)>;
-        using command_action_dict = std::map<std::string, std::function<void (core::console&, const parameter_dict&)>>;
+        using caret_changed_callable = std::function<void(const core::caret&)>;
+        using execute_command_callable = std::function<bool(core::result&, const std::string&)>;
+        using command_action_dict = std::map<std::string, std::function<bool (core::console&, const parameter_dict&)>>;
 
         enum states {
             input,
@@ -45,6 +45,10 @@ namespace ryu::core {
 
         uint32_t write_message(
                 const std::string& message,
+                bool last_newline = true);
+
+        uint32_t write_message(
+                const formatted_text_t& formatted_text,
                 bool last_newline = true);
 
         void update(uint32_t dt);
@@ -82,17 +86,9 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
-        void format_lines(
-                result& result,
-                const std::vector<core::formatted_text_t>& lines);
-
         bool transition_to(
                 const std::string& name,
                 const core::parameter_dict& params);
-
-        void format_command_result(
-                result& result,
-                const parameter_variant_t& param);
 
         std::string get_alignment_format(
                 core::alignment::horizontal::types value);
@@ -110,6 +106,10 @@ namespace ryu::core {
         void on_resume_process_command();
 
         std::string find_command_string();
+
+        void format_command_result(const parameter_variant_t& param);
+
+        void scale_columns(std::vector<data_table_column_t>& columns);
 
     private:
         static command_action_dict _handlers;
