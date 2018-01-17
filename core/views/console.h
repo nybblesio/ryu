@@ -38,6 +38,10 @@ namespace ryu::core {
 
         void initialize();
 
+        uint32_t write_message(
+                const std::string& message,
+                bool last_newline = true);
+
         void update(uint32_t dt);
 
         void caret_color(uint8_t color);
@@ -49,8 +53,6 @@ namespace ryu::core {
         bool caret_left(uint8_t columns = 1);
 
         bool caret_right(uint8_t columns = 1);
-
-        void write_message(const std::string& message);
 
         void code_mapper(const code_to_attr_dict& value);
 
@@ -90,8 +92,10 @@ namespace ryu::core {
         uint8_t _color;
         metrics_t _metrics;
         document _document;
+        int16_t _remaining_lines = 0;
         states _state = states::input;
         code_to_attr_dict _code_mapper;
+        size_t _current_result_message_index = 0;
         std::deque<core::result> _command_result_queue;
         caret_changed_callable _caret_changed_callback;
         state_transition_callable _transition_to_callback;

@@ -179,33 +179,56 @@ namespace ryu::core {
     }
 
     void console::process_command_result_queue() {
-        if (_command_result_queue.empty())
+        if (_command_result_queue.empty()) {
+            _state = states::input;
+            _remaining_lines = 0;
+            _current_result_message_index = 0;
             return;
+        }
+
+        if (_remaining_lines <= 0) {
+            _remaining_lines = static_cast<int16_t>(_metrics.page_height - 2);
+        }
 
         const auto& result = _command_result_queue.front();
-        _command_result_queue.pop_front();
         auto success = !result.is_failed();
 
         caret_down();
         caret_home();
 
         const auto& list = result.messages();
-        size_t msg_index = 0;
-        while (msg_index < list.size()) {
-            while (_caret.row() < _metrics.page_height - 4 && msg_index < list.size()) {
-                const auto& msg = list[msg_index++];
-                if (msg.type() == core::result_message::types::data)
-                    continue;
-                auto error_part = msg.is_error() ? "<bold><red>ERROR:<> " : "";
-                write_message(fmt::format("{0}{1}", error_part, msg.message()));
-            }
-            // XXX: ???
-            break;
+        while (_remaining_lines > 0
+            && _current_result_message_index < list.size()) {
+
+            const auto& msg = list[_current_result_message_index++];
+            if (msg.type() == core::result_message::types::data)
+                continue;
+
+            auto error_part = msg.is_error() ?
+                "<bold><red>ERROR:<> " :
+                "";
+            auto line_count = write_message(fmt::format("{0}{1}",
+                error_part,
+                msg.message()));
+
+            _remaining_lines -= line_count;
         }
+
+        if (_current_result_message_index < list.size()) {
+            write_message("<rev><bold> MORE (SPACE to continue) <>", false);
+            _state = states::wait;
+        }
+
+        if (_state == states::wait)
+            return;
 
         caret_down();
         caret_home();
 
+        // TODO: format command_result entries in data
+
+        // process special results
+        // XXX: command_special_action
         if (result.has_code("C004")) {
             _document.clear();
             caret_home();
@@ -244,6 +267,11 @@ namespace ryu::core {
         }
 
         write_message("Ready.");
+
+        _state = states::input;
+        _remaining_lines = 0;
+        _command_result_queue.pop_front();
+        _current_result_message_index = 0;
     }
 
     bool console::on_process_event(const SDL_Event* e) {
@@ -446,7 +474,11 @@ namespace ryu::core {
         return false;
     }
 
-    void console::write_message(const std::string& message) {
+    uint32_t console::write_message(
+            const std::string& message,
+            bool last_newline) {
+        uint32_t line_count = 0;
+
         core::attr_t attr {
             _color,
             core::font::styles::normal,
@@ -460,6 +492,7 @@ namespace ryu::core {
             if (span.attr_code == "newline") {
                 caret_down();
                 caret_home();
+                ++line_count;
                 continue;
             }
 
@@ -483,8 +516,13 @@ namespace ryu::core {
             }
         }
 
-        caret_down();
-        caret_home();
+        if (last_newline) {
+            caret_down();
+            caret_home();
+            line_count++;
+        }
+
+        return line_count;
     }
 
     void console::on_execute_command(const execute_command_callable& callable) {

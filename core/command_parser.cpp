@@ -613,11 +613,13 @@ namespace ryu::core {
         return parse_command();
     }
 
-    // TODO: if command_spec_t does not specify valid sizes
-    //       issue parsing error if size is found
     ast_node_shared_ptr command_parser::parse_command() {
         consume_white_space();
+
         auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+
         if (!isspace(*token)) {
             std::stringstream stream;
             auto size = command_size_flags::dword;
@@ -657,11 +659,16 @@ namespace ryu::core {
                 else
                     break;
             }
+
             auto it = _commands.find(stream.str());
             if (it == _commands.end()) {
                 error("P010", "unknown command");
                 return nullptr;
             }
+
+            // XXX: if size is not default and command_spec_t doesn't
+            //      validate the size, error.
+
             auto command_node = std::make_shared<ast_node_t>();
             command_node->value = command_t {it->second, stream.str(), size};
             command_node->token = ast_node_t::tokens::command;
