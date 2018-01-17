@@ -29,6 +29,7 @@ namespace ryu::core {
         enum flags : uint8_t {
             none          = 0b00000000,
             reverse       = 0b00000001,
+            link          = 0b00000010,
         };
 
         static int to_sdl_style(uint8_t flags) {

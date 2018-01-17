@@ -576,6 +576,13 @@ namespace ryu::core {
             uint32_t,
             bool> parameter_variant_t;
 
+    enum parameter_dict_types {
+        table = 0,
+        string,
+        integer32,
+        boolean
+    };
+
     typedef std::map<std::string, parameter_variant_t> parameter_dict;
     typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
 

@@ -622,7 +622,7 @@ namespace ryu::core {
 
         if (!isspace(*token)) {
             std::stringstream stream;
-            auto size = command_size_flags::dword;
+            auto size = command_size_flags::none;
             stream << *token;
             while (true) {
                 token = move_to_next_token();
@@ -666,11 +666,18 @@ namespace ryu::core {
                 return nullptr;
             }
 
-            // XXX: if size is not default and command_spec_t doesn't
-            //      validate the size, error.
+            auto command_spec = it->second;
+            if (size != command_size_flags::none
+            && (command_spec.valid_sizes & size) == 0) {
+                error("P011", "invalid size specifier for command");
+                return nullptr;
+            }
 
             auto command_node = std::make_shared<ast_node_t>();
-            command_node->value = command_t {it->second, stream.str(), size};
+            command_node->value = command_t {
+                    command_spec,
+                    stream.str(),
+                    size};
             command_node->token = ast_node_t::tokens::command;
 
             while (true) {

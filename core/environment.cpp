@@ -51,6 +51,7 @@ namespace ryu::core {
                 mask = 0xffff;
                 fmt_spec = "${0:04x} {1:>5} \"{2:>2}\" %{0:016b}";
                 break;
+            case core::command_size_flags::none:
             case core::command_size_flags::dword:
                 byte_count = 4;
                 mask = 0xffffffff;
@@ -279,14 +280,14 @@ namespace ryu::core {
     bool environment::on_quit(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_result", {{"data", "Goodbye!"}});
+        result.add_data("command_action", {{"action", std::string("quit")}});
         return true;
     }
 
     bool environment::on_clear(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_result", {{"data", "Clear screen buffer"}});
+        result.add_data("command_action", {{"action", std::string("clear")}});
         return true;
     }
 
@@ -690,53 +691,73 @@ namespace ryu::core {
             core::result& result,
             const command_handler_context_t& context) {
         core::parameter_dict dict;
-        dict["name"] = boost::get<core::string_literal_t>(context.params["name"].front()).value;
-        dict["type"] = boost::get<core::identifier_t>(context.params["type"].front()).value;
-        result.add_data("C030", dict);
+
+        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
+        auto type = boost::get<core::identifier_t>(context.params["type"].front()).value;
+
+        std::string action;
+        if (type == "MACH") {
+            action = "edit_machine";
+        } else if (type == "TEXT") {
+            action = "edit_source";
+        } else if (type == "DATA") {
+            action = "edit_memory";
+        }
+
+        result.add_data("command_action", {
+            {"action", action},
+            {"name", name}
+        });
+
         return true;
     }
 
     bool environment::on_source_editor(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("C002", {});
+        result.add_data("command_action", {{"action", std::string("edit_source")}});
         return true;
     }
 
     bool environment::on_memory_editor(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("C024", {});
+        result.add_data("command_action", {{"action", std::string("edit_memory")}});
         return true;
     }
 
     bool environment::on_sprite_editor(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {{"action", std::string("edit_sprites")}});
         return true;
     }
 
     bool environment::on_tile_editor(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {{"action", std::string("edit_tiles")}});
         return true;
     }
 
     bool environment::on_background_editor(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {{"action", std::string("edit_backgrounds")}});
         return true;
     }
 
     bool environment::on_tracker(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {{"action", std::string("edit_music")}});
         return true;
     }
 
     bool environment::on_sounds(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {{"action", std::string("edit_sounds")}});
         return true;
     }
 
@@ -801,6 +822,7 @@ namespace ryu::core {
     bool environment::on_register_editor(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {{"action", std::string("edit_cpu")}});
         return true;
     }
 

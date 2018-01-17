@@ -10,7 +10,6 @@
 
 #include <sstream>
 #include <fmt/format.h>
-#include <core/text_formatter.h>
 #include "console.h"
 
 // TODO
@@ -19,6 +18,35 @@
 // - bug fixes
 
 namespace ryu::core {
+
+    console::command_action_dict console::_handlers = {
+        {
+            "clear",
+            [](core::console& console, auto params) {
+                console._document.clear();
+                console.caret_home();
+                console._caret.row(0);
+            }
+        },
+        {
+            "edit_machine",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_machine", params);
+            }
+        },
+        {
+            "edit_source",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_source", params);
+            }
+        },
+        {
+            "edit_memory",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_memory", params);
+            }
+        },
+    };
 
     console::console(const std::string& name) : core::view(core::view::types::container, name),
                                                           _caret("console-caret") {
@@ -56,8 +84,20 @@ namespace ryu::core {
             case input: {
                 break;
             }
+            case pre_processing: {
+                on_pre_process_command();
+                break;
+            }
             case processing: {
-                process_command_result_queue();
+                on_process_command();
+                break;
+            }
+            case post_processing: {
+                on_post_process_command();
+                break;
+            }
+            case resume_processing: {
+                on_resume_process_command();
                 break;
             }
             case wait: {
@@ -178,20 +218,8 @@ namespace ryu::core {
         return cmd.str();
     }
 
-    void console::process_command_result_queue() {
-        if (_command_result_queue.empty()) {
-            _state = states::input;
-            _remaining_lines = 0;
-            _current_result_message_index = 0;
-            return;
-        }
-
-        if (_remaining_lines <= 0) {
-            _remaining_lines = static_cast<int16_t>(_metrics.page_height - 2);
-        }
-
+    void console::on_process_command() {
         const auto& result = _command_result_queue.front();
-        auto success = !result.is_failed();
 
         caret_down();
         caret_home();
@@ -217,61 +245,170 @@ namespace ryu::core {
         if (_current_result_message_index < list.size()) {
             write_message("<rev><bold> MORE (SPACE to continue) <>", false);
             _state = states::wait;
+        } else {
+            _state = states::post_processing;
+        }
+    }
+
+    std::string console::get_alignment_format(
+            core::alignment::horizontal::types value) {
+        std::string format;
+        switch (value) {
+            case alignment::horizontal::right:
+                format = "{:>{}}";
+                break;
+            case alignment::horizontal::center:
+                break;
+            default:
+                format = "{:<{}}";
+                break;
+        }
+        return format;
+    }
+
+    void console::format_lines(
+            core::result& result,
+            const std::vector<core::formatted_text_t>& lines) {
+        for (const auto& line : lines) {
+            result.add_message(
+                "output",
+                core::text_formatter::formatted_text_to_string(line));
+        }
+    }
+
+    void console::format_command_result(
+            core::result& result,
+            const parameter_variant_t& param) {
+        switch (param.which()) {
+            case parameter_dict_types::table: {
+                auto table = boost::get<core::data_table_t>(param);
+                std::vector<core::formatted_text_t> lines {};
+
+                core::formatted_text_t header_line {};
+                header_line.spans.push_back({"rev", " "});
+                for (const auto& col : table.headers) {
+                    header_line.spans.push_back({
+                        "",
+                        fmt::format(
+                                get_alignment_format(col.alignment),
+                                col.text,
+                                col.max_width)
+                    });
+                }
+                header_line.spans.push_back({"", " "});
+                if (table.rows.size() - 1 == 0) {
+                    header_line.spans.push_back({"reset"});
+                    header_line.spans.push_back({"newline"});
+                    header_line.spans.push_back({"italic", " No results."});
+                }
+                lines.push_back(header_line);
+
+                for (size_t i = 0; i < table.rows.size() - 1; i++) {
+                    const auto& row = table.rows[i];
+                    core::formatted_text_t row_line{};
+                    row_line.spans.push_back({"", " "});
+
+                    for (size_t j = 0; j < row.columns.size(); j++) {
+                        const auto& header = table.headers[j];
+                        const auto& col = row.columns[j];
+                        row_line.spans.push_back({
+                             "",
+                             fmt::format(
+                                     get_alignment_format(header.alignment),
+                                     col,
+                                     header.max_width)
+                        });
+                    }
+
+                    lines.push_back(row_line);
+                }
+
+                core::formatted_text_t footer_line {};
+                footer_line.spans.push_back({"rev", " "});
+                const auto& footer_data_row = table.rows[table.rows.size() - 1];
+                for (size_t i = 0; i < footer_data_row.columns.size(); i++) {
+                    const auto& footer = table.footers[i];
+                    const auto& col = footer_data_row.columns[i];
+                    footer_line.spans.push_back({
+                        "",
+                        fmt::format(
+                                get_alignment_format(footer.alignment),
+                                col,
+                                footer.max_width)
+                    });
+                }
+                footer_line.spans.push_back({"", " "});
+                lines.push_back(footer_line);
+
+                format_lines(result, lines);
+                break;
+            }
+            case parameter_dict_types::string: {
+                auto value = boost::get<std::string>(param);
+                result.add_message("output", value);
+                break;
+            }
+            case parameter_dict_types::integer32: {
+                auto value = boost::get<uint32_t>(param);
+                result.add_message("output", std::to_string(value));
+                break;
+            }
+            case parameter_dict_types::boolean: {
+                auto value = boost::get<bool>(param);
+                result.add_message("output", std::to_string(value));
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    void console::on_pre_process_command() {
+        auto& result = _command_result_queue.front();
+
+        auto command_result_msg = result.find_code("command_result");
+        if (command_result_msg != nullptr) {
+            auto params = command_result_msg->params();
+            for (auto it = params.begin(); it != params.end(); ++it) {
+                format_command_result(result, it->second);
+            }
         }
 
-        if (_state == states::wait)
-            return;
+        _current_result_message_index = 0;
 
-        caret_down();
-        caret_home();
+        _state = states::resume_processing;
+    }
 
-        // TODO: format command_result entries in data
+    void console::on_post_process_command() {
+        const auto& result = _command_result_queue.front();
 
-        // process special results
-        // XXX: command_special_action
-        if (result.has_code("C004")) {
-            _document.clear();
-            caret_home();
-            _caret.row(0);
-        } else if (success) {
-            auto code = result.find_code("C023");
-            if (code != nullptr) {
-                transition_to("edit_machine", code->params());
-            }
-
-            code = result.find_code("C002");
-            if (code != nullptr) {
-                transition_to("edit_source", code->params());
-            }
-
-            code = result.find_code("C024");
-            if (code != nullptr) {
-                transition_to("edit_memory", code->params());
-            }
-
-            code = result.find_code("C030");
-            if (code != nullptr) {
-                const auto& params = code->params();
-                auto it = params.find("type");
-                if (it != params.end()) {
-                    auto type = boost::get<std::string>(it->second);
-                    if (type == "MACH") {
-                        transition_to("edit_machine", params);
-                    } else if (type == "TEXT") {
-                        transition_to("edit_source", params);
-                    } else if (type == "DATA") {
-                        transition_to("edit_memory", params);
-                    }
+        auto command_action_msg = result.find_code("command_action");
+        if (command_action_msg != nullptr) {
+            auto params = command_action_msg->params();
+            auto action_it = params.find("action");
+            if (action_it != params.end()) {
+                auto command = boost::get<std::string>(action_it->second);
+                auto handler_it = _handlers.find(command);
+                if (handler_it != _handlers.end()) {
+                    handler_it->second(*this, params);
                 }
             }
         }
 
+        caret_down();
+        caret_home();
         write_message("Ready.");
 
-        _state = states::input;
-        _remaining_lines = 0;
         _command_result_queue.pop_front();
-        _current_result_message_index = 0;
+
+        _state = states::input;
+    }
+
+    void console::on_resume_process_command() {
+        _remaining_lines = static_cast<int16_t>(_metrics.page_height - 2);
+
+        _state = states::processing;
     }
 
     bool console::on_process_event(const SDL_Event* e) {
@@ -283,7 +420,7 @@ namespace ryu::core {
             return false;
         } else if (_state == states::wait) {
             if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_SPACE) {
-                _state = states::processing;
+                _state = states::resume_processing;
                 return true;
             }
             return false;
@@ -413,7 +550,7 @@ namespace ryu::core {
                         if (str.length() > 0 && _execute_command_callback != nullptr) {
                             _execute_command_callback(result, str);
                             _command_result_queue.push_back(result);
-                            _state = states::processing;
+                            _state = states::pre_processing;
                             return true;
                         }
                     }

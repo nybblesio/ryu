@@ -100,8 +100,18 @@ namespace ryu::ide::console_editor {
         });
         _console.on_execute_command([&](core::result& result, const std::string& input) {
             auto success = context()->environment()->execute(result, input);
-            if (success && result.has_code("C001")) {
-                context()->engine()->quit();
+            if (success) {
+                auto command_action_msg = result.find_code("command_action");
+                if (command_action_msg == nullptr)
+                    return success;
+
+                auto params = command_action_msg->params();
+                auto action_it = params.find("action");
+                if (action_it != params.end()) {
+                    auto command = boost::get<std::string>(action_it->second);
+                    if (command == "quit")
+                        context()->engine()->quit();
+                }
             }
             return success;
         });
