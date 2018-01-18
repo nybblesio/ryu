@@ -19,8 +19,8 @@ namespace ryu {
 
     class application {
     public:
-        static const int display_width = 1280;
-        static const int display_height = 1024;
+        static const int display_width = 1920;
+        static const int display_height = 1080;
 
         application();
 

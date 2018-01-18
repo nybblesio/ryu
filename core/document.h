@@ -128,6 +128,10 @@ namespace ryu::core {
 
         line_t* insert_line(uint32_t row);
 
+        inline size_t line_count() const {
+            return _lines.size();
+        }
+
         uint16_t find_line_end(uint32_t row);
 
         void save(const fs::path& path = "");

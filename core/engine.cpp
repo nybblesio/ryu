@@ -171,17 +171,17 @@ namespace ryu::core {
                         result.fail();
                     } else {
                         // XXX: need to load multiple sizes for user config
-                        auto topaz = add_font_family(24, "topaz");
-                        _font = topaz->add_style(font::styles::normal, "assets/Topaz-8.ttf");
+                        auto topaz = add_font_family(14, "topaz");
+                        _font = topaz->add_style(font::styles::normal, "assets/fonts/topaz/Topaz-8.ttf");
 
-                        auto hack = add_font_family(26, "hack");
-                        hack->add_style(font::styles::normal,                      "assets/Hack-Regular.ttf");
-                        hack->add_style(font::styles::bold,                        "assets/Hack-Bold.ttf");
+                        auto hack = add_font_family(16, "hack");
+                        hack->add_style(font::styles::normal,                      "assets/fonts/hack/Hack-Regular.ttf");
+                        hack->add_style(font::styles::bold,                        "assets/fonts/hack/Hack-Bold.ttf");
                         // XXX: there appears to be an issue with this font
-                        hack->add_style(font::styles::italic,                      "assets/Hack-Italic.ttf");
-                        hack->add_style(font::styles::underline,                   "assets/Hack-Regular.ttf");
-                        hack->add_style(font::styles::bold|font::styles::underline,"assets/Hack-Bold.ttf");
-                        hack->add_style(font::styles::bold|font::styles::italic,   "assets/Hack-BoldItalic.ttf");
+                        hack->add_style(font::styles::italic,                      "assets/fonts/hack/Hack-Italic.ttf");
+                        hack->add_style(font::styles::underline,                   "assets/fonts/hack/Hack-Regular.ttf");
+                        hack->add_style(font::styles::bold|font::styles::underline,"assets/fonts/hack/Hack-Bold.ttf");
+                        hack->add_style(font::styles::bold|font::styles::italic,   "assets/fonts/hack/Hack-BoldItalic.ttf");
                     }
                 }
             }

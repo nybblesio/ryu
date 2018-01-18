@@ -595,6 +595,12 @@ namespace ryu::core {
 
         current_path(value);
 
+        result.add_data(
+                "command_action",
+                {
+                    {"action", std::string("update_working_directory")},
+                });
+
         return true;
     }
 

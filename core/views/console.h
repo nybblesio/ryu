@@ -10,8 +10,10 @@
 
 #pragma once
 
+#include <utility>
 #include <core/view.h>
 #include <core/document.h>
+#include <core/selection.h>
 #include <core/text_formatter.h>
 #include "caret.h"
 
@@ -33,7 +35,7 @@ namespace ryu::core {
         core::result result;
         core::formatted_text_list lines;
 
-        explicit output_queue_entry_t(const core::result& value) : result(value) {
+        explicit output_queue_entry_t(core::result value) : result(std::move(value)) {
         }
 
         output_process_result_t process(console* c);
@@ -41,7 +43,7 @@ namespace ryu::core {
 
     class console : public core::view {
     public:
-        using caret_changed_callable = std::function<void(const core::caret&)>;
+        using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
         using execute_command_callable = std::function<bool(core::result&, const std::string&)>;
         using command_action_dict = std::map<std::string, std::function<bool (core::console&, const parameter_dict&)>>;
 
@@ -56,7 +58,15 @@ namespace ryu::core {
 
         explicit console(const std::string& name);
 
+        void page_up();
+
+        void page_down();
+
         void caret_end();
+
+        void last_page();
+
+        void first_page();
 
         void caret_home();
 
@@ -97,6 +107,8 @@ namespace ryu::core {
             const int left_padding = 10;
             const int right_padding = 10;
         };
+
+        void update_virtual_position();
 
         void on_draw(core::renderer& surface) override;
 
@@ -143,8 +155,11 @@ namespace ryu::core {
 
         caret _caret;
         uint8_t _color;
+        uint16_t _vcol;
+        uint32_t _vrow;
         metrics_t _metrics;
         document _document;
+        selection _selection;
         int16_t _remaining_lines = 0;
         states _state = states::input;
         code_to_attr_dict _code_mapper;

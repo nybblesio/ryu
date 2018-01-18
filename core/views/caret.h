@@ -70,14 +70,14 @@ namespace ryu::core {
         void on_draw(core::renderer& surface) override;
 
     private:
-        bool clamp_row(uint8_t last_row);
+        bool clamp_row();
 
-        bool clamp_column(uint8_t last_col);
+        bool clamp_column();
 
     private:
-        uint8_t _row = 0;
+        int16_t _row = 0;
         bool _show = true;
-        uint8_t _column = 0;
+        int16_t _column = 0;
         core::timer _timer;
         uint8_t _page_width = 0;
         uint8_t _page_height = 0;

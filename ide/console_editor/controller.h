@@ -47,9 +47,12 @@ namespace ryu::ide::console_editor {
 
         metrics_t _metrics;
         core::label _header;
-        core::label _footer;
         core::console _console;
         bool _show_banner = true;
+        core::label _caret_status;
+        core::label _document_status;
+        core::label _working_directory;
+        core::dock_layout_panel _footer;
         core::dock_layout_panel _layout_panel;
     };
 

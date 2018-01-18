@@ -34,31 +34,30 @@ namespace ryu::core {
     }
 
     uint8_t caret::row() const {
-        return _row;
+        return static_cast<uint8_t>(_row);
     }
 
     bool caret::row(uint8_t row) {
         _row = row;
-        auto clamped = clamp_row(_row);
+        auto clamped = clamp_row();
         raise_caret_changed();
         return clamped;
     }
 
     bool caret::up(uint8_t rows) {
-        auto last_row = _row;
         _row -= rows;
-        auto clamped = clamp_row(last_row);
+        auto clamped = clamp_row();
         raise_caret_changed();
         return clamped;
     }
 
     uint8_t caret::column() const {
-        return _column;
+        return static_cast<uint8_t>(_column);
     }
 
     bool caret::down(uint8_t rows) {
         _row += rows;
-        auto clamped = clamp_row(_row);
+        auto clamped = clamp_row();
         raise_caret_changed();
         return clamped;
     }
@@ -69,23 +68,22 @@ namespace ryu::core {
     }
 
     bool caret::left(uint8_t columns) {
-        auto last_col = _column;
         _column -= columns;
-        auto clamped = clamp_column(last_col);
+        auto clamped = clamp_column();
         raise_caret_changed();
         return clamped;
     }
 
     bool caret::right(uint8_t columns) {
         _column += columns;
-        auto clamped = clamp_column(_column);
+        auto clamped = clamp_column();
         raise_caret_changed();
         return clamped;
     }
 
     bool caret::column(uint8_t column) {
         _column = column;
-        auto clamped = clamp_column(_column);
+        auto clamped = clamp_column();
         raise_caret_changed();
         return clamped;
     }
@@ -110,27 +108,27 @@ namespace ryu::core {
         timer_pool::instance()->add_timer(&_timer);
     }
 
-    bool caret::clamp_row(uint8_t last_row) {
-        if (_row > last_row) {
-            _row = last_row;
+    bool caret::clamp_row() {
+        if (_row < 0) {
+            _row = 0;
             return true;
         }
-        auto clamp = static_cast<uint8_t>(_page_height > 0 ? _page_height - 1 : 0);
+        auto clamp = _page_height > 0 ? _page_height - 1 : 0;
         if (_row > clamp) {
-            _row = clamp;
+            _row = static_cast<int16_t>(clamp);
             return true;
         }
         return false;
     }
 
-    bool caret::clamp_column(uint8_t last_col) {
-        if (_column > last_col) {
-            _column = last_col;
+    bool caret::clamp_column() {
+        if (_column < 0) {
+            _column = 0;
             return true;
         }
-        auto clamp = static_cast<uint8_t>(_page_width > 0 ? _page_width - 1 : 0);
+        auto clamp = _page_width > 0 ? _page_width - 1 : 0;
         if (_column > clamp) {
-            _column = clamp;
+            _column = static_cast<int16_t>(clamp);
             return true;
         }
         return false;
@@ -162,8 +160,8 @@ namespace ryu::core {
     void caret::page_size(uint8_t page_height, uint8_t page_width) {
         _page_width = page_width;
         _page_height = page_height;
-        clamp_row(_row);
-        clamp_column(_column);
+        clamp_row();
+        clamp_column();
     }
 
     void caret::on_caret_changed(const caret::caret_changed_callable& callable) {
