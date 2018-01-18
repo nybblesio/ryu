@@ -94,7 +94,6 @@ namespace ryu::core {
         return true;
     }
 
-    // XXX: this feels wrong, need to rework this
     int32_t id_pool::allocate_from_range(uint32_t start_id, uint32_t end_id) {
         for (size_t id = static_cast<size_t>(start_id);
              id < static_cast<size_t>(end_id);

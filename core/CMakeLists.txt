@@ -31,6 +31,7 @@ add_library(
         views/console.cpp views/console.h
         views/textbox.cpp views/textbox.h
         palette_entry.cpp palette_entry.h
+        hex_formatter.cpp hex_formatter.h
         views/checkbox.cpp views/checkbox.h
         command_parser.cpp command_parser.h
         views/notebook.cpp views/notebook.h

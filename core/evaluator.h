@@ -18,14 +18,19 @@ namespace ryu::core {
     public:
         evaluator() = default;
 
+        variant_t evaluate(
+                core::result& result,
+                const ast_node_shared_ptr& node);
+
         core::symbol_table* symbol_table();
 
         void symbol_table(core::symbol_table* value);
 
-        variant_t evaluate(core::result& result, const ast_node_shared_ptr& node);
-
     protected:
-        void error(core::result& result, const std::string& code, const std::string& message);
+        void error(
+                core::result& result,
+                const std::string& code,
+                const std::string& message);
 
     private:
         core::symbol_table* _symbol_table = nullptr;

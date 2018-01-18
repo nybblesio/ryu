@@ -177,6 +177,7 @@ namespace ryu::core {
                         auto hack = add_font_family(26, "hack");
                         hack->add_style(font::styles::normal,                      "assets/Hack-Regular.ttf");
                         hack->add_style(font::styles::bold,                        "assets/Hack-Bold.ttf");
+                        // XXX: there appears to be an issue with this font
                         hack->add_style(font::styles::italic,                      "assets/Hack-Italic.ttf");
                         hack->add_style(font::styles::underline,                   "assets/Hack-Regular.ttf");
                         hack->add_style(font::styles::bold|font::styles::underline,"assets/Hack-Bold.ttf");

@@ -12,16 +12,17 @@
 
 namespace ryu::core {
 
-    core::symbol_table* evaluator::symbol_table() {
-        return _symbol_table;
+    void evaluator::error(
+            core::result& result,
+            const std::string& code,
+            const std::string& message) {
+        result.add_message(code, message, true);
+        result.fail();
     }
 
-    void evaluator::symbol_table(core::symbol_table* value) {
-        _symbol_table = value;
-    }
-
-    // XXX: this does not support recursive references
-    variant_t evaluator::evaluate(core::result& result, const ast_node_shared_ptr& node) {
+    variant_t evaluator::evaluate(
+            core::result& result,
+            const ast_node_shared_ptr& node) {
         if (node == nullptr)
             return {};
 
@@ -227,8 +228,12 @@ namespace ryu::core {
         return {};
     }
 
-    void evaluator::error(core::result& result, const std::string& code, const std::string& message) {
-        result.add_message(code, message, true);
-        result.fail();
+    core::symbol_table* evaluator::symbol_table() {
+        return _symbol_table;
     }
+
+    void evaluator::symbol_table(core::symbol_table* value) {
+        _symbol_table = value;
+    }
+
 }

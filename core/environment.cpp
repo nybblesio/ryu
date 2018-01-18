@@ -18,6 +18,7 @@
 #include <common/string_support.h>
 #include "environment.h"
 #include "text_formatter.h"
+#include "hex_formatter.h"
 
 // TODO
 //
@@ -30,7 +31,6 @@
 
 namespace ryu::core {
 
-    // XXX: bug some values result in the ASCII conversion failing
     static void format_numeric_conversion(
             int32_t value,
             core::command_size_flags size,
@@ -78,12 +78,7 @@ namespace ryu::core {
         auto* p = (char*) (&value) + (byte_count - 1);
         for (auto i = 0; i < byte_count; i++) {
             char c = *p--;
-            if (c == 0)
-                ascii += ".";
-            else if (c == 10)
-                ascii += "\\n";
-            else
-                ascii += c;
+            ascii += isprint(c) ? c : '.';
         }
 
         auto signed_value = value & mask;
@@ -311,6 +306,8 @@ namespace ryu::core {
             core::result& result,
             const command_handler_context_t& context) {
         auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
+        // XXX: validate that identifier is *not* in the ast
+        //      if found, then error
         _symbol_table.put(identifier, context.root->children[1]);
         save(result, "global.conf");
         return true;
@@ -390,25 +387,14 @@ namespace ryu::core {
                     break;
                 }
                 case core::variant::types::string_literal: {
-                    data_table_t dump_table {};
-                    dump_table.headers.push_back({"Offset",   6,  6});
-                    dump_table.headers.push_back({"Data",    24, 24});
-                    dump_table.headers.push_back({"ASCII",    8,  8});
-                    dump_table.footers.push_back({"Bytes",   20, 20});
-
                     auto value = boost::get<core::string_literal_t>(param).value;
                     std::vector<std::vector<std::string>> lines;
-                    ryu::hex_dump(
+                    auto table = core::hex_formatter::dump_to_table(
                             static_cast<const void*>(value.c_str()),
-                            value.length(),
-                            8,
-                            lines);
-                    for (const auto& row : lines) {
-                        dump_table.rows.push_back({row});
-                    }
-                    dump_table.rows.push_back({{fmt::format("{} bytes", value.length())}});
-
-                    params[fmt::format("dump{}", ++dump_count)] = dump_table;
+                            value.length());
+                    params.insert(std::make_pair(
+                            fmt::format("dump{}", ++dump_count),
+                            table));
                     break;
                 }
                 case core::variant::types::boolean_literal: {
@@ -470,20 +456,14 @@ namespace ryu::core {
                     ->read_byte(static_cast<uint32_t>(addr + i));
         }
 
-        data_table_t table {};
-        table.headers.push_back({"Offset",   6,  6});
-        table.headers.push_back({"Data",    24, 24});
-        table.headers.push_back({"ASCII",    8,  8});
-        table.footers.push_back({"Bytes",   20, 20});
-
-        std::vector<std::vector<std::string>> lines;
-        ryu::hex_dump(buffer, 128, 8, lines);
-        for (const auto& row : lines) {
-            table.rows.push_back({row});
-        }
-        table.rows.push_back({{fmt::format("{} bytes", 128)}});
-
-        result.add_data("command_result", {{"data", table}});
+        result.add_data(
+            "command_result",
+            {
+                {
+                    "data",
+                    core::hex_formatter::dump_to_table(buffer, 128)
+                }
+            });
 
         delete[] buffer;
 

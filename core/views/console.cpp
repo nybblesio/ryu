@@ -15,6 +15,7 @@
 // TODO
 //
 // - support select, cut, copy, paste (use text_editor implementation for start)
+// - full document support
 // - bug fixes
 
 namespace ryu::core {
@@ -312,9 +313,11 @@ namespace ryu::core {
 
                 core::formatted_text_t header_line {};
                 header_line.spans.push_back({"rev", " "});
+                header_line.spans.push_back({"bold", ""});
                 for (size_t i = 0; i < table.headers.size(); i++) {
-                    auto column_pad = i < table.headers.size() - 1 ? 1 : 0;
                     auto& col = table.headers[i];
+                    auto column_pad = i < table.headers.size() - 1 ?
+                                      col.padding : 0;
                     header_line.spans.push_back({
                         "",
                         fmt::format(
@@ -324,11 +327,6 @@ namespace ryu::core {
                     });
                 }
                 header_line.spans.push_back({"", " "});
-                if (table.rows.size() - 1 == 0) {
-                    header_line.spans.push_back({"reset"});
-                    header_line.spans.push_back({"newline"});
-                    header_line.spans.push_back({"italic", " No results."});
-                }
                 lines.push_back(header_line);
 
                 for (size_t i = 0; i < table.rows.size() - 1; i++) {
@@ -337,9 +335,10 @@ namespace ryu::core {
                     row_line.spans.push_back({"", " "});
 
                     for (size_t j = 0; j < row.columns.size(); j++) {
-                        auto column_pad = j < row.columns.size() - 1 ? 1 : 0;
                         const auto& header = table.headers[j];
                         const auto& col = row.columns[j];
+                        auto column_pad = j < row.columns.size() - 1 ?
+                                          header.padding : 0;
                         row_line.spans.push_back({
                              "",
                              fmt::format(
@@ -353,12 +352,13 @@ namespace ryu::core {
                 }
 
                 core::formatted_text_t footer_line {};
-                footer_line.spans.push_back({"rev", " "});
+                footer_line.spans.push_back({"bold", " "});
                 const auto& footer_data_row = table.rows[table.rows.size() - 1];
                 for (size_t i = 0; i < footer_data_row.columns.size(); i++) {
                     auto& footer = table.footers[i];
                     const auto& col = footer_data_row.columns[i];
-                    auto column_pad = i < footer_data_row.columns.size() - 1 ? 1 : 0;
+                    auto column_pad = i < footer_data_row.columns.size() - 1 ?
+                                      footer.padding : 0;
 
                     footer_line.spans.push_back({
                         "",

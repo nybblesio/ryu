@@ -54,28 +54,6 @@ namespace ryu {
         return text;
     }
 
-    void hex_dump(
-            const void* data,
-            size_t size,
-            uint8_t bytes,
-            std::vector<std::vector<std::string>>& results) {
-        auto* buf = (unsigned char*)data;
-        int i, j;
-        for (i = 0; i < size; i += bytes) {
-            std::vector<std::string> line{};
-            line.push_back(fmt::format("{:06x}", i));
-            std::stringstream byte_stream;
-            std::stringstream ascii_stream;
-            for (j = 0; j < bytes; j++) {
-                byte_stream << fmt::format("{:02x} ", buf[i + j]);
-                ascii_stream << (char) (isprint(buf[i + j]) ? buf[i + j] : '.');
-            }
-            line.push_back(byte_stream.str());
-            line.push_back(ascii_stream.str());
-            results.push_back(line);
-        }
-    }
-
     std::pair<std::string, std::string> size_to_units(size_t size) {
         auto i = 0;
         const char* units[] = {"bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
