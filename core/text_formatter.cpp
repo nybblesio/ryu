@@ -21,10 +21,10 @@ namespace ryu::core {
         if (width < formatted_text.actual_length)
             return formatted_text;
         formatted_text.spans.push_back(
-                {
-                   "",
-                   std::string(width - formatted_text.actual_length, fill)
-                });
+            {
+               "",
+               std::string(width - formatted_text.actual_length, fill)
+            });
         return formatted_text;
     }
 
@@ -36,11 +36,11 @@ namespace ryu::core {
         if (width < formatted_text.actual_length)
             return formatted_text;
         formatted_text.spans.insert(
-                formatted_text.spans.begin(),
-                {
-                    "",
-                    std::string(width - formatted_text.actual_length, fill)
-                });
+            formatted_text.spans.begin(),
+            {
+                "",
+                std::string(width - formatted_text.actual_length, fill)
+            });
         return formatted_text;
     }
 

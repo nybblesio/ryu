@@ -20,15 +20,6 @@
 #include "text_formatter.h"
 #include "hex_formatter.h"
 
-// TODO
-//
-// - refactor usage of core::result::add_message to be ::add_data or
-//   something new that supports passing a display-agnostic table-like
-//   structure back to the caller.
-//
-// - should we support quad-words as a display size
-//
-
 namespace ryu::core {
 
     static void format_numeric_conversion(
@@ -126,7 +117,7 @@ namespace ryu::core {
             {core::command_types::list_project_files,     [&](core::result& result, const command_handler_context_t& context) { return on_list_project_files(result, context); }},
             {core::command_types::edit_machine,           [&](core::result& result, const command_handler_context_t& context) { return on_edit_machine(result, context); }},
             {core::command_types::list_machines,          [&](core::result& result, const command_handler_context_t& context) { return on_list_machines(result, context); }},
-            {core::command_types::del_machine,            [&](core::result& result, const command_handler_context_t& context) { return on_del_machine(result, context); }},
+            {core::command_types::delete_machine,         [&](core::result& result, const command_handler_context_t& context) { return on_delete_machine(result, context); }},
             {core::command_types::use_machine,            [&](core::result& result, const command_handler_context_t& context) { return on_use_machine(result, context); }},
             {core::command_types::open_editor,            [&](core::result& result, const command_handler_context_t& context) { return on_open_editor(result, context); }},
             {core::command_types::source_editor,          [&](core::result& result, const command_handler_context_t& context) { return on_source_editor(result, context); }},
@@ -505,6 +496,15 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
+        data_table_t table {};
+        table.headers.push_back({"Filename",   11, 41});
+        table.headers.push_back({"Size",       10, 16, alignment::horizontal::right});
+        table.footers.push_back({"File Count", 10, 20});
+
+        std::vector<directory_entry> entries;
+        std::vector<directory_entry*> dir_entries;
+        std::vector<directory_entry*> file_entries;
+
         auto cwd = current_path();
         if (is_directory(cwd)) {
             auto format_entries = [&](const std::vector<directory_entry*>& list) {
@@ -512,19 +512,12 @@ namespace ryu::core {
                     std::pair<std::string, std::string> size;
                     if (boost::filesystem::is_regular(entry->path()))
                         size = ryu::size_to_units(boost::filesystem::file_size(entry->path()));
-                    result.add_message(
-                            "C005",
-                            fmt::format("  {0:<41}  {1:>10} {2:<5}",
-                                        fmt::format("\"{}\"", entry->path().filename().string()),
-                                        size.first,
-                                        size.second));
+                    data_table_row_t row {};
+                    row.columns.push_back(fmt::format("\"{}\"", entry->path().filename().string()));
+                    row.columns.push_back(fmt::format("{:>10} {:<5}", size.first, size.second));
+                    table.rows.push_back(row);
                 }
             };
-            result.add_message("C005", fmt::format("<rev><bold>  {0:<58} ", cwd.string()));
-            result.add_message("C005", fmt::format("<rev><bold>  {0:<41}   {1:<15}", "Filename", "Size"));
-            std::vector<directory_entry> entries;
-            std::vector<directory_entry*> dir_entries;
-            std::vector<directory_entry*> file_entries;
             copy(directory_iterator(cwd), directory_iterator(), back_inserter(entries));
             for (auto& entry : entries) {
                 if (entry.status().type() == file_type::directory_file) {
@@ -539,6 +532,12 @@ namespace ryu::core {
             format_entries(file_entries);
         }
 
+        table.rows.push_back({
+            {fmt::format("{} files", dir_entries.size() + file_entries.size())}
+        });
+
+        result.add_data("command_result", {{"data", table}});
+
         return true;
     }
 
@@ -547,17 +546,19 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
+        std::string message;
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
         if (!is_directory(value) && !is_regular_file(value)) {
             result.add_message("C008", fmt::format("invalid path: {}", value), true);
-            return false;
-        }
-        if (remove(value)) {
-            result.add_message("C008", fmt::format("{} removed", value));
         } else {
-            result.add_message("C008", fmt::format("remove of {} failed", value), true);
+            if (remove(value)) {
+                result.add_message("C008", fmt::format("{} removed", value));
+            } else {
+                result.add_message("C008", fmt::format("remove of {} failed", value), true);
+            }
         }
-        return true;
+
+        return !result.is_failed();
     }
 
     bool environment::on_move_file(
@@ -591,9 +592,9 @@ namespace ryu::core {
             result.add_message("C007", fmt::format("invalid path: {}", value), true);
             return false;
         }
+
         current_path(value);
-        auto cwd = current_path();
-        result.add_message("C007", fmt::format("working path is now: {}", cwd.string()));
+
         return true;
     }
 
@@ -683,8 +684,11 @@ namespace ryu::core {
             core::result& result,
             const command_handler_context_t& context) {
         result.add_data(
-                "C023",
-                {{"name", boost::get<core::string_literal_t>(context.params["name"].front()).value}});
+                "command_action",
+                {
+                    {"action", std::string("edit_machine")},
+                    {"name", boost::get<core::string_literal_t>(context.params["name"].front()).value}
+                });
         return true;
     }
 
@@ -692,26 +696,34 @@ namespace ryu::core {
             core::result& result,
             const command_handler_context_t& context) {
         auto machines = hardware::registry::instance()->machines();
-        result.add_message("C028", "<rev><bold> ID         Name                             Type ");
+
+        data_table_t table {};
+        table.headers.push_back({"ID",    5,  5});
+        table.headers.push_back({"Name", 12, 32});
+        table.headers.push_back({"Type",  4,  4});
+        table.footers.push_back({"Machine Count",  15,  20});
+
         for (auto machine : machines) {
-            result.add_message(
-                    "C028",
-                    fmt::format(" {:>5d}      {:<32s} {:<4s}",
-                                machine->id(),
-                                fmt::format("\"{}\"", machine->name()),
-                                "MACH"));
+            data_table_row_t row {};
+            row.columns.push_back(std::to_string(machine->id()));
+            row.columns.push_back(fmt::format("\"{}\"", machine->name()));
+            row.columns.push_back("MACH");
+            table.rows.push_back(row);
         }
-        result.add_message("C028", fmt::format("{} registered machines", machines.size()));
+
+        table.rows.push_back({{fmt::format("{} registered machines", machines.size())}});
+
+        result.add_data("command_result", {{"data", table}});
+
         return true;
     }
 
-    bool environment::on_del_machine(
+    bool environment::on_delete_machine(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_data(
-                "C027",
-                {{"name", boost::get<core::string_literal_t>(context.params["name"].front()).value}});
-        return true;
+        return hardware::registry::instance()->remove_machine(
+                result,
+                boost::get<core::string_literal_t>(context.params["name"].front()).value);
     }
 
     bool environment::on_use_machine(
@@ -833,7 +845,12 @@ namespace ryu::core {
             result.add_message("C021", fmt::format("invalid path: {}", value), true);
             return false;
         }
-        result.add_message("C021", value);
+
+        result.add_data("command_action", {
+            {"action", std::string("read_text")},
+            {"name", value}
+        });
+
         return true;
     }
 
@@ -850,22 +867,37 @@ namespace ryu::core {
                 return false;
             }
         }
-        result.add_message("C022", value);
+
+        result.add_data("command_action", {
+            {"action", std::string("write_text")},
+            {"name", value}
+        });
+
         return true;
     }
 
     bool environment::on_goto_line(
             core::result& result,
             const command_handler_context_t& context) {
-        result.add_message(
-                "C020",
-                std::to_string(boost::get<core::numeric_literal_t>(context.params["line"].front()).value));
+        result.add_data("command_action", {
+            {"action", std::string("goto_line")},
+            {
+                "line_number",
+                static_cast<uint32_t>(boost::get<core::numeric_literal_t>(context.params["line"].front()).value)
+            }
+        });
+
         return true;
     }
 
     bool environment::on_find_text(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {
+            {"action", std::string("find_text")},
+            {"needle", boost::get<core::string_literal_t>(context.params["needle"].front()).value}
+        });
+
         return true;
     }
 
@@ -879,13 +911,33 @@ namespace ryu::core {
     bool environment::on_help(
             core::result& result,
             const command_handler_context_t& context) {
-        constexpr uint8_t command_column_width = 20;
-        constexpr uint8_t help_column_width = 50;
+        using format_options = core::data_table_column_t::format_options;
 
-        const auto& commands = core::command_parser::command_catalog();
-        result.add_message("C030", "<rev><bold> Command                          Help                                   ");
+        const auto commands = core::command_parser::command_catalog();
+
+        data_table_t table {};
+        table.line_spacing = 1;
+        table.headers.push_back({
+            "Command",
+            10,
+            32,
+            alignment::horizontal::left,
+            1,
+            format_options::style_codes
+        });
+        table.headers.push_back({
+            "Help",
+            10,
+            50,
+            alignment::horizontal::left,
+            1,
+            format_options::style_codes | format_options::word_wrap
+        });
+        table.footers.push_back({"Command Count", 15,  20});
 
         for (const auto& c : commands) {
+            data_table_row_t row {};
+
             std::stringstream stream;
             stream << c.first;
 
@@ -925,17 +977,16 @@ namespace ryu::core {
                 }
             }
 
-            auto formatted_text = core::text_formatter::format_text_left_padded(
-                    stream.str(),
-                    command_column_width);
+            row.columns.push_back(stream.str());
+            row.columns.push_back(c.second.help);
 
-            result.add_message("C030",
-                               fmt::format(" {} {}\n",
-                                           core::text_formatter::formatted_text_to_string(formatted_text),
-                                           word_wrap(c.second.help, help_column_width, command_column_width + 2)));
+            table.rows.push_back(row);
         }
 
-        result.add_message("C030", fmt::format("{} available commands", commands.size()));
+        table.rows.push_back({{fmt::format("{} available commands", commands.size())}});
+
+        result.add_data("command_result", {{"data", table}});
+
         return true;
     }
 

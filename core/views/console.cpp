@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <fmt/format.h>
+#include <common/string_support.h>
 #include "console.h"
 
 // TODO
@@ -224,30 +225,24 @@ namespace ryu::core {
     }
 
     void console::on_process_command() {
-        const auto& result = _command_result_queue.front();
+        auto& entry = _output_queue.front();
 
         caret_down();
         caret_home();
 
-        const auto& list = result.messages();
-        while (_remaining_lines > 0
-            && _current_result_message_index < list.size()) {
-
-            const auto& msg = list[_current_result_message_index++];
-            if (msg.type() == core::result_message::types::data)
-                continue;
-
-            auto error_part = msg.is_error() ?
-                "<bold><red>ERROR:<> " :
-                "";
-            auto line_count = write_message(fmt::format("{0}{1}",
-                error_part,
-                msg.message()));
-
-            _remaining_lines -= line_count;
+        auto more_to_process = true;
+        while (_remaining_lines > 0) {
+            auto output_result = entry.process(this);
+            more_to_process = output_result.more_to_process;
+            if (!more_to_process)
+                break;
+            _remaining_lines -= output_result.line_count;
         }
 
-        if (_current_result_message_index < list.size()) {
+        caret_down();
+        caret_home();
+
+        if (more_to_process) {
             write_message("<rev><bold> MORE (SPACE to continue) <>", false);
             _state = states::wait;
         } else {
@@ -302,73 +297,120 @@ namespace ryu::core {
         }
     }
 
-    void console::format_command_result(const parameter_variant_t& param) {
-        std::vector<core::formatted_text_t> lines {};
+    void console::format_data_table(
+            formatted_text_list& list,
+            data_table_t& table) {
+        using format_options = core::data_table_column_t::format_options;
 
+        scale_columns(table.headers);
+        scale_columns(table.footers);
+
+        core::formatted_text_t header_line {};
+        header_line.spans.push_back({"rev", " "});
+        header_line.spans.push_back({"bold", ""});
+        for (size_t i = 0; i < table.headers.size(); i++) {
+            auto& col = table.headers[i];
+            auto column_pad = i < table.headers.size() - 1 ?
+                              col.padding : 0;
+
+            header_line.spans.push_back({
+                "",
+                fmt::format(
+                        get_alignment_format(col.alignment),
+                        col.text.substr(0, col.width),
+                        col.width + column_pad)
+            });
+        }
+        header_line.spans.push_back({"", " "});
+        list.push_back(header_line);
+
+        // XXX: need to implement truncation for styled_text
+        for (size_t i = 0; i < table.rows.size() - 1; i++) {
+            const auto& row = table.rows[i];
+            core::formatted_text_t row_line{};
+            row_line.spans.push_back({"", " "});
+
+            size_t total_width = 0;
+            for (size_t j = 0; j < row.columns.size(); j++) {
+                const auto& header = table.headers[j];
+                const auto& col = row.columns[j];
+                auto column_pad = j < row.columns.size() - 1 ?
+                                  header.padding : 0;
+
+                auto styled_text = col;
+                auto word_wrapped = (header.options & format_options::word_wrap) != 0;
+                auto styled = (header.options & format_options::style_codes) != 0;
+
+                if (word_wrapped) {
+                    styled_text = word_wrap(col, header.width, total_width);
+                    styled = true;
+                }
+
+                if (styled) {
+                    core::formatted_text_t formatted_text;
+                    switch (header.alignment) {
+                        case alignment::horizontal::none:
+                        case alignment::horizontal::left:
+                            formatted_text = text_formatter::format_text_left_padded(
+                                styled_text,
+                                header.width);
+                            break;
+                        case alignment::horizontal::right:
+                            formatted_text = text_formatter::format_text_right_padded(
+                                styled_text,
+                                header.width);
+                            break;
+                        case alignment::horizontal::center:
+                            break;
+                    }
+                    for (const auto& span : formatted_text.spans)
+                        row_line.spans.push_back(span);
+                } else {
+                    row_line.spans.push_back({
+                         "",
+                         fmt::format(
+                                 get_alignment_format(header.alignment),
+                                 col.substr(0, header.width),
+                                 header.width + column_pad)
+                    });
+                }
+                total_width += header.width + column_pad;
+            }
+
+            list.push_back(row_line);
+            for (uint8_t k = 0; k < table.line_spacing; k++) {
+                list.push_back({});
+            }
+        }
+
+        core::formatted_text_t footer_line {};
+        footer_line.spans.push_back({"bold", " "});
+        const auto& footer_data_row = table.rows[table.rows.size() - 1];
+        for (size_t i = 0; i < footer_data_row.columns.size(); i++) {
+            auto& footer = table.footers[i];
+            const auto& col = footer_data_row.columns[i];
+            auto column_pad = i < footer_data_row.columns.size() - 1 ?
+                              footer.padding : 0;
+
+            footer_line.spans.push_back({
+                "",
+                fmt::format(
+                        get_alignment_format(footer.alignment),
+                        col.substr(0, footer.width),
+                        footer.width + column_pad)
+            });
+        }
+        list.push_back(footer_line);
+    }
+
+    // XXX: right aligned columns seem to ignore padding?
+    void console::format_command_result(
+            const parameter_variant_t& param,
+            formatted_text_list& lines) {
         switch (param.which()) {
             case parameter_dict_types::table: {
                 auto table = boost::get<core::data_table_t>(param);
-                scale_columns(table.headers);
-                scale_columns(table.footers);
-
-                core::formatted_text_t header_line {};
-                header_line.spans.push_back({"rev", " "});
-                header_line.spans.push_back({"bold", ""});
-                for (size_t i = 0; i < table.headers.size(); i++) {
-                    auto& col = table.headers[i];
-                    auto column_pad = i < table.headers.size() - 1 ?
-                                      col.padding : 0;
-                    header_line.spans.push_back({
-                        "",
-                        fmt::format(
-                                get_alignment_format(col.alignment),
-                                col.text.substr(0, col.width),
-                                col.width + column_pad)
-                    });
-                }
-                header_line.spans.push_back({"", " "});
-                lines.push_back(header_line);
-
-                for (size_t i = 0; i < table.rows.size() - 1; i++) {
-                    const auto& row = table.rows[i];
-                    core::formatted_text_t row_line{};
-                    row_line.spans.push_back({"", " "});
-
-                    for (size_t j = 0; j < row.columns.size(); j++) {
-                        const auto& header = table.headers[j];
-                        const auto& col = row.columns[j];
-                        auto column_pad = j < row.columns.size() - 1 ?
-                                          header.padding : 0;
-                        row_line.spans.push_back({
-                             "",
-                             fmt::format(
-                                     get_alignment_format(header.alignment),
-                                     col.substr(0, header.width),
-                                     header.width + column_pad)
-                        });
-                    }
-
-                    lines.push_back(row_line);
-                }
-
-                core::formatted_text_t footer_line {};
-                footer_line.spans.push_back({"bold", " "});
-                const auto& footer_data_row = table.rows[table.rows.size() - 1];
-                for (size_t i = 0; i < footer_data_row.columns.size(); i++) {
-                    auto& footer = table.footers[i];
-                    const auto& col = footer_data_row.columns[i];
-                    auto column_pad = i < footer_data_row.columns.size() - 1 ?
-                                      footer.padding : 0;
-
-                    footer_line.spans.push_back({
-                        "",
-                        fmt::format(
-                                get_alignment_format(footer.alignment),
-                                col.substr(0, footer.width),
-                                footer.width + column_pad)
-                    });
-                }
-                lines.push_back(footer_line);
+                format_data_table(lines, table);
                 break;
             }
             case parameter_dict_types::string: {
@@ -396,37 +438,16 @@ namespace ryu::core {
                 break;
             }
         }
-
-        caret_down();
-        caret_home();
-
-        for (size_t i = 0; i < lines.size(); i++) {
-            write_message(lines[i], i < lines.size() - 1);
-        }
     }
 
     void console::on_pre_process_command() {
-        auto& result = _command_result_queue.front();
-
-        auto command_result_msg = result.find_code("command_result");
-        if (command_result_msg != nullptr) {
-            auto params = command_result_msg->params();
-            for (auto& param : params) {
-                caret_down();
-                caret_home();
-                format_command_result(param.second);
-            }
-        }
-
-        _current_result_message_index = 0;
-
         _state = states::resume_processing;
     }
 
     void console::on_post_process_command() {
-        const auto& result = _command_result_queue.front();
+        const auto& entry = _output_queue.front();
 
-        auto command_action_msg = result.find_code("command_action");
+        auto command_action_msg = entry.result.find_code("command_action");
         if (command_action_msg != nullptr) {
             auto params = command_action_msg->params();
             auto action_it = params.find("action");
@@ -447,7 +468,7 @@ namespace ryu::core {
 
         write_message("Ready.");
 
-        _command_result_queue.pop_front();
+        _output_queue.pop_front();
 
         _state = states::input;
     }
@@ -596,7 +617,7 @@ namespace ryu::core {
                         auto str = find_command_string();
                         if (str.length() > 0 && _execute_command_callback != nullptr) {
                             _execute_command_callback(result, str);
-                            _command_result_queue.push_back(result);
+                            _output_queue.push_back(output_queue_entry_t(result));
                             _state = states::pre_processing;
                             return true;
                         }
@@ -736,6 +757,45 @@ namespace ryu::core {
             consumed = _transition_to_callback(name, params);
         }
         return consumed;
+    }
+
+    output_process_result_t output_queue_entry_t::process(console* c) {
+        output_process_result_t output_result{};
+
+        auto messages = result.messages();
+        if (msg_index < messages.size()) {
+            const auto& msg = messages[msg_index++];
+            if (msg.type() == core::result_message::types::data) {
+                if (msg.code() == "command_result") {
+                    auto count = 0;
+                    auto params = msg.params();
+                    for (auto it = params.begin(); it != params.end(); ++it) {
+                        c->format_command_result(it->second, lines);
+                        if (!lines.empty() && count < params.size() - 1) {
+                            auto& last_line = lines[lines.size() - 1];
+                            last_line.spans.push_back({"newline", ""});
+                        }
+                        ++count;
+                    }
+                }
+            } else {
+                auto error_part = msg.is_error() ?
+                                  "<bold><red>ERROR:<> " :
+                                  "";
+                output_result.line_count = c->write_message(
+                        fmt::format("{}{}", error_part, msg.message()));
+            }
+        } else {
+            if (line_index < lines.size()) {
+                const auto& line = lines[line_index++];
+                output_result.line_count = c->write_message(line);
+            }
+        }
+
+        output_result.more_to_process = msg_index < messages.size()
+                                        || line_index < lines.size();
+
+        return output_result;
     }
 
 }

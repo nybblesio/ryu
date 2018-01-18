@@ -20,6 +20,25 @@ namespace ryu::core {
     using code_to_attr_callable = std::function<void (attr_t&)>;
     typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
 
+    class console;
+
+    struct output_process_result_t {
+        uint32_t line_count;
+        bool more_to_process;
+    };
+
+    struct output_queue_entry_t {
+        size_t msg_index = 0;
+        size_t line_index = 0;
+        core::result result;
+        core::formatted_text_list lines;
+
+        explicit output_queue_entry_t(const core::result& value) : result(value) {
+        }
+
+        output_process_result_t process(console* c);
+    };
+
     class console : public core::view {
     public:
         using caret_changed_callable = std::function<void(const core::caret&)>;
@@ -86,9 +105,19 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
+        friend struct output_queue_entry_t;
+
         bool transition_to(
                 const std::string& name,
                 const core::parameter_dict& params);
+
+        void format_data_table(
+                formatted_text_list& list,
+                data_table_t& table);
+
+        void format_command_result(
+                const parameter_variant_t& param,
+                formatted_text_list& lines);
 
         std::string get_alignment_format(
                 core::alignment::horizontal::types value);
@@ -107,8 +136,6 @@ namespace ryu::core {
 
         std::string find_command_string();
 
-        void format_command_result(const parameter_variant_t& param);
-
         void scale_columns(std::vector<data_table_column_t>& columns);
 
     private:
@@ -121,8 +148,7 @@ namespace ryu::core {
         int16_t _remaining_lines = 0;
         states _state = states::input;
         code_to_attr_dict _code_mapper;
-        size_t _current_result_message_index = 0;
-        std::deque<core::result> _command_result_queue;
+        std::deque<output_queue_entry_t> _output_queue;
         caret_changed_callable _caret_changed_callback;
         state_transition_callable _transition_to_callback;
         execute_command_callable _execute_command_callback;

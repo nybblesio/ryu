@@ -117,7 +117,7 @@ namespace ryu::core {
 
         list_machines,
         edit_machine,
-        del_machine,
+        delete_machine,
         use_machine,
 
         open_editor,
@@ -554,11 +554,18 @@ namespace ryu::core {
     typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;
 
     struct data_table_column_t {
+        enum format_options : uint8_t {
+            none        = 0b00000000,
+            style_codes = 0b00000001,
+            word_wrap   = 0b00000010,
+        };
+
         std::string text {};
         uint16_t min_width {};
         uint16_t max_width {};
         alignment::horizontal::types alignment = alignment::horizontal::types::left;
         uint8_t padding = 1;
+        uint8_t options = format_options::none;
         uint16_t width {};
     };
 
@@ -570,6 +577,7 @@ namespace ryu::core {
         std::vector<data_table_column_t> headers {};
         std::vector<data_table_column_t> footers {};
         std::vector<data_table_row_t> rows {};
+        uint8_t line_spacing = 0;
     };
 
     typedef boost::variant<

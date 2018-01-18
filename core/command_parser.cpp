@@ -488,7 +488,7 @@ namespace ryu::core {
         {
             "delmach",
             {
-                command_types::del_machine,
+                command_types::delete_machine,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}

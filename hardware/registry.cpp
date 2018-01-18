@@ -21,15 +21,33 @@ namespace ryu::hardware {
         return &instance;
     }
 
+    bool registry::remove_machine(
+            core::result& result,
+            const std::string& name) {
+        auto machine = find_machine(name);
+        if (machine != nullptr) {
+            return remove_machine(result, machine->id());
+        }
+        result.add_message(
+                "R008",
+                "No machine exists with specified name.",
+                true);
+        return !result.is_failed();
+    }
+
+    bool registry::remove_machine(
+            core::result& result,
+            uint32_t id) {
+        _machines.erase(id);
+        // XXX: save the registry file
+        return true;
+    }
+
     machine_list registry::machines() {
         machine_list list;
         for (auto& it : _machines)
             list.push_back(&it.second);
         return list;
-    }
-
-    void registry::remove_machine(uint32_t id) {
-        _machines.erase(id);
     }
 
     display* registry::find_display(uint32_t id) {

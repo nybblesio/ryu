@@ -109,22 +109,58 @@ namespace ryu::ide::source_editor {
                 return true;
             }
             if (keycode == SDLK_RETURN) {
-                auto input = _command_line.value();
                 core::result result;
-                context()->environment()->execute(result, input);
-                if (result.has_code("C001"))
-                    context()->engine()->quit();
-                else if (result.has_code("C004")) {
-                    _editor.clear();
-                } else if (result.has_code("C020")) {
-                    uint32_t line = static_cast<uint32_t>(std::atoi(result.messages()[0].message().c_str()));
-                    _editor.goto_line(line);
-                } else if (result.has_code("C021")) {
-                    _editor.load(result.messages()[0].message());
-                } else if (result.has_code("C022")) {
-                    auto path = result.messages()[0].message();
-                    _editor.save(path == "(default)" ? "" : path);
+                auto input = _command_line.value();
+                auto success = context()->environment()->execute(result, input);
+                if (success) {
+                    auto command_action_msg = result.find_code("command_action");
+                    if (command_action_msg == nullptr)
+                        return success;
+
+                    auto params = command_action_msg->params();
+                    auto action_it = params.find("action");
+                    if (action_it != params.end()) {
+                        // XXX: need to refactor this, it makes my head hurt
+                        auto command = boost::get<std::string>(action_it->second);
+                        if (command == "quit")
+                            context()->engine()->quit();
+                        else if (command == "read_text") {
+                            auto name_it = params.find("name");
+                            if (name_it != params.end()) {
+                                _editor.load(boost::get<std::string>(name_it->second));
+                            } else {
+                                // XXX: handle errors
+                            }
+                        } else if (command == "write_text") {
+                            auto name_it = params.find("name");
+                            if (name_it != params.end()) {
+                                _editor.save(boost::get<std::string>(name_it->second));
+                            } else {
+                                // XXX: handle errors
+                            }
+                        } else if (command == "clear") {
+                            _editor.clear();
+                        } else if (command == "goto_line") {
+                            auto line_number_it = params.find("line_number");
+                            if (line_number_it != params.end()) {
+                                _editor.goto_line(boost::get<std::uint32_t>(line_number_it->second));
+                            } else {
+                                // XXX: handle errors
+                            }
+                        } else if (command == "find_text") {
+                            auto needle_it = params.find("needle");
+                            if (needle_it != params.end()) {
+                                _editor.find(boost::get<std::string>(needle_it->second));
+                            } else {
+                                // XXX: handle errors
+                            }
+                        }
+                        else {
+                            // XXX: unknown command, error!
+                        }
+                    }
                 }
+
                 _command_line.clear();
                 _layout_panel.focus(&_editor);
                 return true;

@@ -22,13 +22,19 @@ namespace ryu::hardware {
     public:
         static registry* instance();
 
+        bool remove_machine(
+                core::result& result,
+                uint32_t id);
+
+        bool remove_machine(
+                core::result& result,
+                const std::string& name);
+
         machine_list machines();
 
         display_list& displays() const;
 
         hardware::machine* new_machine();
-
-        void remove_machine(uint32_t id);
 
         hardware::machine* find_machine(uint32_t id);
 

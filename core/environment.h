@@ -125,7 +125,7 @@ namespace ryu::core {
 
         bool on_use_machine(result& result, const command_handler_context_t& context);
 
-        bool on_del_machine(result& result, const command_handler_context_t& context);
+        bool on_delete_machine(result& result, const command_handler_context_t& context);
 
         bool on_list_machines(result& result, const command_handler_context_t& context);
 

@@ -21,11 +21,15 @@ namespace ryu::core {
         std::string text {};
     };
 
+    typedef std::vector<formatted_text_span_t> formatted_text_span_list;
+
     struct formatted_text_t {
         uint32_t actual_length {};
         std::string stripped_text {};
-        std::vector<formatted_text_span_t> spans {};
+        formatted_text_span_list spans {};
     };
+
+    typedef std::vector<formatted_text_t> formatted_text_list;
 
     class text_formatter {
     public:
