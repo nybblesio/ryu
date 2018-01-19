@@ -502,15 +502,9 @@ namespace ryu::core {
                 auto command = boost::get<std::string>(action_it->second);
                 auto handler_it = _handlers.find(command);
                 if (handler_it != _handlers.end()) {
-                    if (handler_it->second(*this, params)) {
-                        caret_down();
-                        caret_home();
-                    }
+                    handler_it->second(*this, params);
                 }
             }
-        } else {
-            caret_down();
-            caret_home();
         }
 
         write_message("Ready.");

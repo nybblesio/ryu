@@ -19,7 +19,8 @@
 namespace ryu::core {
 
     context::context(const std::string& name) : _id(core::id_pool::instance()->allocate()),
-                                                _name(name) {
+                                                _name(name),
+                                                _environment("default") {
     }
 
     context::~context() {
@@ -65,7 +66,7 @@ namespace ryu::core {
             active->resize(bounds());
     }
 
-    int context::id() const {
+    uint32_t context::id() const {
         return _id;
     }
 

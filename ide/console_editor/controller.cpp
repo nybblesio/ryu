@@ -129,7 +129,9 @@ namespace ryu::ide::console_editor {
         _environment_status.dock(core::dock::styles::left);
         _environment_status.fg_color(ide::colors::info_text);
         _environment_status.bg_color(ide::colors::fill_color);
-        _environment_status.value(fmt::format(" | env: {}", "(none)"));
+        _environment_status.value(fmt::format(
+                " | env: {}",
+                context()->environment()->name()));
 
         _footer.font_family(family);
         _footer.palette(context()->palette());

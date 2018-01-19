@@ -17,10 +17,295 @@
 #include <core/command_parser.h>
 #include <common/string_support.h>
 #include "environment.h"
-#include "text_formatter.h"
 #include "hex_formatter.h"
+#include "text_formatter.h"
 
 namespace ryu::core {
+
+    command_handler_dict environment::_command_handlers = {
+        {
+            core::command_types::quit,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_quit(context);
+            }
+        },
+        {
+            core::command_types::help,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_help(context);
+            }
+        },
+        {
+            core::command_types::clear,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_clear(context);
+            }
+        },
+        {
+            core::command_types::add_symbol,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_add_symbol(context);
+            }
+        },
+        {
+            core::command_types::remove_symbol,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_remove_symbol(context);
+            }
+        },
+        {
+            core::command_types::show_symbol_table,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_show_symbol_table(context);
+            }
+        },
+        {
+            core::command_types::assemble,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_assemble(context);
+            }
+        },
+        {
+            core::command_types::evaluate,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_evaluate(context);
+            }
+        },
+        {
+            core::command_types::disassemble,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_disassemble(context);
+            }
+        },
+        {
+            core::command_types::dump_memory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_dump_memory(context);
+            }
+        },
+        {
+            core::command_types::search_memory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_search_memory(context);
+            }
+        },
+        {
+            core::command_types::fill_memory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_fill_memory(context);
+            }
+        },
+        {
+            core::command_types::copy_memory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_copy_memory(context);
+            }
+        },
+        {
+            core::command_types::jump_to_address,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_jump_to_address(context);
+            }
+        },
+        {
+            core::command_types::go_to_address,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_go_to_address(context);
+            }
+        },
+        {
+            core::command_types::register_editor,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_register_editor(context);
+            }
+        },
+        {
+            core::command_types::list_files,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_list_files(context);
+            }
+        },
+        {
+            core::command_types::remove_file,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_remove_file(context);
+            }
+        },
+        {
+            core::command_types::move_file,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_move_file(context);
+            }
+        },
+        {
+            core::command_types::make_directory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_make_directory(context);
+            }
+        },
+        {
+            core::command_types::change_directory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_change_directory(context);
+            }
+        },
+        {
+            core::command_types::print_working_directory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_print_working_directory(context);
+            }
+        },
+        {
+            core::command_types::new_project,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_new_project(context);
+            }
+        },
+        {
+            core::command_types::edit_project,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_edit_project(context);
+            }
+        },
+        {
+            core::command_types::load_project,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_load_project(context);
+            }
+        },
+        {
+            core::command_types::save_project,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_save_project(context);
+            }
+        },
+        {
+            core::command_types::close_project,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_close_project(context);
+            }
+        },
+        {
+            core::command_types::clone_project,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_clone_project(context);
+            }
+        },
+        {
+            core::command_types::list_project_files,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_list_project_files(context);
+            }
+        },
+        {
+            core::command_types::edit_machine,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_edit_machine(context);
+            }
+        },
+        {
+            core::command_types::list_machines,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_list_machines(context);
+            }
+        },
+        {
+            core::command_types::delete_machine,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_delete_machine(context);
+            }
+        },
+        {
+            core::command_types::use_machine,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_use_machine(context);
+            }
+        },
+        {
+            core::command_types::open_editor,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_open_editor(context);
+            }
+        },
+        {
+            core::command_types::source_editor,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_source_editor(context);
+            }
+        },
+        {
+            core::command_types::memory_editor,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_memory_editor(context);
+            }
+        },
+        {
+            core::command_types::sprite_editor,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_sprite_editor(context);
+            }
+        },
+        {
+            core::command_types::tile_editor,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_tile_editor(context);
+            }
+        },
+        {
+            core::command_types::background_editor,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_background_editor(context);
+            }
+        },
+        {
+            core::command_types::tracker,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_tracker(context);
+            }
+        },
+        {
+            core::command_types::sounds,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_sounds(context);
+            }
+        },
+        {
+            core::command_types::read_binary_to_memory,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_read_binary_to_memory(context);
+            }
+        },
+        {
+            core::command_types::write_memory_to_binary,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_write_memory_to_binary(context);
+            }
+        },
+        {
+            core::command_types::read_text,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_read_text(context);
+            }
+        },
+        {
+            core::command_types::write_text,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_write_text(context);
+            }
+        },
+        {
+            core::command_types::goto_line,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_goto_line(context);
+            }
+        },
+        {
+            core::command_types::find_text,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_find_text(context);
+            }
+        },
+    };
 
     static void format_numeric_conversion(
             int32_t value,
@@ -80,60 +365,13 @@ namespace ryu::core {
         results.push_back(fmt::format(binary_fmt_spec, signed_value));
     }
 
+    environment::environment(const std::string& name) : _name(name) {
+    }
+
     bool environment::execute(
             core::result& result,
             const std::string& line) {
         using namespace boost::filesystem;
-
-        static std::map<uint8_t, environment::command_handler_callable> command_handlers = {
-            {core::command_types::quit,                   [&](core::result& result, const command_handler_context_t& context) { return on_quit(result, context); }},
-            {core::command_types::help,                   [&](core::result& result, const command_handler_context_t& context) { return on_help(result, context); }},
-            {core::command_types::clear,                  [&](core::result& result, const command_handler_context_t& context) { return on_clear(result, context); }},
-            {core::command_types::add_symbol,             [&](core::result& result, const command_handler_context_t& context) { return on_add_symbol(result, context); }},
-            {core::command_types::remove_symbol,          [&](core::result& result, const command_handler_context_t& context) { return on_remove_symbol(result, context); }},
-            {core::command_types::show_symbol_table,      [&](core::result& result, const command_handler_context_t& context) { return on_show_symbol_table(result, context); }},
-            {core::command_types::assemble,               [&](core::result& result, const command_handler_context_t& context) { return on_assemble(result, context); }},
-            {core::command_types::evaluate,               [&](core::result& result, const command_handler_context_t& context) { return on_evaluate(result, context); }},
-            {core::command_types::disassemble,            [&](core::result& result, const command_handler_context_t& context) { return on_disassemble(result, context); }},
-            {core::command_types::dump_memory,            [&](core::result& result, const command_handler_context_t& context) { return on_dump_memory(result, context); }},
-            {core::command_types::search_memory,          [&](core::result& result, const command_handler_context_t& context) { return on_search_memory(result, context); }},
-            {core::command_types::fill_memory,            [&](core::result& result, const command_handler_context_t& context) { return on_fill_memory(result, context); }},
-            {core::command_types::copy_memory,            [&](core::result& result, const command_handler_context_t& context) { return on_copy_memory(result, context); }},
-            {core::command_types::jump_to_address,        [&](core::result& result, const command_handler_context_t& context) { return on_jump_to_address(result, context); }},
-            {core::command_types::go_to_address,          [&](core::result& result, const command_handler_context_t& context) { return on_go_to_address(result, context); }},
-            {core::command_types::register_editor,        [&](core::result& result, const command_handler_context_t& context) { return on_register_editor(result, context); }},
-            {core::command_types::list_files,             [&](core::result& result, const command_handler_context_t& context) { return on_list_files(result, context); }},
-            {core::command_types::remove_file,            [&](core::result& result, const command_handler_context_t& context) { return on_remove_file(result, context); }},
-            {core::command_types::move_file,              [&](core::result& result, const command_handler_context_t& context) { return on_move_file(result, context); }},
-            {core::command_types::make_directory,         [&](core::result& result, const command_handler_context_t& context) { return on_make_directory(result, context); }},
-            {core::command_types::change_directory,       [&](core::result& result, const command_handler_context_t& context) { return on_change_directory(result, context); }},
-            {core::command_types::print_working_directory,[&](core::result& result, const command_handler_context_t& context) { return on_print_working_directory(result, context); }},
-            {core::command_types::new_project,            [&](core::result& result, const command_handler_context_t& context) { return on_new_project(result, context); }},
-            {core::command_types::edit_project,           [&](core::result& result, const command_handler_context_t& context) { return on_edit_project(result, context); }},
-            {core::command_types::load_project,           [&](core::result& result, const command_handler_context_t& context) { return on_load_project(result, context); }},
-            {core::command_types::save_project,           [&](core::result& result, const command_handler_context_t& context) { return on_save_project(result, context); }},
-            {core::command_types::close_project,          [&](core::result& result, const command_handler_context_t& context) { return on_close_project(result, context); }},
-            {core::command_types::clone_project,          [&](core::result& result, const command_handler_context_t& context) { return on_clone_project(result, context); }},
-            {core::command_types::list_project_files,     [&](core::result& result, const command_handler_context_t& context) { return on_list_project_files(result, context); }},
-            {core::command_types::edit_machine,           [&](core::result& result, const command_handler_context_t& context) { return on_edit_machine(result, context); }},
-            {core::command_types::list_machines,          [&](core::result& result, const command_handler_context_t& context) { return on_list_machines(result, context); }},
-            {core::command_types::delete_machine,         [&](core::result& result, const command_handler_context_t& context) { return on_delete_machine(result, context); }},
-            {core::command_types::use_machine,            [&](core::result& result, const command_handler_context_t& context) { return on_use_machine(result, context); }},
-            {core::command_types::open_editor,            [&](core::result& result, const command_handler_context_t& context) { return on_open_editor(result, context); }},
-            {core::command_types::source_editor,          [&](core::result& result, const command_handler_context_t& context) { return on_source_editor(result, context); }},
-            {core::command_types::memory_editor,          [&](core::result& result, const command_handler_context_t& context) { return on_memory_editor(result, context); }},
-            {core::command_types::sprite_editor,          [&](core::result& result, const command_handler_context_t& context) { return on_sprite_editor(result, context); }},
-            {core::command_types::tile_editor,            [&](core::result& result, const command_handler_context_t& context) { return on_tile_editor(result, context); }},
-            {core::command_types::background_editor,      [&](core::result& result, const command_handler_context_t& context) { return on_background_editor(result, context); }},
-            {core::command_types::tracker,                [&](core::result& result, const command_handler_context_t& context) { return on_tracker(result, context); }},
-            {core::command_types::sounds,                 [&](core::result& result, const command_handler_context_t& context) { return on_sounds(result, context); }},
-            {core::command_types::read_binary_to_memory,  [&](core::result& result, const command_handler_context_t& context) { return on_read_binary_to_memory(result, context); }},
-            {core::command_types::write_memory_to_binary, [&](core::result& result, const command_handler_context_t& context) { return on_write_memory_to_binary(result, context); }},
-            {core::command_types::read_text,              [&](core::result& result, const command_handler_context_t& context) { return on_read_text(result, context); }},
-            {core::command_types::write_text,             [&](core::result& result, const command_handler_context_t& context) { return on_write_text(result, context); }},
-            {core::command_types::goto_line,              [&](core::result& result, const command_handler_context_t& context) { return on_goto_line(result, context); }},
-            {core::command_types::find_text,              [&](core::result& result, const command_handler_context_t& context) { return on_find_text(result, context); }},
-        };
 
         core::command_parser parser;
         parser.symbol_table(&_symbol_table);
@@ -221,19 +459,59 @@ namespace ryu::core {
         if (result.is_failed())
             return false;
 
-        auto handler_it = command_handlers.find(command.spec.type);
-        if (handler_it == command_handlers.end()) {
+        auto handler_it = _command_handlers.find(command.spec.type);
+        if (handler_it == _command_handlers.end()) {
             result.add_message("C400", "Command not implemented.", true);
             return false;
         }
 
-        return handler_it->second(
-                result,
-                command_handler_context_t {command, params, root});
+        return handler_it->second(this, {result, command, params, root});
+    }
+
+    std::string environment::name() const {
+        return _name;
+    }
+
+    bool environment::load(core::result& result) {
+//        if (!boost::filesystem::exists(path)) {
+//            result.add_message(
+//                    "S404",
+//                    "File not found",
+//                    fmt::format("The path does not exist: {}", path.string()),
+//                    true);
+//            return false;
+//        }
+//        std::ifstream file(path.string());
+//        std::string line;
+//        auto success = true;
+//        while (std::getline(file, line)) {
+//            if (!execute(result, line))
+//                success = false;
+//        }
+//        file.close();
+//        return success;
+        return false;
+    }
+
+    bool environment::save(core::result& result) {
+//        std::ofstream file(path.string());
+//        for (auto& symbol : _symbol_table.identifiers()) {
+//            auto value = _symbol_table.get(symbol);
+//            file << "set " << symbol << " ";
+//            value->serialize(file);
+//            file << "\n";
+//        }
+//        file << std::endl;
+//        file.close();
+        return false;
     }
 
     core::symbol_table* environment::symbol_table() {
         return &_symbol_table;
+    }
+
+    void environment::name(const std::string& value) {
+        _name = value;
     }
 
     bool environment::assemble(core::result& result) {
@@ -248,70 +526,32 @@ namespace ryu::core {
         return true;
     }
 
-    bool environment::load(
-            core::result& result,
-            const boost::filesystem::path& path) {
-        if (!boost::filesystem::exists(path)) {
-            result.add_message(
-                    "S404",
-                    "File not found",
-                    fmt::format("The path does not exist: {}", path.string()),
-                    true);
-            return false;
-        }
-        std::ifstream file(path.string());
-        std::string line;
-        auto success = true;
-        while (std::getline(file, line)) {
-            if (!execute(result, line))
-                success = false;
-        }
-        file.close();
-        return success;
-    }
-
-    bool environment::save(
-            core::result& result,
-            const boost::filesystem::path& path) {
-        std::ofstream file(path.string());
-        for (auto& symbol : _symbol_table.identifiers()) {
-            auto value = _symbol_table.get(symbol);
-            file << "set " << symbol << " ";
-            value->serialize(file);
-            file << "\n";
-        }
-        file << std::endl;
-        file.close();
-        return true;
-    }
-
     bool environment::on_quit(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("quit")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("quit")}});
         return true;
     }
 
     bool environment::on_clear(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("clear")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("clear")}});
         return true;
     }
 
     bool environment::on_add_symbol(
-            core::result& result,
             const command_handler_context_t& context) {
         auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
-        // XXX: validate that identifier is *not* in the ast
-        //      if found, then error
+
         _symbol_table.put(identifier, context.root->children[1]);
-        save(result, "global.conf");
+        save(context.result);
         return true;
     }
 
     bool environment::on_remove_symbol(
-            core::result& result,
             const command_handler_context_t& context) {
         auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
         _symbol_table.remove(identifier);
@@ -319,7 +559,6 @@ namespace ryu::core {
     }
 
     bool environment::on_show_symbol_table(
-            core::result& result,
             const command_handler_context_t& context) {
         data_table_t table {};
 
@@ -336,20 +575,18 @@ namespace ryu::core {
 
         table.rows.push_back({{fmt::format("{} symbols", identifiers.size())}});
 
-        result.add_data("command_result", {{"data", table}});
+        context.result.add_data("command_result", {{"data", table}});
 
         return true;
     }
 
     bool environment::on_assemble(
-            core::result& result,
             const command_handler_context_t& context) {
-        return assemble(result);
+        return assemble(context.result);
     }
 
     // XXX: support registers as valid identifiers
     bool environment::on_evaluate(
-            core::result& result,
             const command_handler_context_t& context) {
         data_table_t conversion_table {};
         conversion_table.headers.push_back({"Hex",          6, 12});
@@ -414,22 +651,22 @@ namespace ryu::core {
         conversion_table.rows.push_back({{fmt::format("{} expression evaluated", values.size())}});
         params["data"] = conversion_table;
 
-        result.add_data("command_result", params);
+        context.result.add_data(
+                "command_result",
+                params);
 
         return true;
     }
 
     bool environment::on_disassemble(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
     bool environment::on_dump_memory(
-            core::result& result,
             const command_handler_context_t& context) {
         if (core::project::instance() == nullptr) {
-            result.add_message(
+            context.result.add_message(
                     "C033",
                     "no project is loaded; dump memory failed",
                     true);
@@ -441,7 +678,7 @@ namespace ryu::core {
 
         auto machine = core::project::instance()->machine();
         if (machine == nullptr) {
-            result.add_message(
+            context.result.add_message(
                     "C033",
                     "no machine active on loaded project; dump memory failed",
                     true);
@@ -454,7 +691,7 @@ namespace ryu::core {
                     ->read_byte(static_cast<uint32_t>(addr + i));
         }
 
-        result.add_data(
+        context.result.add_data(
             "command_result",
             {
                 {
@@ -469,19 +706,16 @@ namespace ryu::core {
     }
 
     bool environment::on_search_memory(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
     bool environment::on_fill_memory(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
     bool environment::on_copy_memory(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
@@ -494,7 +728,6 @@ namespace ryu::core {
     //
     // j start
     bool environment::on_jump_to_address(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
@@ -502,13 +735,11 @@ namespace ryu::core {
     // this command is similar to jump, except only a breakpoint or
     // an illegal command can stop this.
     bool environment::on_go_to_address(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
     bool environment::on_list_files(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
@@ -552,31 +783,30 @@ namespace ryu::core {
             {fmt::format("{} files", dir_entries.size() + file_entries.size())}
         });
 
-        result.add_data("command_result", {{"data", table}});
+        context.result.add_data("command_result", {{"data", table}});
 
         return true;
     }
 
     bool environment::on_remove_file(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
         std::string message;
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
         if (!is_directory(value) && !is_regular_file(value)) {
-            result.add_message(
+            context.result.add_message(
                     "C008",
                     fmt::format("invalid path: {}", value), true);
         } else {
             boost::system::error_code ec;
 
             if (remove(value, ec)) {
-                result.add_message(
+                context.result.add_message(
                         "C008",
                         fmt::format("removal success: {}", value));
             } else {
-                result.add_message(
+                context.result.add_message(
                         "C008",
                         fmt::format("removal failed: {}",
                                     ec.message()),
@@ -584,46 +814,63 @@ namespace ryu::core {
             }
         }
 
-        return !result.is_failed();
+        return !context.result.is_failed();
     }
 
     bool environment::on_move_file(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
         auto src = boost::get<core::string_literal_t>(context.params["src"].front()).value;
         auto dest = boost::get<core::string_literal_t>(context.params["dest"].front()).value;
-        // TODO: implement this
+
+        boost::system::error_code ec;
+        boost::filesystem::rename(src, dest, ec);
+        if (ec) {
+            context.result.add_message(
+                    "C007",
+                    fmt::format("move/rename failed: {}", ec.message()),
+                    true);
+            return false;
+        }
+
         return true;
     }
 
     bool environment::on_make_directory(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
-        // TODO: implement this
+        boost::system::error_code ec;
+
+        if (!create_directory(value, ec)) {
+            context.result.add_message(
+                    "C007",
+                    fmt::format("create directory failed: {}", ec.message()),
+                    true);
+            return false;
+        }
+
         return true;
     }
 
     bool environment::on_change_directory(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
         if (!is_directory(value)) {
-            result.add_message(
+            context.result.add_message(
                     "C007",
-                    fmt::format("invalid path: {}", value), true);
+                    fmt::format("invalid path: {}", value),
+                    true);
             return false;
         }
 
         current_path(value);
 
-        result.add_data(
+        context.result.add_data(
                 "command_action",
                 {
                     {"action", std::string("update_working_directory")},
@@ -633,78 +880,71 @@ namespace ryu::core {
     }
 
     bool environment::on_print_working_directory(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
         auto cwd = current_path();
         if (is_directory(cwd)) {
-            result.add_message("C006", cwd.string());
+            context.result.add_message("C006", cwd.string());
         }
         return true;
     }
 
     bool environment::on_new_project(
-            core::result& result,
             const command_handler_context_t& context) {
         return core::project::create(
-                result,
+                context.result,
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
     }
 
     bool environment::on_edit_project(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_project")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("edit_project")}});
         return true;
     }
 
     bool environment::on_load_project(
-            core::result& result,
             const command_handler_context_t& context) {
         return core::project::load(
-                result,
+                context.result,
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
     }
 
     bool environment::on_save_project(
-            core::result& result,
             const command_handler_context_t& context) {
         if (core::project::instance() == nullptr) {
-            result.add_message(
+            context.result.add_message(
                     "C033",
                     "no project is loaded; save failed",
                     true);
             return false;
         }
-        return core::project::instance()->save(result);
+        return core::project::instance()->save(context.result);
     }
 
     bool environment::on_close_project(
-            core::result& result,
             const command_handler_context_t& context) {
-        return core::project::close(result);
+        return core::project::close(context.result);
     }
 
     bool environment::on_clone_project(
-            core::result& result,
             const command_handler_context_t& context) {
         return core::project::clone(
-                result,
+                context.result,
                 core::project::instance()->path(),
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
     }
 
     bool environment::on_list_project_files(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
     bool environment::on_edit_machine(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data(
+        context.result.add_data(
                 "command_action",
                 {
                     {"action", std::string("edit_machine")},
@@ -714,7 +954,6 @@ namespace ryu::core {
     }
 
     bool environment::on_list_machines(
-            core::result& result,
             const command_handler_context_t& context) {
         auto machines = hardware::registry::instance()->machines();
 
@@ -734,24 +973,24 @@ namespace ryu::core {
 
         table.rows.push_back({{fmt::format("{} registered machines", machines.size())}});
 
-        result.add_data("command_result", {{"data", table}});
+        context.result.add_data(
+                "command_result",
+                {{"data", table}});
 
         return true;
     }
 
     bool environment::on_delete_machine(
-            core::result& result,
             const command_handler_context_t& context) {
         return hardware::registry::instance()->remove_machine(
-                result,
+                context.result,
                 boost::get<core::string_literal_t>(context.params["name"].front()).value);
     }
 
     bool environment::on_use_machine(
-            core::result& result,
             const command_handler_context_t& context) {
         if (core::project::instance() == nullptr) {
-            result.add_message(
+            context.result.add_message(
                     "C034",
                     "no project is loaded; use machine failed",
                     true);
@@ -760,18 +999,17 @@ namespace ryu::core {
         auto machine_name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
         auto machine = hardware::registry::instance()->find_machine(machine_name);
         if (machine == nullptr) {
-            result.add_message(
+            context.result.add_message(
                     "C034",
                     "no machine exists with that name",
                     true);
             return false;
         }
         core::project::instance()->machine(machine);
-        return !result.is_failed();
+        return !context.result.is_failed();
     }
 
     bool environment::on_open_editor(
-            core::result& result,
             const command_handler_context_t& context) {
         core::parameter_dict dict;
 
@@ -787,7 +1025,7 @@ namespace ryu::core {
             action = "edit_memory";
         }
 
-        result.add_data("command_action", {
+        context.result.add_data("command_action", {
             {"action", action},
             {"name", name}
         });
@@ -796,81 +1034,81 @@ namespace ryu::core {
     }
 
     bool environment::on_source_editor(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_source")}});
+        context.result.add_data("command_action", {{"action", std::string("edit_source")}});
         return true;
     }
 
     bool environment::on_memory_editor(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_memory")}});
+        context.result.add_data("command_action", {{"action", std::string("edit_memory")}});
         return true;
     }
 
     bool environment::on_sprite_editor(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_sprites")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("edit_sprites")}});
         return true;
     }
 
     bool environment::on_tile_editor(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_tiles")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("edit_tiles")}});
         return true;
     }
 
     bool environment::on_background_editor(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_backgrounds")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("edit_backgrounds")}});
         return true;
     }
 
     bool environment::on_tracker(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_music")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("edit_music")}});
         return true;
     }
 
     bool environment::on_sounds(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_sounds")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("edit_sounds")}});
         return true;
     }
 
     bool environment::on_read_binary_to_memory(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
     bool environment::on_write_memory_to_binary(
-            core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
     bool environment::on_read_text(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
         if (!is_regular_file(value)) {
-            result.add_message(
+            context.result.add_message(
                     "C021",
                     fmt::format("invalid path: {}", value),
                     true);
             return false;
         }
 
-        result.add_data("command_action", {
+        context.result.add_data("command_action", {
             {"action", std::string("read_text")},
             {"name", value}
         });
@@ -879,7 +1117,6 @@ namespace ryu::core {
     }
 
     bool environment::on_write_text(
-            core::result& result,
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
@@ -887,7 +1124,7 @@ namespace ryu::core {
         if (!context.root->children.empty()) {
             value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
             if (!is_regular_file(value)) {
-                result.add_message(
+                context.result.add_message(
                         "C022",
                         fmt::format("invalid path: {}", value),
                         true);
@@ -895,7 +1132,7 @@ namespace ryu::core {
             }
         }
 
-        result.add_data("command_action", {
+        context.result.add_data("command_action", {
             {"action", std::string("write_text")},
             {"name", value}
         });
@@ -904,9 +1141,8 @@ namespace ryu::core {
     }
 
     bool environment::on_goto_line(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {
+        context.result.add_data("command_action", {
             {"action", std::string("goto_line")},
             {
                 "line_number",
@@ -918,9 +1154,8 @@ namespace ryu::core {
     }
 
     bool environment::on_find_text(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {
+        context.result.add_data("command_action", {
             {"action", std::string("find_text")},
             {"needle", boost::get<core::string_literal_t>(context.params["needle"].front()).value}
         });
@@ -929,14 +1164,14 @@ namespace ryu::core {
     }
 
     bool environment::on_register_editor(
-            core::result& result,
             const command_handler_context_t& context) {
-        result.add_data("command_action", {{"action", std::string("edit_cpu")}});
+        context.result.add_data(
+                "command_action",
+                {{"action", std::string("edit_cpu")}});
         return true;
     }
 
     bool environment::on_help(
-            core::result& result,
             const command_handler_context_t& context) {
         using format_options = core::data_table_column_t::format_options;
 
@@ -1012,7 +1247,9 @@ namespace ryu::core {
 
         table.rows.push_back({{fmt::format("{} available commands", commands.size())}});
 
-        result.add_data("command_result", {{"data", table}});
+        context.result.add_data(
+                "command_result",
+                {{"data", table}});
 
         return true;
     }

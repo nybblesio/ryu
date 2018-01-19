@@ -34,7 +34,7 @@ namespace ryu::core {
 
         void resize();
 
-        int id() const;
+        uint32_t id() const;
 
         uint8_t fg_color() const {
             return _fg_color;
@@ -109,15 +109,15 @@ namespace ryu::core {
         virtual bool on_initialize(core::result& result);
 
     private:
-        int _id = 0;
+        uint32_t _id = 0;
         std::string _name {};
         uint8_t _fg_color = 0;
         uint8_t _bg_color = 0;
         core::rect _bounds {};
         core::state_stack _stack {};
+        core::environment _environment;
         core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
-        core::environment _environment {};
         core::palette* _palette = nullptr;
     };
 
