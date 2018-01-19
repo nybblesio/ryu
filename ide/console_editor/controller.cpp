@@ -43,11 +43,14 @@ namespace ryu::ide::console_editor {
     };
 
     controller::controller(const std::string& name) : ryu::core::state(name),
-                                                      _header("header-label"),
                                                       _console("console"),
                                                       _caret_status("caret-status"),
+                                                      _machine_status("machine-status"),
+                                                      _project_status("project-status"),
                                                       _document_status("document-status"),
                                                       _working_directory("working-directory"),
+                                                      _environment_status("environment_status"),
+                                                      _header("header-label"),
                                                       _footer("footer-label"),
                                                       _layout_panel("layout-panel") {
     }
@@ -56,13 +59,40 @@ namespace ryu::ide::console_editor {
         auto family = context()->engine()->find_font_family("hack");
         auto face = family->find_style(core::font::styles::normal);
 
+        _project_status.font_family(family);
+        _project_status.palette(context()->palette());
+        _project_status.dock(core::dock::styles::left);
+        _project_status.fg_color(ide::colors::info_text);
+        _project_status.bg_color(ide::colors::fill_color);
+        _project_status.margin({0, face->width, 0, 0});
+        _project_status.value("project: (none)");
+
+        _machine_status.font_family(family);
+        _machine_status.palette(context()->palette());
+        _machine_status.dock(core::dock::styles::left);
+        _machine_status.fg_color(ide::colors::info_text);
+        _machine_status.bg_color(ide::colors::fill_color);
+        _machine_status.margin({0, face->width, 0, 0});
+        _machine_status.value("| machine: (none)");
+
+        _working_directory.font_family(family);
+        _working_directory.margin({0, 0, 0, 0});
+        _working_directory.palette(context()->palette());
+        _working_directory.dock(core::dock::styles::left);
+        _working_directory.fg_color(ide::colors::info_text);
+        _working_directory.bg_color(ide::colors::fill_color);
+        _working_directory.value(fmt::format("| cwd: {}", boost::filesystem::current_path().string()));
+
         _header.font_family(family);
         _header.palette(context()->palette());
         _header.dock(core::dock::styles::top);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
-        _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _header.value("project: (none) | machine: (none)");
+        _header.bounds().height(face->line_height);
+        _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
+        _header.add_child(&_project_status);
+        _header.add_child(&_machine_status);
+        _header.add_child(&_working_directory);
 
         core::project::add_listener([&]() {
             std::string project_name = "(none)";
@@ -75,7 +105,8 @@ namespace ryu::ide::console_editor {
                     machine_name = core::project::instance()->machine()->name();
                 }
             }
-            _header.value(fmt::format("project: {} | machine: {}", project_name, machine_name));
+            _project_status.value(fmt::format("project: {}", project_name));
+            _machine_status.value(fmt::format(" | machine: {}", machine_name));
         });
 
         _document_status.font_family(family);
@@ -92,13 +123,13 @@ namespace ryu::ide::console_editor {
         _caret_status.fg_color(ide::colors::info_text);
         _caret_status.bg_color(ide::colors::fill_color);
 
-        _working_directory.font_family(family);
-        _working_directory.margin({0, 0, 0, 0});
-        _working_directory.palette(context()->palette());
-        _working_directory.dock(core::dock::styles::left);
-        _working_directory.fg_color(ide::colors::info_text);
-        _working_directory.bg_color(ide::colors::fill_color);
-        _working_directory.value(fmt::format(" | {}", boost::filesystem::current_path().string()));
+        _environment_status.font_family(family);
+        _environment_status.margin({0, 0, 0, 0});
+        _environment_status.palette(context()->palette());
+        _environment_status.dock(core::dock::styles::left);
+        _environment_status.fg_color(ide::colors::info_text);
+        _environment_status.bg_color(ide::colors::fill_color);
+        _environment_status.value(fmt::format(" | env: {}", "(none)"));
 
         _footer.font_family(family);
         _footer.palette(context()->palette());
@@ -109,7 +140,7 @@ namespace ryu::ide::console_editor {
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _footer.add_child(&_document_status);
         _footer.add_child(&_caret_status);
-        _footer.add_child(&_working_directory);
+        _footer.add_child(&_environment_status);
 
         _console.font_family(family);
         _console.code_mapper(_mapper);
@@ -148,7 +179,7 @@ namespace ryu::ide::console_editor {
                         context()->engine()->quit();
                     else if (command == "update_working_directory") {
                         _working_directory.value(fmt::format(
-                                " | {}",
+                                "| cwd: {}",
                                 boost::filesystem::current_path().string()));
                     }
                 }

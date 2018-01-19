@@ -34,7 +34,7 @@ namespace ryu::core {
 
         core::symbol_table* symbol_table();
 
-        bool assemble(core::result& result, core::project& project);
+        bool assemble(core::result& result);
 
         bool execute(core::result& result, const std::string& line);
 

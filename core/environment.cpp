@@ -236,10 +236,16 @@ namespace ryu::core {
         return &_symbol_table;
     }
 
-    bool environment::assemble(
-            core::result& result,
-            core::project& project) {
-        return false;
+    bool environment::assemble(core::result& result) {
+        if (core::project::instance() == nullptr) {
+            result.add_message(
+                    "A001",
+                    "no project is loaded; assemble failed",
+                    true);
+            return false;
+        }
+
+        return true;
     }
 
     bool environment::load(
@@ -338,9 +344,10 @@ namespace ryu::core {
     bool environment::on_assemble(
             core::result& result,
             const command_handler_context_t& context) {
-        return true;
+        return assemble(result);
     }
 
+    // XXX: support registers as valid identifiers
     bool environment::on_evaluate(
             core::result& result,
             const command_handler_context_t& context) {
@@ -479,12 +486,21 @@ namespace ryu::core {
         return true;
     }
 
+    // this command jumps to the specified address like
+    // a subroutine jump (bsr/jsr).  If no address is specified, a
+    // jump will be made to the first address in your program.
+    //
+    // Example: To jump to the label in your program named "start", type:
+    //
+    // j start
     bool environment::on_jump_to_address(
             core::result& result,
             const command_handler_context_t& context) {
         return true;
     }
 
+    // this command is similar to jump, except only a breakpoint or
+    // an illegal command can stop this.
     bool environment::on_go_to_address(
             core::result& result,
             const command_handler_context_t& context) {
@@ -549,12 +565,22 @@ namespace ryu::core {
         std::string message;
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
         if (!is_directory(value) && !is_regular_file(value)) {
-            result.add_message("C008", fmt::format("invalid path: {}", value), true);
+            result.add_message(
+                    "C008",
+                    fmt::format("invalid path: {}", value), true);
         } else {
-            if (remove(value)) {
-                result.add_message("C008", fmt::format("{} removed", value));
+            boost::system::error_code ec;
+
+            if (remove(value, ec)) {
+                result.add_message(
+                        "C008",
+                        fmt::format("removal success: {}", value));
             } else {
-                result.add_message("C008", fmt::format("remove of {} failed", value), true);
+                result.add_message(
+                        "C008",
+                        fmt::format("removal failed: {}",
+                                    ec.message()),
+                        true);
             }
         }
 
@@ -589,7 +615,9 @@ namespace ryu::core {
 
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
         if (!is_directory(value)) {
-            result.add_message("C007", fmt::format("invalid path: {}", value), true);
+            result.add_message(
+                    "C007",
+                    fmt::format("invalid path: {}", value), true);
             return false;
         }
 
@@ -627,6 +655,7 @@ namespace ryu::core {
     bool environment::on_edit_project(
             core::result& result,
             const command_handler_context_t& context) {
+        result.add_data("command_action", {{"action", std::string("edit_project")}});
         return true;
     }
 
@@ -654,26 +683,12 @@ namespace ryu::core {
     bool environment::on_close_project(
             core::result& result,
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            result.add_message(
-                    "C033",
-                    "no project is loaded; close failed",
-                    true);
-            return false;
-        }
         return core::project::close(result);
     }
 
     bool environment::on_clone_project(
             core::result& result,
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            result.add_message(
-                    "C032",
-                    "no project is loaded; clone failed",
-                    true);
-            return false;
-        }
         return core::project::clone(
                 result,
                 core::project::instance()->path(),
@@ -713,7 +728,7 @@ namespace ryu::core {
             data_table_row_t row {};
             row.columns.push_back(std::to_string(machine->id()));
             row.columns.push_back(fmt::format("\"{}\"", machine->name()));
-            row.columns.push_back("MACH");
+            row.columns.emplace_back("MACH");
             table.rows.push_back(row);
         }
 
@@ -848,7 +863,10 @@ namespace ryu::core {
 
         auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
         if (!is_regular_file(value)) {
-            result.add_message("C021", fmt::format("invalid path: {}", value), true);
+            result.add_message(
+                    "C021",
+                    fmt::format("invalid path: {}", value),
+                    true);
             return false;
         }
 
@@ -869,7 +887,10 @@ namespace ryu::core {
         if (!context.root->children.empty()) {
             value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
             if (!is_regular_file(value)) {
-                result.add_message("C022", fmt::format("invalid path: {}", value), true);
+                result.add_message(
+                        "C022",
+                        fmt::format("invalid path: {}", value),
+                        true);
                 return false;
             }
         }

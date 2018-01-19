@@ -143,12 +143,29 @@ namespace ryu::core {
             core::result& result,
             const fs::path& source_path,
             const fs::path& target_path) {
+        if (_instance == nullptr) {
+            result.add_message(
+                    "C032",
+                    "no project is loaded; clone failed",
+                    true);
+            return false;
+        }
+
         return false;
     }
 
     bool project::close(core::result& result) {
+        if (_instance == nullptr) {
+            result.add_message(
+                    "C032",
+                    "no project is loaded; clone failed",
+                    true);
+            return false;
+        }
+
         _instance = nullptr;
         notify_listeners();
+
         return true;
     }
 
