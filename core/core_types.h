@@ -16,6 +16,10 @@
 
 namespace ryu::core {
 
+    class result;
+
+    class environment;
+
     class project_file;
 
     typedef std::vector<project_file> project_file_list;
@@ -23,6 +27,7 @@ namespace ryu::core {
     class project;
 
     typedef std::shared_ptr<core::project> project_shared_ptr;
+    typedef std::map<std::string, std::string> project_props_dict;
 
     class engine;
 
@@ -552,6 +557,19 @@ namespace ryu::core {
     typedef std::vector<view*> view_list;
 
     typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;
+
+    struct command_handler_context_t {
+        core::result& result;
+        core::command_t& command;
+        core::command_parameter_dict& params;
+        const core::ast_node_shared_ptr& root;
+    };
+
+    using command_handler_callable = std::function<bool (
+            environment*,
+            const command_handler_context_t&)>;
+
+    typedef std::map<uint8_t, command_handler_callable> command_handler_dict;
 
     struct data_table_column_t {
         enum format_options : uint8_t {

@@ -17,6 +17,15 @@ namespace ryu::core {
             core::result& result,
             const hardware::machine* machine,
             YAML::Node& node) {
+        auto id = node["id"];
+        if (id == nullptr) {
+            result.add_message(
+                    "C031",
+                    "project_file id is a required value",
+                    true);
+            return {};
+        }
+
         auto path = node["path"];
         if (path == nullptr) {
             result.add_message(
@@ -36,6 +45,7 @@ namespace ryu::core {
         }
 
         project_file file(
+                id.as<uint32_t>(),
                 fs::path(path.as<std::string>()),
                 string_to_type(type.as<std::string>()));
 
@@ -56,13 +66,19 @@ namespace ryu::core {
     }
 
     project_file::project_file(
+            uint32_t id,
             const fs::path& path,
-            project_file::types type) : _path(path),
+            project_file::types type) : _id(id),
+                                        _path(path),
                                         _type(type) {
     }
 
     bool project_file::dirty() const {
         return _dirty;
+    }
+
+    uint32_t project_file::id() const {
+        return _id;
     }
 
     fs::path project_file::path() const {
@@ -96,12 +112,14 @@ namespace ryu::core {
     std::string project_file::type_to_string(project_file::types type) {
         switch (type) {
             case assembly_source: return "assembly_source";
+            case environment:     return "environment";
             default:              return "uninitialized";
         }
     }
 
     bool project_file::save(core::result& result, YAML::Emitter& emitter) {
         emitter << YAML::BeginMap;
+        emitter << YAML::Key << "id" << YAML::Value << _id;
         emitter << YAML::Key << "path" << YAML::Value << _path.string();
         emitter << YAML::Key << "type" << YAML::Value << type_to_string(_type);
         if (_cpu != nullptr)
@@ -113,6 +131,8 @@ namespace ryu::core {
     project_file::types project_file::string_to_type(const std::string& name) {
         if (name == "assembly_source") {
             return project_file::types::assembly_source;
+        } else if (name == "environment") {
+            return project_file::types::environment;
         } else {
             return project_file::types::uninitialized;
         }

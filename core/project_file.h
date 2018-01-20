@@ -26,7 +26,7 @@ namespace ryu::core {
         enum types {
             uninitialized,
             assembly_source,
-            environment
+            environment,
         };
 
         static std::string type_to_string(project_file::types type);
@@ -41,10 +41,13 @@ namespace ryu::core {
         project_file() = default;
 
         project_file(
+                uint32_t id,
                 const fs::path& path,
                 project_file::types type);
 
         bool dirty() const;
+
+        uint32_t id() const;
 
         fs::path path() const;
 
@@ -63,6 +66,7 @@ namespace ryu::core {
         bool save(core::result& result, YAML::Emitter& emitter);
 
     private:
+        uint32_t _id {};
         fs::path _path {};
         bool _dirty = false;
         hardware::component* _cpu = nullptr;

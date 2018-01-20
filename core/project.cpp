@@ -123,12 +123,35 @@ namespace ryu::core {
 
         auto files = root["files"];
         if (files != nullptr && files.IsSequence()) {
-            auto& file_list = _instance->files();
             for (auto it = files.begin(); it != files.end(); ++it) {
                 auto file_node = *it;
                 auto file = core::project_file::load(result, machine, file_node);
-                if (file.type() != core::project_file::types::uninitialized)
-                    file_list.push_back(file);
+                if (file.type() != core::project_file::types::uninitialized) {
+                    _instance->add_file(file);
+                }
+            }
+        }
+
+        auto active_environment_id = root["active_environment"].as<uint32_t>();
+        if (active_environment_id != 0) {
+            auto file = _instance->find_file(active_environment_id);
+            if (file == nullptr) {
+                result.add_message(
+                        "C031",
+                        fmt::format("no project_file exists with id: {}", active_environment_id),
+                        true);
+                return false;
+            }
+            _instance->active_environment(file);
+        }
+
+        auto props = root["props"];
+        if (props != nullptr && props.IsSequence()) {
+            for (auto it = props.begin(); it != props.end(); ++it) {
+                auto prop_node = *it;
+                _instance->prop(
+                        prop_node["key"].as<std::string>(),
+                        prop_node["value"].as<std::string>());
             }
         }
 
@@ -201,12 +224,14 @@ namespace ryu::core {
         return _path;
     }
 
-    std::string project::name() const {
-        return _name;
+    void project::remove_all_files() {
+        _files.clear();
+        _dirty = true;
+        notify_listeners();
     }
 
-    project_file_list& project::files() {
-        return _files;
+    std::string project::name() const {
+        return _name;
     }
 
     hardware::machine* project::machine() {
@@ -223,9 +248,21 @@ namespace ryu::core {
         auto machine_id = _machine != nullptr ? _machine->id() : 0;
         emitter << YAML::Key << "machine" << YAML::Value << machine_id;
 
+        auto active_environment_id = _active_environment != nullptr ? _active_environment->id() : 0;
+        emitter << YAML::Key << "active_environment" << YAML::Value << active_environment_id;
+
         emitter << YAML::Key << "files" << YAML::BeginSeq;
         for (auto& file : _files)
             file.save(result, emitter);
+        emitter << YAML::EndSeq;
+
+        emitter << YAML::Key << "props" << YAML::BeginSeq;
+        for (auto& it : _props) {
+            emitter << YAML::BeginMap;
+            emitter << YAML::Key << "key" << it.first;
+            emitter << YAML::Key << "value" << it.second;
+            emitter << YAML::EndMap;
+        }
         emitter << YAML::EndSeq;
 
         try {
@@ -252,8 +289,23 @@ namespace ryu::core {
         return !result.is_failed();
     }
 
+    void project::remove_file(uint32_t id) {
+        for (auto it = _files.begin(); it != _files.end(); ++it) {
+            if ((*it).id() == id) {
+                _files.erase(it);
+                _dirty = true;
+                notify_listeners();
+                break;
+            }
+        }
+    }
+
     std::string project::description() const {
         return _description;
+    }
+
+    project_file* project::active_environment() {
+        return _active_environment;
     }
 
     void project::name(const std::string& value) {
@@ -262,14 +314,57 @@ namespace ryu::core {
         notify_listeners();
     }
 
+    project_file* project::find_file(uint32_t id) {
+        for (size_t i = 0; i < _files.size(); i++) {
+            if (_files[i].id() == id) {
+                return &_files[i];
+            }
+        }
+        return nullptr;
+    }
+
     void project::machine(hardware::machine* machine) {
         _machine = machine;
         _dirty = true;
         notify_listeners();
     }
 
+    void project::add_file(const project_file& value) {
+        _files.push_back(value);
+        _dirty = true;
+        notify_listeners();
+    }
+
     void project::description(const std::string& value) {
         _description = value;
+        _dirty = true;
+        notify_listeners();
+    }
+
+    void project::active_environment(project_file* value) {
+        _active_environment = value;
+        _dirty = true;
+        notify_listeners();
+    }
+
+    project_file* project::find_file(const fs::path& path) {
+        for (size_t i = 0; i < _files.size(); i++) {
+            if (_files[i].path() == path) {
+                return &_files[i];
+            }
+        }
+        return nullptr;
+    }
+
+    std::string project::prop(const std::string& key) const {
+        auto it = _props.find(key);
+        if (it != _props.end())
+            return it->second;
+        return "";
+    }
+
+    void project::prop(const std::string& key, const std::string& value) {
+        _props[key] = value;
         _dirty = true;
         notify_listeners();
     }

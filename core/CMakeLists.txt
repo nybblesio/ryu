@@ -25,6 +25,7 @@ add_library(
         views/caret.cpp views/caret.h
         font_family.cpp font_family.h
         views/panel.cpp views/panel.h
+        preferences.cpp preferences.h
         project_file.cpp project_file.h
         symbol_table.cpp symbol_table.h
         views/button.cpp views/button.h

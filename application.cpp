@@ -16,6 +16,7 @@
 namespace ryu {
 
     application::application() : _engine(display_width, display_height),
+                                 _prefs(),
                                  _ide_context("ide"),
                                  _emulator_context("emulator") {
     }
@@ -29,6 +30,12 @@ namespace ryu {
 
     bool application::init(int argc, char** argv) {
         core::result result;
+
+        if (!_prefs.load(result)) {
+            std::cout << "loading preferences failed:\n";
+            show_result_messages(result);
+            return false;
+        }
 
         if (!hardware::initialize(result)) {
             std::cout << "hardware initialize failed:\n";
@@ -67,8 +74,14 @@ namespace ryu {
     bool application::shutdown() {
         core::result result;
 
+        if (!_prefs.save(result)) {
+            std::cout << "saving preferences failed:\n";
+            show_result_messages(result);
+            return false;
+        }
+
         if (!_engine.shutdown(result)) {
-            std::cout << "shutdown failed:\n";
+            std::cout << "engine shutdown failed:\n";
             show_result_messages(result);
             return false;
         }

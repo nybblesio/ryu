@@ -13,6 +13,7 @@
 
 #include <core/engine.h>
 #include <ide/ide_context.h>
+#include <core/preferences.h>
 #include <emulator/emulator_context.h>
 
 namespace ryu {
@@ -43,6 +44,7 @@ namespace ryu {
 
     private:
         core::engine _engine;
+        core::preferences _prefs;
         ide::ide_context _ide_context;
         emulator::emulator_context _emulator_context;
     };

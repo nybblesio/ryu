@@ -57,21 +57,37 @@ namespace ryu::core {
 
         fs::path path() const;
 
+        void remove_all_files();
+
         std::string name() const;
 
-        project_file_list& files();
-
         hardware::machine* machine();
+
+        void remove_file(uint32_t id);
 
         std::string description() const;
 
         bool save(core::result& result);
 
+        project_file* active_environment();
+
         void name(const std::string& value);
+
+        project_file* find_file(uint32_t id);
+
+        void add_file(const project_file& value);
 
         void machine(hardware::machine* machine);
 
         void description(const std::string& value);
+
+        void active_environment(project_file* value);
+
+        project_file* find_file(const fs::path& path);
+
+        std::string prop(const std::string& key) const;
+
+        void prop(const std::string& key, const std::string& value);
 
     protected:
         explicit project(const fs::path& project_path);
@@ -92,8 +108,10 @@ namespace ryu::core {
         bool _dirty = false;
         std::string _name {};
         project_file_list _files;
+        project_props_dict _props;
         std::string _description {};
         hardware::machine* _machine = nullptr;
+        project_file* _active_environment = nullptr;
     };
 
 };

@@ -16,21 +16,6 @@
 
 namespace ryu::core {
 
-    class environment;
-
-    struct command_handler_context_t {
-        core::result& result;
-        core::command_t& command;
-        core::command_parameter_dict& params;
-        const core::ast_node_shared_ptr& root;
-    };
-
-    using command_handler_callable = std::function<bool (
-            environment*,
-            const command_handler_context_t&)>;
-
-    typedef std::map<uint8_t, command_handler_callable> command_handler_dict;
-
     class environment {
     public:
         explicit environment(const std::string& name);
