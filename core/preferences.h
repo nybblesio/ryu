@@ -24,6 +24,10 @@ namespace ryu::core {
     public:
         preferences() = default;
 
+        bool save(
+                core::result& result,
+                const core::engine& engine);
+
         int32_t font_size() const;
 
         void font_size(int32_t value);
@@ -31,8 +35,6 @@ namespace ryu::core {
         fs::path default_path() const;
 
         bool load(core::result& result);
-
-        bool save(core::result& result);
 
         core::palette ide_palette() const;
 

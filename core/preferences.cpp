@@ -12,6 +12,12 @@
 
 namespace ryu::core {
 
+    bool preferences::save(
+            core::result& result,
+            const core::engine& engine) {
+        return true;
+    }
+
     int32_t preferences::font_size() const {
         return _font_size;
     }
@@ -28,15 +34,18 @@ namespace ryu::core {
         return true;
     }
 
-    bool preferences::save(core::result& result) {
-        return true;
-    }
-
     core::palette preferences::ide_palette() const {
         return _ide_palette;
     }
 
     core::rect preferences::window_position() const {
+        if (_window_position.empty())
+            return {
+                    SDL_WINDOWPOS_CENTERED,
+                    SDL_WINDOWPOS_CENTERED,
+                    1920,
+                    1080
+            };
         return _window_position;
     }
 

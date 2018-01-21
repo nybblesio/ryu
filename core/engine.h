@@ -17,6 +17,7 @@
 #include "core_types.h"
 #include "state_stack.h"
 #include "font_family.h"
+#include "preferences.h"
 
 namespace ryu::core {
 
@@ -24,7 +25,9 @@ namespace ryu::core {
     public:
         using resize_callable = std::function<void (const core::rect&)>;
 
-        engine(int width, int height);
+        static std::vector<core::rect> displays();
+
+        engine() = default;
 
         ~engine() = default;
 
@@ -36,17 +39,19 @@ namespace ryu::core {
 
         void focus(int id);
 
-        short display_width() const;
-
-        short display_height() const;
+        core::rect bounds() const;
 
         bool run(core::result& result);
 
-        bool initialize(result& result);
+        core::rect window_position() const;
 
         hardware::machine* machine() const;
 
         bool shutdown(core::result& result);
+
+        core::font_family* add_font_family(
+                uint32_t size,
+                const std::string& name);
 
         inline SDL_Renderer* renderer() const {
             return _renderer;
@@ -58,6 +63,8 @@ namespace ryu::core {
 
         void remove_context(core::context* context);
 
+        void window_position(const core::rect& value);
+
         void erase_blackboard(const std::string& name);
 
         void on_resize(const resize_callable& callable);
@@ -66,15 +73,13 @@ namespace ryu::core {
 
         core::font_family* find_font_family(const std::string& name);
 
+        bool initialize(result& result, const core::preferences& prefs);
+
         void blackboard(const std::string& name, const std::string& value);
-
-        core::font_family* add_font_family(uint32_t size, const std::string& name);
-
-    private:
-        core::rect bounds();
 
     private:
         bool _quit = false;
+        core::rect _window_rect;
         int _focused_context = -1;
         core::blackboard _blackboard;
         core::context_dict _contexts;
@@ -83,7 +88,6 @@ namespace ryu::core {
         font_family_dict _font_families;
         resize_callable _resize_callable;
         SDL_Renderer* _renderer = nullptr;
-        std::pair<short, short> _display_size;
         hardware::machine* _machine = nullptr;
     };
 

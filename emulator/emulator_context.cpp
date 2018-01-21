@@ -39,4 +39,13 @@ namespace ryu::emulator {
 
         palette(&_palette);
     }
+
+    void emulator_context::parent_resize(const core::rect& parent_bounds) {
+        bounds({
+             (parent_bounds.width() / 2) + 1,
+             0,
+             (parent_bounds.width() / 2) - 1,
+             parent_bounds.height()
+        });
+    }
 }

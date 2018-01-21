@@ -28,6 +28,8 @@ namespace ryu::emulator {
 
         explicit emulator_context(const std::string& name);
 
+        void parent_resize(const core::rect& parent_bounds);
+
     protected:
         bool on_initialize(core::result& result) override;
 

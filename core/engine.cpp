@@ -1,4 +1,4 @@
-
+//
 // Ryu
 //
 // Copyright (C) 2017 Jeff Panici
@@ -12,10 +12,21 @@
 #include "engine.h"
 #include "context.h"
 #include "timer_pool.h"
+#include "preferences.h"
 
 namespace ryu::core {
 
-    engine::engine(int width, int height) : _display_size(std::make_pair(width, height)) {
+    std::vector<rect> engine::displays() {
+        std::vector<rect> displays;
+
+        auto display_count = SDL_GetNumVideoDisplays();
+        for (auto i = 0; i < display_count; i++) {
+            SDL_Rect bounds{};
+            SDL_GetDisplayBounds(i, &bounds);
+            displays.emplace_back(bounds);
+        }
+
+        return displays;
     }
 
     void engine::quit() {
@@ -26,16 +37,8 @@ namespace ryu::core {
         _focused_context = id;
     }
 
-    core::rect engine::bounds() {
-        return {0, 0, _display_size.first, _display_size.second};
-    }
-
-    short engine::display_width() const {
-        return _display_size.first;
-    }
-
-    short engine::display_height() const {
-        return _display_size.second;
+    core::rect engine::bounds() const {
+        return {0, 0, _window_rect.width(), _window_rect.height()};
     }
 
     bool engine::run(core::result& result) {
@@ -69,10 +72,23 @@ namespace ryu::core {
                 switch (e.type) {
                     case SDL_WINDOWEVENT:
                         switch (e.window.event) {
+                            case SDL_WINDOWEVENT_MINIMIZED:
+                                break;
+                            case SDL_WINDOWEVENT_MAXIMIZED:
+                                break;
+                            case SDL_WINDOWEVENT_MOVED:
+                                _window_rect.left(e.window.data1);
+                                _window_rect.top(e.window.data2);
+                                break;
                             case SDL_WINDOWEVENT_RESIZED:
-                                _display_size = std::make_pair(e.window.data1, e.window.data2);
+                                _window_rect.width(e.window.data1);
+                                _window_rect.height(e.window.data2);
                                 if (_resize_callable != nullptr) {
-                                    _resize_callable(core::rect{0, 0, _display_size.first, _display_size.second});
+                                    _resize_callable(core::rect{
+                                            0,
+                                            0,
+                                            _window_rect.width(),
+                                            _window_rect.height()});
                                 }
                                 break;
                         }
@@ -94,8 +110,8 @@ namespace ryu::core {
             auto fps_width = surface.measure_text(_font, fps);
             surface.draw_text(
                     _font,
-                    display_width() - (fps_width + 5),
-                    display_height() - (_font->line_height + 4),
+                    _window_rect.width() - (fps_width + 5),
+                    _window_rect.height() - (_font->line_height + 4),
                     fps,
                     {0xff, 0xff, 0xff, 0xff});
 
@@ -106,6 +122,10 @@ namespace ryu::core {
         }
 
         return !result.is_failed();
+    }
+
+    core::rect engine::window_position() const {
+        return _window_rect;
     }
 
     hardware::machine* engine::machine() const {
@@ -125,67 +145,70 @@ namespace ryu::core {
         return !result.is_failed();
     }
 
-    bool engine::initialize(core::result& result) {
+    bool engine::initialize(
+            core::result& result,
+            const core::preferences& prefs) {
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
             result.add_message(
                     "R002",
                     "SDL_Init failed.",
                     fmt::format("SDL Error: {0}", SDL_GetError()),
                     true);
-            result.fail();
-        } else {
-            _window = SDL_CreateWindow(
-                    "Ryu: The Arcade Construction Kit",
-                    SDL_WINDOWPOS_CENTERED,
-                    SDL_WINDOWPOS_CENTERED,
-                    display_width(),
-                    display_height(),
-                    SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
-            if (_window == nullptr) {
-                result.add_message(
-                        "R003",
-                        "SDL_CreateWindow failed.",
-                        fmt::format("SDL Error: {0}", SDL_GetError()),
-                        true);
-                result.fail();
-            } else {
-                SDL_SetWindowOpacity(_window, 1.0f);
-                _renderer = SDL_CreateRenderer(
-                        _window,
-                        -1,
-                        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-                if (_renderer == nullptr) {
-                    result.add_message(
-                            "R004",
-                            "SDL_CreateRenderer failed.",
-                            fmt::format("SDL Error: {0}", SDL_GetError()),
-                            true);
-                    result.fail();
-                } else {
-                    if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
-                        result.add_message(
-                                "R005",
-                                "IMG_Init failed.",
-                                fmt::format("IMG Error: {0}", IMG_GetError()),
-                                true);
-                        result.fail();
-                    } else {
-                        // XXX: need to load multiple sizes for user config
-                        auto topaz = add_font_family(14, "topaz");
-                        _font = topaz->add_style(font::styles::normal, "assets/fonts/topaz/Topaz-8.ttf");
-
-                        auto hack = add_font_family(16, "hack");
-                        hack->add_style(font::styles::normal,                      "assets/fonts/hack/Hack-Regular.ttf");
-                        hack->add_style(font::styles::bold,                        "assets/fonts/hack/Hack-Bold.ttf");
-                        // XXX: there appears to be an issue with this font
-                        hack->add_style(font::styles::italic,                      "assets/fonts/hack/Hack-Italic.ttf");
-                        hack->add_style(font::styles::underline,                   "assets/fonts/hack/Hack-Regular.ttf");
-                        hack->add_style(font::styles::bold|font::styles::underline,"assets/fonts/hack/Hack-Bold.ttf");
-                        hack->add_style(font::styles::bold|font::styles::italic,   "assets/fonts/hack/Hack-BoldItalic.ttf");
-                    }
-                }
-            }
+            return false;
         }
+
+        _window_rect = prefs.window_position();
+        _window = SDL_CreateWindow(
+                "Ryu: The Arcade Construction Kit",
+                _window_rect.left(),
+                _window_rect.top(),
+                _window_rect.width(),
+                _window_rect.height(),
+                SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+        if (_window == nullptr) {
+            result.add_message(
+                    "R003",
+                    "SDL_CreateWindow failed.",
+                    fmt::format("SDL Error: {0}", SDL_GetError()),
+                    true);
+            return false;
+        }
+
+        SDL_SetWindowOpacity(_window, 1.0f);
+        _renderer = SDL_CreateRenderer(
+                _window,
+                -1,
+                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        if (_renderer == nullptr) {
+            result.add_message(
+                    "R004",
+                    "SDL_CreateRenderer failed.",
+                    fmt::format("SDL Error: {0}", SDL_GetError()),
+                    true);
+            return false;
+        }
+
+        if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
+            result.add_message(
+                    "R005",
+                    "IMG_Init failed.",
+                    fmt::format("IMG Error: {0}", IMG_GetError()),
+                    true);
+            return false;
+        }
+
+        // XXX: need to load multiple sizes for user config
+        auto topaz = add_font_family(14, "topaz");
+        _font = topaz->add_style(font::styles::normal, "assets/fonts/topaz/Topaz-8.ttf");
+
+        auto hack = add_font_family(16, "hack");
+        hack->add_style(font::styles::normal,                      "assets/fonts/hack/Hack-Regular.ttf");
+        hack->add_style(font::styles::bold,                        "assets/fonts/hack/Hack-Bold.ttf");
+        // XXX: there appears to be an issue with this font
+        hack->add_style(font::styles::italic,                      "assets/fonts/hack/Hack-Italic.ttf");
+        hack->add_style(font::styles::underline,                   "assets/fonts/hack/Hack-Regular.ttf");
+        hack->add_style(font::styles::bold|font::styles::underline,"assets/fonts/hack/Hack-Bold.ttf");
+        hack->add_style(font::styles::bold|font::styles::italic,   "assets/fonts/hack/Hack-BoldItalic.ttf");
 
         return !result.is_failed();
     }
@@ -206,6 +229,11 @@ namespace ryu::core {
             return;
         context->engine(nullptr);
         _contexts.erase(context->id());
+    }
+
+    void engine::window_position(const core::rect& value) {
+        SDL_SetWindowPosition(_window, value.left(), value.top());
+        SDL_SetWindowSize(_window, value.width(), value.height());
     }
 
     void engine::erase_blackboard(const std::string& name) {

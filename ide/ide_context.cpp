@@ -161,4 +161,14 @@ namespace ryu::ide {
         palette(&_palette);
     }
 
+    void ide_context::parent_resize(const core::rect& parent_bounds) {
+        bounds({
+                0,
+                0,
+                (parent_bounds.width() / 2) - 1,
+                parent_bounds.height()
+        });
+
+    }
+
 }

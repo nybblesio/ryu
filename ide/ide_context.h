@@ -28,6 +28,8 @@ namespace ryu::ide {
 
         void project(core::project* project);
 
+        void parent_resize(const core::rect& parent_bounds);
+
     protected:
         bool on_initialize(core::result& result) override;
 

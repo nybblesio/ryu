@@ -15,12 +15,6 @@
 
 namespace ryu {
 
-    application::application() : _engine(display_width, display_height),
-                                 _prefs(),
-                                 _ide_context("ide"),
-                                 _emulator_context("emulator") {
-    }
-
     void application::show_result_messages(core::result& result) {
         for (auto& message : result.messages())
             std::cout << message.code() << ": "
@@ -43,8 +37,8 @@ namespace ryu {
             return false;
         }
 
-        if (!_engine.initialize(result)) {
-            std::cout << "initialize failed:\n";
+        if (!_engine.initialize(result, _prefs)) {
+            std::cout << "engine initialize failed:\n";
             show_result_messages(result);
             return false;
         }
@@ -62,8 +56,8 @@ namespace ryu {
         }
 
         _engine.on_resize([&](const core::rect& bounds) {
-            _ide_context.bounds(ide_bounds(bounds));
-            _emulator_context.bounds(emulator_bounds(bounds));
+            _ide_context.parent_resize(bounds);
+            _emulator_context.parent_resize(bounds);
         });
 
         std::cout << std::endl;
@@ -74,7 +68,7 @@ namespace ryu {
     bool application::shutdown() {
         core::result result;
 
-        if (!_prefs.save(result)) {
+        if (!_prefs.save(result, _engine)) {
             std::cout << "saving preferences failed:\n";
             show_result_messages(result);
             return false;
@@ -113,35 +107,13 @@ namespace ryu {
     bool application::configure_ide(core::result& result) {
         _engine.add_context(&_ide_context);
         _ide_context.bg_color(ide::colors::fill_color);
-        return _ide_context.initialize(
-                result,
-                ide_bounds({0, 0, display_width, display_height}));
+        return _ide_context.initialize(result, _engine.bounds());
     }
 
     bool application::configure_emulator(core::result& result) {
         _engine.add_context(&_emulator_context);
         _emulator_context.bg_color(emulator::emulator_context::colors::fill_color);
-        return _emulator_context.initialize(
-                result,
-                emulator_bounds({0, 0, display_width, display_height}));
-    }
-
-    core::rect application::ide_bounds(const core::rect& bounds) {
-        return {
-                0,
-                0,
-                (bounds.width() / 2) - 1,
-                bounds.height()
-        };
-    }
-
-    core::rect application::emulator_bounds(const core::rect& bounds) {
-        return {
-                (bounds.width() / 2) + 1,
-                0,
-                (bounds.width() / 2) - 1,
-                bounds.height()
-        };
+        return _emulator_context.initialize(result, _engine.bounds());
     }
 
 }

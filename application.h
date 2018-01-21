@@ -20,10 +20,7 @@ namespace ryu {
 
     class application {
     public:
-        static const int display_width = 1920;
-        static const int display_height = 1080;
-
-        application();
+        application() = default;
 
         bool shutdown();
 
@@ -36,17 +33,13 @@ namespace ryu {
 
         bool configure_emulator(core::result& result);
 
-        core::rect ide_bounds(const core::rect& bounds);
-
         void show_result_messages(core::result& result);
 
-        core::rect emulator_bounds(const core::rect& bounds);
-
     private:
-        core::engine _engine;
-        core::preferences _prefs;
-        ide::ide_context _ide_context;
-        emulator::emulator_context _emulator_context;
+        core::engine _engine {};
+        core::preferences _prefs {};
+        ide::ide_context _ide_context {"ide"};
+        emulator::emulator_context _emulator_context {"emulator"};
     };
 
 };
