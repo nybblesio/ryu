@@ -67,9 +67,16 @@ namespace ryu::core {
 
     class font_family {
     public:
-        font_family(const std::string& name, int32_t size, SDL_Renderer* renderer);
+        font_family(
+                const std::string& name,
+                int32_t size,
+                SDL_Renderer* renderer);
 
         ~font_family();
+
+        font_t* add_style(
+                uint8_t style,
+                const boost::filesystem::path& path);
 
         int32_t size() const {
             return _size;
@@ -81,8 +88,6 @@ namespace ryu::core {
 
         const font_t* find_style(uint8_t style) const;
 
-        font_t* add_style(uint8_t style, const boost::filesystem::path& path);
-
     private:
         int32_t _size;
         std::string _name;
@@ -91,5 +96,6 @@ namespace ryu::core {
     };
 
     typedef std::map<std::string, font_family> font_family_dict;
+
 };
 

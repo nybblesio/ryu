@@ -56,26 +56,23 @@ namespace ryu::ide::console_editor {
     }
 
     void controller::on_initialize() {
-        auto family = context()->engine()->find_font_family("hack");
-        auto face = family->find_style(core::font::styles::normal);
-
-        _project_status.font_family(family);
+        _project_status.font_family(context()->font_family());
         _project_status.palette(context()->palette());
         _project_status.dock(core::dock::styles::left);
         _project_status.fg_color(ide::colors::info_text);
         _project_status.bg_color(ide::colors::fill_color);
-        _project_status.margin({0, face->width, 0, 0});
+        _project_status.margin({0, context()->font_face()->width, 0, 0});
         _project_status.value("project: (none)");
 
-        _machine_status.font_family(family);
+        _machine_status.font_family(context()->font_family());
         _machine_status.palette(context()->palette());
         _machine_status.dock(core::dock::styles::left);
         _machine_status.fg_color(ide::colors::info_text);
         _machine_status.bg_color(ide::colors::fill_color);
-        _machine_status.margin({0, face->width, 0, 0});
+        _machine_status.margin({0, context()->font_face()->width, 0, 0});
         _machine_status.value("| machine: (none)");
 
-        _working_directory.font_family(family);
+        _working_directory.font_family(context()->font_family());
         _working_directory.margin({0, 0, 0, 0});
         _working_directory.palette(context()->palette());
         _working_directory.dock(core::dock::styles::left);
@@ -83,12 +80,12 @@ namespace ryu::ide::console_editor {
         _working_directory.bg_color(ide::colors::fill_color);
         _working_directory.value(fmt::format("| cwd: {}", boost::filesystem::current_path().string()));
 
-        _header.font_family(family);
+        _header.font_family(context()->font_family());
         _header.palette(context()->palette());
         _header.dock(core::dock::styles::top);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
-        _header.bounds().height(face->line_height);
+        _header.bounds().height(context()->font_face()->line_height);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header.add_child(&_project_status);
         _header.add_child(&_machine_status);
@@ -109,21 +106,21 @@ namespace ryu::ide::console_editor {
             _machine_status.value(fmt::format(" | machine: {}", machine_name));
         });
 
-        _document_status.font_family(family);
+        _document_status.font_family(context()->font_family());
         _document_status.palette(context()->palette());
         _document_status.dock(core::dock::styles::left);
         _document_status.fg_color(ide::colors::info_text);
         _document_status.bg_color(ide::colors::fill_color);
-        _document_status.margin({0, face->width, 0, 0});
+        _document_status.margin({0, context()->font_face()->width, 0, 0});
 
-        _caret_status.font_family(family);
+        _caret_status.font_family(context()->font_family());
         _caret_status.margin({0, 0, 0, 0});
         _caret_status.palette(context()->palette());
         _caret_status.dock(core::dock::styles::left);
         _caret_status.fg_color(ide::colors::info_text);
         _caret_status.bg_color(ide::colors::fill_color);
 
-        _environment_status.font_family(family);
+        _environment_status.font_family(context()->font_family());
         _environment_status.margin({0, 0, 0, 0});
         _environment_status.palette(context()->palette());
         _environment_status.dock(core::dock::styles::left);
@@ -133,10 +130,10 @@ namespace ryu::ide::console_editor {
                 " | env: {}",
                 context()->environment()->name()));
 
-        _footer.font_family(family);
+        _footer.font_family(context()->font_family());
         _footer.palette(context()->palette());
         _footer.dock(core::dock::styles::bottom);
-        _footer.bounds().height(face->line_height);
+        _footer.bounds().height(context()->font_face()->line_height);
         _footer.fg_color(ide::colors::info_text);
         _footer.bg_color(ide::colors::fill_color);
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
@@ -144,7 +141,7 @@ namespace ryu::ide::console_editor {
         _footer.add_child(&_caret_status);
         _footer.add_child(&_environment_status);
 
-        _console.font_family(family);
+        _console.font_family(context()->font_family());
         _console.code_mapper(_mapper);
         _console.fg_color(ide::colors::text);
         _console.palette(context()->palette());
@@ -191,7 +188,7 @@ namespace ryu::ide::console_editor {
         _console.initialize();
         _console.focus(&_console);
 
-        _layout_panel.font_family(family);
+        _layout_panel.font_family(context()->font_family());
         _layout_panel.palette(context()->palette());
         _layout_panel.dock(core::dock::styles::fill);
         _layout_panel.fg_color(ide::colors::info_text);

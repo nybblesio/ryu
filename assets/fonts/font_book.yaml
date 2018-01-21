@@ -1,0 +1,14 @@
+# font book meta-data
+
+fonts:
+  - family: topaz
+    sizes: [8]
+    styles:
+      - normal: /assets/fonts/topaz/topaz-8.ttf
+  - family: hack
+    sizes: [16]
+    styles:
+      - normal: /assets/fonts/hack/hack-regular.ttf
+      - bold: /assets/fonts/hack/hack-bold.ttf
+      - italic: /assets/fonts/hack/hack-italic.ttf
+      - bold_italic: /assets/fonts/hack/hack-bolditalic.ttf

@@ -70,12 +70,16 @@ namespace ryu::core {
         return _id;
     }
 
-    bool context::on_initialize(core::result& result) {
-        return false;
-    }
-
     void context::pop_state(int to_id) {
         _stack.pop(to_id);
+    }
+
+    const core::font_t* context::font_face() {
+        return _font;
+    }
+
+    core::font_family* context::font_family() {
+        return _family;
     }
 
     void context::add_state(core::state* state) {
@@ -97,9 +101,16 @@ namespace ryu::core {
         _stack.remove_state(state);
     }
 
-    bool context::initialize(core::result& result, const core::rect& bounds) {
-        _bounds = bounds;
-        return on_initialize(result);
+    bool context::on_initialize(core::result& result) {
+        return false;
+    }
+
+    void context::font_face(const core::font_t* value) {
+        _font = value;
+    }
+
+    void context::font_family(core::font_family* value) {
+        _family = value;
     }
 
     void context::erase_blackboard(const std::string& name) {
@@ -116,6 +127,11 @@ namespace ryu::core {
 
     void context::push_state(int id, const core::parameter_dict& params) {
         _stack.push(id, params);
+    }
+
+    bool context::initialize(core::result& result, const core::rect& bounds) {
+        _bounds = bounds;
+        return on_initialize(result);
     }
 
     void context::blackboard(const std::string& name, const std::string& value) {

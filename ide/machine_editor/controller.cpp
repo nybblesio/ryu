@@ -57,18 +57,16 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_initialize() {
-        auto family = context()->engine()->find_font_family("hack");
-        auto face = family->find_style(core::font::styles::normal);
-        auto address_space_label_width = face->measure_text("address space: $");
+        auto address_space_label_width = context()->font_face()->measure_text("address space: $");
 
-        _header.font_family(family);
+        _header.font_family(context()->font_family());
         _header.palette(context()->palette());
         _header.dock(core::dock::styles::top);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 15});
 
-        _footer.font_family(family);
+        _footer.font_family(context()->font_family());
         _footer.palette(context()->palette());
         _footer.dock(core::dock::styles::bottom);
         _footer.fg_color(ide::colors::info_text);
@@ -77,7 +75,7 @@ namespace ryu::ide::machine_editor {
         _footer.value("F1=Map | F2=Add | DEL=Remove | ESC=Close");
 
         _name_label.value("name:");
-        _name_label.font_family(family);
+        _name_label.font_family(context()->font_family());
         _name_label.margin({0, 0, 0, 0});
         _name_label.palette(context()->palette());
         _name_label.dock(core::dock::styles::left);
@@ -85,13 +83,15 @@ namespace ryu::ide::machine_editor {
         _name_label.bg_color(ide::colors::fill_color);
         _name_label.sizing(core::view::sizing::types::fixed);
         _name_label.halign(core::alignment::horizontal::right);
-        _name_label.bounds().size(address_space_label_width, face->line_height);
+        _name_label.bounds().size(
+                address_space_label_width,
+                context()->font_face()->line_height);
 
         _name_textbox.width(32);
         _name_textbox.length(32);
         _name_textbox.enabled(true);
         _name_textbox.on_tab([&]() -> const core::view* { return &_address_space_textbox; });
-        _name_textbox.font_family(family);
+        _name_textbox.font_family(context()->font_family());
         _name_textbox.margin({15, 0, 3, 0});
         _name_textbox.palette(context()->palette());
         _name_textbox.dock(core::dock::styles::left);
@@ -101,7 +101,7 @@ namespace ryu::ide::machine_editor {
             return true;
         });
 
-        _address_space_label.font_family(family);
+        _address_space_label.font_family(context()->font_family());
         _address_space_label.margin({0, 0, 0, 0});
         _address_space_label.value("address space: $");
         _address_space_label.palette(context()->palette());
@@ -110,13 +110,15 @@ namespace ryu::ide::machine_editor {
         _address_space_label.bg_color(ide::colors::fill_color);
         _address_space_label.sizing(core::view::sizing::types::fixed);
         _address_space_label.halign(core::alignment::horizontal::right);
-        _address_space_label.bounds().size(address_space_label_width, face->line_height);
+        _address_space_label.bounds().size(
+                address_space_label_width,
+                context()->font_face()->line_height);
 
         _address_space_textbox.width(8);
         _address_space_textbox.length(8);
         _address_space_textbox.enabled(true);
         _address_space_textbox.on_tab([&]() -> const core::view* { return &_display_pick_list; });
-        _address_space_textbox.font_family(family);
+        _address_space_textbox.font_family(context()->font_family());
         _address_space_textbox.margin({15, 0, 3, 0});
         _address_space_textbox.palette(context()->palette());
         _address_space_textbox.dock(core::dock::styles::left);
@@ -127,7 +129,7 @@ namespace ryu::ide::machine_editor {
         });
 
         _display_label.value("display:");
-        _display_label.font_family(family);
+        _display_label.font_family(context()->font_family());
         _display_label.margin({0, 0, 0, 0});
         _display_label.palette(context()->palette());
         _display_label.dock(core::dock::styles::left);
@@ -135,13 +137,15 @@ namespace ryu::ide::machine_editor {
         _display_label.bg_color(ide::colors::fill_color);
         _display_label.sizing(core::view::sizing::types::fixed);
         _display_label.halign(core::alignment::horizontal::right);
-        _display_label.bounds().size(address_space_label_width, face->line_height);
+        _display_label.bounds().size(
+                address_space_label_width,
+                context()->font_face()->line_height);
 
         auto& displays = _display_pick_list.options();
         for (auto& display : hardware::display::catalog()) {
             displays.push_back(display.name());
         }
-        _display_pick_list.font_family(family);
+        _display_pick_list.font_family(context()->font_family());
         _display_pick_list.margin({15, 0, 4, 0});
         _display_pick_list.palette(context()->palette());
         _display_pick_list.dock(core::dock::styles::left);
@@ -149,11 +153,11 @@ namespace ryu::ide::machine_editor {
         _display_pick_list.bg_color(ide::colors::fill_color);
         _display_pick_list.on_tab([&]() -> const core::view* { return &_map_button; });
         _display_pick_list.bounds().size(
-                face->width * _display_pick_list.length(),
-                face->line_height);
+                context()->font_face()->width * _display_pick_list.length(),
+                context()->font_face()->line_height);
 
         _map_button.value("Map");
-        _map_button.font_family(family);
+        _map_button.font_family(context()->font_family());
         _map_button.margin({5, 5, 5, 5});
         _map_button.palette(context()->palette());
         _map_button.dock(core::dock::styles::left);
@@ -162,7 +166,7 @@ namespace ryu::ide::machine_editor {
         _map_button.on_tab([&]() -> const core::view* { return &_add_button; });
 
         _add_button.value("Add");
-        _add_button.font_family(family);
+        _add_button.font_family(context()->font_family());
         _add_button.margin({5, 5, 5, 5});
         _add_button.palette(context()->palette());
         _add_button.dock(core::dock::styles::left);
@@ -171,7 +175,7 @@ namespace ryu::ide::machine_editor {
         _add_button.on_tab([&]() -> const core::view* { return &_delete_button; });
 
         _delete_button.value("Delete");
-        _delete_button.font_family(family);
+        _delete_button.font_family(context()->font_family());
         _delete_button.margin({5, 5, 5, 5});
         _delete_button.palette(context()->palette());
         _delete_button.dock(core::dock::styles::left);
@@ -182,7 +186,7 @@ namespace ryu::ide::machine_editor {
         _row1_panel.palette(context()->palette());
         _row1_panel.dock(core::dock::styles::top);
         _row1_panel.bg_color(ide::colors::transparent);
-        _row1_panel.bounds().height(face->line_height * 2);
+        _row1_panel.bounds().height(context()->font_face()->line_height * 2);
         _row1_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _row1_panel.add_child(&_name_label);
         _row1_panel.add_child(&_name_textbox);
@@ -190,7 +194,7 @@ namespace ryu::ide::machine_editor {
         _row2_panel.palette(context()->palette());
         _row2_panel.dock(core::dock::styles::top);
         _row2_panel.bg_color(ide::colors::transparent);
-        _row2_panel.bounds().height(face->line_height * 2);
+        _row2_panel.bounds().height(context()->font_face()->line_height * 2);
         _row2_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _row2_panel.add_child(&_address_space_label);
         _row2_panel.add_child(&_address_space_textbox);
@@ -198,7 +202,7 @@ namespace ryu::ide::machine_editor {
         _row3_panel.palette(context()->palette());
         _row3_panel.dock(core::dock::styles::top);
         _row3_panel.bg_color(ide::colors::transparent);
-        _row3_panel.bounds().height(face->line_height * 2);
+        _row3_panel.bounds().height(context()->font_face()->line_height * 2);
         _row3_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _row3_panel.add_child(&_display_label);
         _row3_panel.add_child(&_display_pick_list);
@@ -206,13 +210,13 @@ namespace ryu::ide::machine_editor {
         _button_panel.palette(context()->palette());
         _button_panel.dock(core::dock::styles::bottom);
         _button_panel.bg_color(ide::colors::transparent);
-        _button_panel.bounds().height(face->line_height * 3);
+        _button_panel.bounds().height(context()->font_face()->line_height * 3);
         _button_panel.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _button_panel.add_child(&_map_button);
         _button_panel.add_child(&_add_button);
         _button_panel.add_child(&_delete_button);
 
-        _general_panel.font_family(family);
+        _general_panel.font_family(context()->font_family());
         _general_panel.palette(context()->palette());
         _general_panel.dock(core::dock::styles::fill);
         _general_panel.fg_color(ide::colors::info_text);
@@ -222,7 +226,7 @@ namespace ryu::ide::machine_editor {
         _general_panel.add_child(&_row3_panel);
 
         _notebook.on_tab([&]() -> const core::view* { return &_name_textbox; });
-        _notebook.font_family(family);
+        _notebook.font_family(context()->font_family());
         _notebook.palette(context()->palette());
         _notebook.dock(core::dock::styles::fill);
         _notebook.fg_color(ide::colors::info_text);
@@ -232,7 +236,7 @@ namespace ryu::ide::machine_editor {
         _notebook.add_tab("Components", nullptr);
         _notebook.add_tab("Settings", nullptr);
 
-        _panel.font_family(family);
+        _panel.font_family(context()->font_family());
         _panel.palette(context()->palette());
         _panel.dock(core::dock::styles::fill);
         _panel.fg_color(ide::colors::info_text);

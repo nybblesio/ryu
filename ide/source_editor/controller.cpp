@@ -27,34 +27,31 @@ namespace ryu::ide::source_editor {
     }
 
     void controller::on_initialize() {
-        auto family = context()->engine()->find_font_family("hack");
-        auto face = family->find_style(core::font::styles::normal);
-
-        _project_label.font_family(family);
+        _project_label.font_family(context()->font_family());
         _project_label.palette(context()->palette());
         _project_label.dock(core::dock::styles::left);
         _project_label.fg_color(ide::colors::info_text);
         _project_label.bg_color(ide::colors::fill_color);
-        _project_label.margin({0, face->width, 0, 0});
+        _project_label.margin({0, context()->font_face()->width, 0, 0});
         _project_label.value("project: (none)");
 
-        _machine_label.font_family(family);
+        _machine_label.font_family(context()->font_family());
         _machine_label.palette(context()->palette());
         _machine_label.dock(core::dock::styles::left);
         _machine_label.fg_color(ide::colors::info_text);
         _machine_label.bg_color(ide::colors::fill_color);
-        _machine_label.margin({0, face->width, 0, 0});
+        _machine_label.margin({0, context()->font_face()->width, 0, 0});
         _machine_label.value("| machine: (none)");
 
-        _cpu_status.font_family(family);
+        _cpu_status.font_family(context()->font_family());
         _cpu_status.palette(context()->palette());
         _cpu_status.dock(core::dock::styles::left);
         _cpu_status.fg_color(ide::colors::info_text);
         _cpu_status.bg_color(ide::colors::fill_color);
-        _cpu_status.margin({0, face->width, 0, 0});
+        _cpu_status.margin({0, context()->font_face()->width, 0, 0});
         _cpu_status.value("| cpu: (none)");
 
-        _file_status.font_family(family);
+        _file_status.font_family(context()->font_family());
         _file_status.margin({0, 0, 0, 0});
         _file_status.value("| file: (none)");
         _file_status.palette(context()->palette());
@@ -83,12 +80,12 @@ namespace ryu::ide::source_editor {
             _file_status.value(fmt::format("| file: {}", file));
         });
 
-        _header.font_family(family);
+        _header.font_family(context()->font_family());
         _header.palette(context()->palette());
         _header.dock(core::dock::styles::top);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
-        _header.bounds().height(face->line_height);
+        _header.bounds().height(context()->font_face()->line_height);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header.add_child(&_project_label);
         _header.add_child(&_machine_label);
@@ -97,7 +94,7 @@ namespace ryu::ide::source_editor {
 
         _command_line.width(60);
         _command_line.length(255);
-        _command_line.font_family(family);
+        _command_line.font_family(context()->font_family());
         _command_line.palette(context()->palette());
         _command_line.dock(core::dock::styles::top);
         _command_line.fg_color(ide::colors::text);
@@ -169,31 +166,31 @@ namespace ryu::ide::source_editor {
         });
         _command_line.margin({_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
 
-        _document_status.font_family(family);
+        _document_status.font_family(context()->font_family());
         _document_status.palette(context()->palette());
         _document_status.dock(core::dock::styles::left);
         _document_status.fg_color(ide::colors::info_text);
         _document_status.bg_color(ide::colors::fill_color);
-        _document_status.margin({0, face->width, 0, 0});
+        _document_status.margin({0, context()->font_face()->width, 0, 0});
 
-        _caret_status.font_family(family);
+        _caret_status.font_family(context()->font_family());
         _caret_status.margin({0, 0, 0, 0});
         _caret_status.palette(context()->palette());
         _caret_status.dock(core::dock::styles::left);
         _caret_status.fg_color(ide::colors::info_text);
         _caret_status.bg_color(ide::colors::fill_color);
 
-        _footer.font_family(family);
+        _footer.font_family(context()->font_family());
         _footer.palette(context()->palette());
         _footer.dock(core::dock::styles::bottom);
-        _footer.bounds().height(face->line_height);
+        _footer.bounds().height(context()->font_face()->line_height);
         _footer.fg_color(ide::colors::info_text);
         _footer.bg_color(ide::colors::fill_color);
         _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
         _footer.add_child(&_document_status);
         _footer.add_child(&_caret_status);
 
-        _editor.font_family(family);
+        _editor.font_family(context()->font_family());
         _editor.palette(context()->palette());
         _editor.dock(core::dock::styles::fill);
         _editor.fg_color(ide::colors::text);
@@ -222,7 +219,7 @@ namespace ryu::ide::source_editor {
         });
         _editor.initialize(rows, columns);
 
-        _layout_panel.font_family(family);
+        _layout_panel.font_family(context()->font_family());
         _layout_panel.palette(context()->palette());
         _layout_panel.dock(core::dock::styles::fill);
         _layout_panel.fg_color(ide::colors::info_text);

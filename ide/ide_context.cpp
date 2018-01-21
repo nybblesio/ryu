@@ -9,6 +9,7 @@
 //
 
 #include <hardware/registry.h>
+#include <core/font_book.h>
 #include "ide_context.h"
 #include "ide_types.h"
 

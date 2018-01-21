@@ -33,6 +33,14 @@ namespace ryu::core {
 
         void quit();
 
+        bool initialize(
+                result& result,
+                const core::preferences& prefs);
+
+        void blackboard(
+                const std::string& name,
+                const std::string& value);
+
         int focus() const {
             return _focused_context;
         }
@@ -43,15 +51,15 @@ namespace ryu::core {
 
         bool run(core::result& result);
 
+        const core::font_t* font_face();
+
+        core::font_family* font_family();
+
         core::rect window_position() const;
 
         hardware::machine* machine() const;
 
         bool shutdown(core::result& result);
-
-        core::font_family* add_font_family(
-                uint32_t size,
-                const std::string& name);
 
         inline SDL_Renderer* renderer() const {
             return _renderer;
@@ -60,6 +68,10 @@ namespace ryu::core {
         void add_context(core::context* context);
 
         void machine(hardware::machine* machine);
+
+        void font_face(const core::font_t* value);
+
+        void font_family(core::font_family* value);
 
         void remove_context(core::context* context);
 
@@ -71,12 +83,6 @@ namespace ryu::core {
 
         std::string blackboard(const std::string& name) const;
 
-        core::font_family* find_font_family(const std::string& name);
-
-        bool initialize(result& result, const core::preferences& prefs);
-
-        void blackboard(const std::string& name, const std::string& value);
-
     private:
         bool _quit = false;
         core::rect _window_rect;
@@ -84,11 +90,11 @@ namespace ryu::core {
         core::blackboard _blackboard;
         core::context_dict _contexts;
         SDL_Window* _window = nullptr;
-        core::font_t* _font = nullptr;
-        font_family_dict _font_families;
         resize_callable _resize_callable;
         SDL_Renderer* _renderer = nullptr;
+        const core::font_t* _font = nullptr;
         hardware::machine* _machine = nullptr;
+        core::font_family* _font_family = nullptr;
     };
 
 };

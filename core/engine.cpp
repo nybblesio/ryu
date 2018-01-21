@@ -11,6 +11,7 @@
 #include "state.h"
 #include "engine.h"
 #include "context.h"
+#include "font_book.h"
 #include "timer_pool.h"
 #include "preferences.h"
 
@@ -31,6 +32,82 @@ namespace ryu::core {
 
     void engine::quit() {
         _quit = true;
+    }
+
+    bool engine::initialize(
+            core::result& result,
+            const core::preferences& prefs) {
+        if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+            result.add_message(
+                    "R002",
+                    "SDL_Init failed.",
+                    fmt::format("SDL Error: {0}", SDL_GetError()),
+                    true);
+            return false;
+        }
+
+        _window_rect = prefs.window_position();
+        _window = SDL_CreateWindow(
+                "Ryu: The Arcade Construction Kit",
+                _window_rect.left(),
+                _window_rect.top(),
+                _window_rect.width(),
+                _window_rect.height(),
+                SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+        if (_window == nullptr) {
+            result.add_message(
+                    "R003",
+                    "SDL_CreateWindow failed.",
+                    fmt::format("SDL Error: {0}", SDL_GetError()),
+                    true);
+            return false;
+        }
+
+        SDL_SetWindowOpacity(_window, 1.0f);
+        _renderer = SDL_CreateRenderer(
+                _window,
+                -1,
+                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        if (_renderer == nullptr) {
+            result.add_message(
+                    "R004",
+                    "SDL_CreateRenderer failed.",
+                    fmt::format("SDL Error: {0}", SDL_GetError()),
+                    true);
+            return false;
+        }
+
+        if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
+            result.add_message(
+                    "R005",
+                    "IMG_Init failed.",
+                    fmt::format("IMG Error: {0}", IMG_GetError()),
+                    true);
+            return false;
+        }
+
+        font_book::instance()->renderer(_renderer);
+        font_book::instance()->load(result, prefs.font_book_path());
+
+        const auto& engine_font = prefs.engine_font();
+        auto family = font_book::instance()->find_font_family(
+                engine_font.first,
+                engine_font.second);
+        if (family != nullptr) {
+            font_family(family);
+            auto face = family->find_style(font::styles::normal);
+            if (face != nullptr) {
+                font_face(face);
+            }
+        }
+
+        return true;
+    }
+
+    void engine::blackboard(
+            const std::string& name,
+            const std::string& value) {
+        _blackboard[name] = value;
     }
 
     void engine::focus(int id) {
@@ -106,14 +183,17 @@ namespace ryu::core {
                 it.second->update(dt, surface, events);
 
             surface.set_clip_rect(bounds());
-            auto fps = fmt::format("FPS: {}", (int) average_fps);
-            auto fps_width = surface.measure_text(_font, fps);
-            surface.draw_text(
-                    _font,
-                    _window_rect.width() - (fps_width + 5),
-                    _window_rect.height() - (_font->line_height + 4),
-                    fps,
-                    {0xff, 0xff, 0xff, 0xff});
+
+            if (_font != nullptr) {
+                auto fps = fmt::format("FPS: {}", (int) average_fps);
+                auto fps_width = surface.measure_text(_font, fps);
+                surface.draw_text(
+                        _font,
+                        _window_rect.width() - (fps_width + 5),
+                        _window_rect.height() - (_font->line_height + 4),
+                        fps,
+                        {0xff, 0xff, 0xff, 0xff});
+            }
 
             surface.present();
 
@@ -122,6 +202,14 @@ namespace ryu::core {
         }
 
         return !result.is_failed();
+    }
+
+    const core::font_t* engine::font_face() {
+        return _font;
+    }
+
+    core::font_family* engine::font_family() {
+        return _font_family;
     }
 
     core::rect engine::window_position() const {
@@ -145,72 +233,8 @@ namespace ryu::core {
         return !result.is_failed();
     }
 
-    bool engine::initialize(
-            core::result& result,
-            const core::preferences& prefs) {
-        if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-            result.add_message(
-                    "R002",
-                    "SDL_Init failed.",
-                    fmt::format("SDL Error: {0}", SDL_GetError()),
-                    true);
-            return false;
-        }
-
-        _window_rect = prefs.window_position();
-        _window = SDL_CreateWindow(
-                "Ryu: The Arcade Construction Kit",
-                _window_rect.left(),
-                _window_rect.top(),
-                _window_rect.width(),
-                _window_rect.height(),
-                SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
-        if (_window == nullptr) {
-            result.add_message(
-                    "R003",
-                    "SDL_CreateWindow failed.",
-                    fmt::format("SDL Error: {0}", SDL_GetError()),
-                    true);
-            return false;
-        }
-
-        SDL_SetWindowOpacity(_window, 1.0f);
-        _renderer = SDL_CreateRenderer(
-                _window,
-                -1,
-                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        if (_renderer == nullptr) {
-            result.add_message(
-                    "R004",
-                    "SDL_CreateRenderer failed.",
-                    fmt::format("SDL Error: {0}", SDL_GetError()),
-                    true);
-            return false;
-        }
-
-        if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
-            result.add_message(
-                    "R005",
-                    "IMG_Init failed.",
-                    fmt::format("IMG Error: {0}", IMG_GetError()),
-                    true);
-            return false;
-        }
-
-        // XXX: need to load multiple sizes for user config
-        auto topaz = add_font_family(14, "topaz");
-        _font = topaz->add_style(font::styles::normal, "assets/fonts/topaz/Topaz-8.ttf");
-
-        auto hack = add_font_family(16, "hack");
-        hack->add_style(font::styles::normal,                      "assets/fonts/hack/Hack-Regular.ttf");
-        hack->add_style(font::styles::bold,                        "assets/fonts/hack/Hack-Bold.ttf");
-        // XXX: there appears to be an issue with this font
-        hack->add_style(font::styles::italic,                      "assets/fonts/hack/Hack-Italic.ttf");
-        hack->add_style(font::styles::underline,                   "assets/fonts/hack/Hack-Regular.ttf");
-        hack->add_style(font::styles::bold|font::styles::underline,"assets/fonts/hack/Hack-Bold.ttf");
-        hack->add_style(font::styles::bold|font::styles::italic,   "assets/fonts/hack/Hack-BoldItalic.ttf");
-
-        return !result.is_failed();
+    void engine::machine(hardware::machine* machine) {
+        _machine = machine;
     }
 
     void engine::add_context(core::context* context) {
@@ -220,8 +244,12 @@ namespace ryu::core {
         _contexts.insert(std::make_pair(context->id(), context));
     }
 
-    void engine::machine(hardware::machine* machine) {
-        _machine = machine;
+    void engine::font_face(const core::font_t* value) {
+        _font = value;
+    }
+
+    void engine::font_family(core::font_family* value) {
+        _font_family = value;
     }
 
     void engine::remove_context(core::context* context) {
@@ -250,22 +278,6 @@ namespace ryu::core {
 
     void engine::on_resize(const engine::resize_callable& callable) {
         _resize_callable = callable;
-    }
-
-    core::font_family* engine::find_font_family(const std::string& name) {
-        auto it = _font_families.find(name);
-        if (it == _font_families.end())
-            return nullptr;
-        return &it->second;
-    }
-
-    void engine::blackboard(const std::string& name, const std::string& value) {
-        _blackboard[name] = value;
-    }
-
-    core::font_family* engine::add_font_family(uint32_t size, const std::string& name) {
-        auto it = _font_families.insert(std::make_pair(name, font_family(name, size, _renderer)));
-        return &(*it.first).second;
     }
 
 }

@@ -35,7 +35,9 @@ namespace ryu::core {
         return &it->second;
     }
 
-    font_t* font_family::add_style(uint8_t style, const boost::filesystem::path& path) {
+    font_t* font_family::add_style(
+            uint8_t style,
+            const boost::filesystem::path& path) {
         auto instance = FC_CreateFont();
         auto result = FC_LoadFont(
                 instance,

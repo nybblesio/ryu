@@ -18,24 +18,32 @@ namespace ryu::core {
         return true;
     }
 
-    int32_t preferences::font_size() const {
-        return _font_size;
-    }
-
-    void preferences::font_size(int32_t value) {
-        _font_size = value;
-    }
-
     fs::path preferences::default_path() const {
         return _default_path;
+    }
+
+    font_value_t preferences::ide_font() const {
+        return _ide_font;
     }
 
     bool preferences::load(core::result& result) {
         return true;
     }
 
+    fs::path preferences::font_book_path() const {
+        return _font_book_path;
+    }
+
+    font_value_t preferences::engine_font() const {
+        return _engine_font;
+    }
+
     core::palette preferences::ide_palette() const {
         return _ide_palette;
+    }
+
+    font_value_t preferences::emulator_font() const {
+        return _emulator_font;
     }
 
     core::rect preferences::window_position() const {
@@ -49,12 +57,20 @@ namespace ryu::core {
         return _window_position;
     }
 
-    std::string preferences::font_family_name() const {
-        return _font_family_name;
-    }
-
     void preferences::default_path(const fs::path& value) {
         _default_path = value;
+    }
+
+    void preferences::ide_font(const font_value_t& value) {
+        _ide_font = value;
+    }
+
+    void preferences::font_book_path(const fs::path& value) {
+        _font_book_path = value;
+    }
+
+    void preferences::engine_font(const font_value_t& value) {
+        _engine_font = value;
     }
 
     void preferences::ide_palette(const core::palette& value) {
@@ -65,8 +81,8 @@ namespace ryu::core {
         _window_position = value;
     }
 
-    void preferences::font_family_name(const std::string& value) {
-        _font_family_name = value;
+    void preferences::emulator_font(const font_value_t& value) {
+        _emulator_font = value;
     }
 
 }

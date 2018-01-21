@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <ide/ide_types.h>
+#include <core/font_book.h>
 #include <hardware/hardware.h>
 #include "application.h"
 
@@ -106,12 +107,66 @@ namespace ryu {
 
     bool application::configure_ide(core::result& result) {
         _engine.add_context(&_ide_context);
+
+        const auto& ide_font = _prefs.ide_font();
+        auto family = core::font_book::instance()->find_font_family(
+                ide_font.first,
+                ide_font.second);
+        if (family == nullptr) {
+            result.add_message(
+                    "R011",
+                    "Unable to find ide font family.",
+                    fmt::format("font family: {} {}",
+                                ide_font.first,
+                                ide_font.second),
+                    true);
+            return false;
+        }
+
+        _ide_context.font_family(family);
+        auto face = family->find_style(core::font::styles::normal);
+        if (face == nullptr) {
+            result.add_message(
+                    "R011",
+                    "Unable to find ide font face.",
+                    true);
+            return false;
+        }
+
+        _ide_context.font_face(face);
         _ide_context.bg_color(ide::colors::fill_color);
         return _ide_context.initialize(result, _engine.bounds());
     }
 
     bool application::configure_emulator(core::result& result) {
         _engine.add_context(&_emulator_context);
+
+        const auto& emulator_font = _prefs.emulator_font();
+        auto family = core::font_book::instance()->find_font_family(
+                emulator_font.first,
+                emulator_font.second);
+        if (family == nullptr) {
+            result.add_message(
+                    "R011",
+                    "Unable to find emulator font family.",
+                    fmt::format("font family: {} {}",
+                                emulator_font.first,
+                                emulator_font.second),
+                    true);
+            return false;
+        }
+
+        _emulator_context.font_family(family);
+        auto face = family->find_style(core::font::styles::normal);
+        if (face == nullptr) {
+            result.add_message(
+                    "R011",
+                    "Unable to find emulator font face.",
+                    true);
+            return false;
+        }
+
+        _emulator_context.font_face(face);
         _emulator_context.bg_color(emulator::emulator_context::colors::fill_color);
         return _emulator_context.initialize(result, _engine.bounds());
     }

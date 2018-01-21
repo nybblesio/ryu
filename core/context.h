@@ -34,6 +34,14 @@ namespace ryu::core {
 
         void resize();
 
+        void add_state(
+                core::state* state,
+                const state_transition_callable& callback);
+
+        void blackboard(
+                const std::string& name,
+                const std::string& value);
+
         uint32_t id() const;
 
         uint8_t fg_color() const {
@@ -58,9 +66,9 @@ namespace ryu::core {
 
         void pop_state(int to_id = -1);
 
-        inline core::environment* environment() {
-            return &_environment;
-        }
+        const core::font_t* font_face();
+
+        core::font_family* font_family();
 
         inline core::rect bounds() const {
             return _bounds;
@@ -74,11 +82,11 @@ namespace ryu::core {
 
         void palette(core::palette* palette);
 
-        void remove_state(core::state* state);
-
         inline core::engine* engine() const {
             return _engine;
         }
+
+        void remove_state(core::state* state);
 
         inline core::palette* palette() const {
             return _palette;
@@ -88,7 +96,13 @@ namespace ryu::core {
             return _stack.find_state(id);
         }
 
-        bool initialize(core::result& result, const core::rect& bounds);
+        inline core::environment* environment() {
+            return &_environment;
+        }
+
+        void font_face(const core::font_t* value);
+
+        void font_family(core::font_family* value);
 
         inline void bounds(const core::rect& value) {
             _bounds = value;
@@ -101,9 +115,7 @@ namespace ryu::core {
 
         void push_state(int id, const core::parameter_dict& params);
 
-        void blackboard(const std::string& name, const std::string& value);
-
-        void add_state(core::state* state, const state_transition_callable& callback);
+        bool initialize(core::result& result, const core::rect& bounds);
 
     protected:
         virtual bool on_initialize(core::result& result);
@@ -119,6 +131,8 @@ namespace ryu::core {
         core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
         core::palette* _palette = nullptr;
+        const core::font_t* _font = nullptr;
+        core::font_family* _family = nullptr;
     };
 
 };
