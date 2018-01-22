@@ -42,11 +42,15 @@ namespace ryu::core {
 
         font_value_t engine_font() const;
 
+        fs::path executable_path() const;
+
         core::palette ide_palette() const;
 
         font_value_t emulator_font() const;
 
         core::rect window_position() const;
+
+        fs::path preferences_file_path() const;
 
         void default_path(const fs::path& value);
 
@@ -55,6 +59,8 @@ namespace ryu::core {
         void font_book_path(const fs::path& value);
 
         void engine_font(const font_value_t& value);
+
+        void executable_path(const fs::path& value);
 
         void ide_palette(const core::palette& value);
 
@@ -65,6 +71,7 @@ namespace ryu::core {
     private:
         bool _full_screen = false;
         fs::path _default_path {};
+        fs::path _executable_path {};
         core::palette _ide_palette {};
         core::rect _window_position {};
         font_value_t _ide_font {"hack", 16};

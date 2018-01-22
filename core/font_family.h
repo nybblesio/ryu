@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include <common/SDL_FontCache.h>
+#include <common/string_support.h>
 #include <boost/filesystem/path.hpp>
 
 namespace ryu::core {
@@ -31,6 +32,42 @@ namespace ryu::core {
             reverse       = 0b00000001,
             link          = 0b00000010,
         };
+
+        static uint8_t string_to_style(const std::string& flags) {
+            uint8_t value = 0;
+            auto list = string_to_list(flags);
+            for (auto& flag : list) {
+                trim(flag);
+                if (flag == "normal")
+                    value |= styles::normal;
+                if (flag == "italic")
+                    value |= styles::italic;
+                if (flag == "bold")
+                    value |= styles::bold;
+                if (flag == "underline")
+                    value |= styles::underline;
+                if (flag == "strikethrough")
+                    value |= styles::strikethrough;
+            }
+            return value;
+        }
+
+        static std::string style_to_string(uint8_t flags) {
+            std::vector<std::string> values;
+
+            if ((flags & styles::normal) != 0)
+                values.emplace_back("normal");
+            if ((flags & styles::italic) != 0)
+                values.emplace_back("italic");
+            if ((flags & styles::bold) != 0)
+                values.emplace_back("bold");
+            if ((flags & styles::underline) != 0)
+                values.emplace_back("underline");
+            if ((flags & styles::strikethrough) != 0)
+                values.emplace_back("strikethrough");
+
+            return list_to_string(values);
+        }
 
         static int to_sdl_style(uint8_t flags) {
             int sdl = TTF_STYLE_NORMAL;

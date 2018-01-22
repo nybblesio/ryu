@@ -2,13 +2,18 @@
 
 fonts:
   - family: topaz
-    sizes: [8]
+    sizes: [8, 14, 16, 20, 24]
     styles:
-      - normal: /assets/fonts/topaz/topaz-8.ttf
+      - flags: normal
+        font_file: topaz/topaz-8.ttf
   - family: hack
-    sizes: [16]
+    sizes: [10, 14, 16, 20, 24]
     styles:
-      - normal: /assets/fonts/hack/hack-regular.ttf
-      - bold: /assets/fonts/hack/hack-bold.ttf
-      - italic: /assets/fonts/hack/hack-italic.ttf
-      - bold_italic: /assets/fonts/hack/hack-bolditalic.ttf
+      - flags: normal
+        font_file: hack/hack-regular.ttf
+      - flags: bold
+        font_file: hack/hack-bold.ttf
+      - flags: italic
+        font_file: hack/hack-italic.ttf
+      - flags: bold, italic
+        font_file: hack/hack-bolditalic.ttf

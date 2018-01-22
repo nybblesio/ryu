@@ -65,9 +65,11 @@ namespace ryu::core {
 
         emitter << YAML::EndMap;
 
+        auto file_path = preferences_file_path();
+
         try {
             std::ofstream file;
-            file.open("preferences.yaml");
+            file.open(file_path.string());
             file << emitter.c_str();
             file.close();
         } catch (std::exception& e) {
@@ -81,15 +83,17 @@ namespace ryu::core {
     }
 
     bool preferences::load(core::result& result) {
+        auto file_path = preferences_file_path();
+
         // N.B. it's valid to not have a pre-existing file
-        if (!boost::filesystem::exists("preferences.yaml"))
+        if (!boost::filesystem::exists(file_path))
             return true;
 
-        auto root = YAML::LoadFile("preferences.yaml");
+        auto root = YAML::LoadFile(file_path.string());
 
         auto default_path_node = root["default_path"];
         if (default_path_node != nullptr) {
-            _default_path = default_path_node.as<std::string>();
+            default_path(default_path_node.as<std::string>());
         }
 
         auto fonts_node = root["fonts"];
@@ -175,7 +179,13 @@ namespace ryu::core {
     }
 
     fs::path preferences::font_book_path() const {
-        return _font_book_path;
+        fs::path temp(_executable_path);
+        temp.append(_font_book_path.string());
+        return temp;
+    }
+
+    fs::path preferences::executable_path() const {
+        return _executable_path;
     }
 
     font_value_t preferences::engine_font() const {
@@ -201,8 +211,17 @@ namespace ryu::core {
         return _window_position;
     }
 
+    fs::path preferences::preferences_file_path() const {
+        fs::path preferences_path(_executable_path.string());
+        preferences_path.append("preferences.yaml");
+        return preferences_path;
+    }
+
     void preferences::default_path(const fs::path& value) {
         _default_path = value;
+        if (boost::filesystem::exists(_default_path)) {
+            boost::filesystem::current_path(_default_path);
+        }
     }
 
     void preferences::ide_font(const font_value_t& value) {
@@ -215,6 +234,10 @@ namespace ryu::core {
 
     void preferences::engine_font(const font_value_t& value) {
         _engine_font = value;
+    }
+
+    void preferences::executable_path(const fs::path& value) {
+        _executable_path = value;
     }
 
     void preferences::ide_palette(const core::palette& value) {

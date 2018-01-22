@@ -39,6 +39,7 @@ namespace ryu {
         core::engine _engine {};
         core::preferences _prefs {};
         ide::ide_context _ide_context {"ide"};
+        boost::filesystem::path _executable_path;
         emulator::emulator_context _emulator_context {"emulator"};
     };
 

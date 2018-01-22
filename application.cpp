@@ -26,6 +26,10 @@ namespace ryu {
     bool application::init(int argc, char** argv) {
         core::result result;
 
+        _executable_path = boost::filesystem::system_complete(argv[0]);
+        _executable_path = _executable_path.parent_path();
+        _prefs.executable_path(_executable_path);
+
         if (!_prefs.load(result)) {
             std::cout << "loading preferences failed:\n";
             show_result_messages(result);
@@ -68,6 +72,8 @@ namespace ryu {
 
     bool application::shutdown() {
         core::result result;
+
+        _prefs.default_path(boost::filesystem::current_path());
 
         if (!_engine.shutdown(result, _prefs)) {
             std::cout << "engine shutdown failed:\n";

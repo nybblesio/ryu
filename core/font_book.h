@@ -16,6 +16,8 @@
 
 namespace ryu::core {
 
+    namespace fs = boost::filesystem;
+
     class font_book {
     public:
         static font_book* instance();
@@ -24,7 +26,7 @@ namespace ryu::core {
 
         bool load(
                 core::result& result,
-                const boost::filesystem::path& path);
+                const fs::path& path);
 
         core::font_family* add_font_family(
                 const std::string& name,
