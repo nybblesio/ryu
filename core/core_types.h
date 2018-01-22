@@ -118,6 +118,8 @@ namespace ryu::core {
         save_project,
         close_project,
         clone_project,
+        new_project_file,
+        remove_project_file,
         list_project_files,
 
         list_machines,

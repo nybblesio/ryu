@@ -14,12 +14,14 @@
 
 namespace ryu::hardware {
 
+    typedef uint8_t access_type_flags;
+
     class integrated_circuit {
     public:
         enum access_types {
-            none,
-            readable,
-            writable
+            none        = 0b00000000,
+            readable    = 0b00000001,
+            writable    = 0b00000010,
         };
 
         explicit integrated_circuit(const std::string& name);
@@ -38,13 +40,13 @@ namespace ryu::hardware {
 
         void address_space(uint32_t value);
 
+        virtual access_type_flags access_type() const;
+
         const hardware::memory_map& memory_map() const;
 
         virtual uint8_t read_byte(uint32_t address) const;
 
         virtual void write_byte(uint32_t address, uint8_t value);
-
-        virtual integrated_circuit::access_types access_type() const;
 
         RTTR_ENABLE()
 

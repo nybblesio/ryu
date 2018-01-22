@@ -31,13 +31,13 @@ namespace ryu::hardware {
 
         void fill(uint8_t value) override;
 
+        access_type_flags access_type() const override;
+
         uint8_t read_byte(uint32_t address) const override;
 
         void release(hardware::integrated_circuit* component);
 
         void write_byte(uint32_t address, uint8_t value) override;
-
-        integrated_circuit::access_types access_type() const override;
 
     protected:
         struct component_address_space_t {

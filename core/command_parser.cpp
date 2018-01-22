@@ -355,6 +355,31 @@ namespace ryu::core {
         },
 
         {
+            "newfile",
+            {
+                    command_types::new_project_file,
+                    command_size_flags::none,
+                    {
+                        {"path",  variant::types::string_literal},
+                        {"type",  variant::types::identifier, false, false}
+                    },
+                    "Add a new file to the currently loaded project."
+            }
+        },
+
+        {
+            "rmfile",
+            {
+                    command_types::remove_project_file,
+                    command_size_flags::none,
+                    {
+                        {"path", variant::types::string_literal}
+                    },
+                    "Removes a project file from the currently loaded project."
+            }
+        },
+
+        {
             "edproj",
             {
                 command_types::edit_project,

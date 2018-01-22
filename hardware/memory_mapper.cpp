@@ -53,6 +53,10 @@ namespace ryu::hardware {
             ic.value->fill(value);
     }
 
+    access_type_flags memory_mapper::access_type() const {
+        return access_types::writable | access_types::readable;
+    }
+
     uint8_t memory_mapper::read_byte(uint32_t address) const {
         auto circuit = circuit_at_address(access_types::readable, address);
         if (circuit.ic != nullptr)
@@ -88,36 +92,16 @@ namespace ryu::hardware {
             auto ic_access_type = range.value->access_type();
             if (ic_access_type == access_types::none)
                 continue;
-
-            switch (access_type) {
-                case readable:
-                    if (ic_access_type == access_types::readable
-                    ||  ic_access_type == access_types::writable) {
-                        return {
-                            static_cast<uint32_t>(range.start),
-                            static_cast<uint32_t>(range.stop),
-                            range.value
-                        };
-                    }
-                    break;
-                case writable:
-                    if (ic_access_type == access_types::writable) {
-                        return {
-                            static_cast<uint32_t>(range.start),
-                            static_cast<uint32_t>(range.stop),
-                            range.value
-                        };
-                    }
-                    break;
-                default:
-                    break;
+            if (((ic_access_type & readable) != 0 && access_type == readable)
+            ||  ((ic_access_type & writable) != 0 && access_type == writable)) {
+                return {
+                    static_cast<uint32_t>(range.start),
+                    static_cast<uint32_t>(range.stop),
+                    range.value
+                };
             }
         }
         return {};
-    }
-
-    integrated_circuit::access_types memory_mapper::access_type() const {
-        return writable;
     }
 
 }

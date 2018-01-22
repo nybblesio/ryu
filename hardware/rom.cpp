@@ -66,6 +66,10 @@ namespace ryu::hardware {
         reallocate();
     }
 
+    access_type_flags rom::access_type() const {
+        return access_types::readable;
+    }
+
     uint8_t rom::read_byte(uint32_t address) const {
         return _buffer[address];
     }
@@ -74,10 +78,6 @@ namespace ryu::hardware {
         if (!_write_latch)
             return;
         _buffer[address] = value;
-    }
-
-    integrated_circuit::access_types rom::access_type() const {
-        return readable;
     }
 
 }

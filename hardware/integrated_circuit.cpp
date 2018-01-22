@@ -54,6 +54,10 @@ namespace ryu::hardware {
         }
     }
 
+    access_type_flags integrated_circuit::access_type() const {
+        return access_types::none;
+    }
+
     uint8_t integrated_circuit::read_byte(uint32_t address) const {
         return 0;
     }
@@ -63,10 +67,6 @@ namespace ryu::hardware {
     }
 
     void integrated_circuit::write_byte(uint32_t address, uint8_t value) {
-    }
-
-    integrated_circuit::access_types integrated_circuit::access_type() const {
-        return none;
     }
 
 }

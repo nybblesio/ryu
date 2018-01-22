@@ -51,16 +51,16 @@ namespace ryu::hardware {
         reallocate();
     }
 
+    access_type_flags ram::access_type() const {
+        return access_types::writable | access_types::readable;
+    }
+
     uint8_t ram::read_byte(uint32_t address) const {
         return _buffer[address];
     }
 
     void ram::write_byte(uint32_t address, uint8_t value) {
         _buffer[address] = value;
-    }
-
-    hardware::integrated_circuit::access_types ram::access_type() const {
-        return writable;
     }
 
 }

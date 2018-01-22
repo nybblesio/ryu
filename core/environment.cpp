@@ -192,6 +192,18 @@ namespace ryu::core {
             }
         },
         {
+            core::command_types::new_project_file,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_new_project_file(context);
+            }
+        },
+        {
+            core::command_types::remove_project_file,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_remove_project_file(context);
+            }
+        },
+        {
             core::command_types::list_project_files,
             [](environment* env, const command_handler_context_t& context) {
                 return env->on_list_project_files(context);
@@ -937,6 +949,16 @@ namespace ryu::core {
                 context.result,
                 core::project::instance()->path(),
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
+    }
+
+    bool environment::on_new_project_file(
+            const command_handler_context_t& context) {
+        return true;
+    }
+
+    bool environment::on_remove_project_file(
+            const command_handler_context_t& context) {
+        return true;
     }
 
     bool environment::on_list_project_files(
