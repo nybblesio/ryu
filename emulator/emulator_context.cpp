@@ -21,6 +21,7 @@ namespace ryu::emulator {
         configure_palette();
         add_state(&_emulator_state);
         push_state(_emulator_state.id(), {});
+        parent_resize(bounds());
         return true;
     }
 

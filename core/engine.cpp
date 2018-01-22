@@ -34,6 +34,28 @@ namespace ryu::core {
         _quit = true;
     }
 
+    bool engine::shutdown(
+            core::result& result,
+            core::preferences& prefs) {
+        prefs.window_position(_window_rect);
+        if (_font_family != nullptr) {
+            prefs.engine_font(std::make_pair(
+                    _font_family->name(),
+                    _font_family->size()));
+        }
+
+        if (_renderer != nullptr)
+            SDL_DestroyRenderer(_renderer);
+
+        if (_window != nullptr)
+            SDL_DestroyWindow(_window);
+
+        IMG_Quit();
+        SDL_Quit();
+
+        return !result.is_failed();
+    }
+
     bool engine::initialize(
             core::result& result,
             const core::preferences& prefs) {
@@ -156,12 +178,15 @@ namespace ryu::core {
                             case SDL_WINDOWEVENT_MOVED:
                                 _window_rect.left(e.window.data1);
                                 _window_rect.top(e.window.data2);
+                                if (_move_callback != nullptr) {
+                                    _move_callback(_window_rect);
+                                }
                                 break;
                             case SDL_WINDOWEVENT_RESIZED:
                                 _window_rect.width(e.window.data1);
                                 _window_rect.height(e.window.data2);
-                                if (_resize_callable != nullptr) {
-                                    _resize_callable(core::rect{
+                                if (_resize_callback != nullptr) {
+                                    _resize_callback(core::rect{
                                             0,
                                             0,
                                             _window_rect.width(),
@@ -220,19 +245,6 @@ namespace ryu::core {
         return _machine;
     }
 
-    bool engine::shutdown(core::result& result) {
-        if (_renderer != nullptr)
-            SDL_DestroyRenderer(_renderer);
-
-        if (_window != nullptr)
-            SDL_DestroyWindow(_window);
-
-        IMG_Quit();
-        SDL_Quit();
-
-        return !result.is_failed();
-    }
-
     void engine::machine(hardware::machine* machine) {
         _machine = machine;
     }
@@ -268,6 +280,10 @@ namespace ryu::core {
         _blackboard.erase(name);
     }
 
+    void engine::on_move(const engine::move_callable& callback) {
+        _move_callback = callback;
+    }
+
     std::string engine::blackboard(const std::string& name) const {
         auto it = _blackboard.find(name);
         if (it != _blackboard.end()) {
@@ -276,8 +292,8 @@ namespace ryu::core {
         return "";
     }
 
-    void engine::on_resize(const engine::resize_callable& callable) {
-        _resize_callable = callable;
+    void engine::on_resize(const engine::resize_callable& callback) {
+        _resize_callback = callback;
     }
 
 }

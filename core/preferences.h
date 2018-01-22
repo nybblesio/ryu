@@ -26,13 +26,15 @@ namespace ryu::core {
     public:
         preferences() = default;
 
-        bool save(
-                core::result& result,
-                const core::engine& engine);
+        bool full_screen() const;
+
+        void full_screen(bool value);
 
         fs::path default_path() const;
 
         font_value_t ide_font() const;
+
+        bool save(core::result& result);
 
         bool load(core::result& result);
 
@@ -61,6 +63,7 @@ namespace ryu::core {
         void window_position(const core::rect& value);
 
     private:
+        bool _full_screen = false;
         fs::path _default_path {};
         core::palette _ide_palette {};
         core::rect _window_position {};

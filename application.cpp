@@ -69,14 +69,28 @@ namespace ryu {
     bool application::shutdown() {
         core::result result;
 
-        if (!_prefs.save(result, _engine)) {
-            std::cout << "saving preferences failed:\n";
+        if (!_engine.shutdown(result, _prefs)) {
+            std::cout << "engine shutdown failed:\n";
             show_result_messages(result);
             return false;
         }
 
-        if (!_engine.shutdown(result)) {
-            std::cout << "engine shutdown failed:\n";
+        auto ide_font_family = _ide_context.font_family();
+        if (ide_font_family != nullptr) {
+            _prefs.ide_font(std::make_pair(
+                    ide_font_family->name(),
+                    ide_font_family->size()));
+        }
+
+        auto emulator_font_family = _emulator_context.font_family();
+        if (emulator_font_family != nullptr) {
+            _prefs.emulator_font(std::make_pair(
+                    emulator_font_family->name(),
+                    emulator_font_family->size()));
+        }
+
+        if (!_prefs.save(result)) {
+            std::cout << "saving preferences failed:\n";
             show_result_messages(result);
             return false;
         }

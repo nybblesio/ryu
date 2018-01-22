@@ -23,6 +23,7 @@ namespace ryu::core {
 
     class engine {
     public:
+        using move_callable = std::function<void (const core::rect&)>;
         using resize_callable = std::function<void (const core::rect&)>;
 
         static std::vector<core::rect> displays();
@@ -32,6 +33,10 @@ namespace ryu::core {
         ~engine() = default;
 
         void quit();
+
+        bool shutdown(
+                core::result& result,
+                core::preferences& prefs);
 
         bool initialize(
                 result& result,
@@ -59,8 +64,6 @@ namespace ryu::core {
 
         hardware::machine* machine() const;
 
-        bool shutdown(core::result& result);
-
         inline SDL_Renderer* renderer() const {
             return _renderer;
         }
@@ -75,11 +78,13 @@ namespace ryu::core {
 
         void remove_context(core::context* context);
 
+        void on_move(const move_callable& callback);
+
         void window_position(const core::rect& value);
 
         void erase_blackboard(const std::string& name);
 
-        void on_resize(const resize_callable& callable);
+        void on_resize(const resize_callable& callback);
 
         std::string blackboard(const std::string& name) const;
 
@@ -87,10 +92,11 @@ namespace ryu::core {
         bool _quit = false;
         core::rect _window_rect;
         int _focused_context = -1;
+        move_callable _move_callback;
         core::blackboard _blackboard;
         core::context_dict _contexts;
         SDL_Window* _window = nullptr;
-        resize_callable _resize_callable;
+        resize_callable _resize_callback;
         SDL_Renderer* _renderer = nullptr;
         const core::font_t* _font = nullptr;
         hardware::machine* _machine = nullptr;

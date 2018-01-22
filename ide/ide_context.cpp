@@ -29,6 +29,7 @@ namespace ryu::ide {
 
     bool ide_context::on_initialize(core::result& result) {
         configure_palette();
+
         add_state(
                 &_console_state,
                 [&](auto& command, auto& params) {
@@ -48,6 +49,8 @@ namespace ryu::ide {
         add_state(&_source_editor_state);
         add_state(&_machine_editor_state);
         push_state(_console_state.id(), {});
+
+        parent_resize(bounds());
 
         return hardware::registry::instance()->load(result, "machines.yaml");
     }
