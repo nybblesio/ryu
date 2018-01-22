@@ -11,15 +11,19 @@
 #pragma once
 
 #include <core/result.h>
-#include "hardware_types.h"
-#include "integrated_circuit.h"
-#include "memory_mapper.h"
+#include <boost/filesystem/path.hpp>
 #include "ram.h"
 #include "rom.h"
+#include "memory_mapper.h"
+#include "hardware_types.h"
 #include "cpus/mc6809/cpu.h"
 
 namespace ryu::hardware {
 
-    bool initialize(core::result& result);
+    namespace fs = boost::filesystem;
+
+    bool initialize(
+            core::result& result,
+            const fs::path& executable_path);
 
 }

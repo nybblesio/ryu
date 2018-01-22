@@ -52,7 +52,7 @@ namespace ryu::ide {
 
         parent_resize(bounds());
 
-        return hardware::registry::instance()->load(result, "machines.yaml");
+        return true;
     }
 
     core::project* ide_context::project() {

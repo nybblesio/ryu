@@ -18,6 +18,8 @@
 
 namespace ryu {
 
+    namespace fs = boost::filesystem;
+
     class application {
     public:
         application() = default;
@@ -37,9 +39,9 @@ namespace ryu {
 
     private:
         core::engine _engine {};
+        fs::path _executable_path;
         core::preferences _prefs {};
         ide::ide_context _ide_context {"ide"};
-        boost::filesystem::path _executable_path;
         emulator::emulator_context _emulator_context {"emulator"};
     };
 

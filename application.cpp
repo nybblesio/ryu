@@ -12,6 +12,7 @@
 #include <ide/ide_types.h>
 #include <core/font_book.h>
 #include <hardware/hardware.h>
+#include <hardware/registry.h>
 #include "application.h"
 
 namespace ryu {
@@ -36,7 +37,7 @@ namespace ryu {
             return false;
         }
 
-        if (!hardware::initialize(result)) {
+        if (!hardware::initialize(result, _executable_path)) {
             std::cout << "hardware initialize failed:\n";
             show_result_messages(result);
             return false;

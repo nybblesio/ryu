@@ -905,6 +905,8 @@ namespace ryu::core {
         return true;
     }
 
+    // XXX: path is currently required, but if we're already in
+    //      a project folder, it should just load.
     bool environment::on_load_project(
             const command_handler_context_t& context) {
         return core::project::load(

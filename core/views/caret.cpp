@@ -148,10 +148,10 @@ namespace ryu::core {
         auto parent_bounds = parent()->client_bounds();
         auto& rect = bounds();
         auto& pad = padding();
+        rect.size(font_face()->width, font_face()->line_height);
         rect.pos(
                 (parent_bounds.left() + (_column * rect.width())) + pad.left(),
                 (parent_bounds.top() + (_row * rect.height())) + pad.top());
-        rect.size(font_face()->width, font_face()->line_height);
         surface.fill_rect(rect);
 
         surface.pop_blend_mode();

@@ -219,14 +219,21 @@ namespace ryu::core {
         auto bounds = client_bounds();
         auto pal = *palette();
 
-        // XXX: this may not be correct because font metrics may change
-        auto face = font_face();
         auto y = bounds.top();
         auto row_index = _document.row();
         for (uint32_t row = 0; row < _metrics.page_height; row++) {
             auto x = bounds.left();
-            auto chunks = _document.get_line_chunks(row_index++, 0, _metrics.page_width);
+            auto chunks = _document.get_line_chunks(
+                    row_index++,
+                    0,
+                    _metrics.page_width);
+            auto max_line_height = font_face()->line_height;
             for (const auto& chunk : chunks) {
+                font_style(chunk.attr.style);
+                auto face = font_face();
+                if (face->line_height > max_line_height)
+                    max_line_height = face->line_height;
+
                 auto width = static_cast<int32_t>(face->width * chunk.text.length());
                 auto color = pal[chunk.attr.color];
 
@@ -236,11 +243,10 @@ namespace ryu::core {
                     surface.fill_rect(core::rect{x, y, width, face->line_height});
                 }
 
-                font_style(chunk.attr.style);
-                surface.draw_text(font_face(), x, y, chunk.text, color);
+                surface.draw_text(face, x, y, chunk.text, color);
                 x += width;
             }
-            y += face->line_height;
+            y += max_line_height;
         }
     }
 

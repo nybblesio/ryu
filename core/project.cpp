@@ -108,17 +108,20 @@ namespace ryu::core {
         }
 
         hardware::machine* machine = nullptr;
-        auto machine_id = root["machine"].as<uint32_t>();
-        if (machine_id != 0) {
-            machine = hardware::registry::instance()->find_machine(machine_id);
-            if (machine == nullptr) {
-                result.add_message(
-                        "C031",
-                        fmt::format("no machine exists with id: {}", machine_id),
-                        true);
-                return false;
+        auto machine_node = root["machine"];
+        if (machine_node != nullptr && machine_node.IsScalar()) {
+            auto machine_id = machine_node.as<uint32_t>();
+            if (machine_id != 0) {
+                machine = hardware::registry::instance()->find_machine(machine_id);
+                if (machine == nullptr) {
+                    result.add_message(
+                            "C031",
+                            fmt::format("no machine exists with id: {}", machine_id),
+                            true);
+                    return false;
+                }
+                _instance->machine(machine);
             }
-            _instance->machine(machine);
         }
 
         auto files = root["files"];
@@ -132,17 +135,20 @@ namespace ryu::core {
             }
         }
 
-        auto active_environment_id = root["active_environment"].as<uint32_t>();
-        if (active_environment_id != 0) {
-            auto file = _instance->find_file(active_environment_id);
-            if (file == nullptr) {
-                result.add_message(
-                        "C031",
-                        fmt::format("no project_file exists with id: {}", active_environment_id),
-                        true);
-                return false;
+        auto active_environment_node = root["active_environment"];
+        if (active_environment_node != nullptr && active_environment_node.IsScalar()) {
+            auto active_environment_id = active_environment_node.as<uint32_t>();
+            if (active_environment_id != 0) {
+                auto file = _instance->find_file(active_environment_id);
+                if (file == nullptr) {
+                    result.add_message(
+                            "C031",
+                            fmt::format("no project_file exists with id: {}", active_environment_id),
+                            true);
+                    return false;
+                }
+                _instance->active_environment(file);
             }
-            _instance->active_environment(file);
         }
 
         auto props = root["props"];
