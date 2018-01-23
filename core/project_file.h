@@ -42,9 +42,8 @@ namespace ryu::core {
         static project_file::types code_to_type(const std::string& name);
 
         static project_file load(
-                core::result& result,
-                const hardware::machine* machine,
-                YAML::Node& node);
+            core::result& result,
+            YAML::Node& node);
 
         project_file() = default;
 
@@ -52,6 +51,10 @@ namespace ryu::core {
                 uint32_t id,
                 const fs::path& path,
                 project_file::types type);
+
+        bool create_stub_file(
+                core::result& result,
+                const fs::path& path);
 
         bool dirty() const;
 
@@ -61,13 +64,9 @@ namespace ryu::core {
 
         void dirty(bool value);
 
-        hardware::component* cpu();
-
         project_file::types type() const;
 
         void path(const fs::path& value);
-
-        void cpu(hardware::component* value);
 
         void type(project_file::types value);
 
@@ -77,7 +76,6 @@ namespace ryu::core {
         uint32_t _id {};
         fs::path _path {};
         bool _dirty = false;
-        hardware::component* _cpu = nullptr;
         project_file::types _type = project_file::types::uninitialized;
     };
 

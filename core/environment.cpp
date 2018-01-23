@@ -984,6 +984,7 @@ namespace ryu::core {
                 path,
                 core::project_file::code_to_type(type));
         core::project::instance()->add_file(file);
+        file.create_stub_file(context.result, path);
 
         return !context.result.is_failed();
     }

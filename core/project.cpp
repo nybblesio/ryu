@@ -128,7 +128,7 @@ namespace ryu::core {
         if (files != nullptr && files.IsSequence()) {
             for (auto it = files.begin(); it != files.end(); ++it) {
                 auto file_node = *it;
-                auto file = core::project_file::load(result, machine, file_node);
+                auto file = core::project_file::load(result, file_node);
                 if (file.type() != core::project_file::types::uninitialized) {
                     _instance->add_file(file);
                 }

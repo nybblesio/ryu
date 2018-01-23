@@ -390,7 +390,7 @@ namespace ryu::core {
         },
 
         {
-            "savproj",
+            "saveproj",
             {
                 command_types::save_project,
                 command_size_flags::none,

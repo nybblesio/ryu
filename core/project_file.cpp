@@ -40,7 +40,6 @@ namespace ryu::core {
 
     project_file project_file::load(
             core::result& result,
-            const hardware::machine* machine,
             YAML::Node& node) {
         auto id = node["id"];
         if (id == nullptr) {
@@ -74,22 +73,6 @@ namespace ryu::core {
                 fs::path(path.as<std::string>()),
                 code_to_type(type.as<std::string>()));
 
-        auto cpu_component_node = node["cpu_component_id"];
-        if (cpu_component_node != nullptr && cpu_component_node.IsScalar()) {
-            auto cpu_component_id = cpu_component_node.as<uint32_t>();
-            if (cpu_component_id != 0 && machine != nullptr) {
-                auto component = machine->find_component(cpu_component_id);
-                if (component == nullptr) {
-                    result.add_message(
-                            "C031",
-                            "project_file cpu not found on machine",
-                            true);
-                    return {};
-                }
-                file.cpu(component);
-            }
-        }
-
         return file;
     }
 
@@ -99,6 +82,52 @@ namespace ryu::core {
             project_file::types type) : _id(id),
                                         _path(path),
                                         _type(type) {
+    }
+
+    // XXX: consider using ctemplate and assets/templates/*.tmpl
+    //      to make this feature nicer
+    bool project_file::create_stub_file(
+            core::result& result,
+            const fs::path& path) {
+        fs::path file_path = path;
+
+        if (!file_path.is_absolute()) {
+            file_path = fs::current_path().append(file_path.string());
+        }
+
+        if (fs::exists(file_path)) {
+            return true;
+        }
+
+        if (!fs::is_directory(file_path.parent_path())) {
+            boost::system::error_code ec;
+            if (!fs::create_directories(file_path.parent_path(), ec)) {
+                result.add_message(
+                    "C031",
+                    fmt::format("unable to create directory: {}", ec.message()),
+                    true);
+                return false;
+            }
+        }
+
+        std::stringstream stream;
+        stream << "*\n";
+        stream << "* " << file_path.filename() << "\n";
+        stream << "*\n\n";
+
+        try {
+            std::ofstream file;
+            file.open(file_path.string());
+            file << stream.str();
+            file.close();
+        } catch (std::exception& e) {
+            result.add_message(
+                "C031",
+                fmt::format("unable to create file: {}", e.what()),
+                true);
+        }
+
+        return !result.is_failed();
     }
 
     bool project_file::dirty() const {
@@ -117,20 +146,12 @@ namespace ryu::core {
         _dirty = value;
     }
 
-    hardware::component* project_file::cpu() {
-        return _cpu;
-    }
-
     void project_file::path(const fs::path& value) {
         _path = value;
     }
 
     project_file::types project_file::type() const {
         return _type;
-    }
-
-    void project_file::cpu(hardware::component* value) {
-        _cpu = value;
     }
 
     void project_file::type(project_file::types value) {
@@ -149,8 +170,6 @@ namespace ryu::core {
         emitter << YAML::Key << "id" << YAML::Value << _id;
         emitter << YAML::Key << "path" << YAML::Value << _path.string();
         emitter << YAML::Key << "type" << YAML::Value << type_to_code(_type);
-        if (_cpu != nullptr)
-            emitter << YAML::Key << "cpu_component_id" << YAML::Value << _cpu->id();
         emitter << YAML::EndMap;
         return true;
     }
