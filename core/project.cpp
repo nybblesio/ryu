@@ -63,6 +63,8 @@ namespace ryu::core {
         return !result.is_failed();
     }
 
+    // XXX: would be nice to add feature to scan up parent directories
+    //      to see if .ryu/arcade.rproj is found.
     bool project::load(
             core::result& result,
             const fs::path& path) {
@@ -84,6 +86,14 @@ namespace ryu::core {
         project_file
                 .append(".ryu")
                 .append("arcade.rproj");
+
+        if (!fs::exists(project_file)) {
+            result.add_message(
+                    "C031",
+                    fmt::format("project file does not exist: {}", project_file.string()),
+                    true);
+            return false;
+        }
 
         suspend_notify();
 
@@ -129,7 +139,7 @@ namespace ryu::core {
             for (auto it = files.begin(); it != files.end(); ++it) {
                 auto file_node = *it;
                 auto file = core::project_file::load(result, file_node);
-                if (file.type() != core::project_file::types::uninitialized) {
+                if (file.type() != core::project_file_type::uninitialized) {
                     _instance->add_file(file);
                 }
             }

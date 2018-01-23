@@ -18,9 +18,10 @@
 #include <common/string_support.h>
 #include <boost/algorithm/string.hpp>
 #include "environment.h"
+#include "project_file.h"
 #include "hex_formatter.h"
 #include "text_formatter.h"
-#include "project_file.h"
+#include "project_file_type.h"
 
 namespace ryu::core {
 
@@ -274,13 +275,13 @@ namespace ryu::core {
         {
             core::command_types::module_editor,
             [](environment* env, const command_handler_context_t& context) {
-                return env->on_tracker(context);
+                return env->on_module_editor(context);
             }
         },
         {
             core::command_types::sample_editor,
             [](environment* env, const command_handler_context_t& context) {
-                return env->on_sounds(context);
+                return env->on_sample_editor(context);
             }
         },
         {
@@ -743,6 +744,16 @@ namespace ryu::core {
         return true;
     }
 
+    bool environment::on_read_binary_to_memory(
+            const command_handler_context_t& context) {
+        return true;
+    }
+
+    bool environment::on_write_memory_to_binary(
+            const command_handler_context_t& context) {
+        return true;
+    }
+
     // this command jumps to the specified address like
     // a subroutine jump (bsr/jsr).  If no address is specified, a
     // jump will be made to the first address in your program.
@@ -982,7 +993,7 @@ namespace ryu::core {
         core::project_file file(
                 core::id_pool::instance()->allocate(),
                 path,
-                core::project_file::code_to_type(type));
+                core::project_file_type::code_to_type(type));
         core::project::instance()->add_file(file);
         file.create_stub_file(context.result, path);
 
@@ -1035,7 +1046,7 @@ namespace ryu::core {
             data_table_row_t row {};
             row.columns.push_back(std::to_string(file.id()));
             row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
-            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file::type_to_code(file.type())));
+            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file.type())));
             table.rows.push_back(row);
         }
 
@@ -1122,27 +1133,8 @@ namespace ryu::core {
         auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
         auto type = boost::get<core::identifier_t>(context.params["type"].front()).value;
 
-        std::string action;
-        if (type == "MACH") {
-            action = "edit_machine";
-        } else if (type == "TEXT") {
-            action = "edit_source";
-        } else if (type == "DATA") {
-            action = "edit_memory";
-        } else if (type == "TILES") {
-            action = "edit_tiles";
-        } else if (type == "SPRITES") {
-            action = "edit_sprites";
-        } else if (type == "BG") {
-            action = "edit_background";
-        } else if (type == "MODULE") {
-            action = "edit_module";
-        } else if (type == "SAMPLE") {
-            action = "edit_sample";
-        }
-
         context.result.add_data("command_action", {
-            {"action", action},
+            {"action", project_file_type::code_to_action(type)},
             {"name", name}
         });
 
@@ -1185,7 +1177,7 @@ namespace ryu::core {
         return true;
     }
 
-    bool environment::on_tracker(
+    bool environment::on_module_editor(
             const command_handler_context_t& context) {
         context.result.add_data(
                 "command_action",
@@ -1193,21 +1185,11 @@ namespace ryu::core {
         return true;
     }
 
-    bool environment::on_sounds(
+    bool environment::on_sample_editor(
             const command_handler_context_t& context) {
         context.result.add_data(
                 "command_action",
                 {{"action", std::string("edit_sounds")}});
-        return true;
-    }
-
-    bool environment::on_read_binary_to_memory(
-            const command_handler_context_t& context) {
-        return true;
-    }
-
-    bool environment::on_write_memory_to_binary(
-            const command_handler_context_t& context) {
         return true;
     }
 

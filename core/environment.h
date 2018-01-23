@@ -99,9 +99,9 @@ namespace ryu::core {
 
         bool on_read_binary_to_memory(const command_handler_context_t& context);
 
-        bool on_sounds(const command_handler_context_t& context);
+        bool on_sample_editor(const command_handler_context_t& context);
 
-        bool on_tracker(const command_handler_context_t& context);
+        bool on_module_editor(const command_handler_context_t& context);
 
         bool on_background_editor(const command_handler_context_t& context);
 
