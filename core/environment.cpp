@@ -213,6 +213,30 @@ namespace ryu::core {
             }
         },
         {
+            core::command_types::new_environment,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_new_environment(context);
+            }
+        },
+        {
+            core::command_types::remove_environment,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_remove_environment(context);
+            }
+        },
+        {
+            core::command_types::switch_environment,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_switch_environment(context);
+            }
+        },
+        {
+            core::command_types::list_environments,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_list_environments(context);
+            }
+        },
+        {
             core::command_types::edit_machine,
             [](environment* env, const command_handler_context_t& context) {
                 return env->on_edit_machine(context);
@@ -978,7 +1002,7 @@ namespace ryu::core {
         if (core::project::instance() == nullptr) {
             context.result.add_message(
                 "C032",
-                "no project is loaded; unable to list files",
+                "no project is loaded; unable to create project file",
                 true);
             return false;
         }
@@ -1005,7 +1029,7 @@ namespace ryu::core {
         if (core::project::instance() == nullptr) {
             context.result.add_message(
                     "C032",
-                    "no project is loaded; unable to list files",
+                    "no project is loaded; unable to remove project file",
                     true);
             return false;
         }
@@ -1043,6 +1067,8 @@ namespace ryu::core {
 
         auto project_files = core::project::instance()->files();
         for (const auto& file : project_files) {
+            if (file.type() == project_file_type::environment)
+                continue;
             data_table_row_t row {};
             row.columns.push_back(std::to_string(file.id()));
             row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
@@ -1050,7 +1076,7 @@ namespace ryu::core {
             table.rows.push_back(row);
         }
 
-        table.rows.push_back({{fmt::format("{} project files", project_files.size())}});
+        table.rows.push_back({{fmt::format("{} project files", table.rows.size())}});
 
         context.result.add_data(
                 "command_result",
@@ -1348,6 +1374,163 @@ namespace ryu::core {
         context.result.add_data(
                 "command_result",
                 {{"data", table}});
+
+        return true;
+    }
+
+    bool environment::on_new_environment(const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    "no project is loaded; unable to create environment",
+                    true);
+            return false;
+        }
+
+        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
+
+        fs::path environment_file_path(name);
+        if (environment_file_path.has_parent_path()) {
+            context.result.add_message(
+                    "C032",
+                    "environment name cannot contain a path",
+                    true);
+            return false;
+        }
+
+        environment_file_path = fs::current_path()
+                .append(".ryu")
+                .append(environment_file_path
+                                .replace_extension(".env")
+                                .string());
+
+        if (!fs::exists(environment_file_path.parent_path())) {
+            context.result.add_message(
+                    "C031",
+                    fmt::format(
+                            "project folder does not exist: {}",
+                            environment_file_path.parent_path().string()),
+                    true);
+            return false;
+        }
+
+        if (fs::exists(environment_file_path)) {
+            context.result.add_message(
+                    "C031",
+                    fmt::format("environment already exists: {}", environment_file_path.string()),
+                    true);
+            return false;
+        }
+
+        core::project_file file(
+                core::id_pool::instance()->allocate(),
+                name,
+                core::project_file_type::environment);
+        core::project::instance()->add_file(file);
+        file.create_stub_file(context.result, environment_file_path);
+        core::project::instance()->save(context.result);
+
+        return !context.result.is_failed();
+    }
+
+    bool environment::on_list_environments(const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    "no project is loaded; unable to list environments",
+                    true);
+            return false;
+        }
+
+        data_table_t table {};
+        table.headers.push_back({"ID",                   5,  5});
+        table.headers.push_back({"Path",                20, 50});
+        table.headers.push_back({"Type",                 8,  8});
+        table.footers.push_back({"Environment Count",  15,  20});
+
+        auto project_files = core::project::instance()->files();
+        for (const auto& file : project_files) {
+            if (file.type() != project_file_type::environment)
+                continue;
+            data_table_row_t row {};
+            row.columns.push_back(std::to_string(file.id()));
+            row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
+            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file.type())));
+            table.rows.push_back(row);
+        }
+
+        table.rows.push_back({{fmt::format("{} environments", table.rows.size())}});
+
+        context.result.add_data(
+                "command_result",
+                {{"data", table}});
+
+        return true;
+    }
+
+    bool environment::on_remove_environment(const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    "no project is loaded; unable to remove environment",
+                    true);
+            return false;
+        }
+
+        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
+        auto file = core::project::instance()->find_file(name);
+        if (file == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    fmt::format("no environment file exists: {}", name),
+                    true);
+            return false;
+        }
+
+        core::project::instance()->remove_file(file->id());
+        core::project::instance()->save(context.result);
+
+        fs::path environment_file_path(fs::current_path()
+               .append(".ryu")
+               .append(fs::path(name)
+                               .replace_extension(".env")
+                               .string()));
+
+        if (fs::exists(environment_file_path)) {
+            boost::system::error_code ec;
+            if (!fs::remove(environment_file_path, ec)) {
+                context.result.add_message(
+                        "C007",
+                        fmt::format("remove environment file failed: {}", ec.message()),
+                        true);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool environment::on_switch_environment(const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    "no project is loaded; unable to switch environment",
+                    true);
+            return false;
+        }
+
+        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
+        auto file = core::project::instance()->find_file(name);
+        if (file == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    fmt::format("no environment file exists: {}", name),
+                    true);
+            return false;
+        }
+
+        core::project::instance()->active_environment(file);
+        core::project::instance()->save(context.result);
 
         return true;
     }

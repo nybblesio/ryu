@@ -41,6 +41,14 @@ namespace ryu::core {
 
         bool on_clear(const command_handler_context_t& context);
 
+        bool on_new_environment(const command_handler_context_t& context);
+
+        bool on_list_environments(const command_handler_context_t& context);
+
+        bool on_remove_environment(const command_handler_context_t& context);
+
+        bool on_switch_environment(const command_handler_context_t& context);
+
         bool on_add_symbol(const command_handler_context_t& context);
 
         bool on_remove_symbol(const command_handler_context_t& context);

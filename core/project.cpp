@@ -306,9 +306,10 @@ namespace ryu::core {
     }
 
     void project::remove_file(uint32_t id) {
-        for (auto it = _files.begin(); it != _files.end(); ++it) {
-            if ((*it).id() == id) {
-                _files.erase(it);
+        for (size_t i = 0; i < _files.size(); i++) {
+            auto& file = _files[i];
+            if (file.id() == id) {
+                _files.erase(_files.begin() + i);
                 _dirty = true;
                 notify_listeners();
                 break;

@@ -58,8 +58,9 @@ namespace ryu::core {
             uint32_t id,
             const fs::path& path,
             project_file_type::codes type) : _id(id),
-                                        _path(path),
-                                        _type(type) {
+                                             _path(path),
+                                             _type(type) {
+        core::id_pool::instance()->mark_used(_id);
     }
 
     // XXX: consider using ctemplate and assets/templates/*.tmpl

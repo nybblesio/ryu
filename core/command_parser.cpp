@@ -193,7 +193,6 @@ namespace ryu::core {
         },
 
         {
-            // XXX: what were major differences between j and g?
             "g",
             {
                 command_types::go_to_address,
@@ -584,6 +583,55 @@ namespace ryu::core {
                 command_size_flags::none,
                 {},
                 "Open the backgrounds editor."
+            }
+        },
+
+        // -------------------------------------------
+        // environment commands
+        // -------------------------------------------
+        {
+            "lsenv",
+            {
+                command_types::list_environments,
+                command_size_flags::none,
+                {},
+                "List environments for currently loaded project."
+            }
+        },
+
+        {
+            "newenv",
+            {
+                command_types::new_environment,
+                command_size_flags::none,
+                {
+                    {"name",  variant::types::string_literal}
+                },
+                "Add a new environment using <italic>name<> to currently loaded project."
+            }
+        },
+
+        {
+            "rmenv",
+            {
+                command_types::remove_environment,
+                command_size_flags::none,
+                {
+                    {"name", variant::types::string_literal}
+                },
+                "Remove environment using <italic>name<> from currently loaded project."
+            }
+        },
+
+        {
+            "switchenv",
+            {
+                command_types::switch_environment,
+                command_size_flags::none,
+                {
+                    {"name", variant::types::string_literal}
+                },
+                "Switch to environment using <italic>name<>. NOTE: Clears symbol table before load."
             }
         },
 

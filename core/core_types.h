@@ -122,6 +122,11 @@ namespace ryu::core {
         remove_project_file,
         list_project_files,
 
+        new_environment,
+        list_environments,
+        remove_environment,
+        switch_environment,
+
         list_machines,
         edit_machine,
         delete_machine,

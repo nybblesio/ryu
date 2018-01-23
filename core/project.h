@@ -21,15 +21,6 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
-    // N.B. ideas behind environments:
-    //  - std::vector<boost::filesystem::path> for each environment assembly file
-    //  - commands in command parser to switch between environments
-    //  -       this does a environment::load (which does an assemble/execute)
-    //  - command for newenv
-    //  - command for switchenv
-    //  - command for delenv
-    //  - command for listenv
-    //
     class project {
     public:
         using project_changed_callable = std::function<void ()>;
