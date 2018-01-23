@@ -8,10 +8,35 @@
 // this source code file.
 //
 
+#include <algorithm>
 #include <hardware/machine.h>
+#include <common/string_support.h>
+#include <boost/algorithm/string.hpp>
 #include "project_file.h"
 
 namespace ryu::core {
+
+    static std::map<uint8_t, std::string> s_type_to_code = {
+        {project_file::types::source,      "text"},
+        {project_file::types::data,        "data"},
+        {project_file::types::tiles,       "tiles"},
+        {project_file::types::sprites,     "sprites"},
+        {project_file::types::module,      "module"},
+        {project_file::types::sample,      "sample"},
+        {project_file::types::environment, "environ"},
+        {project_file::types::background,  "bg"}
+    };
+
+    static std::map<std::string, uint8_t> s_code_to_type = {
+        {"text",    project_file::types::source},
+        {"data",    project_file::types::data},
+        {"tiles",   project_file::types::tiles},
+        {"sprites", project_file::types::sprites},
+        {"module",  project_file::types::module},
+        {"sample",  project_file::types::sample},
+        {"bg",      project_file::types::background},
+        {"environ", project_file::types::environment}
+    };
 
     project_file project_file::load(
             core::result& result,
@@ -47,19 +72,22 @@ namespace ryu::core {
         project_file file(
                 id.as<uint32_t>(),
                 fs::path(path.as<std::string>()),
-                string_to_type(type.as<std::string>()));
+                code_to_type(type.as<std::string>()));
 
-        auto cpu_component_id = node["cpu_component_id"].as<uint32_t>();
-        if (cpu_component_id != 0 && machine != nullptr) {
-            auto component = machine->find_component(cpu_component_id);
-            if (component == nullptr) {
-                result.add_message(
-                        "C031",
-                        "project_file cpu not found on machine",
-                        true);
-                return {};
+        auto cpu_component_node = node["cpu_component_id"];
+        if (cpu_component_node != nullptr && cpu_component_node.IsScalar()) {
+            auto cpu_component_id = cpu_component_node.as<uint32_t>();
+            if (cpu_component_id != 0 && machine != nullptr) {
+                auto component = machine->find_component(cpu_component_id);
+                if (component == nullptr) {
+                    result.add_message(
+                            "C031",
+                            "project_file cpu not found on machine",
+                            true);
+                    return {};
+                }
+                file.cpu(component);
             }
-            file.cpu(component);
         }
 
         return file;
@@ -109,33 +137,30 @@ namespace ryu::core {
         _type = value;
     }
 
-    std::string project_file::type_to_string(project_file::types type) {
-        switch (type) {
-            case assembly_source: return "assembly_source";
-            case environment:     return "environment";
-            default:              return "uninitialized";
-        }
+    std::string project_file::type_to_code(project_file::types type) {
+        auto it = s_type_to_code.find(type);
+        if (it == s_type_to_code.end())
+            return "UNKNOWN";
+        return it->second;
     }
 
     bool project_file::save(core::result& result, YAML::Emitter& emitter) {
         emitter << YAML::BeginMap;
         emitter << YAML::Key << "id" << YAML::Value << _id;
         emitter << YAML::Key << "path" << YAML::Value << _path.string();
-        emitter << YAML::Key << "type" << YAML::Value << type_to_string(_type);
+        emitter << YAML::Key << "type" << YAML::Value << type_to_code(_type);
         if (_cpu != nullptr)
             emitter << YAML::Key << "cpu_component_id" << YAML::Value << _cpu->id();
         emitter << YAML::EndMap;
         return true;
     }
 
-    project_file::types project_file::string_to_type(const std::string& name) {
-        if (name == "assembly_source") {
-            return project_file::types::assembly_source;
-        } else if (name == "environment") {
-            return project_file::types::environment;
-        } else {
+    project_file::types project_file::code_to_type(const std::string& name) {
+        auto it = s_code_to_type.find(boost::to_lower_copy<std::string>(name));
+        if (it == s_code_to_type.end())
             return project_file::types::uninitialized;
-        }
+
+        return static_cast<project_file::types>(it->second);
     }
 
 }

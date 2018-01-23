@@ -75,6 +75,8 @@ namespace ryu::core {
 
         project_file* find_file(uint32_t id);
 
+        const project_file_list& files() const;
+
         void add_file(const project_file& value);
 
         void machine(hardware::machine* machine);

@@ -16,9 +16,11 @@
 #include <boost/filesystem.hpp>
 #include <core/command_parser.h>
 #include <common/string_support.h>
+#include <boost/algorithm/string.hpp>
 #include "environment.h"
 #include "hex_formatter.h"
 #include "text_formatter.h"
+#include "project_file.h"
 
 namespace ryu::core {
 
@@ -270,13 +272,13 @@ namespace ryu::core {
             }
         },
         {
-            core::command_types::tracker,
+            core::command_types::module_editor,
             [](environment* env, const command_handler_context_t& context) {
                 return env->on_tracker(context);
             }
         },
         {
-            core::command_types::sounds,
+            core::command_types::sample_editor,
             [](environment* env, const command_handler_context_t& context) {
                 return env->on_sounds(context);
             }
@@ -415,12 +417,6 @@ namespace ryu::core {
             auto idx = 0;
             for (const auto& param_spec : command.spec.params) {
                 std::vector<core::variant_t>* values = nullptr;
-                auto it = params.find(param_spec.name);
-                if (it == params.end()) {
-                    auto range = params.insert(std::make_pair(param_spec.name, std::vector<core::variant_t>{}));
-                    it = range.first;
-                }
-                values = &it->second;
 
                 if (param_spec.required) {
                     if (idx >= root->children.size()) {
@@ -432,11 +428,25 @@ namespace ryu::core {
                         break;
                     }
                 }
+
+                if (idx >= root->children.size())
+                    break;
+
+                auto it = params.find(param_spec.name);
+                if (it == params.end()) {
+                    auto range = params.insert(std::make_pair(param_spec.name, std::vector<core::variant_t>{}));
+                    it = range.first;
+                }
+
+                values = &it->second;
+
                 auto value = param_spec.evaluate ?
                              evaluator.evaluate(result, root->children[idx]) :
                              root->children[idx]->value;
+
                 if (result.is_failed())
                     break;
+
                 if (param_spec.type != core::variant::types::variadic
                 &&  param_spec.type != core::variant::types::any) {
                     if (value.which() != param_spec.type) {
@@ -449,6 +459,7 @@ namespace ryu::core {
                         result.fail();
                     }
                 }
+
                 if (param_spec.type == core::variant::types::variadic) {
                     values->push_back(value);
 
@@ -917,13 +928,13 @@ namespace ryu::core {
         return true;
     }
 
-    // XXX: path is currently required, but if we're already in
-    //      a project folder, it should just load.
     bool environment::on_load_project(
             const command_handler_context_t& context) {
-        return core::project::load(
-                context.result,
-                boost::get<core::string_literal_t>(context.params["path"].front()).value);
+        fs::path path;
+        auto it = context.params.find("path");
+        if (it != context.params.end())
+            path = boost::get<core::string_literal_t>(it->second.front()).value;
+        return core::project::load(context.result, path);
     }
 
     bool environment::on_save_project(
@@ -953,16 +964,86 @@ namespace ryu::core {
 
     bool environment::on_new_project_file(
             const command_handler_context_t& context) {
-        return true;
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                "C032",
+                "no project is loaded; unable to list files",
+                true);
+            return false;
+        }
+
+        std::string type("TEXT");
+        auto path = boost::get<core::string_literal_t>(context.params["path"].front()).value;
+        auto type_it = context.params.find("type");
+        if (type_it != context.params.end()) {
+            type = boost::get<core::identifier_t>(type_it->second.front()).value;
+        }
+
+        core::project_file file(
+                core::id_pool::instance()->allocate(),
+                path,
+                core::project_file::code_to_type(type));
+        core::project::instance()->add_file(file);
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_remove_project_file(
             const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    "no project is loaded; unable to list files",
+                    true);
+            return false;
+        }
+
+        auto path = boost::get<core::string_literal_t>(context.params["path"].front()).value;
+        auto file = core::project::instance()->find_file(path);
+        if (file == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    fmt::format("no project file exists: {}", path),
+                    true);
+            return false;
+        }
+
+        core::project::instance()->remove_file(file->id());
+
         return true;
     }
 
     bool environment::on_list_project_files(
             const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                "C032",
+                "no project is loaded; unable to list files",
+                true);
+            return false;
+        }
+
+        data_table_t table {};
+        table.headers.push_back({"ID",           5,  5});
+        table.headers.push_back({"Path",        20, 50});
+        table.headers.push_back({"Type",         8,  8});
+        table.footers.push_back({"File Count",  15,  20});
+
+        auto project_files = core::project::instance()->files();
+        for (const auto& file : project_files) {
+            data_table_row_t row {};
+            row.columns.push_back(std::to_string(file.id()));
+            row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
+            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file::type_to_code(file.type())));
+            table.rows.push_back(row);
+        }
+
+        table.rows.push_back({{fmt::format("{} project files", project_files.size())}});
+
+        context.result.add_data(
+                "command_result",
+                {{"data", table}});
+
         return true;
     }
 
@@ -982,9 +1063,9 @@ namespace ryu::core {
         auto machines = hardware::registry::instance()->machines();
 
         data_table_t table {};
-        table.headers.push_back({"ID",    5,  5});
-        table.headers.push_back({"Name", 12, 32});
-        table.headers.push_back({"Type",  4,  4});
+        table.headers.push_back({"ID",              5,   5});
+        table.headers.push_back({"Name",           12,  32});
+        table.headers.push_back({"Type",            4,   4});
         table.footers.push_back({"Machine Count",  15,  20});
 
         for (auto machine : machines) {
@@ -1047,6 +1128,16 @@ namespace ryu::core {
             action = "edit_source";
         } else if (type == "DATA") {
             action = "edit_memory";
+        } else if (type == "TILES") {
+            action = "edit_tiles";
+        } else if (type == "SPRITES") {
+            action = "edit_sprites";
+        } else if (type == "BG") {
+            action = "edit_background";
+        } else if (type == "MODULE") {
+            action = "edit_module";
+        } else if (type == "SAMPLE") {
+            action = "edit_sample";
         }
 
         context.result.add_data("command_action", {

@@ -336,9 +336,9 @@ namespace ryu::core {
                 command_types::load_project,
                 command_size_flags::none,
                 {
-                    {"path", variant::types::string_literal}
+                    {"path", variant::types::string_literal, false}
                 },
-                "Load a project from disk at <italic>path<> into memory."
+                "Load a project from disk in current working directory or at <italic>path<> into memory."
             }
         },
 
@@ -363,7 +363,7 @@ namespace ryu::core {
                         {"path",  variant::types::string_literal},
                         {"type",  variant::types::identifier, false, false}
                     },
-                    "Add a new file to the currently loaded project."
+                    "Add a new file to the currently loaded project; optionally specify <italic>type<>."
             }
         },
 
@@ -538,22 +538,22 @@ namespace ryu::core {
         // editor and tool commands
         // -------------------------------------------
         {
-            "edsnd",
+            "edsample",
             {
-                command_types::sounds,
+                command_types::sample_editor,
                 command_size_flags::none,
                 {},
-                "Open the sounds editor."
+                "Open the sample editor."
             }
         },
 
         {
-            "edmusic",
+            "edmodule",
             {
-                command_types::tracker,
+                command_types::module_editor,
                 command_size_flags::none,
                 {},
-                "Open the music tracker."
+                "Open the module editor."
             }
         },
 

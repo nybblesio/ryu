@@ -133,8 +133,8 @@ namespace ryu::core {
         sprite_editor,
         tile_editor,
         background_editor,
-        tracker,
-        sounds,
+        module_editor,
+        sample_editor,
 
         read_binary_to_memory,
         write_memory_to_binary,

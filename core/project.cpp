@@ -329,6 +329,10 @@ namespace ryu::core {
         return nullptr;
     }
 
+    const project_file_list& project::files() const {
+        return _files;
+    }
+
     void project::machine(hardware::machine* machine) {
         _machine = machine;
         _dirty = true;

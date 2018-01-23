@@ -17,6 +17,8 @@
 #include "result.h"
 #include "core_types.h"
 
+// XXX: refactor project_file types out into its own type so
+//      conversions can be in one place
 namespace ryu::core {
 
     namespace fs = boost::filesystem;
@@ -25,13 +27,19 @@ namespace ryu::core {
     public:
         enum types {
             uninitialized,
-            assembly_source,
+            source,
+            data,
+            tiles,
+            sprites,
+            module,
+            sample,
+            background,
             environment,
         };
 
-        static std::string type_to_string(project_file::types type);
+        static std::string type_to_code(project_file::types type);
 
-        static project_file::types string_to_type(const std::string& name);
+        static project_file::types code_to_type(const std::string& name);
 
         static project_file load(
                 core::result& result,
