@@ -315,6 +315,12 @@ namespace ryu::core {
                 break;
             }
         }
+        std::sort(
+                _files.begin(),
+                _files.end(),
+                [](project_file& left, project_file& right) {
+                    return left.sequence() < right.sequence();
+                });
     }
 
     std::string project::description() const {
@@ -352,6 +358,12 @@ namespace ryu::core {
 
     void project::add_file(const project_file& value) {
         _files.push_back(value);
+        std::sort(
+                _files.begin(),
+                _files.end(),
+                [](project_file& left, project_file& right) {
+                    return left.sequence() < right.sequence();
+                });
         _dirty = true;
         notify_listeners();
     }

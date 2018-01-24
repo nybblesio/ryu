@@ -571,7 +571,19 @@ namespace ryu::core {
             return false;
         }
 
-        return true;
+        _assembler.symbol_table(&_symbol_table);
+
+        auto files = core::project::instance()->files();
+        for (auto& file : files) {
+            std::stringstream source;
+            if (!file.read(result, source))
+                break;
+
+            if (!_assembler.assemble(result, source))
+                break;
+        }
+
+        return !result.is_failed();
     }
 
     bool environment::on_quit(

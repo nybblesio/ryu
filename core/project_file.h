@@ -49,18 +49,34 @@ namespace ryu::core {
 
         void dirty(bool value);
 
-        project_file_type::codes type() const;
+        uint16_t sequence() const;
+
+        void sequence(uint16_t value);
+
+        bool read(
+                core::result& result,
+                std::iostream& stream);
 
         void path(const fs::path& value);
+
+        bool write(
+                core::result& result,
+                std::iostream& stream);
+
+        project_file_type::codes type() const;
 
         void type(project_file_type::codes value);
 
         bool save(core::result& result, YAML::Emitter& emitter);
 
     private:
+        fs::path find_project_root() const;
+
+    private:
         uint32_t _id {};
         fs::path _path {};
         bool _dirty = false;
+        uint16_t _sequence = 0;
         project_file_type::codes _type = project_file_type::codes::uninitialized;
     };
 

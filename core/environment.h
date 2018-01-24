@@ -13,6 +13,7 @@
 #include <core/result.h>
 #include <core/symbol_table.h>
 #include "project.h"
+#include "assembler.h"
 
 namespace ryu::core {
 
@@ -24,8 +25,6 @@ namespace ryu::core {
 
         std::string name() const;
 
-        void name(const std::string& value);
-
         bool load(core::result& result);
 
         bool save(core::result& result);
@@ -33,6 +32,8 @@ namespace ryu::core {
         core::symbol_table* symbol_table();
 
         bool assemble(core::result& result);
+
+        void name(const std::string& value);
 
         bool execute(core::result& result, const std::string& line);
 
@@ -147,6 +148,7 @@ namespace ryu::core {
         static command_handler_dict _command_handlers;
 
         std::string _name;
+        core::assembler _assembler {};
         core::symbol_table _symbol_table;
     };
 

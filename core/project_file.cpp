@@ -51,6 +51,11 @@ namespace ryu::core {
                 fs::path(path.as<std::string>()),
                 project_file_type::code_to_type(type.as<std::string>()));
 
+        auto sequence_node = node["sequence"];
+        if (sequence_node != nullptr && sequence_node.IsScalar()) {
+            file.sequence(sequence_node.as<uint16_t>());
+        }
+
         return file;
     }
 
@@ -61,6 +66,60 @@ namespace ryu::core {
                                              _path(path),
                                              _type(type) {
         core::id_pool::instance()->mark_used(_id);
+        switch (_type) {
+            case project_file_type::source:
+                _sequence = 3;
+                break;
+            case project_file_type::data:
+            case project_file_type::tiles:
+            case project_file_type::sprites:
+            case project_file_type::module:
+            case project_file_type::sample:
+            case project_file_type::background:
+                _sequence = 2;
+                break;
+            case project_file_type::environment:
+                _sequence = 1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    bool project_file::read(
+            core::result& result,
+            std::iostream& stream) {
+        fs::path file_path(find_project_root().append(_path.string()));
+        try {
+            std::ifstream file;
+            file.open(file_path.string());
+            stream << file.rdbuf();
+            file.close();
+        } catch (std::exception& e) {
+            result.add_message(
+                    "P001",
+                    fmt::format("unable to read project_file: {}", e.what()),
+                    true);
+        }
+        return true;
+    }
+
+    bool project_file::write(
+            core::result& result,
+            std::iostream& stream) {
+        fs::path file_path(find_project_root().append(_path.string()));
+        try {
+            std::ofstream file;
+            file.open(file_path.string());
+            file << stream.rdbuf();
+            file.close();
+        } catch (std::exception& e) {
+            result.add_message(
+                    "P001",
+                    fmt::format("unable to write project_file: {}", e.what()),
+                    true);
+        }
+        return true;
     }
 
     // XXX: consider using ctemplate and assets/templates/*.tmpl
@@ -71,7 +130,7 @@ namespace ryu::core {
         fs::path file_path = path;
 
         if (!file_path.is_absolute()) {
-            file_path = fs::current_path().append(file_path.string());
+            file_path = find_project_root().append(file_path.string());
         }
 
         if (fs::exists(file_path)) {
@@ -94,17 +153,7 @@ namespace ryu::core {
         stream << "* " << file_path.filename() << "\n";
         stream << "*\n\n";
 
-        try {
-            std::ofstream file;
-            file.open(file_path.string());
-            file << stream.str();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                "C031",
-                fmt::format("unable to create file: {}", e.what()),
-                true);
-        }
+        write(result, stream);
 
         return !result.is_failed();
     }
@@ -125,8 +174,22 @@ namespace ryu::core {
         _dirty = value;
     }
 
+    uint16_t project_file::sequence() const {
+        return _sequence;
+    }
+
+    void project_file::sequence(uint16_t value) {
+        // XXX: i may regret this later....
+        if (_type == project_file_type::codes::source)
+            _sequence = value;
+    }
+
     void project_file::path(const fs::path& value) {
         _path = value;
+    }
+
+    fs::path project_file::find_project_root() const {
+        return fs::current_path();
     }
 
     project_file_type::codes project_file::type() const {
@@ -142,6 +205,7 @@ namespace ryu::core {
         emitter << YAML::Key << "id" << YAML::Value << _id;
         emitter << YAML::Key << "path" << YAML::Value << _path.string();
         emitter << YAML::Key << "type" << YAML::Value << project_file_type::type_to_code(_type);
+        emitter << YAML::Key << "sequence" << YAML::Value << _sequence;
         emitter << YAML::EndMap;
         return true;
     }
