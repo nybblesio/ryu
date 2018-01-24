@@ -136,6 +136,8 @@ namespace ryu::core {
 
         bool on_help(const command_handler_context_t& context);
 
+        bool on_save_project_file(const command_handler_context_t& context);
+
         bool on_new_project_file(const command_handler_context_t& context);
 
         bool on_remove_project_file(const command_handler_context_t& context);

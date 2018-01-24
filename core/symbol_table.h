@@ -12,6 +12,7 @@
 
 #include "result.h"
 #include "core_types.h"
+#include "parser_types.h"
 
 namespace ryu::core {
 

@@ -15,4 +15,4 @@ add_library(
         memory_map_entry.cpp memory_map_entry.h
         cpus/mc6809/opcode.cpp cpus/mc6809/opcode.h
         integrated_circuit.cpp integrated_circuit.h
-        cpus/mc6809/assembly_parser.cpp cpus/mc6809/assembly_parser.h)
+        cpus/mc6809/assembly_language_parser.cpp cpus/mc6809/assembly_language_parser.h)

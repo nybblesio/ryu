@@ -8,11 +8,11 @@
 // this source code file.
 //
 
-#include "assembly_parser.h"
+#include "assembly_language_parser.h"
 
 namespace ryu::hardware::mc6809 {
 
-    ryu::core::ast_node_shared_ptr assembly_parser::on_parse_dialect() {
+    ryu::core::ast_node_shared_ptr assembly_language_parser::on_parse_dialect() {
         return nullptr;
     }
 

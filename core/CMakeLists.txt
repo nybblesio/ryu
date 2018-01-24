@@ -2,7 +2,6 @@ add_library(
         core
         result.h
         palette.h
-        core_types.h
         rect.cpp rect.h
         view.cpp view.h
         result_message.h
@@ -21,6 +20,7 @@ add_library(
         font_book.cpp font_book.h
         assembler.cpp assembler.h
         timer_pool.cpp timer_pool.h
+        core_types.h core_types.cpp
         environment.cpp environment.h
         state_stack.cpp state_stack.h
         views/label.cpp views/label.h
@@ -28,6 +28,7 @@ add_library(
         font_family.cpp font_family.h
         views/panel.cpp views/panel.h
         preferences.cpp preferences.h
+        parser_types.cpp parser_types.h
         project_file.cpp project_file.h
         symbol_table.cpp symbol_table.h
         views/button.cpp views/button.h
@@ -43,5 +44,5 @@ add_library(
         assembler_parser.cpp assembler_parser.h
         views/text_editor.cpp views/text_editor.h
         project_file_type.cpp project_file_type.h
-        assembly_language_parser.cpp assembly_language_parser.h
-        views/dock_layout_panel.cpp views/dock_layout_panel.h)
+        views/dock_layout_panel.cpp views/dock_layout_panel.h
+        assembly_language_parser.cpp assembly_language_parser.h)

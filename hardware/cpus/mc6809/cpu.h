@@ -9,7 +9,7 @@
 
 #include <hardware/integrated_circuit.h>
 #include "opcode.h"
-#include "assembly_parser.h"
+#include "assembly_language_parser.h"
 
 namespace ryu::hardware::mc6809 {
 
@@ -31,7 +31,7 @@ namespace ryu::hardware::mc6809 {
         static mnemonic_set _mnemonics;
         static opcode_dictionary _opcodes;
 
-        assembly_parser _parser {};
+        assembly_language_parser _parser {};
     };
 
 };

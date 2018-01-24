@@ -76,7 +76,7 @@ namespace ryu::core {
             case ast_node_t::basic_block: {
                 break;
             }
-            case ast_node_t::assembly:
+            case ast_node_t::program:
             case ast_node_t::directive:
             case ast_node_t::statement: {
                 break;

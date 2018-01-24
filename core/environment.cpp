@@ -201,6 +201,12 @@ namespace ryu::core {
             }
         },
         {
+            core::command_types::save_project_file,
+            [](environment* env, const command_handler_context_t& context) {
+                return env->on_save_project_file(context);
+            }
+        },
+        {
             core::command_types::remove_project_file,
             [](environment* env, const command_handler_context_t& context) {
                 return env->on_remove_project_file(context);
@@ -1007,6 +1013,19 @@ namespace ryu::core {
                 context.result,
                 core::project::instance()->path(),
                 boost::get<core::string_literal_t>(context.params["path"].front()).value);
+    }
+
+    bool environment::on_save_project_file(
+            const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    "no project is loaded; unable to save project file",
+                    true);
+            return false;
+        }
+
+        return true;
     }
 
     bool environment::on_new_project_file(

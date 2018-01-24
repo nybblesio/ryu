@@ -14,9 +14,9 @@
 
 namespace ryu::hardware::mc6809 {
 
-    class assembly_parser : public ryu::core::assembly_language_parser {
+    class assembly_language_parser : public ryu::core::assembly_language_parser {
     public:
-        assembly_parser() = default;
+        assembly_language_parser() = default;
 
     protected:
         ryu::core::ast_node_shared_ptr on_parse_dialect() override;

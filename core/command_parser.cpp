@@ -81,10 +81,8 @@ namespace ryu::core {
             {
                 command_types::assemble,
                 command_size_flags::none,
-                {
-                    {"addr", variant::types::numeric_literal, false}
-                },
-                "Assemble project source files, optionally at target <italic>addr<>."
+                {},
+                "Assemble project source files."
             }
         },
 
@@ -113,15 +111,15 @@ namespace ryu::core {
         },
 
         {
-            // XXX: how do we know what CPU type to use for disassembly
             "d",
             {
                 command_types::disassemble,
                 command_size_flags::none,
                 {
-                    {"addr", variant::types::numeric_literal}
+                    {"addr", variant::types::numeric_literal},
+                    {"component", variant::types::string_literal},
                 },
-                "Disassemble program code starting at <italic>addr<>."
+                "Disassemble program code starting at <italic>addr<> using <italic>component<> as the dialect."
             }
         },
 
@@ -317,6 +315,16 @@ namespace ryu::core {
         // -------------------------------------------
         // project commands
         // -------------------------------------------
+        {
+            "save",
+            {
+                    command_types::save_project_file,
+                    command_size_flags::none,
+                    {},
+                    "Save the currently open file."
+            }
+        },
+
         {
             "newproj",
             {
@@ -708,24 +716,26 @@ namespace ryu::core {
                             error("P008", "unexpected end of input");
                             return nullptr;
                         }
+                        std::string size_token;
                         if (*token == 'b')
-                            size = command_size_flags::byte;
+                            size_token = "b";
                         else if (*token == 'w')
-                            size = command_size_flags::word;
+                            size_token = "w";
                         else if (*token == 'd') {
+                            size_token = "d";
                             token = move_to_next_token();
                             if (token == nullptr) {
                                 error("P008", "unexpected end of input");
                                 return nullptr;
                             }
                             if (*token == 'w') {
-                                size = command_size_flags::dword;
+                                size_token += "w";
                             }
                         } else {
                             error("P011", "invalid size suffix");
                             return nullptr;
                         }
-                    } else {
+                        size = command_t::token_to_size(size_token);                    } else {
                         stream << *token;
                     }
                 }

@@ -107,7 +107,7 @@ namespace ryu::core {
 
     class assembler_parser : public core::parser {
     public:
-        assembler_parser();
+        assembler_parser() = default;
 
         ast_node_shared_ptr parse(const std::string& input) override;
 
@@ -121,6 +121,14 @@ namespace ryu::core {
         ast_node_shared_ptr parse_assembly();
 
     private:
+        void pop_scope();
+
+        ast_node_shared_ptr current_scope() const;
+
+        void push_scope(const ast_node_shared_ptr& node);
+
+    private:
+        std::stack<ast_node_shared_ptr> _scope_stack {};
     };
 
 };
