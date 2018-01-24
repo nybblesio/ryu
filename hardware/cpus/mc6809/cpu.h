@@ -9,6 +9,7 @@
 
 #include <hardware/integrated_circuit.h>
 #include "opcode.h"
+#include "assembly_parser.h"
 
 namespace ryu::hardware::mc6809 {
 
@@ -22,11 +23,15 @@ namespace ryu::hardware::mc6809 {
 
         cpu();
 
+        core::assembly_language_parser* assembler() override;
+
         RTTR_ENABLE(hardware::integrated_circuit)
 
     private:
         static mnemonic_set _mnemonics;
         static opcode_dictionary _opcodes;
+
+        assembly_parser _parser {};
     };
 
 };

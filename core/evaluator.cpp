@@ -34,6 +34,7 @@ namespace ryu::core {
             case ast_node_t::boolean_literal:
             case ast_node_t::character_literal:
                 return node->value;
+            case ast_node_t::label:
             case ast_node_t::identifier: {
                 if (_symbol_table == nullptr) {
                     error(result, "E006", "no symbol table assigned");
@@ -75,6 +76,8 @@ namespace ryu::core {
             case ast_node_t::basic_block: {
                 break;
             }
+            case ast_node_t::assembly:
+            case ast_node_t::directive:
             case ast_node_t::statement: {
                 break;
             }

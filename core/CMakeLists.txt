@@ -43,4 +43,5 @@ add_library(
         assembler_parser.cpp assembler_parser.h
         views/text_editor.cpp views/text_editor.h
         project_file_type.cpp project_file_type.h
+        assembly_language_parser.cpp assembly_language_parser.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h)

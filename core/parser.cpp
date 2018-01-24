@@ -322,6 +322,11 @@ namespace ryu::core {
 
     ast_node_shared_ptr parser::parse_identifier() {
         auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+
+        push_position();
+
         std::string s;
         s = *token;
         if (std::regex_match(s, std::regex("[_a-zA-Z]"))) {
@@ -337,11 +342,21 @@ namespace ryu::core {
                 else
                     break;
             }
-            auto identifier_node = std::make_shared<ast_node_t>();
-            identifier_node->value = identifier_t {stream.str()};
-            identifier_node->token = ast_node_t::tokens::identifier;
-            return identifier_node;
+
+            if (token == nullptr) {
+                error("A001", "unexpected end of identifier.");
+            } else {
+                if (*token != ':') {
+                    auto identifier_node = std::make_shared<ast_node_t>();
+                    identifier_node->value = identifier_t {stream.str()};
+                    identifier_node->token = ast_node_t::tokens::identifier;
+                    return identifier_node;
+                }
+            }
         }
+
+        pop_position();
+
         return nullptr;
     }
 

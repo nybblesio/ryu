@@ -9,6 +9,7 @@
 
 #include <string>
 #include <rttr/registration>
+#include <core/assembly_language_parser.h>
 #include "memory_map.h"
 #include "hardware_types.h"
 
@@ -39,6 +40,8 @@ namespace ryu::hardware {
         virtual void fill(uint8_t value);
 
         void address_space(uint32_t value);
+
+        virtual core::assembly_language_parser* assembler();
 
         virtual access_type_flags access_type() const;
 

@@ -29,6 +29,7 @@ namespace ryu::core {
         void symbol_table(core::symbol_table* value);
 
     private:
+        uint32_t _location_counter = 0;
         core::assembler_parser _parser {};
         core::symbol_table* _symbol_table = nullptr;
     };

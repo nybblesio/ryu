@@ -276,6 +276,10 @@ namespace ryu::hardware::mc6809 {
     cpu::cpu() : hardware::integrated_circuit("mc6809-ic") {
     }
 
+    core::assembly_language_parser* cpu::assembler() {
+        return &_parser;
+    }
+
     void cpu::init() {
         _opcodes[0x003a] = opcode(
                 0x003a,

@@ -186,6 +186,99 @@ namespace ryu::core {
         }
     };
 
+    struct directive_t {
+        enum types {
+            data,
+            equate,
+            origin,
+            target,
+            local,
+            end_block,
+            structure,
+            align,
+            if_block,
+            elseif_block,
+            else_block,
+            loop,
+            macro,
+        };
+
+        enum data_size {
+            none,
+            byte,
+            word,
+            dword,
+            ascii
+        };
+
+        types type;
+        data_size data_size;
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const directive_t& directive) {
+            switch (directive.type) {
+                case data: {
+                    switch (directive.data_size) {
+                        case directive_t::byte:
+                            stream << ".byte";
+                            break;
+                        case directive_t::word:
+                            stream << ".word";
+                            break;
+                        case directive_t::dword:
+                            stream << ".dword";
+                            break;
+                        case ascii:
+                            stream << ".ascii";
+                            break;
+                        default:
+                            // XXX: should this ever happen?
+                            break;
+                    }
+                    break;
+                }
+                case equate:
+                    stream << "=";
+                    break;
+                case origin:
+                    stream << ".org";
+                    break;
+                case target:
+                    stream << ".target";
+                    break;
+                case local:
+                    stream << ".local";
+                    break;
+                case end_block:
+                    stream << ".end";
+                    break;
+                case structure:
+                    stream << ".struct";
+                    break;
+                case align:
+                    stream << ".align";
+                    break;
+                case if_block:
+                    stream << ".if";
+                    break;
+                case elseif_block:
+                    stream << ".elseif";
+                    break;
+                case else_block:
+                    stream << ".else";
+                    break;
+                case loop:
+                    stream << ".loop";
+                    break;
+                case macro:
+                    stream << ".macro";
+                    break;
+            }
+            return stream;
+        }
+    };
+
     struct scanner_pos_t {
         int line;
         int index;
@@ -326,6 +419,17 @@ namespace ryu::core {
         }
     };
 
+    struct label_t {
+        std::string value;
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const label_t& label) {
+            stream << label.value << ":";
+            return stream;
+        }
+    };
+
     struct string_literal_t {
         std::string value;
 
@@ -439,12 +543,15 @@ namespace ryu::core {
             char_literal_t,
             operator_t,
             command_t,
-            comment_t> variant_t;
+            comment_t,
+            directive_t,
+            label_t> variant_t;
 
     typedef std::map<std::string, ast_node_shared_ptr> symbol_dict;
 
     struct ast_node_t {
         enum tokens {
+            assembly,
             command,
             comment,
             basic_block,
@@ -453,21 +560,27 @@ namespace ryu::core {
             binary_op,
             unary_op,
             identifier,
+            label,
             string_literal,
             character_literal,
             number_literal,
             null_literal,
-            boolean_literal
+            boolean_literal,
+            directive
         };
 
         void serialize(std::ostream& stream) {
             switch (token) {
-                case basic_block:
                 case statement:
+                case basic_block:
+                    break;
+                case assembly:
+                    for (const auto& child : children)
+                        child->serialize(stream);
                     break;
                 case expression:
                     stream << "(";
-                    for (auto child : children)
+                    for (const auto& child : children)
                         child->serialize(stream);
                     stream << ")";
                     break;
@@ -483,6 +596,8 @@ namespace ryu::core {
                 case command:
                 case comment:
                 case identifier:
+                case label:
+                case directive:
                 case string_literal:
                 case number_literal:
                 case boolean_literal:

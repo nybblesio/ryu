@@ -58,6 +58,10 @@ namespace ryu::hardware {
         return access_types::none;
     }
 
+    core::assembly_language_parser* integrated_circuit::assembler() {
+        return nullptr;
+    }
+
     uint8_t integrated_circuit::read_byte(uint32_t address) const {
         return 0;
     }
