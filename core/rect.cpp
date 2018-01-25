@@ -16,30 +16,53 @@ namespace ryu::core {
             int32_t left,
             int32_t top,
             int32_t width,
-            int32_t height) : _left(left),
-                              _top(top),
+            int32_t height) : _top(top),
+                              _left(left),
                               _width(width),
                               _height(height) {
     }
 
-    int32_t rect::left() const {
-        return _left;
+    rect::rect(const SDL_Rect& sdl_rect) {
+        _left = sdl_rect.x;
+        _top = sdl_rect.y;
+        _width = sdl_rect.w;
+        _height = sdl_rect.h;
     }
 
     int32_t rect::top() const {
         return _top;
     }
 
+    void rect::top(int32_t y) {
+        _top = y;
+    }
+
+    int32_t rect::left() const {
+        return _left;
+    }
+
+    void rect::left(int32_t x) {
+        _left = x;
+    }
+
+    void rect::width(int32_t w) {
+        _width = w;
+    }
+
     int32_t rect::width() const {
         return _width;
+    }
+
+    int32_t rect::right() const {
+        return _left + _width;
     }
 
     int32_t rect::height() const {
         return _height;
     }
 
-    int32_t rect::right() const {
-        return _left + _width;
+    void rect::height(int32_t h) {
+        _height = h;
     }
 
     int32_t rect::bottom() const {

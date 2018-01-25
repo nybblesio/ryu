@@ -11,89 +11,88 @@
 #include <string>
 #include <SDL_events.h>
 #include <SDL_render.h>
+#include "renderer.h"
 #include "core_types.h"
 
 namespace ryu::core {
 
     class state {
     public:
-        state(
-                core::context* context,
-                int id,
-                const std::string& name,
-                bool render_parent = false);
+        explicit state(const std::string& name, bool render_parent = false);
 
-        virtual ~state() = default;
+        virtual ~state();
 
-        int id() const {
-            return _id;
-        }
+        int id() const;
+
+        void deactivate();
+
+        core::context* context();
 
         void update(uint32_t dt);
 
-        std::string name() const {
-            return _name;
-        }
+        std::string name() const;
 
-        bool render_parent() const {
-            return _render_parent;
-        }
+        bool render_parent() const;
 
-        bool is_initialized() const {
-            return _initialized;
-        }
+        bool is_initialized() const;
 
-        core::context* context() const {
-            return _context;
-        }
+        void context(core::context* value);
 
-        void init(SDL_Renderer* renderer);
+        void draw(core::renderer& renderer);
 
-        void draw(SDL_Renderer* renderer);
+        void resize(const core::rect& bounds);
 
         bool process_event(const SDL_Event* e);
+
+        inline core::context* context() const {
+            return _context;
+        }
 
         bool operator< (const state& rhs) const {
             return _id < rhs._id;
         }
 
+        void initialize(const core::rect& bounds);
+
         bool operator== (const state& rhs) const {
             return _id == rhs._id;
         }
 
-        bool transition_to(const std::string& name) {
-            if (_callback)
-                return _callback(this, name);
-            return false;
-        }
+        void activate(const core::parameter_dict& params);
 
-        void transition_callback(const state_transition_callable& callback) {
-            _callback = callback;
-        }
+        void transition_callback(const state_transition_callable& callback);
+
+        bool transition_to(const std::string& name, const parameter_dict& params);
 
     protected:
         void end_state();
+
+        virtual void on_deactivate();
+
+        virtual void on_initialize() = 0;
 
         virtual void on_update(uint32_t dt) = 0;
 
         void erase_blackboard(const std::string& name);
 
-        virtual void on_init(SDL_Renderer* renderer) = 0;
+        virtual void on_resize(const core::rect& bounds);
 
-        virtual void on_draw(SDL_Renderer* renderer) = 0;
+        virtual void on_draw(core::renderer& renderer) = 0;
 
         virtual bool on_process_event(const SDL_Event* e) = 0;
 
         std::string blackboard(const std::string& name) const;
 
+        virtual void on_activate(const core::parameter_dict& params);
+
         void blackboard(const std::string& name, const std::string& value);
 
     private:
-        int _id;
+        int _id = 0;
         std::string _name;
         bool _initialized = false;
         bool _render_parent = false;
-        state_transition_callable _callback;
-        ryu::core::context* _context = nullptr;
+        core::context* _context = nullptr;
+        state_transition_callable _callback {};
     };
 };

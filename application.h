@@ -11,34 +11,38 @@
 
 #pragma once
 
-#include <ide/context.h>
 #include <core/engine.h>
-#include <emulator/context.h>
+#include <ide/ide_context.h>
+#include <core/preferences.h>
+#include <emulator/emulator_context.h>
 
 namespace ryu {
 
+    namespace fs = boost::filesystem;
+
     class application {
     public:
-        static const int display_width = 1920;
-        static const int display_height = 1000;
-
-        application();
-
-        bool init();
+        application() = default;
 
         bool shutdown();
 
         int run(int argc, char** argv);
 
-    private:
-        void configure_ide();
-
-        void configure_emulator();
+        bool init(int argc, char** argv);
 
     private:
-        core::engine _engine;
-        ide::context _ide_context;
-        emulator::context _emulator_context;
+        bool configure_ide(core::result& result);
+
+        bool configure_emulator(core::result& result);
+
+        void show_result_messages(core::result& result);
+
+    private:
+        core::engine _engine {};
+        fs::path _executable_path;
+        core::preferences _prefs {};
+        ide::ide_context _ide_context {"ide"};
+        emulator::emulator_context _emulator_context {"emulator"};
     };
 
 };

@@ -15,32 +15,33 @@
 
 namespace ryu::hardware {
 
-    class ram : public integrated_circuit,
-                public memory {
+    class ram : public hardware::integrated_circuit {
     public:
-        ram(
-                int id,
-                const std::string& name,
-                size_t size,
-                uint32_t address);
+        static void init();
+
+        ram();
 
         ~ram() override;
 
-        void zero();
+        void zero() override;
 
-        uint32_t address() const;
+        void fill(uint8_t value) override;
 
-        void fill(uint8_t value);
-
-        size_t size() const override;
+        access_type_flags access_type() const override;
 
         uint8_t read_byte(uint32_t address) const override;
 
         void write_byte(uint32_t address, uint8_t value) override;
 
+    protected:
+        void on_address_space_changed() override;
+
     private:
-        size_t _size;
-        uint32_t _address;
+        void reallocate();
+
+        RTTR_ENABLE(hardware::integrated_circuit)
+
+    private:
         uint8_t* _buffer = nullptr;
     };
 

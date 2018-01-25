@@ -8,48 +8,42 @@
 // this source code file.
 //
 
+#include <utility>
 #include "view.h"
 #include "engine.h"
+#include "id_pool.h"
 
 namespace ryu::core {
 
     view::view(
-            core::context* context,
-            core::view* parent,
             types::id type,
-            int id,
-            const std::string& name) : _id(id),
-                                       _type(type),
+            const std::string& name) : _id(core::id_pool::instance()->allocate()),
                                        _name(name),
-                                       _parent(parent),
-                                       _context(context) {
-        if (_parent != nullptr)
-            _parent->_children.push_back(this);
+                                       _type(type) {
+    }
 
-        enabled(true);
-        visible(true);
+    view::~view() {
+        core::id_pool::instance()->release(_id);
     }
 
     int view::id() const {
         return _id;
     }
 
-    view* view::parent() {
-        return _parent;
-    }
-
-    core::rect& view::rect() {
-        return _rect;
-    }
-
-    void view::focus(int id) {
-        focus(id == _id);
-        for (auto child : _children)
-            child->focus(id);
+    bool view::layout() const {
+        return (_flags & config::flags::layout) != 0;
     }
 
     short view::index() const {
         return _index;
+    }
+
+    core::rect& view::bounds() {
+        return _rect;
+    }
+
+    core::view* view::parent() {
+        return _parent;
     }
 
     bool view::enabled() const {
@@ -68,16 +62,29 @@ namespace ryu::core {
         return (_flags & config::flags::focused) != 0;
     }
 
-    void view::focus(bool value) {
-        if (value)
-            _flags |= config::flags::focused;
-        else
-            _flags &= ~config::flags::focused;
-        on_focus_changed();
+    void view::clear_children() {
+        for (auto child : _children)
+            child->_parent = nullptr;
+        _children.clear();
     }
 
     view_list& view::children() {
         return _children;
+    }
+
+    void view::requires_layout() {
+        auto container = parent();
+        if (container != nullptr)
+            container->layout(true);
+        else
+            layout(true);
+    }
+
+    void view::layout(bool value) {
+        if (value)
+            _flags |= config::flags::layout;
+        else
+            _flags &= ~config::flags::layout;
     }
 
     core::padding& view::margin() {
@@ -88,8 +95,18 @@ namespace ryu::core {
         _index = value;
     }
 
-    core::context* view::context() {
-        return _context;
+    void view::on_focus_changed() {
+    }
+
+    core::view* view::find_root() {
+        auto current = this;
+        while (true) {
+            auto next = current->parent();
+            if (next == nullptr)
+                break;
+            current = next;
+        }
+        return current;
     }
 
     core::palette* view::palette() {
@@ -112,6 +129,9 @@ namespace ryu::core {
             _flags |= config::flags::visible;
         else
             _flags &= ~config::flags::visible;
+
+        for (auto child : _children)
+            child->visible(value);
     }
 
     void view::tabstop(bool value) {
@@ -121,19 +141,16 @@ namespace ryu::core {
             _flags &= ~config::flags::tabstop;
     }
 
-    void view::on_focus_changed() {
-    }
-
     std::string view::name() const {
         return _name;
     }
 
-    core::rect view::client_rect() {
-        auto& bounds = rect();
-        auto& pad = padding();
+    core::rect view::client_bounds() {
+        auto rect = bounds();
+        auto pad = padding();
         core::rect padded;
-        padded.pos(bounds.left() + pad.left(), bounds.top() + pad.top());
-        padded.size(bounds.width() - pad.right(), bounds.height() - pad.bottom());
+        padded.pos(rect.left() + pad.left(), rect.top() + pad.top());
+        padded.size(rect.width() - pad.right(), rect.height() - pad.bottom());
         return padded;
     }
 
@@ -145,10 +162,8 @@ namespace ryu::core {
         return _fg_color;
     }
 
-    core::font_t* view::font() const {
-        if (_font == nullptr)
-            return _context->engine()->find_font("topaz-8");
-        return _font;
+    uint8_t view::font_style() const {
+        return _font_style;
     }
 
     void view::bg_color(uint8_t value) {
@@ -163,41 +178,108 @@ namespace ryu::core {
         return _type;
     }
 
-    void view::font(core::font_t* font) {
-        _font = font;
+    void view::inner_focus(bool value) {
+        if (value)
+            _flags |= config::flags::focused;
+        else
+            _flags &= ~config::flags::focused;
+        on_focus_changed();
     }
 
-    view::dock::styles view::dock() const {
+    core::dock::styles view::dock() const {
         return _dock;
     }
 
-    void view::draw(SDL_Renderer* renderer) {
+    void view::font_style(uint8_t styles) {
+        _font_style = styles;
+    }
+
+    void view::add_child(core::view* child) {
+        if (child == nullptr)
+            return;
+        child->_parent = this;
+        _children.push_back(child);
+    }
+
+    view::sizing::types view::sizing() const {
+        return _sizing;
+    }
+
+    void view::dock(core::dock::styles style) {
+        _dock = style;
+    }
+
+    void view::draw(core::renderer& renderer) {
         if (!visible())
             return;
 
+        if (layout()) {
+            resize(renderer.bounds());
+        }
+
         on_draw(renderer);
-        for (auto child : _children)
-            child->draw(renderer);
+        draw_children(renderer);
     }
 
-    void view::rect(const core::rect& value) {
+    void view::remove_child(core::view* child) {
+        if (child == nullptr)
+            return;
+        _children.erase(std::find(_children.begin(), _children.end(), child));
+    }
+
+    void view::bounds(const core::rect& value) {
         _rect = value;
-    }
-
-    void view::dock(view::dock::styles style) {
-        _dock = style;
     }
 
     void view::palette(core::palette* palette) {
         _palette = palette;
     }
 
-    void view::on_draw(SDL_Renderer* renderer) {
+    const core::font_t* view::font_face() const {
+        auto family = font_family();
+        if (family == nullptr)
+            return nullptr;
+        return family->find_style(_font_style);
+    }
+
+    void view::sizing(view::sizing::types value) {
+        _sizing = value;
+    }
+
+    void view::on_draw(core::renderer& renderer) {
     }
 
     bool view::process_event(const SDL_Event* e) {
-        if (focused() && on_process_event(e))
-            return true;
+        if (focused()) {
+            if (!visible()) {
+                const auto* current = this;
+                while (!current->visible()) {
+                    if (current->_on_tab_callable != nullptr) {
+                        current = current->_on_tab_callable();
+                    } else {
+                        break;
+                    }
+                }
+                find_root()->focus(current);
+            } else {
+                if (e->type == SDL_KEYDOWN) {
+                    switch (e->key.keysym.sym) {
+                        case SDLK_TAB: {
+                            if (_on_tab_callable != nullptr) {
+                                const auto* next_view = _on_tab_callable();
+                                if (next_view != nullptr) {
+                                    find_root()->focus(next_view);
+                                    return true;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (on_process_event(e))
+                    return true;
+            }
+        }
 
         for (auto child : _children) {
             if (child->process_event(e))
@@ -205,6 +287,26 @@ namespace ryu::core {
         }
 
         return false;
+    }
+
+    void view::focus(const core::view* target) {
+        if (target == nullptr)
+            return;
+
+        for (auto child : _children)
+            child->focus(target);
+
+        inner_focus(target->_id == this->_id);
+    }
+
+    core::view* view::get_child_at(size_t index) {
+        if (index < _children.size())
+            return _children[index];
+        return nullptr;
+    }
+
+    core::font_family* view::font_family() const {
+        return _font;
     }
 
     void view::margin(const core::padding& value) {
@@ -217,6 +319,29 @@ namespace ryu::core {
 
     bool view::on_process_event(const SDL_Event* e) {
         return false;
+    }
+
+    void view::font_family(core::font_family* font) {
+        _font = font;
+    }
+
+    void view::draw_children(core::renderer& renderer) {
+        for (auto child : _children)
+            child->draw(renderer);
+    }
+
+    void view::resize(const core::rect& context_bounds) {
+        layout(false);
+        on_resize(context_bounds);
+        for (auto child : _children)
+            child->resize(context_bounds);
+    }
+
+    void view::on_resize(const core::rect& context_bounds) {
+    }
+
+    void view::on_tab(const view::on_tab_callable& callable) {
+        _on_tab_callable = callable;
     }
 
 }

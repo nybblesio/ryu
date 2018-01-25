@@ -41,10 +41,20 @@ namespace ryu::core {
 
         void alpha(uint8_t value);
 
-        palette_entry fade(uint8_t factor);
-
-        inline SDL_Color to_sdl_color() {
+        inline SDL_Color to_sdl_color() const {
             return SDL_Color{_red, _green, _blue, _alpha};
+        }
+
+        palette_entry operator/(int factor) {
+            return {_red /= factor, _green /= factor, _blue /= factor, _alpha};
+        }
+
+        palette_entry operator+(int addend) {
+            return {_red += addend, _green += addend, _blue += addend, _alpha};
+        }
+
+        palette_entry operator-(int subtrand) {
+            return {_red -= subtrand, _green -= subtrand, _blue -= subtrand, _alpha};
         }
 
     private:

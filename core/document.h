@@ -10,116 +10,111 @@
 
 #pragma once
 
+#include <map>
 #include <list>
 #include <boost/filesystem.hpp>
-#include "core/state.h"
 
 namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
+    struct attr_t {
+        uint8_t color = 0;
+        uint8_t style = 0;
+        uint8_t flags = 0;
+        bool operator== (const attr_t& rhs) const {
+            return color == rhs.color && style == rhs.style && flags == rhs.flags;
+        }
+        bool operator!= (const attr_t& rhs) const {
+            return color != rhs.color || style != rhs.style || flags != rhs.flags;
+        }
+    };
+
+    struct element_t {
+        uint8_t value = 0;
+        attr_t attr;
+    };
+
+    struct line_t {
+        explicit line_t(const attr_t& attr) : default_attr(attr) {
+        }
+        element_t* get(size_t column) {
+            if (column < elements.size())
+                return &elements[column];
+            return nullptr;
+        }
+        void put(size_t column, const element_t& value) {
+            if (column >= elements.size()) {
+                auto missing_columns = (column - elements.size()) + 1;
+                for (size_t i = 0; i < missing_columns; i++)
+                    elements.push_back(element_t {0, default_attr});
+            }
+            elements[column] = value;
+        }
+        attr_t default_attr;
+        std::vector<element_t> elements;
+    };
+
+    struct attr_chunk_t {
+        attr_t attr;
+        std::string text {};
+    };
+
+    typedef std::vector<attr_chunk_t> attr_chunks;
+
     class document {
     public:
-        static int spaces_to_prev_tabstop(int column, int tabsize);
+        using document_changed_callable = std::function<void ()>;
 
-        static int spaces_to_next_tabstop(int column, int tabsize);
+        document() = default;
 
-        document(
-                int rows,
-                int columns,
-                int page_width,
-                int page_height);
+        ~document() = default;
 
-        ~document();
+        void home();
 
         void clear();
 
+        void page_up();
+
         void shift_up();
 
-        inline void home() {
-            _column = 0;
-        }
+        bool scroll_up();
 
-        inline void page_up() {
-            _row -= _page_height;
-            clamp_row();
-        }
+        void page_down();
 
-        inline int row() const {
-            return _row;
-        }
+        void last_page();
 
-        inline bool scroll_up() {
-            --_row;
-            return clamp_row();
-        }
+        void first_page();
 
-        inline int rows() const {
-            return _rows;
-        }
+        bool scroll_down();
 
-        inline void page_down() {
-            _row += _page_height;
-            clamp_row();
-        }
+        bool scroll_left();
 
-        void insert_line(int row);
+        bool scroll_right();
 
-        void delete_line(int row);
+        uint32_t row() const;
 
-        inline void last_page() {
-            _row = _rows - _page_height;
-            clamp_row();
-        }
+        uint32_t rows() const;
 
-        inline bool row(int row) {
-            _row = row;
-            return clamp_row();
-        }
+        bool row(uint32_t row);
 
-        inline void first_page() {
-            _row = 0;
-        }
+        uint16_t column() const;
 
-        int find_line_end(int row);
+        uint16_t columns() const;
 
-        inline int column() const {
-            return _column;
-        }
+        void end(uint16_t column);
 
-        inline bool scroll_down() {
-            ++_row;
-            return clamp_row();
-        }
+        uint8_t page_width() const;
 
-        inline bool scroll_left() {
-            --_column;
-            return clamp_column();
-        }
+        attr_t default_attr() const;
 
-        inline int columns() const {
-            return _columns;
-        }
+        uint8_t page_height() const;
 
-        inline bool scroll_right() {
-            ++_column;
-            return clamp_column();
-        }
+        bool column(uint16_t column);
 
-        bool is_line_empty(int row);
+        std::string filename() const;
 
-        inline void end(int column) {
-            _column = _columns - column;
-        }
-
-        std::string filename() const {
-            return _path.filename().string();
-        }
-
-        inline bool column(int column) {
-            _column = column;
-            return clamp_column();
-        }
+        void delete_line(uint32_t row);
 
         void load(const fs::path& path);
 
@@ -127,62 +122,64 @@ namespace ryu::core {
 
         void save(std::ostream& stream);
 
+        void default_attr(attr_t value);
+
+        bool is_line_empty(uint32_t row);
+
+        line_t* insert_line(uint32_t row);
+
+        inline size_t line_count() const {
+            return _lines.size();
+        }
+
+        uint16_t find_line_end(uint32_t row);
+
         void save(const fs::path& path = "");
 
-        unsigned char get(int row, int column);
+        void page_size(uint8_t height, uint8_t width);
 
-        void put(int row, int column, unsigned char value);
+        element_t* get(uint32_t row, uint16_t column);
 
-        void shift_left(int row, int column, int times = 1);
+        void split_line(uint32_t row, uint16_t column);
 
-        void shift_right(int row, int column, int times = 1);
+        void document_size(uint32_t rows, uint16_t columns);
 
-        void shift_line_left(int row, int column, int times = 1);
+        void put(uint32_t row, uint16_t column, const element_t& value);
 
-        void shift_line_right(int row, int column, int times = 1);
+        void shift_left(uint32_t row, uint16_t column, uint16_t times = 1);
 
-        void write_line(std::ostream& stream, int line, int column, int end_column);
+        void on_document_changed(const document_changed_callable& callable);
 
-    private:
-        bool clamp_column() {
-            if (_column < 0) {
-                _column = 0;
-                return true;
-            }
+        void shift_right(uint32_t row, uint16_t column, uint16_t times = 1);
 
-            auto right = _columns - _page_width;
-            if (_column > right) {
-                _column = right;
-                return true;
-            }
+        void shift_line_left(uint32_t row, uint16_t column, uint16_t times = 1);
 
-            return false;
-        }
+        void shift_line_right(uint32_t row, uint16_t column, uint16_t times = 1);
 
-        bool clamp_row() {
-            if (_row < 0) {
-                _row = 0;
-                return true;
-            }
+        attr_chunks get_line_chunks(uint32_t row, uint16_t column, uint16_t end_column);
 
-            auto bottom = _rows - _page_height;
-            if (_row > bottom) {
-                _row = bottom;
-                return true;
-            }
+        void write_line(std::ostream& stream, uint32_t row, uint16_t column, uint16_t end_column);
 
-            return false;
-        }
+    protected:
+        bool clamp_row();
+
+        void raise_document_changed();
+
+        line_t* line_at(uint32_t row);
+
+        bool clamp_column(uint16_t last_col);
 
     private:
-        int _rows;
-        int _columns;
-        int _row = 0;
         fs::path _path;
-        int _column = 0;
-        int _page_width = 0;
-        int _page_height = 0;
-        uint8_t* _data = nullptr;
+        uint32_t _row = 0;
+        uint32_t _rows = 1;
+        uint16_t _column = 0;
+        uint16_t _columns = 80;
+        attr_t _default_attr {};
+        uint8_t _page_width = 0;
+        uint8_t _page_height = 0;
+        std::vector<line_t> _lines;
+        document_changed_callable _document_changed_callback;
     };
 
 }

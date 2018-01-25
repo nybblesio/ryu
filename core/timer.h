@@ -15,7 +15,13 @@ namespace ryu::core {
 
     class timer {
     public:
-        explicit timer(int id, uint32_t duration);
+        explicit timer(uint32_t duration);
+
+        virtual ~timer();
+
+        int id() const {
+            return _id;
+        }
 
         void kill();
 
@@ -33,7 +39,7 @@ namespace ryu::core {
             return _expired;
         }
 
-        void bind(timer_callable callback);
+        void bind(const timer_callable& callback);
 
         bool operator< (const timer& rhs) const {
             return _id < rhs._id;
@@ -49,7 +55,7 @@ namespace ryu::core {
         bool _expired = false;
         uint32_t _duration = 0;
         uint32_t _start_time = 0;
-        timer_callable _callback;
+        timer_callable _callback {};
     };
 
 };

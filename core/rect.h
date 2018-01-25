@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <SDL_rect.h>
+#include "padding.h"
 
 namespace ryu::core {
 
@@ -20,23 +21,33 @@ namespace ryu::core {
     public:
         rect() = default;
 
+        rect(const SDL_Rect& sdl_rect);
+
         rect(int32_t left, int32_t top, int32_t width, int32_t height);
 
-        int32_t left() const;
+        bool empty() const {
+            return _top == 0 && _left == 0 && _width == 0 && _height == 0;
+        }
 
         int32_t top() const;
 
+        void top(int32_t y);
+
+        int32_t left() const;
+
+        void left(int32_t x);
+
         int32_t width() const;
 
-        int32_t height() const;
+        void width(int32_t w);
 
         int32_t right() const;
 
-        int32_t bottom() const;
+        int32_t height() const;
 
-        inline SDL_Rect to_sdl_rect() {
-            return SDL_Rect{left(), top(), width(), height()};
-        }
+        void height(int32_t h);
+
+        int32_t bottom() const;
 
         rect& pos(int32_t left, int32_t top);
 
@@ -45,6 +56,10 @@ namespace ryu::core {
         void deflate(int32_t dx, int32_t dy);
 
         bool contains(const rect& rect) const;
+
+        inline SDL_Rect to_sdl_rect() const {
+            return SDL_Rect{left(), top(), width(), height()};
+        }
 
         bool intersects(const rect& rect) const;
 

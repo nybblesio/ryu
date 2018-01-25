@@ -20,15 +20,23 @@
 #include "palette.h"
 #include "context.h"
 #include "padding.h"
+#include "renderer.h"
+#include "font_family.h"
 
 namespace ryu::core {
 
-    class view;
-
-    typedef std::vector<view*> view_list;
-
     class view {
     public:
+        using on_tab_callable = std::function<const core::view* ()>;
+
+        struct sizing {
+            enum types {
+                content,
+                fixed,
+                parent
+            };
+        };
+
         struct config {
             enum flags : uint8_t {
                 none    = 0b00000000,
@@ -36,52 +44,28 @@ namespace ryu::core {
                 enabled = 0b00000010,
                 tabstop = 0b00000100,
                 focused = 0b00001000,
-            };
-        };
-
-        struct dock {
-            enum styles : uint8_t {
-                none,
-                bottom,
-                fill,
-                left,
-                right,
-                top
+                layout  = 0b00010000
             };
         };
 
         struct types {
             enum id : uint8_t {
-                none,
-                label,
-                textbox,
-                checkbox,
-                combobox,
-                list,
-                menu,
-                menuitem,
-                custom
+                control,
+                container
             };
         };
 
-        view(
-                core::context* context,
-                view* parent,
-                types::id type,
-                int id,
-                const std::string& name);
+        view(types::id type, const std::string& name);
 
-        virtual ~view() = default;
+        virtual ~view();
 
         int id() const;
 
-        view* parent();
-
-        core::rect& rect();
-
-        void focus(int id);
+        bool layout() const;
 
         short index() const;
+
+        core::rect& bounds();
 
         bool focused() const;
 
@@ -91,13 +75,23 @@ namespace ryu::core {
 
         bool tabstop() const;
 
+        core::view* parent();
+
+        void clear_children();
+
         view_list& children();
 
+        void requires_layout();
+
         types::id type() const;
+
+        void layout(bool value);
 
         core::padding& margin();
 
         void index(short value);
+
+        core::padding& padding();
 
         void enabled(bool value);
 
@@ -107,13 +101,7 @@ namespace ryu::core {
 
         std::string name() const;
 
-        core::context* context();
-
         core::palette* palette();
-
-        core::padding& padding();
-
-        core::rect client_rect();
 
         uint8_t bg_color() const;
 
@@ -121,54 +109,86 @@ namespace ryu::core {
 
         dock::styles dock() const;
 
-        core::font_t* font() const;
-
-        void bg_color(uint8_t value);
-
-        void fg_color(uint8_t value);
+        uint8_t font_style() const;
 
         void dock(dock::styles style);
 
-        void font(core::font_t* font);
+        void font_style(uint8_t styles);
 
-        void draw(SDL_Renderer* renderer);
+        void add_child(core::view* child);
 
-        void rect(const core::rect& value);
+        view::sizing::types sizing() const;
 
-        void palette(core::palette* palette);
+        virtual core::rect client_bounds();
+
+        void draw(core::renderer& renderer);
+
+        void focus(const core::view* target);
+
+        void remove_child(core::view* child);
+
+        virtual void bg_color(uint8_t value);
+
+        virtual void fg_color(uint8_t value);
+
+        void bounds(const core::rect& value);
+
+        const core::font_t* font_face() const;
+
+        void sizing(view::sizing::types value);
 
         bool process_event(const SDL_Event* e);
+
+        core::font_family* font_family() const;
+
+        core::view* get_child_at(size_t index);
 
         void margin(const core::padding& value);
 
         void padding(const core::padding& value);
 
+        void on_tab(const on_tab_callable& callable);
+
+        virtual void palette(core::palette* palette);
+
+        void resize(const core::rect& context_bounds);
+
+        virtual void font_family(core::font_family* font);
+
     protected:
-        void focus(bool value);
+        core::view* find_root();
+
+        void inner_focus(bool value);
 
         virtual void on_focus_changed();
 
-        virtual void on_draw(SDL_Renderer* renderer);
+        virtual void on_draw(core::renderer& renderer);
 
         virtual bool on_process_event(const SDL_Event* e);
 
+        virtual void draw_children(core::renderer& renderer);
+
+        virtual void on_resize(const core::rect& context_bounds);
+
     private:
         int _id;
-        short _index;
-        uint8_t _flags;
+        short _index = 0;
         std::string _name;
-        core::font_t* _font;
         core::rect _rect {};
-        view_list _children;
-        core::padding _margin;
         uint8_t _bg_color = 0;
         uint8_t _fg_color = 0;
-        core::padding _padding;
-        view* _parent = nullptr;
-        types::id _type = types::none;
-        core::context* _context = nullptr;
+        view_list _children {};
+        core::padding _margin {};
+        core::padding _padding {};
+        core::view* _parent = nullptr;
+        types::id _type = types::control;
+        on_tab_callable _on_tab_callable;
         core::palette* _palette = nullptr;
-        dock::styles _dock = dock::styles::none;
+        core::font_family* _font = nullptr;
+        uint8_t _font_style = font::styles::normal;
+        core::dock::styles _dock = dock::styles::none;
+        view::sizing::types _sizing = view::sizing::types::content;
+        uint8_t _flags = config::flags::enabled | config::flags::visible;
     };
 
 };

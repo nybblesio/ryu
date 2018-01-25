@@ -15,23 +15,22 @@
 
 namespace ryu::emulator {
 
-    controller::controller(
-            core::context* context,
-            int id,
-            const std::string& name) : core::state(context, id, name) {
+    controller::controller(const std::string& name) : core::state(name) {
     }
 
     controller::~controller() {
     }
 
+    void controller::on_initialize() {
+    }
+
     void controller::on_update(uint32_t dt) {
     }
 
-    void controller::on_init(SDL_Renderer* renderer) {
-        _font = context()->engine()->find_font("topaz-8");
+    void controller::on_draw(core::renderer& surface) {
     }
 
-    void controller::on_draw(SDL_Renderer* renderer) {
+    void controller::on_resize(const core::rect& bounds) {
     }
 
     bool controller::on_process_event(const SDL_Event* e) {

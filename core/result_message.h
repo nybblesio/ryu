@@ -13,23 +13,41 @@
 
 #include <vector>
 #include <string>
+#include "core_types.h"
 
 namespace ryu::core {
 
     class result_message {
     public:
+        enum types {
+            info,
+            error,
+            data
+        };
+
         result_message(
-                std::string code,
-                std::string message,
-                std::string details = "",
-                bool error = false) : _code(std::move(code)),
-                                      _message(std::move(message)),
-                                      _details(std::move(details)),
-                                      _error(error) {
+                const std::string& code,
+                const core::parameter_dict& params) : _type(types::data),
+                                                      _code(code),
+                                                      _params(params) {
+        }
+
+        result_message(
+                const std::string& code,
+                const std::string& message,
+                const std::string& details = "",
+                types type = types::info) : _type(type),
+                                            _code(code),
+                                            _message(message),
+                                            _details(details) {
+        }
+
+        inline types type() const {
+            return _type;
         }
 
         inline bool is_error() const {
-            return _error;
+            return _type == types::error;
         }
 
         inline const std::string& code() const {
@@ -44,11 +62,16 @@ namespace ryu::core {
             return _message;
         }
 
+        inline const core::parameter_dict& params() const {
+            return _params;
+        }
+
     private:
-        bool _error;
+        types _type;
         std::string _code;
-        std::string _message;
-        std::string _details;
+        std::string _message {};
+        std::string _details {};
+        core::parameter_dict _params {};
     };
 
     typedef std::vector <result_message> result_message_list;

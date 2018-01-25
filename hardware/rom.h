@@ -8,7 +8,6 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include "integrated_circuit.h"
@@ -16,33 +15,36 @@
 
 namespace ryu::hardware {
 
-    class rom : public integrated_circuit,
-                public memory {
+    class rom : public hardware::integrated_circuit {
     public:
-        rom(
-                int id,
-                const std::string& name,
-                uint8_t* buffer,
-                size_t size,
-                uint32_t address);
+        static void init();
+
+        rom();
 
         ~rom() override;
 
+        void zero() override;
+
         bool write_latch() const;
 
-        uint32_t address() const;
-
-        size_t size() const override;
-
         void write_latch(bool enabled);
+
+        void fill(uint8_t value) override;
+
+        access_type_flags access_type() const override;
 
         uint8_t read_byte(uint32_t address) const override;
 
         void write_byte(uint32_t address, uint8_t value) override;
 
+    protected:
+        void on_address_space_changed() override;
+
+        RTTR_ENABLE(hardware::integrated_circuit)
+
     private:
-        size_t _size;
-        uint32_t _address;
+        void reallocate();
+
         bool _write_latch = false;
         uint8_t* _buffer = nullptr;
     };

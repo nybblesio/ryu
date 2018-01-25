@@ -17,29 +17,22 @@ namespace ryu::emulator {
 
     class controller  : public core::state {
     public:
-        enum ids {
-        };
-
-        controller(
-                core::context* context,
-                int id,
-                const std::string& name);
+        explicit controller(const std::string& name);
 
         ~controller() override;
 
     protected:
+        void on_initialize() override;
+
         void on_update(uint32_t dt) override;
 
-        void on_draw(SDL_Renderer* renderer) override;
+        void on_draw(core::renderer& surface) override;
 
-        void on_init(SDL_Renderer* renderer) override;
+        void on_resize(const core::rect& bounds) override;
 
         bool on_process_event(const SDL_Event* e) override;
 
     private:
-        int _top = 0;
-        int _left = 0;
-        core::font_t* _font = nullptr;
     };
 
 };

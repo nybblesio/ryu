@@ -10,17 +10,22 @@
 
 #include "rom.h"
 
+RTTR_REGISTRATION {
+    rttr::registration::class_<ryu::hardware::rom>("ryu::hardware::rom") (
+        rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::rom_id),
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Pseudo EPROM IC")
+    )
+    .constructor<>(rttr::registration::public_access) (
+            rttr::policy::ctor::as_raw_ptr
+    );
+}
+
 namespace ryu::hardware {
 
-    rom::rom(
-            int id,
-            const std::string& name,
-            uint8_t* buffer,
-            size_t size,
-            uint32_t address) : integrated_circuit(id, name),
-                                _size(size),
-                                _buffer(buffer),
-                                _address(address) {
+    void rom::init() {
+    }
+
+    rom::rom() : integrated_circuit("rom-ic") {
     }
 
     rom::~rom() {
@@ -28,12 +33,25 @@ namespace ryu::hardware {
         _buffer = nullptr;
     }
 
-    size_t rom::size() const {
-        return _size;
+    void rom::zero() {
+        if (_write_latch)
+            std::memset(_buffer, 0, address_space());
     }
 
-    uint32_t rom::address() const {
-        return _address;
+    void rom::reallocate() {
+        delete _buffer;
+        _buffer = new uint8_t[address_space()];
+
+        // XXX: this is for debug purposes only, should remove or
+        //        make configurable
+        write_latch(true);
+        fill(0xfe);
+        write_latch(false);
+    }
+
+    void rom::fill(uint8_t value) {
+        if (_write_latch)
+            std::memset(_buffer, value, address_space());
     }
 
     bool rom::write_latch() const {
@@ -42,6 +60,14 @@ namespace ryu::hardware {
 
     void rom::write_latch(bool enabled) {
         _write_latch = enabled;
+    }
+
+    void rom::on_address_space_changed() {
+        reallocate();
+    }
+
+    access_type_flags rom::access_type() const {
+        return access_types::readable;
     }
 
     uint8_t rom::read_byte(uint32_t address) const {

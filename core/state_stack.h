@@ -11,9 +11,10 @@
 
 #pragma once
 
-#include <vector>
 #include <SDL.h>
+#include <vector>
 #include "core_types.h"
+#include "renderer.h"
 
 namespace ryu::core {
 
@@ -33,8 +34,6 @@ namespace ryu::core {
 
         int peek() const;
 
-        void push(int id);
-
         bool empty() const;
 
         void pop(int to_id = -1);
@@ -49,7 +48,9 @@ namespace ryu::core {
 
         void remove_state(core::state* state);
 
-        void draw(uint32_t dt, SDL_Renderer* renderer);
+        void draw(uint32_t dt, core::renderer& renderer);
+
+        void push(int id, const core::parameter_dict& params);
 
         void add_state(core::state* state, const state_transition_callable& callback);
 
@@ -57,10 +58,11 @@ namespace ryu::core {
         void update_active_state();
 
     private:
-        state_dict _states;
         int _pending_id = -1;
-        std::vector<int> _stack;
+        state_dict _states {};
+        std::vector<int> _stack {};
         core::state* _active = nullptr;
+        core::parameter_dict _pending_params {};
         pending_state::action _pending_action = pending_state::action::none;
     };
 

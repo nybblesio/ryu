@@ -12,11 +12,4 @@
 
 namespace ryu {
 
-    struct app {
-        enum contexts {
-            ide = 1,
-            emulator
-        };
-    };
-
 }

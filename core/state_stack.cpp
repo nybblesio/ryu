@@ -9,6 +9,7 @@
 //
 
 #include "state.h"
+#include "context.h"
 #include "state_stack.h"
 
 namespace ryu::core {
@@ -31,6 +32,7 @@ namespace ryu::core {
                 break;
             }
             case pending_state::action::pop: {
+                // XXX: need to call deactivate on each stack as we remove them from the stack
                 while (!_stack.empty()) {
                     auto top = _stack.back();
                     _stack.pop_back();
@@ -46,16 +48,12 @@ namespace ryu::core {
         }
 
         _pending_action = pending_state::action::none;
+        _pending_params = {};
         _pending_id = -1;
     }
 
     int state_stack::peek() const {
         return _stack.empty() ? -1 : _stack.back();
-    }
-
-    void state_stack::push(int id) {
-        _pending_action = pending_state::action::push;
-        _pending_id = id;
     }
 
     bool state_stack::empty() const {
@@ -68,7 +66,11 @@ namespace ryu::core {
     }
 
     void state_stack::update_active_state() {
+        if (_active != nullptr)
+            _active->deactivate();
         _active = find_state(peek());
+        _active->activate(_pending_params);
+        _active->resize(_active->context()->bounds());
     }
 
     core::state* state_stack::find_state(int id) {
@@ -93,7 +95,7 @@ namespace ryu::core {
         _states.erase(state->id());
     }
 
-    void state_stack::draw(uint32_t dt, SDL_Renderer* renderer) {
+    void state_stack::draw(uint32_t dt, core::renderer& renderer) {
         if (_stack.empty())
             return;
 
@@ -110,6 +112,12 @@ namespace ryu::core {
             state->update(dt);
             state->draw(renderer);
         }
+    }
+
+    void state_stack::push(int id, const core::parameter_dict& params) {
+        _pending_action = pending_state::action::push;
+        _pending_params = params;
+        _pending_id = id;
     }
 
     void state_stack::add_state(core::state* state, const state_transition_callable& callback) {
