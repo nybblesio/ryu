@@ -22,7 +22,7 @@ namespace ryu::core {
 
         bool assemble(
                 core::result& result,
-                std::iostream& stream);
+                std::string& input);
 
         core::symbol_table* symbol_table();
 

@@ -14,20 +14,22 @@
 
 namespace ryu::core {
 
-    void assembler_parser::pop_scope() {
+    ast_node_shared_ptr assembler_parser::pop_scope() {
         if (_scope_stack.empty())
-            return;
+            return nullptr;
         _scope_stack.pop();
+        return _scope_stack.top();
     }
 
-    ast_node_shared_ptr assembler_parser::parse_assembly() {
+    void assembler_parser::parse_assembly() {
         auto token = current_token();
         if (token == nullptr)
-            return nullptr;
-
-        auto scope = current_scope();
+            return;
 
         while (true) {
+            ast_node_shared_ptr current_identifier = nullptr;
+            auto scope = current_scope();
+
             token = current_token();
             if (token == nullptr)
                 break;
@@ -39,29 +41,31 @@ namespace ryu::core {
             }
 
             consume_white_space();
-            ast_node_shared_ptr identifier_or_label_node = nullptr;
-            identifier_or_label_node = parse_identifier();
-            if (identifier_or_label_node == nullptr) {
-                identifier_or_label_node = parse_label();
-            }
-            if (identifier_or_label_node != nullptr) {
-                scope->children.push_back(identifier_or_label_node);
-            }
+            current_identifier = parse_identifier();
 
             consume_white_space();
             auto directive_node = parse_directive();
             if (directive_node != nullptr) {
-                scope->children.push_back(directive_node);
+                auto directive = boost::get<directive_t>(directive_node->value);
+
+                if (directive.type != directive_t::types::elseif_block
+                &&  directive.type != directive_t::types::else_block)
+                    scope->children.push_back(directive_node);
+
+                if (current_identifier != nullptr)
+                    directive_node->lhs = current_identifier;
 
                 consume_white_space();
 
-                auto directive = boost::get<directive_t>(directive_node->value);
                 switch (directive.type) {
                     case directive_t::data: {
+                        auto parameter_list_node = std::make_shared<ast_node_t>();
+                        parameter_list_node->token = ast_node_t::tokens::parameter_list;
+
                         while (true) {
                             auto expression_node = parse_expression();
                             if (expression_node != nullptr) {
-                                directive_node->children.push_back(expression_node);
+                                parameter_list_node->children.push_back(expression_node);
                                 consume_white_space();
                                 token = current_token();
                                 if (token == nullptr || *token != ',') {
@@ -70,69 +74,141 @@ namespace ryu::core {
                                 move_to_next_token();
                             }
                         }
+
+                        directive_node->rhs = parameter_list_node;
                         break;
                     }
                     case directive_t::align:
                     case directive_t::equate:
                     case directive_t::origin: {
-                        auto expression_node = parse_expression();
-                        if (expression_node != nullptr) {
-                            directive_node->children.push_back(expression_node);
-                        }
+                        directive_node->rhs = parse_expression();
                         break;
                     }
                     case directive_t::target: {
-                        auto string_node = parse_string_literal();
-                        if (string_node != nullptr) {
-                            directive_node->children.push_back(string_node);
+                        directive_node->rhs = parse_string_literal();
+                        break;
+                    }
+                    case directive_t::local: {
+                        auto statement_node = std::make_shared<ast_node_t>();
+                        statement_node->token = ast_node_t::tokens::statement;
+
+                        auto parameter_list_node = std::make_shared<ast_node_t>();
+                        parameter_list_node->token = ast_node_t::tokens::parameter_list;
+                        statement_node->rhs = parameter_list_node;
+                        directive_node->rhs = statement_node;
+
+                        while (true) {
+                            auto identifier_node = parse_identifier();
+                            if (identifier_node != nullptr) {
+                                parameter_list_node->children.push_back(identifier_node);
+                                consume_white_space();
+                                token = current_token();
+                                if (token == nullptr || *token != ',') {
+                                    break;
+                                }
+                                move_to_next_token();
+                            }
                         }
+
                         break;
                     }
                     case directive_t::loop:
-                    case directive_t::local:
                     case directive_t::macro:
                     case directive_t::structure: {
+                        auto parameter_list_node = std::make_shared<ast_node_t>();
+                        parameter_list_node->token = ast_node_t::tokens::parameter_list;
+
+                        // XXX: need more strict parsing here
                         auto identifier_node = parse_identifier();
                         if (identifier_node != nullptr) {
-                            directive_node->children.push_back(identifier_node);
+                            parameter_list_node->children.push_back(identifier_node);
+
+                            while (true) {
+                                auto expression_node = parse_expression();
+                                if (expression_node == nullptr)
+                                    break;
+                                parameter_list_node->children.push_back(expression_node);
+                            }
+
+                            auto statement_node = std::make_shared<ast_node_t>();
+                            statement_node->token = ast_node_t::tokens::statement;
+                            statement_node->lhs = parameter_list_node;
+                            statement_node->rhs = std::make_shared<ast_node_t>();
+                            statement_node->rhs->token = ast_node_t::tokens::basic_block;
+                            push_scope(statement_node->rhs);
+
+                            directive_node->rhs = statement_node;
+                        } else {
+                            error("A001", "missing identifier");
                         }
                         break;
                     }
-                    case directive_t::if_block:
-                    case directive_t::else_block:
+                    case directive_t::end_block: {
+                        pop_scope();
+                        break;
+                    }
+                    case directive_t::if_block: {
+                        directive_node->rhs = parse_expression();
+                        if (directive_node->rhs == nullptr) {
+                            error("A001", "missing expression");
+                        } else {
+                            auto branch_node = std::make_shared<ast_node_t>();
+                            branch_node->token = ast_node_t::tokens::branch;
+                            directive_node->children.push_back(branch_node);
+
+                            auto true_basic_block = std::make_shared<ast_node_t>();
+                            true_basic_block->token = ast_node_t::tokens::basic_block;
+                            true_basic_block->parent = branch_node;
+                            push_scope(true_basic_block);
+                            branch_node->lhs = true_basic_block;
+                        }
+                        break;
+                    }
                     case directive_t::elseif_block: {
-                        token = current_token();
-                        if (token != nullptr && *token == '(') {
-                            move_to_next_token();
-                            auto expression_node = parse_expression();
-                            if (expression_node != nullptr) {
-                                token = move_to_next_token();
-                                consume_white_space();
-                                if (token != nullptr && *token == ')') {
-                                    directive_node->children.push_back(expression_node);
-                                }
+                        directive_node->rhs = parse_expression();
+                        if (directive_node->rhs == nullptr) {
+                            error("A001", "missing expression");
+                        } else {
+                            if (scope->parent != nullptr
+                            &&  scope->parent->token == ast_node_t::tokens::branch) {
+                                scope->parent->rhs = directive_node;
+                                scope = pop_scope();
+
+                                auto branch_node = std::make_shared<ast_node_t>();
+                                branch_node->token = ast_node_t::tokens::branch;
+                                directive_node->children.push_back(branch_node);
+
+                                auto true_basic_block = std::make_shared<ast_node_t>();
+                                true_basic_block->token = ast_node_t::tokens::basic_block;
+                                true_basic_block->parent = branch_node;
+                                push_scope(true_basic_block);
+
+                                branch_node->lhs = true_basic_block;
+                            } else {
+                                error("A001", "missing if expression");
                             }
                         }
                         break;
                     }
+                    case directive_t::else_block:
+                        if (scope->parent != nullptr
+                        &&  scope->parent->token == ast_node_t::tokens::branch) {
+                            scope->parent->rhs = directive_node;
+                            scope = pop_scope();
+
+                            auto true_basic_block = std::make_shared<ast_node_t>();
+                            true_basic_block->token = ast_node_t::tokens::basic_block;
+                            directive_node->children.push_back(true_basic_block);
+                            push_scope(true_basic_block);
+                        } else {
+                            error("A001", "missing if expression");
+                        }
+                        break;
                     default:
                         break;
                 }
             }
         }
-
-        return scope;
-    }
-
-    ast_node_shared_ptr assembler_parser::parse_label() {
-        auto ast_node = parse_identifier();
-        auto token = current_token();
-        if (ast_node != nullptr && token != nullptr && *token == ':') {
-            auto identifier = boost::get<identifier_t>(ast_node->value);
-            ast_node->value = label_t {identifier.value};
-            ast_node->token = ast_node_t::tokens::label;
-        }
-        return nullptr;
     }
 
     ast_node_shared_ptr assembler_parser::parse_directive() {
@@ -156,6 +232,9 @@ namespace ryu::core {
         }
 
         auto directive_name = boost::to_lower_copy<std::string>(stream.str());
+        if (directive_name.empty())
+            return nullptr;
+
         if (directive_name.length() < 2) {
             error("A001", "unexpected end of assembler directive.");
             return nullptr;
@@ -170,21 +249,9 @@ namespace ryu::core {
         auto data_size = directive_t::size_for_directive(directive_name);
         auto directive = directive_t {directive_type, data_size};
 
-        if (directive.is_block_end()) {
-            pop_scope();
-            return nullptr;
-        }
-
         auto directive_node = std::make_shared<ast_node_t>();
         directive_node->value = directive;
         directive_node->token = ast_node_t::tokens::directive;
-
-        if (directive.is_block()) {
-            auto basic_block = std::make_shared<ast_node_t>();
-            basic_block->token = ast_node_t::tokens::basic_block;
-            directive_node->children.push_back(basic_block);
-            push_scope(basic_block);
-        }
 
         return directive_node;
     }
@@ -192,14 +259,14 @@ namespace ryu::core {
     ast_node_shared_ptr assembler_parser::current_scope() const {
         if (_scope_stack.empty())
             return nullptr;
-        return _scope_stack.top();
-    }
-
-    void assembler_parser::push_scope(const ast_node_shared_ptr& node) {
-        _scope_stack.push(node);
+        auto top = _scope_stack.top();
+        return top;
     }
 
     ast_node_shared_ptr assembler_parser::parse(const std::string& input) {
+        if (input.empty())
+            return nullptr;
+
         auto program_node = std::make_shared<ast_node_t>();
         program_node->token = ast_node_t::tokens::program;
 
@@ -207,7 +274,14 @@ namespace ryu::core {
 
         reset(input);
 
-        return parse_assembly();
+        parse_assembly();
+
+        return current_scope();
+    }
+
+    ast_node_shared_ptr assembler_parser::push_scope(const ast_node_shared_ptr& node) {
+        _scope_stack.push(node);
+        return _scope_stack.top();
     }
 
 }

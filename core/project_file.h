@@ -18,8 +18,6 @@
 #include "core_types.h"
 #include "project_file_type.h"
 
-// XXX: refactor project_file types out into its own type so
-//      conversions can be in one place
 namespace ryu::core {
 
     namespace fs = boost::filesystem;
@@ -59,7 +57,11 @@ namespace ryu::core {
 
         uint16_t sequence() const;
 
+        bool should_assemble() const;
+
         void sequence(uint16_t value);
+
+        void should_assemble(bool flag);
 
         void path(const fs::path& value);
 
@@ -70,13 +72,11 @@ namespace ryu::core {
         bool save(core::result& result, YAML::Emitter& emitter);
 
     private:
-        fs::path find_project_root() const;
-
-    private:
         uint32_t _id {};
         fs::path _path {};
         bool _dirty = false;
         uint16_t _sequence = 0;
+        bool _should_assemble = false;
         project_file_type::codes _type = project_file_type::codes::uninitialized;
     };
 

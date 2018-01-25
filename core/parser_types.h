@@ -613,7 +613,9 @@ namespace ryu::core {
             number_literal,
             null_literal,
             boolean_literal,
-            directive
+            directive,
+            parameter_list,
+            branch
         };
 
         bool is_block() const {
@@ -622,8 +624,10 @@ namespace ryu::core {
 
         void serialize(std::ostream& stream) {
             switch (token) {
+                case branch:
                 case statement:
                 case basic_block:
+                case parameter_list:
                     break;
                 case program:
                     for (const auto& child : children)
@@ -671,6 +675,7 @@ namespace ryu::core {
         ast_node_list children;
         ast_node_shared_ptr lhs = nullptr;
         ast_node_shared_ptr rhs = nullptr;
+        ast_node_shared_ptr parent = nullptr;
     };
 
     typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;

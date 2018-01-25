@@ -143,14 +143,6 @@ namespace ryu::core {
         _caret.fg_color(value);
     }
 
-    void text_editor::load(const fs::path& path) {
-        _document.load(path);
-    }
-
-    void text_editor::save(const fs::path& path) {
-        _document.save(path);
-    }
-
     void text_editor::caret_left(uint8_t columns) {
         if (_caret.left(columns))
             scroll_left();
@@ -548,6 +540,14 @@ namespace ryu::core {
                 stream << "\n";
             }
         }
+    }
+
+    bool text_editor::load(core::result& result, const fs::path& path) {
+        return _document.load(result, path);
+    }
+
+    bool text_editor::save(core::result& result, const fs::path& path) {
+        return _document.save(result, path);
     }
 
     void text_editor::on_caret_changed(const caret_changed_callable& callable) {

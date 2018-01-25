@@ -19,6 +19,7 @@ namespace ryu::core {
     // .org [addr] - changes the insertion point address
     // .target "name-of-component"
     // .equ | =
+    // .include [path]
     //
     // data directives
     // ---------------------------------
@@ -114,18 +115,15 @@ namespace ryu::core {
     protected: // directive related parsers
         ast_node_shared_ptr parse_directive();
 
-    protected: // label related parsers
-        ast_node_shared_ptr parse_label();
-
     protected:
-        ast_node_shared_ptr parse_assembly();
+        void parse_assembly();
 
     private:
-        void pop_scope();
+        ast_node_shared_ptr pop_scope();
 
         ast_node_shared_ptr current_scope() const;
 
-        void push_scope(const ast_node_shared_ptr& node);
+        ast_node_shared_ptr push_scope(const ast_node_shared_ptr& node);
 
     private:
         std::stack<ast_node_shared_ptr> _scope_stack {};

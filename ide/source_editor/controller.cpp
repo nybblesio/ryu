@@ -119,19 +119,21 @@ namespace ryu::ide::source_editor {
                     if (action_it != params.end()) {
                         // XXX: need to refactor this, it makes my head hurt
                         auto command = boost::get<std::string>(action_it->second);
-                        if (command == "quit")
+                        if (command == "quit") {
                             context()->engine()->quit();
-                        else if (command == "read_text") {
+                        } else if (command == "save_project_file") {
+                            _editor.save(result);
+                        } else if (command == "read_text") {
                             auto name_it = params.find("name");
                             if (name_it != params.end()) {
-                                _editor.load(boost::get<std::string>(name_it->second));
+                                _editor.load(result, boost::get<std::string>(name_it->second));
                             } else {
                                 // XXX: handle errors
                             }
                         } else if (command == "write_text") {
                             auto name_it = params.find("name");
                             if (name_it != params.end()) {
-                                _editor.save(boost::get<std::string>(name_it->second));
+                                _editor.save(result, boost::get<std::string>(name_it->second));
                             } else {
                                 // XXX: handle errors
                             }
@@ -262,6 +264,17 @@ namespace ryu::ide::source_editor {
             }
         }
         return _layout_panel.process_event(e);
+    }
+
+    void controller::on_activate(const core::parameter_dict& params) {
+        core::result result;
+
+        auto path_it = params.find("path");
+        if (path_it != params.end()) {
+            _editor.load(result, boost::get<std::string>(path_it->second));
+        }
+
+        // XXX: handle result if errored
     }
 
 }

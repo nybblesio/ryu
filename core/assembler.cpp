@@ -14,8 +14,19 @@ namespace ryu::core {
 
     bool assembler::assemble(
             core::result& result,
-            std::iostream& stream) {
-        return false;
+            std::string& input) {
+        auto program_node = _parser.parse(input);
+        auto parser_result = _parser.result();
+        if (program_node == nullptr && parser_result.is_failed()) {
+            for (auto& msg : parser_result.messages())
+                result.add_message(
+                        msg.code(),
+                        msg.message(),
+                        msg.details(),
+                        msg.is_error());
+            return false;
+        }
+        return !result.is_failed();
     }
 
     core::symbol_table* assembler::symbol_table() {

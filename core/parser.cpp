@@ -346,12 +346,16 @@ namespace ryu::core {
             if (token == nullptr) {
                 error("A001", "unexpected end of identifier.");
             } else {
-                if (*token != ':') {
-                    auto identifier_node = std::make_shared<ast_node_t>();
-                    identifier_node->value = identifier_t {stream.str()};
+                auto identifier_node = std::make_shared<ast_node_t>();
+                if (*token == ':') {
+                    move_to_next_token();
+                    identifier_node->value = label_t{stream.str()};
+                    identifier_node->token = ast_node_t::tokens::label;
+                } else {
+                    identifier_node->value = identifier_t{stream.str()};
                     identifier_node->token = ast_node_t::tokens::identifier;
-                    return identifier_node;
                 }
+                return identifier_node;
             }
         }
 

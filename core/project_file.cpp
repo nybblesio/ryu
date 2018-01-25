@@ -12,6 +12,7 @@
 #include <hardware/machine.h>
 #include <common/string_support.h>
 #include <boost/algorithm/string.hpp>
+#include "project.h"
 #include "project_file.h"
 
 namespace ryu::core {
@@ -56,6 +57,11 @@ namespace ryu::core {
             file.sequence(sequence_node.as<uint16_t>());
         }
 
+        auto should_assemble_node = node["should_assemble"];
+        if (should_assemble_node != nullptr && should_assemble_node.IsScalar()) {
+            file.should_assemble(should_assemble_node.as<bool>());
+        }
+
         return file;
     }
 
@@ -77,9 +83,11 @@ namespace ryu::core {
             case project_file_type::sample:
             case project_file_type::background:
                 _sequence = 2;
+                _should_assemble = true;
                 break;
             case project_file_type::environment:
                 _sequence = 1;
+                _should_assemble = true;
                 break;
             default:
                 break;
@@ -89,7 +97,7 @@ namespace ryu::core {
     bool project_file::read(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path(find_project_root().append(_path.string()));
+        fs::path file_path(project::find_project_root().append(_path.string()));
         try {
             std::ifstream file;
             file.open(file_path.string());
@@ -107,7 +115,7 @@ namespace ryu::core {
     bool project_file::write(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path(find_project_root().append(_path.string()));
+        fs::path file_path(project::find_project_root().append(_path.string()));
         try {
             std::ofstream file;
             file.open(file_path.string());
@@ -130,7 +138,7 @@ namespace ryu::core {
         fs::path file_path = path;
 
         if (!file_path.is_absolute()) {
-            file_path = find_project_root().append(file_path.string());
+            file_path = project::find_project_root().append(file_path.string());
         }
 
         if (fs::exists(file_path)) {
@@ -178,18 +186,24 @@ namespace ryu::core {
         return _sequence;
     }
 
+    bool project_file::should_assemble() const {
+        return _should_assemble;
+    }
+
     void project_file::sequence(uint16_t value) {
         // XXX: i may regret this later....
         if (_type == project_file_type::codes::source)
             _sequence = value;
     }
 
-    void project_file::path(const fs::path& value) {
-        _path = value;
+    void project_file::should_assemble(bool flag) {
+        _should_assemble = flag;
+        _dirty = true;
     }
 
-    fs::path project_file::find_project_root() const {
-        return fs::current_path();
+    void project_file::path(const fs::path& value) {
+        _path = value;
+        _dirty = true;
     }
 
     project_file_type::codes project_file::type() const {
@@ -198,6 +212,7 @@ namespace ryu::core {
 
     void project_file::type(project_file_type::codes value) {
         _type = value;
+        _dirty = true;
     }
 
     bool project_file::save(core::result& result, YAML::Emitter& emitter) {
@@ -205,6 +220,7 @@ namespace ryu::core {
         emitter << YAML::Key << "id" << YAML::Value << _id;
         emitter << YAML::Key << "path" << YAML::Value << _path.string();
         emitter << YAML::Key << "type" << YAML::Value << project_file_type::type_to_code(_type);
+        emitter << YAML::Key << "should_assemble" << YAML::Value << _should_assemble;
         emitter << YAML::Key << "sequence" << YAML::Value << _sequence;
         emitter << YAML::EndMap;
         return true;

@@ -46,10 +46,6 @@ namespace ryu::core {
 
         void caret_color(uint8_t value);
 
-        void load(const fs::path& path);
-
-        void save(const fs::path& path);
-
         void selection_color(uint8_t value);
 
         void find(const std::string& needle);
@@ -57,6 +53,10 @@ namespace ryu::core {
         void line_number_color(uint8_t value);
 
         void initialize(uint32_t rows, uint16_t columns);
+
+        bool load(core::result& result, const fs::path& path);
+
+        bool save(core::result& result, const fs::path& path = "");
 
         void on_caret_changed(const caret_changed_callable& callable);
 

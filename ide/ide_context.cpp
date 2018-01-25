@@ -32,7 +32,7 @@ namespace ryu::ide {
 
         add_state(
                 &_console_state,
-                [&](auto& command, auto& params) {
+                [&](const std::string& command, const core::parameter_dict& params) {
                     if (command == "edit_source") {
                         push_state(_source_editor_state.id(), params);
                         return true;

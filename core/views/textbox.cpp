@@ -100,7 +100,11 @@ namespace ryu::core {
 
     void textbox::value(const std::string& value) {
         std::stringstream stream(value);
-        _document.load(stream);
+        core::result result;
+        if (!_document.load(result, stream)) {
+            // XXX: what should we do here?
+            _document.clear();
+        }
     }
 
     void textbox::on_draw(core::renderer& surface) {

@@ -558,11 +558,15 @@ namespace ryu::core {
 
         auto files = core::project::instance()->files();
         for (auto& file : files) {
+            if (!file.should_assemble())
+                continue;
+
             std::stringstream source;
             if (!file.read(result, source))
                 break;
 
-            if (!_assembler.assemble(result, source))
+            auto source_text = source.str();
+            if (!_assembler.assemble(result, source_text))
                 break;
         }
 
@@ -1383,7 +1387,7 @@ namespace ryu::core {
                 "command_action",
                 {
                         {"action", std::string("edit_source")},
-                        {"path", path}
+                        {"path", project::find_project_root().append(path).string()}
                 });
         return true;
     }
