@@ -20,7 +20,7 @@ namespace ryu::core {
 
     context::context(const std::string& name) : _id(core::id_pool::instance()->allocate()),
                                                 _name(name),
-                                                _environment("default") {
+                                                _environment() {
     }
 
     context::~context() {

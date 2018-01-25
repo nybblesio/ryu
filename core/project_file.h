@@ -37,6 +37,14 @@ namespace ryu::core {
                 const fs::path& path,
                 project_file_type::codes type);
 
+        bool read(
+                core::result& result,
+                std::iostream& stream);
+
+        bool write(
+                core::result& result,
+                std::iostream& stream);
+
         bool create_stub_file(
                 core::result& result,
                 const fs::path& path);
@@ -53,15 +61,7 @@ namespace ryu::core {
 
         void sequence(uint16_t value);
 
-        bool read(
-                core::result& result,
-                std::iostream& stream);
-
         void path(const fs::path& value);
-
-        bool write(
-                core::result& result,
-                std::iostream& stream);
 
         project_file_type::codes type() const;
 

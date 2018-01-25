@@ -15,6 +15,7 @@
 #include <core/context.h>
 #include <ide/ide_types.h>
 #include <core/environment.h>
+#include <core/project_file.h>
 #include "controller.h"
 
 namespace ryu::ide::console_editor {
@@ -174,9 +175,9 @@ namespace ryu::ide::console_editor {
                 auto action_it = params.find("action");
                 if (action_it != params.end()) {
                     auto command = boost::get<std::string>(action_it->second);
-                    if (command == "quit")
+                    if (command == "quit") {
                         context()->engine()->quit();
-                    else if (command == "update_working_directory") {
+                    } else if (command == "update_working_directory") {
                         _working_directory.value(fmt::format(
                                 "| cwd: {}",
                                 boost::filesystem::current_path().string()));
@@ -196,6 +197,20 @@ namespace ryu::ide::console_editor {
         _layout_panel.add_child(&_header);
         _layout_panel.add_child(&_footer);
         _layout_panel.add_child(&_console);
+
+        core::project::add_listener([&](){
+            auto env = context()->environment();
+            auto project = core::project::instance();
+            if (project != nullptr) {
+                auto active_environment = project->active_environment();
+                if (active_environment != nullptr) {
+                    env->name(active_environment->path().filename().string());
+                }
+            } else {
+                env->name("");
+            }
+            _environment_status.value(fmt::format(" | env: {}", env->name()));
+        });
     }
 
     void controller::on_update(uint32_t dt) {
@@ -224,5 +239,4 @@ namespace ryu::ide::console_editor {
             _show_banner = false;
         }
     }
-
 }

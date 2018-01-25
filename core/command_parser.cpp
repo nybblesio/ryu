@@ -92,9 +92,9 @@ namespace ryu::core {
                 command_types::source_editor,
                 command_size_flags::none,
                 {
-                    {"name", variant::types::string_literal, false}
+                    {"path", variant::types::string_literal}
                 },
-                "Open the assembly source editor, optionally for file with <italic>name<>."
+                "Open the assembly source editor for project file with <italic>name<>."
             }
         },
 
