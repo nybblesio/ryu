@@ -75,8 +75,8 @@ namespace ryu::core {
         core::palette _ide_palette {};
         core::rect _window_position {};
         font_value_t _ide_font {"hack", 16};
-        font_value_t _engine_font {"topaz", 14};
-        font_value_t _emulator_font {"topaz", 14};
+        font_value_t _engine_font {"topaz", 16};
+        font_value_t _emulator_font {"topaz", 16};
         fs::path _font_book_path {"assets/fonts/font_book.yaml"};
     };
 
