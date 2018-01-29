@@ -14,12 +14,33 @@
 
 namespace ryu::core {
 
+    // 0. possibilities
+    // ---------------------------------
+    //
+    // examples from fasm:
+    //
+    //  # - paste operator/concatenate operator
+    //  ` - converts any symbol into a string
+    //
+    // directives within macros/structures:
+    //  common, forward, reverse
+    //
+    //
+    // ---------------------------------
+    //
+    //
     // 1. directives
     // ---------------------------------
     // .org [addr] - changes the insertion point address
     // .target "name-of-component"
     // .equ | =
+    //
+    // this includes assembly text:
     // .include [path]
+    //
+    // this includes binary data
+    // .binary [path]
+    //
     //
     // data directives
     // ---------------------------------
@@ -44,13 +65,13 @@ namespace ryu::core {
     // ----------------------------------
     // dup [size]([initializer] = ? | number)
     //
-    // > and < are operators for nybbles
+    // push this down to cpu specific parser:
+    // -    > and < are operators for nybbles
+    // example:
+    //      lda >#$ffaa
+    //      lda <#$ffaa
     //
-    // ltrim, rtrim, trim, substr
-    //
-    // upper, lower
-    //
-    //
+    // $ = current location counter
 
     // 3. variables & labels
     // ----------------------------------
@@ -70,7 +91,9 @@ namespace ryu::core {
     //
     // .local [name]          * scoped to the current block
     //
-
+    //
+    // for branches, what symbol to use for backward/forward?
+    //
     // 4. macros
     // ----------------------------------
     //

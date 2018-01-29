@@ -17,9 +17,10 @@
 #include "palette.h"
 #include "renderer.h"
 #include "state_stack.h"
-#include "environment.h"
 
 namespace ryu::core {
+
+    class environment;
 
     class context {
     public:
@@ -97,7 +98,7 @@ namespace ryu::core {
         }
 
         inline core::environment* environment() {
-            return &_environment;
+            return _environment.get();
         }
 
         void font_face(const core::font_t* value);
@@ -127,12 +128,12 @@ namespace ryu::core {
         uint8_t _bg_color = 0;
         core::rect _bounds {};
         core::state_stack _stack {};
-        core::environment _environment;
         core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
         core::palette* _palette = nullptr;
         const core::font_t* _font = nullptr;
         core::font_family* _family = nullptr;
+        std::unique_ptr<core::environment> _environment;
     };
 
 };

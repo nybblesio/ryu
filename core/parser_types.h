@@ -217,24 +217,6 @@ namespace ryu::core {
         types type;
         data_sizes data_size;
 
-        bool is_block() {
-            switch (type) {
-                case structure:
-                case if_block:
-                case elseif_block:
-                case else_block:
-                case loop:
-                case macro:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        bool is_block_end() {
-            return type == end_block;
-        }
-
         friend std::ostream& operator<<(
                 std::ostream& stream,
                 const directive_t& directive) {
@@ -259,7 +241,7 @@ namespace ryu::core {
                     break;
                 }
                 case equate:
-                    stream << "=";
+                    stream << ".equ";
                     break;
                 case origin:
                     stream << ".org";
@@ -453,7 +435,7 @@ namespace ryu::core {
         std::string value;
 
         friend std::ostream& operator<<(std::ostream& stream, const comment_t& comment) {
-            stream << "; " << comment.value;
+            stream << "* " << comment.value;
             return stream;
         }
     };
@@ -618,21 +600,30 @@ namespace ryu::core {
             branch
         };
 
-        bool is_block() const {
-            return token == tokens::basic_block;
-        }
-
         void serialize(std::ostream& stream) {
             switch (token) {
                 case branch:
-                case statement:
-                case basic_block:
-                case parameter_list:
+                    lhs->serialize(stream);
+                    if (rhs != nullptr)
+                        rhs->serialize(stream);
                     break;
                 case program:
+                case basic_block:
+                    stream << "\n";
                     for (const auto& child : children)
                         child->serialize(stream);
+                    stream << "\n";
                     break;
+                case parameter_list: {
+                    auto child_count = children.size();
+                    for (size_t i = 0; i < child_count; i++) {
+                        const auto& child = children[i];
+                        child->serialize(stream);
+                        if (i < child_count - 1)
+                            stream << ", ";
+                    }
+                    break;
+                }
                 case expression:
                     stream << "(";
                     for (const auto& child : children)
@@ -641,28 +632,38 @@ namespace ryu::core {
                     break;
                 case binary_op:
                     lhs->serialize(stream);
-                    stream << value;
+                    stream << value << " ";
                     rhs->serialize(stream);
                     break;
                 case unary_op:
-                    stream << value;
+                    stream << value << " ";
                     rhs->serialize(stream);
                     break;
+                case statement:
                 case directive: {
-                    stream << value;
+                    if (lhs != nullptr)
+                        lhs->serialize(stream);
+                    stream << value << " ";
+                    if (rhs != nullptr)
+                        rhs->serialize(stream);
                     for (const auto& child : children)
                         child->serialize(stream);
+                    stream << "\n";
                     break;
                 }
                 case label:
-                case command:
-                case comment:
                 case identifier:
+                    stream << value << " ";
+                    break;
+                case command:
                 case string_literal:
                 case number_literal:
                 case boolean_literal:
                 case character_literal:
                     stream << value;
+                    break;
+                case comment:
+                    stream << value << "\n";
                     break;
                 case null_literal:
                     stream << "null";

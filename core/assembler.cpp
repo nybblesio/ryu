@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <iostream>
 #include "assembler.h"
 
 namespace ryu::core {
@@ -26,6 +27,10 @@ namespace ryu::core {
                         msg.is_error());
             return false;
         }
+
+        if (program_node != nullptr)
+            program_node->serialize(std::cout);
+
         return !result.is_failed();
     }
 

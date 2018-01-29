@@ -9,6 +9,7 @@
 //
 
 #include "evaluator.h"
+#include "symbol_table.h"
 
 namespace ryu::core {
 

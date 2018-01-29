@@ -15,12 +15,13 @@
 #include "engine.h"
 #include "context.h"
 #include "id_pool.h"
+#include "environment.h"
 
 namespace ryu::core {
 
     context::context(const std::string& name) : _id(core::id_pool::instance()->allocate()),
                                                 _name(name),
-                                                _environment() {
+                                                _environment(std::make_unique<core::environment>()) {
     }
 
     context::~context() {

@@ -17,8 +17,10 @@
 #include <core/command_parser.h>
 #include <common/string_support.h>
 #include <boost/algorithm/string.hpp>
+#include "assembler.h"
 #include "environment.h"
 #include "project_file.h"
+#include "symbol_table.h"
 #include "hex_formatter.h"
 #include "text_formatter.h"
 #include "project_file_type.h"
@@ -410,6 +412,13 @@ namespace ryu::core {
         results.push_back(fmt::format(binary_fmt_spec, signed_value));
     }
 
+    environment::environment() : _assembler(std::make_unique<core::assembler>()),
+                                 _symbol_table(std::make_unique<core::symbol_table>()) {
+    }
+
+    environment::~environment() {
+    }
+
     bool environment::load(
             core::result& result,
             std::iostream& stream) {
@@ -428,7 +437,7 @@ namespace ryu::core {
         using namespace boost::filesystem;
 
         core::command_parser parser;
-        parser.symbol_table(&_symbol_table);
+        parser.symbol_table(_symbol_table.get());
 
         auto root = parser.parse(line);
         if (root == nullptr || parser.result().is_failed()) {
@@ -440,7 +449,7 @@ namespace ryu::core {
 
         auto command = boost::get<core::command_t>(root->value);
         core::evaluator evaluator;
-        evaluator.symbol_table(&_symbol_table);
+        evaluator.symbol_table(_symbol_table.get());
 
         core::command_parameter_dict params;
         if (root->children.empty()) {
@@ -538,7 +547,7 @@ namespace ryu::core {
     }
 
     core::symbol_table* environment::symbol_table() {
-        return &_symbol_table;
+        return _symbol_table.get();
     }
 
     void environment::name(const std::string& value) {
@@ -554,7 +563,7 @@ namespace ryu::core {
             return false;
         }
 
-        _assembler.symbol_table(&_symbol_table);
+        _assembler->symbol_table(_symbol_table.get());
 
         auto files = core::project::instance()->files();
         for (auto& file : files) {
@@ -566,7 +575,7 @@ namespace ryu::core {
                 break;
 
             auto source_text = source.str();
-            if (!_assembler.assemble(result, source_text))
+            if (!_assembler->assemble(result, source_text))
                 break;
         }
 
@@ -703,7 +712,7 @@ namespace ryu::core {
     bool environment::on_add_symbol(
             const command_handler_context_t& context) {
         auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
-        _symbol_table.put(identifier, context.root->children[1]);
+        _symbol_table->put(identifier, context.root->children[1]);
         return true;
     }
 
@@ -715,7 +724,7 @@ namespace ryu::core {
     bool environment::on_remove_symbol(
             const command_handler_context_t& context) {
         auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
-        _symbol_table.remove(identifier);
+        _symbol_table->remove(identifier);
         return true;
     }
 
@@ -727,10 +736,10 @@ namespace ryu::core {
         table.headers.push_back({"Expression", 16, 32});
         table.footers.push_back({"Symbol Count", 32, 64});
 
-        auto identifiers = _symbol_table.identifiers();
+        auto identifiers = _symbol_table->identifiers();
         for (const auto& symbol : identifiers) {
             std::stringstream stream;
-            _symbol_table.get(symbol)->serialize(stream);
+            _symbol_table->get(symbol)->serialize(stream);
             table.rows.push_back({{symbol, stream.str()}});
         }
 

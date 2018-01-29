@@ -17,9 +17,10 @@
 #include "result.h"
 #include "core_types.h"
 #include "parser_types.h"
-#include "symbol_table.h"
 
 namespace ryu::core {
+
+    class symbol_table;
 
     class parser {
     public:
