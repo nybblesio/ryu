@@ -64,15 +64,18 @@ namespace ryu::core {
     }
 
     char* parser::current_token() {
-        if (_token == nullptr)
-            move_to_next_token();
+        if (_token == nullptr) {
+            set_token();
+            if (_token == nullptr)
+                move_to_next_token();
+        }
         return _token;
     }
 
     void parser::push_position() {
         _position_stack.push(scanner_pos_t {
                 _line,
-                std::min(_index, static_cast<int>(_input.length())),
+                std::min(_index, _input.length()),
                 _column});
     }
 
@@ -89,7 +92,7 @@ namespace ryu::core {
         return top;
     }
 
-    int parser::forget_top_position() {
+    size_t parser::forget_top_position() {
         if (_position_stack.empty())
             return _index;
         auto pos = _position_stack.top();
@@ -97,8 +100,7 @@ namespace ryu::core {
         return pos.index;
     }
 
-    char* parser::move_to_next_token() {
-        _index++;
+    char* parser::set_token() {
         if (_index > _input.length() - 1) {
             _token = nullptr;
         } else {
@@ -106,6 +108,11 @@ namespace ryu::core {
             _token = &_input[_index];
         }
         return _token;
+    }
+
+    char* parser::move_to_next_token() {
+        _index++;
+        return set_token();
     }
 
     void parser::consume_white_space() {
@@ -240,6 +247,8 @@ namespace ryu::core {
                 token = move_to_next_token();
             }
             auto comment = std::make_shared<ast_node_t>();
+            comment->line = _line;
+            comment->column = _column;
             comment->value = comment_t {stream.str()};
             comment->token = ast_node_t::tokens::comment;
             return comment;
@@ -347,6 +356,8 @@ namespace ryu::core {
                 error("A001", "unexpected end of identifier.");
             } else {
                 auto identifier_node = std::make_shared<ast_node_t>();
+                identifier_node->line = _line;
+                identifier_node->column = _column;
                 if (*token == ':') {
                     move_to_next_token();
                     identifier_node->value = label_t{stream.str()};
@@ -397,12 +408,16 @@ namespace ryu::core {
                         op = pop_operator();
                         if (op == &_operators["("]) {
                             auto subexpression = std::make_shared<ast_node_t>();
+                            subexpression->line = _line;
+                            subexpression->column = _column;
                             subexpression->token = ast_node_t::tokens::expression;
                             subexpression->children.push_back(pop_operand());
                             push_operand(subexpression);
                             goto main;
                         }
                         auto bin_op_node = std::make_shared<ast_node_t>();
+                        bin_op_node->line = _line;
+                        bin_op_node->column = _column;
                         bin_op_node->value = *op;
                         bin_op_node->rhs = pop_operand();
                         bin_op_node->lhs = pop_operand();
@@ -418,12 +433,16 @@ namespace ryu::core {
                             pop_operator();
                             if ((top->type & operator_t::op_type::unary) != 0) {
                                 auto unary_op_node = std::make_shared<ast_node_t>();
+                                unary_op_node->line = _line;
+                                unary_op_node->column = _column;
                                 unary_op_node->value = *top;
                                 unary_op_node->rhs = pop_operand();
                                 unary_op_node->token = ast_node_t::tokens::unary_op;
                                 push_operand(unary_op_node);
                             } else {
                                 auto bin_op_node = std::make_shared<ast_node_t>();
+                                bin_op_node->line = _line;
+                                bin_op_node->column = _column;
                                 bin_op_node->value = *top;
                                 bin_op_node->rhs = pop_operand();
                                 bin_op_node->lhs = pop_operand();
@@ -473,6 +492,8 @@ namespace ryu::core {
 
             if ((op->type & operator_t::op_type::unary) != 0) {
                 auto unary_op_node = std::make_shared<ast_node_t>();
+                unary_op_node->line = _line;
+                unary_op_node->column = _column;
                 unary_op_node->value = *op;
                 unary_op_node->rhs = pop_operand();
                 unary_op_node->token = ast_node_t::tokens::unary_op;
@@ -480,6 +501,8 @@ namespace ryu::core {
             }
             if ((op->type & operator_t::op_type::binary) != 0) {
                 auto bin_op_node = std::make_shared<ast_node_t>();
+                bin_op_node->line = _line;
+                bin_op_node->column = _column;
                 bin_op_node->value = *op;
                 bin_op_node->rhs = pop_operand();
                 bin_op_node->lhs = pop_operand();
@@ -509,6 +532,8 @@ namespace ryu::core {
         if (match_literal("null")) {
             forget_top_position();
             auto identifier_node = std::make_shared<ast_node_t>();
+            identifier_node->line = _line;
+            identifier_node->column = _column;
             identifier_node->token = ast_node_t::tokens::null_literal;
             return identifier_node;
         }
@@ -541,6 +566,8 @@ namespace ryu::core {
             auto value = stream.str();
             if (!value.empty()) {
                 auto string_literal = std::make_shared<ast_node_t>();
+                string_literal->line = _line;
+                string_literal->column = _column;
                 string_literal->value = string_literal_t{value};
                 string_literal->token = ast_node_t::tokens::string_literal;
                 return string_literal;
@@ -565,12 +592,16 @@ namespace ryu::core {
         if (match_literal("true")) {
             forget_top_position();
             auto identifier_node = std::make_shared<ast_node_t>();
+            identifier_node->line = _line;
+            identifier_node->column = _column;
             identifier_node->value = boolean_literal_t {true};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         } else if (match_literal("false")) {
             forget_top_position();
             auto identifier_node = std::make_shared<ast_node_t>();
+            identifier_node->line = _line;
+            identifier_node->column = _column;
             identifier_node->value = boolean_literal_t {false};
             identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
@@ -581,8 +612,8 @@ namespace ryu::core {
 
     void parser::reset(const std::string& input) {
         _line = 1;
+        _index = 0;
         _column = 1;
-        _index = -1;
         _result = {};
         _input = input;
         clear_stacks();
@@ -603,6 +634,8 @@ namespace ryu::core {
                 if (token != nullptr && *token == '\'') {
                     move_to_next_token();
                     auto character_literal = std::make_shared<ast_node_t>();
+                    character_literal->line = _line;
+                    character_literal->column = _column;
                     character_literal->value = char_literal_t{value};
                     character_literal->token = ast_node_t::tokens::character_literal;
                     return character_literal;

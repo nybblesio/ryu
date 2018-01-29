@@ -54,6 +54,14 @@ namespace ryu::core {
         void push_operand(const ast_node_shared_ptr& node);
 
     protected: // core
+        inline uint32_t line() const {
+            return _line;
+        }
+
+        inline uint32_t column() const {
+            return _column;
+        }
+
         void clear_stacks();
 
         void pop_position();
@@ -68,11 +76,13 @@ namespace ryu::core {
             return _result.is_failed();
         }
 
-        int forget_top_position();
+        char* set_token();
 
         char* move_to_next_token();
 
         void consume_white_space();
+
+        size_t forget_top_position();
 
         void consume_tokens(int count);
 
@@ -122,9 +132,9 @@ namespace ryu::core {
 
         static operator_dict _operators;
 
-        int _line {};
-        int _index {};
-        int _column {};
+        size_t _index {};
+        uint32_t _line {};
+        uint32_t _column {};
         std::string _input;
         core::result _result;
         char* _token = nullptr;

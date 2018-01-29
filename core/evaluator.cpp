@@ -8,7 +8,9 @@
 // this source code file.
 //
 
+#include <iostream>
 #include "evaluator.h"
+#include "assembler.h"
 #include "symbol_table.h"
 
 namespace ryu::core {
@@ -21,6 +23,109 @@ namespace ryu::core {
         result.fail();
     }
 
+    bool evaluator::pass1_transform_node(
+            core::result& result,
+            core::assembler* assembler,
+            const core::ast_node_shared_ptr& node) {
+        if (node == nullptr)
+            return false;
+
+        switch (node->token) {
+            case ast_node_t::command:
+                break;
+            case ast_node_t::comment: {
+                auto& listing = assembler->listing();
+                std::stringstream stream;
+                node->serialize(stream);
+                listing.add_row(
+                        node->line,
+                        {},
+                        assembly_listing::row_flags::none,
+                        stream.str());
+
+                // XXX: remove from ast
+                break;
+            }
+            case ast_node_t::basic_block: {
+                for (const auto& block_child : node->children) {
+                    // recursively do something
+                }
+                break;
+            }
+            case ast_node_t::unary_op:
+            case ast_node_t::binary_op:
+            case ast_node_t::statement:
+            case ast_node_t::expression:
+            case ast_node_t::null_literal:
+            case ast_node_t::number_literal:
+            case ast_node_t::string_literal:
+            case ast_node_t::boolean_literal:
+            case ast_node_t::character_literal:
+                // call evaluate
+                break;
+            case ast_node_t::label:
+            case ast_node_t::identifier:
+                break;
+            case ast_node_t::branch: {
+                break;
+            }
+            case ast_node_t::parameter_list:
+                break;
+            case ast_node_t::directive: {
+                auto directive = boost::get<directive_t>(node->value);
+                switch (directive.type) {
+                    case directive_t::types::origin: {
+                        auto value = evaluate(result, node->rhs);
+                        // XXX: value should be numeric_literal_t
+                        if (!result.is_failed()) {
+                            auto number = boost::get<numeric_literal_t>(value).value;
+                            assembler->location_counter(static_cast<uint32_t>(number));
+                            auto& listing = assembler->listing();
+                            std::stringstream stream;
+                            node->serialize(stream);
+                            listing.add_row(
+                                    node->line,
+                                    {},
+                                    assembly_listing::row_flags::none,
+                                    stream.str());
+                        }
+                        break;
+                    }
+                    default:
+                        error(result, "E004", "unknown assembler directive");
+                        break;
+                }
+                break;
+            }
+            default:
+                error(result, "E001", "undefined assembler ast node");
+                break;
+        }
+
+        return !result.is_failed();
+    }
+
+    bool evaluator::pass1_transform(
+            core::result& result,
+            core::assembler* assembler,
+            const core::ast_node_shared_ptr& program_node) {
+        if (program_node == nullptr || assembler == nullptr) {
+            // XXX: add error
+            return false;
+        }
+
+        // xxx: for debug
+        program_node->serialize(std::cout);
+
+        for (const auto& program_child : program_node->children) {
+            if (!pass1_transform_node(result, assembler, program_child)) {
+                break;
+            }
+        }
+
+        return !result.is_failed();
+    }
+
     variant_t evaluator::evaluate(
             core::result& result,
             const ast_node_shared_ptr& node) {
@@ -28,8 +133,8 @@ namespace ryu::core {
             return {};
 
         switch (node->token) {
-            case ast_node_t::command:
             case ast_node_t::comment:
+            case ast_node_t::command:
             case ast_node_t::null_literal:
             case ast_node_t::string_literal:
             case ast_node_t::boolean_literal:
@@ -74,18 +179,13 @@ namespace ryu::core {
                 }
                 break;
             }
-            case ast_node_t::basic_block: {
-                break;
-            }
-            case ast_node_t::parameter_list: {
-                break;
-            }
             case ast_node_t::branch:
             case ast_node_t::program:
             case ast_node_t::directive:
-            case ast_node_t::statement: {
+            case ast_node_t::statement:
+            case ast_node_t::basic_block:
+            case ast_node_t::parameter_list:
                 break;
-            }
             case ast_node_t::expression: {
                 return evaluate(result, node->children[0]);
             }

@@ -310,9 +310,9 @@ namespace ryu::core {
     };
 
     struct scanner_pos_t {
-        int line;
-        int index;
-        int column;
+        uint32_t line;
+        size_t index;
+        uint32_t column;
     };
 
     struct operator_t {
@@ -677,6 +677,8 @@ namespace ryu::core {
         ast_node_shared_ptr lhs = nullptr;
         ast_node_shared_ptr rhs = nullptr;
         ast_node_shared_ptr parent = nullptr;
+        uint32_t line = 0;
+        uint32_t column = 0;
     };
 
     typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;

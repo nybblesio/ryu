@@ -14,9 +14,16 @@
 
 namespace ryu::core {
 
+    class assembler;
+
     class evaluator {
     public:
         evaluator() = default;
+
+        bool pass1_transform(
+                core::result& result,
+                core::assembler* assembler,
+                const core::ast_node_shared_ptr& program_node);
 
         variant_t evaluate(
                 core::result& result,
@@ -31,6 +38,12 @@ namespace ryu::core {
                 core::result& result,
                 const std::string& code,
                 const std::string& message);
+
+    private:
+        bool pass1_transform_node(
+                core::result& result,
+                core::assembler* assembler,
+                const core::ast_node_shared_ptr& node);
 
     private:
         core::symbol_table* _symbol_table = nullptr;

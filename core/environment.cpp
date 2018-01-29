@@ -579,6 +579,10 @@ namespace ryu::core {
                 break;
         }
 
+        result.add_data(
+            "command_result",
+            {{"data", _assembler->listing().table()}});
+
         return !result.is_failed();
     }
 

@@ -757,6 +757,8 @@ namespace ryu::core {
             }
 
             auto command_node = std::make_shared<ast_node_t>();
+            command_node->line = line();
+            command_node->column = column();
             command_node->value = command_t {
                     command_spec,
                     stream.str(),
