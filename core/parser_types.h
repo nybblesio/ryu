@@ -630,11 +630,11 @@ namespace ryu::core {
                     break;
                 case binary_op:
                     lhs->serialize(stream);
-                    stream << value << " ";
+                    stream << value;
                     rhs->serialize(stream);
                     break;
                 case unary_op:
-                    stream << value << " ";
+                    stream << value;
                     rhs->serialize(stream);
                     break;
                 case statement:

@@ -52,21 +52,26 @@ namespace ryu::hardware {
     uint16_t rom::read_word(
             uint32_t address,
             integrated_circuit::endianness::types endianess) const {
-        return 0;
+        auto value = *(reinterpret_cast<uint16_t*>(_buffer + address));
+
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            return endian_swap_word(value);
+        }
+
+        return value;
     }
 
     uint32_t rom::read_dword(
             uint32_t address,
             integrated_circuit::endianness::types endianess) const {
-        uint32_t value = 0;
-        switch(endianess) {
-            case endianness::none:
-                break;
-            case endianness::big:
-                break;
-            case endianness::little:
-                break;
+        auto value = *(reinterpret_cast<uint32_t*>(_buffer + address));
+
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            return endian_swap_dword(value);
         }
+
         return value;
     }
 
@@ -74,12 +79,28 @@ namespace ryu::hardware {
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            value = endian_swap_word(value);
+        }
+        auto byte_ptr = reinterpret_cast<uint8_t*>(&value);
+        _buffer[address]     = *byte_ptr;
+        _buffer[address + 1] = *(byte_ptr + 1);
     }
 
     void rom::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            value = endian_swap_dword(value);
+        }
+        auto byte_ptr = reinterpret_cast<uint8_t*>(&value);
+        _buffer[address]     = *byte_ptr;
+        _buffer[address + 1] = *(byte_ptr + 1);
+        _buffer[address + 2] = *(byte_ptr + 2);
+        _buffer[address + 3] = *(byte_ptr + 3);
     }
 
     void rom::fill(uint8_t value) {

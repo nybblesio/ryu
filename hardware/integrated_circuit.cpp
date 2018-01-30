@@ -79,17 +79,6 @@ namespace ryu::hardware {
     void integrated_circuit::on_address_space_changed() {
     }
 
-    uint16_t integrated_circuit::endian_swap(uint16_t value) {
-        return (value >> 8) | (value << 8);
-    }
-
-    uint32_t integrated_circuit::endian_swap(uint32_t value) {
-        return ((value >> 24) & 0xff)
-               |  ((value << 8) & 0xff0000)
-               |  ((value >> 8) & 0xff00)
-               |  ((value << 24) & 0xff000000);
-    }
-
     void integrated_circuit::address_space(uint32_t value) {
         if (value != _address_space) {
             _address_space = value;
@@ -101,12 +90,23 @@ namespace ryu::hardware {
         return access_types::none;
     }
 
+    uint8_t integrated_circuit::read_byte(uint32_t address) const {
+        return 0;
+    }
+
     core::assembly_language_parser* integrated_circuit::assembler() {
         return nullptr;
     }
 
-    uint8_t integrated_circuit::read_byte(uint32_t address) const {
-        return 0;
+    uint16_t integrated_circuit::endian_swap_word(uint16_t value) const {
+        return (value >> 8) | (value << 8);
+    }
+
+    uint32_t integrated_circuit::endian_swap_dword(uint32_t value) const {
+        return ((value >> 24) & 0xff)
+               |  ((value << 8) & 0xff0000)
+               |  ((value >> 8) & 0xff00)
+               |  ((value << 24) & 0xff000000);
     }
 
     const hardware::memory_map& integrated_circuit::memory_map() const {

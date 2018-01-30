@@ -88,14 +88,14 @@ namespace ryu::hardware {
     protected:
         virtual void on_address_space_changed();
 
-        uint16_t endian_swap(uint16_t value);
-
-        uint32_t endian_swap(uint32_t value);
-
         inline bool is_platform_little_endian() const {
             int n = 1;
             return (*(char*)&n) == 1;
         }
+
+        uint16_t endian_swap_word(uint16_t value) const;
+
+        uint32_t endian_swap_dword(uint32_t value) const;
 
     private:
         uint32_t _id {};
