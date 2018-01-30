@@ -16,7 +16,7 @@ namespace ryu::core {
     bool assembler::assemble(
             core::result& result,
             std::string& input) {
-        _listing.clear();
+        _listing.begin_assembly(input);
 
         auto program_node = _parser.parse(input);
         auto parser_result = _parser.result();
@@ -34,8 +34,9 @@ namespace ryu::core {
             if (!_evaluator.pass1_transform(result, this, program_node)) {
 
             }
-            _listing.add_footer(0);
         }
+
+        _listing.end_assembly();
 
         return !result.is_failed();
     }

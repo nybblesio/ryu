@@ -20,7 +20,8 @@ namespace ryu::core {
             none    = 0b00000000,
             include = 0b00000001,
             binary  = 0b00000010,
-            macro   = 0b00000100
+            macro   = 0b00000100,
+            error   = 0b00001000
         };
 
         typedef uint8_t row_flags_t;
@@ -31,19 +32,30 @@ namespace ryu::core {
 
         core::data_table_t& table();
 
-        void clear();
+        void end_assembly();
 
-        void add_row(
+        void annotate_line(
                 uint32_t line_number,
                 const std::vector<uint32_t>& opcodes,
-                row_flags_t flags,
-                const std::string& source);
+                row_flags_t flags);
 
-        void add_footer(
-                uint32_t total_lines);
+        void annotate_line_error(
+                uint32_t line_number,
+                const std::string& error);
+
+        void begin_assembly(const std::string& source);
 
     private:
+        data_table_row_t format_line(
+                uint32_t line_number,
+                const std::vector<uint32_t>& opcodes,
+                row_flags_t flags);
+
+    private:
+        uint32_t _current_line = 1;
         core::data_table_t _table {};
+        uint32_t _annotated_line_count = 0;
+        std::vector<std::string> _lines {};
     };
 
 };

@@ -30,19 +30,12 @@ namespace ryu::core {
         if (node == nullptr)
             return false;
 
+        auto& listing = assembler->listing();
+
         switch (node->token) {
             case ast_node_t::command:
                 break;
             case ast_node_t::comment: {
-                auto& listing = assembler->listing();
-                std::stringstream stream;
-                node->serialize(stream);
-                listing.add_row(
-                        node->line,
-                        {},
-                        assembly_listing::row_flags::none,
-                        stream.str());
-
                 // XXX: remove from ast
                 break;
             }
@@ -80,20 +73,20 @@ namespace ryu::core {
                         if (!result.is_failed()) {
                             auto number = boost::get<numeric_literal_t>(value).value;
                             assembler->location_counter(static_cast<uint32_t>(number));
-                            auto& listing = assembler->listing();
-                            std::stringstream stream;
-                            node->serialize(stream);
-                            listing.add_row(
+                            listing.annotate_line(
                                     node->line,
                                     {},
-                                    assembly_listing::row_flags::none,
-                                    stream.str());
+                                    assembly_listing::row_flags::none);
                         }
                         break;
                     }
-                    default:
+                    default: {
+                        listing.annotate_line_error(
+                                node->line,
+                                "unknown assembler directive");
                         error(result, "E004", "unknown assembler directive");
                         break;
+                    }
                 }
                 break;
             }
