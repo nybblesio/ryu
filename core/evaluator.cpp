@@ -9,6 +9,8 @@
 //
 
 #include <iostream>
+#include <hardware/machine.h>
+#include "project.h"
 #include "evaluator.h"
 #include "assembler.h"
 #include "symbol_table.h"
@@ -69,7 +71,13 @@ namespace ryu::core {
                 switch (directive.type) {
                     case directive_t::types::origin: {
                         auto value = evaluate(result, node->rhs);
-                        // XXX: value should be numeric_literal_t
+                        if (value.which() != variant::types::numeric_literal) {
+                            listing.annotate_line_error(
+                                    node->line,
+                                    "origin directive requires a numeric constant");
+                            error(result, "E004", "origin directive requires a numeric constant");
+                            break;
+                        }
                         if (!result.is_failed()) {
                             auto number = boost::get<numeric_literal_t>(value).value;
                             assembler->location_counter(static_cast<uint32_t>(number));
@@ -77,6 +85,58 @@ namespace ryu::core {
                                     node->line,
                                     {},
                                     assembly_listing::row_flags::none);
+                        }
+                        break;
+                    }
+                    case directive_t::types::target: {
+                        auto value = evaluate(result, node->rhs);
+                        if (value.which() != variant::types::string_literal) {
+                            listing.annotate_line_error(
+                                    node->line,
+                                    "target directive requires a string constant");
+                            error(result, "E004", "target directive requires a string constant");
+                            break;
+                        }
+                        if (!result.is_failed()) {
+                            auto component_name = boost::get<string_literal_t>(value).value;
+                            if (assembler->load_target(result, component_name)) {
+                                listing.annotate_line(
+                                        node->line,
+                                        {},
+                                        assembly_listing::row_flags::none);
+                            } else {
+                                auto messages = result.messages();
+                                listing.annotate_line_error(
+                                        node->line,
+                                        messages[messages.size() - 1].message());
+                            }
+                        }
+                        break;
+                    }
+                    case directive_t::types::equate: {
+                        auto identifier_name = boost::get<identifier_t>(node->lhs->value).value;
+                        assembler->symbol_table()->put(identifier_name, node->rhs);
+                        break;
+                    }
+                    case directive_t::types::data: {
+                        // XXX: if directive has identifier/label add symbol table entry for pointer
+                        for (const auto& parameter_node : node->rhs->children) {
+                            auto value = evaluate(result, parameter_node);
+                            if (value.which() == variant::types::string_literal) {
+                                auto text = boost::get<string_literal_t>(value).value;
+                                assembler->write_data(text);
+                            } else {
+                                if (value.which() != variant::types::numeric_literal) {
+                                    listing.annotate_line_error(
+                                            node->line,
+                                            "data directives require constant numeric values");
+                                    error(result, "E004", "data directives require constant numeric values");
+                                    break;
+                                }
+                                auto number = boost::get<numeric_literal_t>(value).value;
+                                // XXX: should I be casting this?
+                                assembler->write_data(directive.data_size, static_cast<uint32_t>(number));
+                            }
                         }
                         break;
                     }

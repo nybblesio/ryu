@@ -29,8 +29,40 @@ namespace ryu::hardware {
     void integrated_circuit::zero() {
     }
 
+    bool integrated_circuit::write_latch() const {
+        return _write_latch;
+    }
+
+    void integrated_circuit::write_latch(bool enabled) {
+        _write_latch = enabled;
+    }
+
     uint32_t integrated_circuit::id() const {
         return _id;
+    }
+
+    uint16_t integrated_circuit::read_word(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        return 0;
+    }
+
+    uint32_t integrated_circuit::read_dword(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        return 0;
+    }
+
+    void integrated_circuit::write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess) {
+    }
+
+    void integrated_circuit::write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess) {
     }
 
     void integrated_circuit::fill(uint8_t value) {
@@ -45,6 +77,17 @@ namespace ryu::hardware {
     }
 
     void integrated_circuit::on_address_space_changed() {
+    }
+
+    uint16_t integrated_circuit::endian_swap(uint16_t value) {
+        return (value >> 8) | (value << 8);
+    }
+
+    uint32_t integrated_circuit::endian_swap(uint32_t value) {
+        return ((value >> 24) & 0xff)
+               |  ((value << 8) & 0xff0000)
+               |  ((value >> 8) & 0xff00)
+               |  ((value << 24) & 0xff000000);
     }
 
     void integrated_circuit::address_space(uint32_t value) {
@@ -71,6 +114,10 @@ namespace ryu::hardware {
     }
 
     void integrated_circuit::write_byte(uint32_t address, uint8_t value) {
+    }
+
+    integrated_circuit::endianness::types integrated_circuit::endianess() const {
+        return endianness::types::none;
     }
 
 }

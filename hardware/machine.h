@@ -33,6 +33,8 @@ namespace ryu::hardware {
 
         hardware::memory_mapper* mapper();
 
+        void set_write_latches(bool flag);
+
         void remove_component(uint32_t id);
 
         hardware::display* display() const;
@@ -50,6 +52,8 @@ namespace ryu::hardware {
         void add_component(hardware::component* component);
 
         hardware::component* find_component(uint32_t id) const;
+
+        hardware::component* find_component(const std::string& name);
 
     protected:
         virtual void on_initialize();

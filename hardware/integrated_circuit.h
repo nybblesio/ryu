@@ -19,6 +19,14 @@ namespace ryu::hardware {
 
     class integrated_circuit {
     public:
+        struct endianness {
+            enum types {
+                none        = 0,
+                big         = 1,
+                little      = 2
+            };
+        };
+
         enum access_types {
             none        = 0b00000000,
             readable    = 0b00000001,
@@ -35,19 +43,43 @@ namespace ryu::hardware {
 
         std::string name() const;
 
+        bool write_latch() const;
+
+        void write_latch(bool enabled);
+
+        virtual uint16_t read_word(
+                uint32_t address,
+                integrated_circuit::endianness::types endianess) const;
+
+        virtual uint32_t read_dword(
+                uint32_t address,
+                integrated_circuit::endianness::types endianess) const;
+
+        virtual void write_word(
+                uint32_t address,
+                uint16_t value,
+                integrated_circuit::endianness::types endianess);
+
+        virtual void write_dword(
+                uint32_t address,
+                uint32_t value,
+                integrated_circuit::endianness::types endianess);
+
         uint32_t address_space() const;
 
         virtual void fill(uint8_t value);
 
         void address_space(uint32_t value);
 
-        virtual core::assembly_language_parser* assembler();
+        virtual endianness::types endianess() const;
 
         virtual access_type_flags access_type() const;
 
         const hardware::memory_map& memory_map() const;
 
         virtual uint8_t read_byte(uint32_t address) const;
+
+        virtual core::assembly_language_parser* assembler();
 
         virtual void write_byte(uint32_t address, uint8_t value);
 
@@ -56,9 +88,19 @@ namespace ryu::hardware {
     protected:
         virtual void on_address_space_changed();
 
+        uint16_t endian_swap(uint16_t value);
+
+        uint32_t endian_swap(uint32_t value);
+
+        inline bool is_platform_little_endian() const {
+            int n = 1;
+            return (*(char*)&n) == 1;
+        }
+
     private:
         uint32_t _id {};
         std::string _name;
+        bool _write_latch {};
         uint32_t _address_space;
         hardware::memory_map _memory_map;
     };

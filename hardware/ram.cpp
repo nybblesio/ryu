@@ -37,6 +37,30 @@ namespace ryu::hardware {
         std::memset(_buffer, 0, address_space());
     }
 
+    void ram::write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess) {
+    }
+
+    void ram::write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess) {
+    }
+
+    uint16_t ram::read_word(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        return 0;
+    }
+
+    uint32_t ram::read_dword(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        return 0;
+    }
+
     void ram::reallocate() {
         delete _buffer;
         _buffer = new uint8_t[address_space()];

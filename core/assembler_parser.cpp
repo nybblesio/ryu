@@ -77,8 +77,16 @@ namespace ryu::core {
                         directive_node->rhs = parameter_list_node;
                         break;
                     }
+                    case directive_t::equate: {
+                        if (directive_node->lhs == nullptr
+                        ||  directive_node->lhs->token != ast_node_t::tokens::identifier) {
+                            error("E004", "equate directive requires a variable identifier");
+                            break;
+                        }
+                        directive_node->rhs = parse_expression();
+                        break;
+                    }
                     case directive_t::align:
-                    case directive_t::equate:
                     case directive_t::origin: {
                         directive_node->rhs = parse_expression();
                         break;

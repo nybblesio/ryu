@@ -25,17 +25,33 @@ namespace ryu::hardware {
 
         void zero() override;
 
-        bool write_latch() const;
+        void write_byte(
+                uint32_t address,
+                uint8_t value) override;
 
-        void write_latch(bool enabled);
+        void write_word(
+                uint32_t address,
+                uint16_t value,
+                integrated_circuit::endianness::types endianess) override;
+
+        void write_dword(
+                uint32_t address,
+                uint32_t value,
+                integrated_circuit::endianness::types endianess) override;
+
+        uint16_t read_word(
+                uint32_t address,
+                integrated_circuit::endianness::types endianess) const override;
+
+        uint32_t read_dword(
+                uint32_t address,
+                integrated_circuit::endianness::types endianess) const override;
 
         void fill(uint8_t value) override;
 
         access_type_flags access_type() const override;
 
         uint8_t read_byte(uint32_t address) const override;
-
-        void write_byte(uint32_t address, uint8_t value) override;
 
     protected:
         void on_address_space_changed() override;
@@ -45,7 +61,6 @@ namespace ryu::hardware {
     private:
         void reallocate();
 
-        bool _write_latch = false;
         uint8_t* _buffer = nullptr;
     };
 

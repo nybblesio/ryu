@@ -1209,4 +1209,8 @@ namespace ryu::hardware::mc6809 {
         }
     }
 
+    integrated_circuit::endianness::types cpu::endianess() const {
+        return integrated_circuit::endianness::big;
+    }
+
 }

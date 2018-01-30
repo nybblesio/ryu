@@ -43,6 +43,9 @@ namespace ryu::core {
         bool execute(core::result& result, const std::string& line);
 
     private:
+        data_table_t create_symbol_table();
+
+    private:
         // ----------------------------------------------------------
         // system commands
         // ----------------------------------------------------------

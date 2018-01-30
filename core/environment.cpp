@@ -554,6 +554,27 @@ namespace ryu::core {
         _name = value;
     }
 
+    data_table_t environment::create_symbol_table() {
+        data_table_t table {};
+
+        table.headers.push_back({"Identifier", 16, 32});
+        table.headers.push_back({"Expression", 16, 32});
+        table.footers.push_back({"Symbol Count", 32, 64});
+
+        auto identifiers = _symbol_table->identifiers();
+        for (const auto& symbol : identifiers) {
+            std::stringstream stream;
+            _symbol_table->get(symbol)->serialize(stream);
+            table.rows.push_back({{symbol, stream.str()}});
+        }
+
+        table.rows.push_back({
+            {fmt::format("{} symbols defined", identifiers.size())}
+        });
+
+        return table;
+    }
+
     bool environment::assemble(core::result& result) {
         if (core::project::instance() == nullptr) {
             result.add_message(
@@ -581,7 +602,10 @@ namespace ryu::core {
 
         result.add_data(
             "command_result",
-            {{"data", _assembler->listing().table()}});
+            {
+                    {"listing", _assembler->listing().table()},
+                    {"symbols", create_symbol_table()}
+            });
 
         return !result.is_failed();
     }
@@ -734,26 +758,9 @@ namespace ryu::core {
 
     bool environment::on_show_symbol_table(
             const command_handler_context_t& context) {
-        data_table_t table {};
-
-        table.headers.push_back({"Identifier", 16, 32});
-        table.headers.push_back({"Expression", 16, 32});
-        table.footers.push_back({"Symbol Count", 32, 64});
-
-        auto identifiers = _symbol_table->identifiers();
-        for (const auto& symbol : identifiers) {
-            std::stringstream stream;
-            _symbol_table->get(symbol)->serialize(stream);
-            table.rows.push_back({{symbol, stream.str()}});
-        }
-
-        table.rows.push_back({
-            {fmt::format("{} symbols", identifiers.size())}
-        });
-
         context.result.add_data(
                 "command_result",
-                {{"data", table}});
+                {{"data", create_symbol_table()}});
 
         return true;
     }

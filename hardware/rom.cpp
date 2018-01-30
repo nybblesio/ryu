@@ -34,7 +34,7 @@ namespace ryu::hardware {
     }
 
     void rom::zero() {
-        if (_write_latch)
+        if (write_latch())
             std::memset(_buffer, 0, address_space());
     }
 
@@ -49,17 +49,42 @@ namespace ryu::hardware {
         write_latch(false);
     }
 
+    uint16_t rom::read_word(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        return 0;
+    }
+
+    uint32_t rom::read_dword(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        uint32_t value = 0;
+        switch(endianess) {
+            case endianness::none:
+                break;
+            case endianness::big:
+                break;
+            case endianness::little:
+                break;
+        }
+        return value;
+    }
+
+    void rom::write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess) {
+    }
+
+    void rom::write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess) {
+    }
+
     void rom::fill(uint8_t value) {
-        if (_write_latch)
+        if (write_latch())
             std::memset(_buffer, value, address_space());
-    }
-
-    bool rom::write_latch() const {
-        return _write_latch;
-    }
-
-    void rom::write_latch(bool enabled) {
-        _write_latch = enabled;
     }
 
     void rom::on_address_space_changed() {
@@ -67,7 +92,10 @@ namespace ryu::hardware {
     }
 
     access_type_flags rom::access_type() const {
-        return access_types::readable;
+        if (write_latch())
+            return access_types::readable | access_types::writable;
+        else
+            return access_types::readable;
     }
 
     uint8_t rom::read_byte(uint32_t address) const {
@@ -75,7 +103,7 @@ namespace ryu::hardware {
     }
 
     void rom::write_byte(uint32_t address, uint8_t value) {
-        if (!_write_latch)
+        if (!write_latch())
             return;
         _buffer[address] = value;
     }

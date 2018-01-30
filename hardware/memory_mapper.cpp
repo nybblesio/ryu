@@ -104,4 +104,40 @@ namespace ryu::hardware {
         return {};
     }
 
+    uint16_t memory_mapper::read_word(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        auto circuit = circuit_at_address(access_types::readable, address);
+        if (circuit.ic != nullptr)
+            return circuit.ic->read_word(address - circuit.start, endianess);
+        return 0;
+    }
+
+    uint32_t memory_mapper::read_dword(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        auto circuit = circuit_at_address(access_types::readable, address);
+        if (circuit.ic != nullptr)
+            return circuit.ic->read_dword(address - circuit.start, endianess);
+        return 0;
+    }
+
+    void memory_mapper::write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess) {
+        auto circuit = circuit_at_address(access_types::writable, address);
+        if (circuit.ic != nullptr)
+            circuit.ic->write_word(address - circuit.start, value, endianess);
+    }
+
+    void memory_mapper::write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess) {
+        auto circuit = circuit_at_address(access_types::writable, address);
+        if (circuit.ic != nullptr)
+            circuit.ic->write_dword(address - circuit.start, value, endianess);
+    }
+
 }

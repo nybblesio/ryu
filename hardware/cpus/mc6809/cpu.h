@@ -23,6 +23,8 @@ namespace ryu::hardware::mc6809 {
 
         cpu();
 
+        endianness::types endianess() const override;
+
         core::assembly_language_parser* assembler() override;
 
         RTTR_ENABLE(hardware::integrated_circuit)
