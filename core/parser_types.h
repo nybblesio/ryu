@@ -609,10 +609,8 @@ namespace ryu::core {
                     break;
                 case program:
                 case basic_block:
-                    stream << "\n";
                     for (const auto& child : children)
                         child->serialize(stream);
-                    stream << "\n";
                     break;
                 case parameter_list: {
                     auto child_count = children.size();
@@ -648,7 +646,6 @@ namespace ryu::core {
                         rhs->serialize(stream);
                     for (const auto& child : children)
                         child->serialize(stream);
-                    stream << "\n";
                     break;
                 }
                 case label:
@@ -663,7 +660,7 @@ namespace ryu::core {
                     stream << value;
                     break;
                 case comment:
-                    stream << value << "\n";
+                    stream << value;
                     break;
                 case null_literal:
                     stream << "null";

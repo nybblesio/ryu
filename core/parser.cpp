@@ -196,9 +196,8 @@ namespace ryu::core {
         }
 
         if (number.radix != 0) {
-            auto number_literal = std::make_shared<ast_node_t>();
+            auto number_literal = create_ast_node(ast_node_t::tokens::number_literal);
             number_literal->value = number;
-            number_literal->token = ast_node_t::tokens::number_literal;
             return number_literal;
         }
 
@@ -246,11 +245,8 @@ namespace ryu::core {
                 stream << *token;
                 token = move_to_next_token();
             }
-            auto comment = std::make_shared<ast_node_t>();
-            comment->line = _line;
-            comment->column = _column;
+            auto comment = create_ast_node(ast_node_t::tokens::comment);
             comment->value = comment_t {stream.str()};
-            comment->token = ast_node_t::tokens::comment;
             return comment;
         }
         return nullptr;
@@ -352,20 +348,14 @@ namespace ryu::core {
                     break;
             }
 
-            if (token == nullptr) {
-                error("A001", "unexpected end of identifier.");
+            if (token != nullptr && *token == ':') {
+                move_to_next_token();
+                auto identifier_node = create_ast_node(ast_node_t::tokens::label);
+                identifier_node->value = label_t{stream.str()};
+                return identifier_node;
             } else {
-                auto identifier_node = std::make_shared<ast_node_t>();
-                identifier_node->line = _line;
-                identifier_node->column = _column;
-                if (*token == ':') {
-                    move_to_next_token();
-                    identifier_node->value = label_t{stream.str()};
-                    identifier_node->token = ast_node_t::tokens::label;
-                } else {
-                    identifier_node->value = identifier_t{stream.str()};
-                    identifier_node->token = ast_node_t::tokens::identifier;
-                }
+                auto identifier_node = create_ast_node(ast_node_t::tokens::identifier);
+                identifier_node->value = identifier_t{stream.str()};
                 return identifier_node;
             }
         }
@@ -407,21 +397,15 @@ namespace ryu::core {
                     while (has_operator()) {
                         op = pop_operator();
                         if (op == &_operators["("]) {
-                            auto subexpression = std::make_shared<ast_node_t>();
-                            subexpression->line = _line;
-                            subexpression->column = _column;
-                            subexpression->token = ast_node_t::tokens::expression;
+                            auto subexpression = create_ast_node(ast_node_t::tokens::expression);
                             subexpression->children.push_back(pop_operand());
                             push_operand(subexpression);
                             goto main;
                         }
-                        auto bin_op_node = std::make_shared<ast_node_t>();
-                        bin_op_node->line = _line;
-                        bin_op_node->column = _column;
+                        auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
                         bin_op_node->value = *op;
                         bin_op_node->rhs = pop_operand();
                         bin_op_node->lhs = pop_operand();
-                        bin_op_node->token = ast_node_t::tokens::binary_op;
                         push_operand(bin_op_node);
                     }
                     error("P008", "unbalanced right parentheses");
@@ -432,21 +416,15 @@ namespace ryu::core {
                             || (op->compare_precedence(*top) < 0)) {
                             pop_operator();
                             if ((top->type & operator_t::op_type::unary) != 0) {
-                                auto unary_op_node = std::make_shared<ast_node_t>();
-                                unary_op_node->line = _line;
-                                unary_op_node->column = _column;
+                                auto unary_op_node = create_ast_node(ast_node_t::tokens::unary_op);
                                 unary_op_node->value = *top;
                                 unary_op_node->rhs = pop_operand();
-                                unary_op_node->token = ast_node_t::tokens::unary_op;
                                 push_operand(unary_op_node);
                             } else {
-                                auto bin_op_node = std::make_shared<ast_node_t>();
-                                bin_op_node->line = _line;
-                                bin_op_node->column = _column;
+                                auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
                                 bin_op_node->value = *top;
                                 bin_op_node->rhs = pop_operand();
                                 bin_op_node->lhs = pop_operand();
-                                bin_op_node->token = ast_node_t::tokens::binary_op;
                                 push_operand(bin_op_node);
                             }
                         } else
@@ -491,22 +469,16 @@ namespace ryu::core {
             }
 
             if ((op->type & operator_t::op_type::unary) != 0) {
-                auto unary_op_node = std::make_shared<ast_node_t>();
-                unary_op_node->line = _line;
-                unary_op_node->column = _column;
+                auto unary_op_node = create_ast_node(ast_node_t::tokens::unary_op);
                 unary_op_node->value = *op;
                 unary_op_node->rhs = pop_operand();
-                unary_op_node->token = ast_node_t::tokens::unary_op;
                 push_operand(unary_op_node);
             }
             if ((op->type & operator_t::op_type::binary) != 0) {
-                auto bin_op_node = std::make_shared<ast_node_t>();
-                bin_op_node->line = _line;
-                bin_op_node->column = _column;
+                auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
                 bin_op_node->value = *op;
                 bin_op_node->rhs = pop_operand();
                 bin_op_node->lhs = pop_operand();
-                bin_op_node->token = ast_node_t::tokens::binary_op;
                 push_operand(bin_op_node);
             }
         }
@@ -531,11 +503,7 @@ namespace ryu::core {
             return nullptr;
         if (match_literal("null")) {
             forget_top_position();
-            auto identifier_node = std::make_shared<ast_node_t>();
-            identifier_node->line = _line;
-            identifier_node->column = _column;
-            identifier_node->token = ast_node_t::tokens::null_literal;
-            return identifier_node;
+            return create_ast_node(ast_node_t::tokens::null_literal);
         }
         pop_position();
         return nullptr;
@@ -565,11 +533,8 @@ namespace ryu::core {
             }
             auto value = stream.str();
             if (!value.empty()) {
-                auto string_literal = std::make_shared<ast_node_t>();
-                string_literal->line = _line;
-                string_literal->column = _column;
+                auto string_literal = create_ast_node(ast_node_t::tokens::string_literal);
                 string_literal->value = string_literal_t{value};
-                string_literal->token = ast_node_t::tokens::string_literal;
                 return string_literal;
             }
         }
@@ -591,19 +556,13 @@ namespace ryu::core {
             return nullptr;
         if (match_literal("true")) {
             forget_top_position();
-            auto identifier_node = std::make_shared<ast_node_t>();
-            identifier_node->line = _line;
-            identifier_node->column = _column;
+            auto identifier_node = create_ast_node(ast_node_t::tokens::boolean_literal);
             identifier_node->value = boolean_literal_t {true};
-            identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         } else if (match_literal("false")) {
             forget_top_position();
-            auto identifier_node = std::make_shared<ast_node_t>();
-            identifier_node->line = _line;
-            identifier_node->column = _column;
+            auto identifier_node = create_ast_node(ast_node_t::tokens::boolean_literal);
             identifier_node->value = boolean_literal_t {false};
-            identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         }
         pop_position();
@@ -633,11 +592,8 @@ namespace ryu::core {
                 token = move_to_next_token();
                 if (token != nullptr && *token == '\'') {
                     move_to_next_token();
-                    auto character_literal = std::make_shared<ast_node_t>();
-                    character_literal->line = _line;
-                    character_literal->column = _column;
+                    auto character_literal = create_ast_node(ast_node_t::tokens::character_literal);
                     character_literal->value = char_literal_t{value};
-                    character_literal->token = ast_node_t::tokens::character_literal;
                     return character_literal;
                 } else {
                     error("P008", "unbalanced single quote of character literal");
@@ -667,6 +623,14 @@ namespace ryu::core {
             token = move_to_next_token();
         }
         return true;
+    }
+
+    ast_node_shared_ptr parser::create_ast_node(ast_node_t::tokens type) {
+        auto node = std::make_shared<ast_node_t>();
+        node->token = type;
+        node->line = _line;
+        node->column = _column;
+        return node;
     }
 
     ast_node_shared_ptr parser::parse_expression(const std::string& input) {

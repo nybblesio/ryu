@@ -59,10 +59,7 @@ namespace ryu::core {
 
                 switch (directive.type) {
                     case directive_t::data: {
-                        auto parameter_list_node = std::make_shared<ast_node_t>();
-                        parameter_list_node->line = line();
-                        parameter_list_node->column = column();
-                        parameter_list_node->token = ast_node_t::tokens::parameter_list;
+                        auto parameter_list_node = create_ast_node(ast_node_t::tokens::parameter_list);
 
                         while (true) {
                             auto expression_node = parse_expression();
@@ -91,15 +88,8 @@ namespace ryu::core {
                         break;
                     }
                     case directive_t::local: {
-                        auto statement_node = std::make_shared<ast_node_t>();
-                        statement_node->line = line();
-                        statement_node->column = column();
-                        statement_node->token = ast_node_t::tokens::statement;
-
-                        auto parameter_list_node = std::make_shared<ast_node_t>();
-                        parameter_list_node->line = line();
-                        parameter_list_node->column = column();
-                        parameter_list_node->token = ast_node_t::tokens::parameter_list;
+                        auto statement_node = create_ast_node(ast_node_t::tokens::statement);
+                        auto parameter_list_node = create_ast_node(ast_node_t::tokens::parameter_list);
                         statement_node->rhs = parameter_list_node;
                         directive_node->rhs = statement_node;
 
@@ -121,10 +111,7 @@ namespace ryu::core {
                     case directive_t::loop:
                     case directive_t::macro:
                     case directive_t::structure: {
-                        auto parameter_list_node = std::make_shared<ast_node_t>();
-                        parameter_list_node->line = line();
-                        parameter_list_node->column = column();
-                        parameter_list_node->token = ast_node_t::tokens::parameter_list;
+                        auto parameter_list_node = create_ast_node(ast_node_t::tokens::parameter_list);
 
                         // XXX: need more strict parsing here
                         auto identifier_node = parse_identifier();
@@ -138,13 +125,9 @@ namespace ryu::core {
                                 parameter_list_node->children.push_back(expression_node);
                             }
 
-                            auto statement_node = std::make_shared<ast_node_t>();
-                            statement_node->line = line();
-                            statement_node->column = column();
-                            statement_node->token = ast_node_t::tokens::statement;
+                            auto statement_node = create_ast_node(ast_node_t::tokens::statement);
                             statement_node->lhs = parameter_list_node;
-                            statement_node->rhs = std::make_shared<ast_node_t>();
-                            statement_node->rhs->token = ast_node_t::tokens::basic_block;
+                            statement_node->rhs = create_ast_node(ast_node_t::tokens::basic_block);
                             push_scope(statement_node->rhs);
 
                             directive_node->rhs = statement_node;
@@ -162,16 +145,10 @@ namespace ryu::core {
                         if (directive_node->rhs == nullptr) {
                             error("A001", "missing expression");
                         } else {
-                            auto branch_node = std::make_shared<ast_node_t>();
-                            branch_node->line = line();
-                            branch_node->column = column();
-                            branch_node->token = ast_node_t::tokens::branch;
+                            auto branch_node = create_ast_node(ast_node_t::tokens::branch);
                             directive_node->children.push_back(branch_node);
 
-                            auto true_basic_block = std::make_shared<ast_node_t>();
-                            true_basic_block->line = line();
-                            true_basic_block->column = column();
-                            true_basic_block->token = ast_node_t::tokens::basic_block;
+                            auto true_basic_block = create_ast_node(ast_node_t::tokens::basic_block);
                             true_basic_block->parent = branch_node;
                             push_scope(true_basic_block);
                             branch_node->lhs = true_basic_block;
@@ -188,16 +165,10 @@ namespace ryu::core {
                                 scope->parent->rhs = directive_node;
                                 scope = pop_scope();
 
-                                auto branch_node = std::make_shared<ast_node_t>();
-                                branch_node->line = line();
-                                branch_node->column = column();
-                                branch_node->token = ast_node_t::tokens::branch;
+                                auto branch_node = create_ast_node(ast_node_t::tokens::branch);
                                 directive_node->children.push_back(branch_node);
 
-                                auto true_basic_block = std::make_shared<ast_node_t>();
-                                true_basic_block->line = line();
-                                true_basic_block->column = column();
-                                true_basic_block->token = ast_node_t::tokens::basic_block;
+                                auto true_basic_block = create_ast_node(ast_node_t::tokens::basic_block);
                                 true_basic_block->parent = branch_node;
                                 push_scope(true_basic_block);
 
@@ -214,10 +185,7 @@ namespace ryu::core {
                             scope->parent->rhs = directive_node;
                             scope = pop_scope();
 
-                            auto true_basic_block = std::make_shared<ast_node_t>();
-                            true_basic_block->line = line();
-                            true_basic_block->column = column();
-                            true_basic_block->token = ast_node_t::tokens::basic_block;
+                            auto true_basic_block = create_ast_node(ast_node_t::tokens::basic_block);
                             directive_node->children.push_back(true_basic_block);
                             push_scope(true_basic_block);
                         } else {
@@ -271,11 +239,8 @@ namespace ryu::core {
         auto data_size = directive_t::size_for_directive(directive_name);
         auto directive = directive_t {directive_type, data_size};
 
-        auto directive_node = std::make_shared<ast_node_t>();
-        directive_node->line = line();
-        directive_node->column = column();
+        auto directive_node = create_ast_node(ast_node_t::tokens::directive);
         directive_node->value = directive;
-        directive_node->token = ast_node_t::tokens::directive;
 
         return directive_node;
     }
@@ -291,15 +256,9 @@ namespace ryu::core {
         if (input.empty())
             return nullptr;
 
-        auto program_node = std::make_shared<ast_node_t>();
-        program_node->line = line();
-        program_node->column = column();
-        program_node->token = ast_node_t::tokens::program;
-
+        auto program_node = create_ast_node(ast_node_t::tokens::program);
         push_scope(program_node);
-
         reset(input);
-
         parse_assembly();
 
         return current_scope();

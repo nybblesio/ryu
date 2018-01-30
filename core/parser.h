@@ -54,14 +54,6 @@ namespace ryu::core {
         void push_operand(const ast_node_shared_ptr& node);
 
     protected: // core
-        inline uint32_t line() const {
-            return _line;
-        }
-
-        inline uint32_t column() const {
-            return _column;
-        }
-
         void clear_stacks();
 
         void pop_position();
@@ -86,7 +78,17 @@ namespace ryu::core {
 
         void consume_tokens(int count);
 
+        inline uint32_t line() const {
+            return _line;
+        }
+
+        inline uint32_t column() const {
+            return _column;
+        }
+
         void reset(const std::string& input);
+
+        ast_node_shared_ptr create_ast_node(ast_node_t::tokens type);
 
         void error(const std::string& code, const std::string& message);
 

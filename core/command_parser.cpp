@@ -756,14 +756,11 @@ namespace ryu::core {
                 return nullptr;
             }
 
-            auto command_node = std::make_shared<ast_node_t>();
-            command_node->line = line();
-            command_node->column = column();
+            auto command_node = create_ast_node(ast_node_t::tokens::command);
             command_node->value = command_t {
                     command_spec,
                     stream.str(),
                     size};
-            command_node->token = ast_node_t::tokens::command;
 
             while (true) {
                 auto expr = parse_expression();

@@ -18,8 +18,8 @@ namespace ryu::core {
         _table.line_spacing = 0;
         _table.headers.push_back({
                 "Line",
-                8,
-                8,
+                6,
+                6,
                 alignment::horizontal::left,
                 1,
                 format_options::none
@@ -34,16 +34,16 @@ namespace ryu::core {
         });
         _table.headers.push_back({
                 "Flags",
-                4,
-                4,
+                5,
+                5,
                 alignment::horizontal::left,
                 1,
                 format_options::none
         });
         _table.headers.push_back({
                 "Source",
-                30,
-                30,
+                40,
+                40,
                 alignment::horizontal::left,
                 1,
                 format_options::style_codes
@@ -62,7 +62,7 @@ namespace ryu::core {
             assembly_listing::row_flags_t flags,
             const std::string& source) {
         core::data_table_row_t row {};
-        row.columns.push_back(fmt::format("{:07d}", line_number));
+        row.columns.push_back(fmt::format("{:05d}", line_number));
 
         std::string opcode_hex;
         for (const auto& opcode : opcodes)
