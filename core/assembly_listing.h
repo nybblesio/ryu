@@ -36,6 +36,7 @@ namespace ryu::core {
 
         void annotate_line(
                 uint32_t line_number,
+                uint32_t address,
                 const std::vector<uint32_t>& opcodes,
                 row_flags_t flags);
 
@@ -48,6 +49,7 @@ namespace ryu::core {
     private:
         data_table_row_t format_line(
                 uint32_t line_number,
+                uint32_t address,
                 const std::vector<uint32_t>& opcodes,
                 row_flags_t flags);
 

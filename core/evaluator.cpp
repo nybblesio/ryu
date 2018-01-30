@@ -83,6 +83,7 @@ namespace ryu::core {
                             assembler->location_counter(static_cast<uint32_t>(number));
                             listing.annotate_line(
                                     node->line,
+                                    assembler->location_counter(),
                                     {},
                                     assembly_listing::row_flags::none);
                         }
@@ -102,6 +103,7 @@ namespace ryu::core {
                             if (assembler->load_target(result, component_name)) {
                                 listing.annotate_line(
                                         node->line,
+                                        0,
                                         {},
                                         assembly_listing::row_flags::none);
                             } else {
@@ -116,10 +118,20 @@ namespace ryu::core {
                     case directive_t::types::equate: {
                         auto identifier_name = boost::get<identifier_t>(node->lhs->value).value;
                         assembler->symbol_table()->put(identifier_name, node->rhs);
+                        listing.annotate_line(
+                                node->line,
+                                0,
+                                {},
+                                assembly_listing::row_flags::none);
                         break;
                     }
                     case directive_t::types::data: {
-                        // XXX: if directive has identifier/label add symbol table entry for pointer
+                        std::vector<uint32_t> data {};
+
+                        if (node->lhs != nullptr) {
+                            // xxx: add identifier to symbol table with pointer
+                        }
+
                         for (const auto& parameter_node : node->rhs->children) {
                             auto value = evaluate(result, parameter_node);
                             if (value.which() == variant::types::string_literal) {
@@ -138,6 +150,21 @@ namespace ryu::core {
                                 assembler->write_data(directive.data_size, static_cast<uint32_t>(number));
                             }
                         }
+
+                        listing.annotate_line(
+                                node->line,
+                                assembler->location_counter(),
+                                data,
+                                assembly_listing::row_flags::none);
+
+                        break;
+                    }
+                    case directive_t::types::loop: {
+                        listing.annotate_line(
+                                node->line,
+                                0,
+                                {},
+                                assembly_listing::row_flags::none);
                         break;
                     }
                     default: {
