@@ -145,6 +145,28 @@ namespace ryu::core {
                                 assembly_listing::row_flags::none);
                         break;
                     }
+                    case directive_t::types::local: {
+                        listing.annotate_line(
+                                node->line,
+                                0,
+                                {},
+                                assembly_listing::row_flags::none);
+                        break;
+                    }
+                    case directive_t::types::macro: {
+                        auto statement_node = node->rhs;
+                        auto parameter_list = statement_node->lhs;
+                        auto identifier_name = boost::get<identifier_t>(parameter_list->children[0]->value).value;
+                        assembler
+                                ->symbol_table()
+                                ->put(identifier_name, statement_node);
+                        listing.annotate_line(
+                                node->line,
+                                0,
+                                {},
+                                assembly_listing::row_flags::none);
+                        break;
+                    }
                     case directive_t::types::data: {
                         std::vector<uint8_t> data {};
 

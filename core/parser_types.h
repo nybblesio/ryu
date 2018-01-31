@@ -640,7 +640,7 @@ namespace ryu::core {
                         const auto& child = children[i];
                         child->serialize(stream);
                         if (i < child_count - 1)
-                            stream << ", ";
+                            stream << ",";
                     }
                     break;
                 }
@@ -661,6 +661,7 @@ namespace ryu::core {
                     break;
                 case statement:
                 case directive: {
+                    // XXX: custom macro serialization
                     if (lhs != nullptr)
                         lhs->serialize(stream);
                     stream << value << " ";
@@ -672,7 +673,7 @@ namespace ryu::core {
                 }
                 case label:
                 case identifier:
-                    stream << value << " ";
+                    stream << value;
                     break;
                 case command:
                 case address:
