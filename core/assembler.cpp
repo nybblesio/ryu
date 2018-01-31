@@ -87,6 +87,13 @@ namespace ryu::core {
         return true;
     }
 
+    void assembler::align(uint8_t size) {
+        auto offset = _location_counter % size;
+        _location_counter = offset ?
+                            _location_counter + (size - offset) :
+                            _location_counter;
+    }
+
     std::vector<uint8_t> assembler::write_data(
             directive_t::data_sizes size,
             uint32_t value) {

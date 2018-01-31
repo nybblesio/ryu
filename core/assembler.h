@@ -31,6 +31,8 @@ namespace ryu::core {
                 core::result& result,
                 const std::string& name);
 
+        void align(uint8_t size);
+
         hardware::component* target();
 
         std::vector<uint8_t> write_data(

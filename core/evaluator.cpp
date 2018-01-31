@@ -89,6 +89,31 @@ namespace ryu::core {
             case ast_node_t::directive: {
                 auto directive = boost::get<directive_t>(node->value);
                 switch (directive.type) {
+                    case directive_t::types::align: {
+                        auto variant = evaluate(result, node->rhs);
+                        if (variant.which() != variant::types::numeric_literal) {
+                            listing.annotate_line_error(
+                                    node->line,
+                                    "align directive requires a numeric constant");
+                            error(result, "E004", "align directive requires a numeric constant");
+                            break;
+                        }
+                        auto size = boost::get<numeric_literal_t>(variant).value;
+                        if (size > 0 && (size & (size - 1)) == 0) {
+                            assembler->align(static_cast<uint8_t>(size));
+                            listing.annotate_line(
+                                    node->line,
+                                    assembler->location_counter(),
+                                    {},
+                                    assembly_listing::row_flags::none);
+                        } else {
+                            listing.annotate_line_error(
+                                    node->line,
+                                    "align directive requires an integer power of 2 value");
+                            error(result, "E004", "align directive requires an integer power of 2 value");
+                        }
+                        break;
+                    }
                     case directive_t::types::origin: {
                         auto value = evaluate(result, node->rhs);
                         if (value.which() != variant::types::numeric_literal) {
@@ -153,7 +178,8 @@ namespace ryu::core {
                                 assembly_listing::row_flags::none);
                         break;
                     }
-                    case directive_t::types::macro: {
+                    case directive_t::types::macro:
+                    case directive_t::types::structure: {
                         auto statement_node = node->rhs;
                         auto parameter_list = statement_node->lhs;
                         auto identifier_name = boost::get<identifier_t>(parameter_list->children[0]->value).value;

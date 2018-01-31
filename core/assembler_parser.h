@@ -14,26 +14,22 @@
 
 namespace ryu::core {
 
-    // 0. possibilities
-    // ---------------------------------
+    // FEB 1 GOALS:
     //
-    // examples from fasm:
-    //
-    //  # - paste operator/concatenate operator
-    //  ` - converts any symbol into a string
-    //
-    // directives within macros/structures:
-    //  common, forward, reverse
-    //
-    //
-    // ---------------------------------
+    // ?               - uninitialized
+    // $               - location counter alias
+    // .binary [path]  - include binary data into assembly
+    // .include [path] - recursively assembly file
+    // .loop           - repeat the basic_block
+    // .local          - create a unique label name
+    // dup             - .byte 5 dup($c0)  or .byte 10 dup(2, 8)
     //
     //
     // 1. directives
     // ---------------------------------
-    // .org [addr] - changes the insertion point address
-    // .target "name-of-component"
-    // .equ | =
+    // .org [addr] - changes the insertion point address *done
+    // .target "name-of-component" *done
+    // .equ *done
     //
     // this includes assembly text:
     // .include [path]
@@ -45,20 +41,20 @@ namespace ryu::core {
     // data directives
     // ---------------------------------
     //
-    // .struct [name]
+    // .struct [name]               *done
     //      label   .byte
     // .end
     //
-    // .align [size]
+    // .align [size]                *done
     //
-    // .byte $00 | ?, $af, 256
+    // .byte $00 | ?, $af, 256      *done except ? uninitialized
     //
     // string examples:
-    //  .ascii "this is a string"
-    //  .byte "this is a string too"
+    //  .ascii "this is a string"    *done
+    //  .byte "this is a string too" *done
     //
-    // .word $ffff | ?, $a000, $c000
-    // .dword $ffffffff | ?
+    // .word $ffff | ?, $a000, $c000 *done
+    // .dword $ffffffff | ?          *done
     //
 
     // 2. operators & functions
@@ -71,12 +67,20 @@ namespace ryu::core {
     //      lda >#$ffaa
     //      lda <#$ffaa
     //
+    // examples from fasm:
+    //
+    //  # - paste operator/concatenate operator
+    //  ` - converts any symbol into a string
+    //
+    // directives within macros/structures:
+    //  common, forward, reverse
+    //
     // $ = current location counter
 
     // 3. variables & labels
     // ----------------------------------
     //
-    // [0000] foo  .byte   ?  * uninitialized variable
+    // [0000] foo  .byte   ?  * done except uninitialized variable
     //
     // Example:
     //      lda     #foo
@@ -84,7 +88,7 @@ namespace ryu::core {
     // foo:                   * label (pointer)
     //      lda     #$0f
     //
-    // [0100] foo: .word   ?  * a label (pointer) to a word
+    // [0100] foo: .word   ?  * done except unitialized, a label (pointer) to a word
     //
     // Example:
     //      ldd     #foo      * load effective address
@@ -97,7 +101,7 @@ namespace ryu::core {
     // 4. macros
     // ----------------------------------
     //
-    // .if [expression]         * has to evaluate to bool
+    // .if [expression]         * done
     // .elseif [expression]
     // .else
     // .end
@@ -113,7 +117,7 @@ namespace ryu::core {
     // .end
     //
     //
-    // .macro [name](param1, param2, ...)
+    // .macro [name](param1, param2, ...) *done
     //      .local silly_loop
     //
     //  silly_loop:
