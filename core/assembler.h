@@ -33,6 +33,10 @@ namespace ryu::core {
 
         hardware::component* target();
 
+        std::vector<uint8_t> write_data(
+                directive_t::data_sizes size,
+                uint32_t value);
+
         core::assembly_listing& listing();
 
         uint32_t location_counter() const;
@@ -41,11 +45,9 @@ namespace ryu::core {
 
         void location_counter(uint32_t value);
 
-        void write_data(const std::string& value);
-
         void symbol_table(core::symbol_table* value);
 
-        void write_data(directive_t::data_sizes size, uint32_t value);
+        std::vector<uint8_t> write_data(const std::string& value);
 
     private:
         core::evaluator _evaluator {};

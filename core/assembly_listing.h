@@ -37,7 +37,7 @@ namespace ryu::core {
         void annotate_line(
                 uint32_t line_number,
                 uint32_t address,
-                const std::vector<uint32_t>& opcodes,
+                const std::vector<uint8_t>& opcodes,
                 row_flags_t flags);
 
         void annotate_line_error(
@@ -50,7 +50,7 @@ namespace ryu::core {
         data_table_row_t format_line(
                 uint32_t line_number,
                 uint32_t address,
-                const std::vector<uint32_t>& opcodes,
+                const std::vector<uint8_t>& opcodes,
                 row_flags_t flags);
 
     private:

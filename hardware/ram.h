@@ -27,12 +27,12 @@ namespace ryu::hardware {
                 uint32_t address,
                 uint8_t value) override;
 
-        void write_word(
+        std::vector<uint8_t> write_word(
                 uint32_t address,
                 uint16_t value,
                 integrated_circuit::endianness::types endianess) override;
 
-        void write_dword(
+        std::vector<uint8_t> write_dword(
                 uint32_t address,
                 uint32_t value,
                 integrated_circuit::endianness::types endianess) override;

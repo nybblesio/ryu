@@ -87,30 +87,34 @@ namespace ryu::core {
         return true;
     }
 
-    void assembler::write_data(
+    std::vector<uint8_t> assembler::write_data(
             directive_t::data_sizes size,
             uint32_t value) {
         auto machine = core::project::instance()->machine();
         switch (size) {
-            case directive_t::data_sizes::word:
-                machine->mapper()->write_word(
+            case directive_t::data_sizes::word: {
+                auto data_list = machine->mapper()->write_word(
                         _location_counter,
                         static_cast<uint16_t>(value),
                         _target->ic()->endianess());
                 _location_counter += 2;
-                break;
-            case directive_t::data_sizes::dword:
-                machine->mapper()->write_dword(
+                return data_list;
+            }
+            case directive_t::data_sizes::dword: {
+                auto data_list = machine->mapper()->write_dword(
                         _location_counter,
                         value,
                         _target->ic()->endianess());
                 _location_counter += 4;
-                break;
-            default:
+                return data_list;
+            }
+            default: {
+                auto data_byte = static_cast<uint8_t>(value);
                 machine->mapper()->write_byte(
                         _location_counter++,
-                        static_cast<uint8_t>(value));
-                break;
+                        data_byte);
+                return {data_byte};
+            }
         }
     }
 
@@ -134,10 +138,19 @@ namespace ryu::core {
         _location_counter = value;
     }
 
-    void assembler::write_data(const std::string& value) {
+    std::vector<uint8_t> assembler::write_data(const std::string& value) {
+        std::vector<uint8_t> data {};
+
         auto machine = core::project::instance()->machine();
-        for (const auto& c : value)
-            machine->mapper()->write_byte(_location_counter++, (uint8_t) c);
+        for (const auto& c : value) {
+            auto data_byte = static_cast<uint8_t>(c);
+            machine
+                    ->mapper()
+                    ->write_byte(_location_counter++, data_byte);
+            data.push_back(data_byte);
+        }
+
+        return data;
     }
 
     void assembler::symbol_table(core::symbol_table* value) {

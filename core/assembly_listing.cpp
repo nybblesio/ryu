@@ -37,8 +37,8 @@ namespace ryu::core {
                 20,
                 20,
                 alignment::horizontal::left,
-                0,
-                format_options::none
+                1,
+                format_options::word_wrap
         });
         _table.headers.push_back({
                 "Flags",
@@ -77,7 +77,7 @@ namespace ryu::core {
     void assembly_listing::annotate_line(
             uint32_t line_number,
             uint32_t address,
-            const std::vector<uint32_t>& opcodes,
+            const std::vector<uint8_t>& opcodes,
             assembly_listing::row_flags_t flags) {
         for (; _current_line < line_number; _current_line++) {
             auto line = format_line(
@@ -124,7 +124,7 @@ namespace ryu::core {
     data_table_row_t assembly_listing::format_line(
             uint32_t line_number,
             uint32_t address,
-            const std::vector<uint32_t>& opcodes,
+            const std::vector<uint8_t>& opcodes,
             assembly_listing::row_flags_t flags) {
         core::data_table_row_t row {};
         row.columns.push_back(fmt::format("{:04d}", line_number));

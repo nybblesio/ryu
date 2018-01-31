@@ -75,10 +75,12 @@ namespace ryu::hardware {
         return value;
     }
 
-    void rom::write_word(
+    std::vector<uint8_t> rom::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
+        std::vector<uint8_t> data {};
+
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {
             value = endian_swap_word(value);
@@ -86,12 +88,19 @@ namespace ryu::hardware {
         auto byte_ptr = reinterpret_cast<uint8_t*>(&value);
         _buffer[address]     = *byte_ptr;
         _buffer[address + 1] = *(byte_ptr + 1);
+
+        data.push_back(*byte_ptr);
+        data.push_back(*(byte_ptr + 1));
+
+        return data;
     }
 
-    void rom::write_dword(
+    std::vector<uint8_t> rom::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
+        std::vector<uint8_t> data {};
+
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {
             value = endian_swap_dword(value);
@@ -101,6 +110,13 @@ namespace ryu::hardware {
         _buffer[address + 1] = *(byte_ptr + 1);
         _buffer[address + 2] = *(byte_ptr + 2);
         _buffer[address + 3] = *(byte_ptr + 3);
+
+        data.push_back(*byte_ptr);
+        data.push_back(*(byte_ptr + 1));
+        data.push_back(*(byte_ptr + 2));
+        data.push_back(*(byte_ptr + 3));
+
+        return data;
     }
 
     void rom::fill(uint8_t value) {

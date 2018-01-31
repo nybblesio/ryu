@@ -55,12 +55,12 @@ namespace ryu::hardware {
                 uint32_t address,
                 integrated_circuit::endianness::types endianess) const;
 
-        virtual void write_word(
+        virtual std::vector<uint8_t> write_word(
                 uint32_t address,
                 uint16_t value,
                 integrated_circuit::endianness::types endianess);
 
-        virtual void write_dword(
+        virtual std::vector<uint8_t> write_dword(
                 uint32_t address,
                 uint32_t value,
                 integrated_circuit::endianness::types endianess);

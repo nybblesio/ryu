@@ -53,16 +53,18 @@ namespace ryu::hardware {
         return 0;
     }
 
-    void integrated_circuit::write_word(
+    std::vector<uint8_t> integrated_circuit::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
+        return {};
     }
 
-    void integrated_circuit::write_dword(
+    std::vector<uint8_t> integrated_circuit::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
+        return {};
     }
 
     void integrated_circuit::fill(uint8_t value) {

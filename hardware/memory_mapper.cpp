@@ -122,22 +122,24 @@ namespace ryu::hardware {
         return 0;
     }
 
-    void memory_mapper::write_word(
+    std::vector<uint8_t> memory_mapper::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
         auto circuit = circuit_at_address(access_types::writable, address);
         if (circuit.ic != nullptr)
-            circuit.ic->write_word(address - circuit.start, value, endianess);
+            return circuit.ic->write_word(address - circuit.start, value, endianess);
+        return {};
     }
 
-    void memory_mapper::write_dword(
+    std::vector<uint8_t> memory_mapper::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
         auto circuit = circuit_at_address(access_types::writable, address);
         if (circuit.ic != nullptr)
-            circuit.ic->write_dword(address - circuit.start, value, endianess);
+            return circuit.ic->write_dword(address - circuit.start, value, endianess);
+        return {};
     }
 
 }

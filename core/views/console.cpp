@@ -18,6 +18,7 @@
 // - support select, cut, copy, paste (use text_editor implementation for start)
 // - full document support
 // - bug fixes
+// - format_data_table needs some bug fixes and improvements around column data formatting
 
 namespace ryu::core {
 
@@ -395,7 +396,10 @@ namespace ryu::core {
                 auto styled = (header.options & format_options::style_codes) != 0;
 
                 if (word_wrapped) {
-                    styled_text = word_wrap(col, header.width, total_width);
+                    styled_text = word_wrap(
+                            col,
+                            header.width,
+                            total_width);
                     styled = true;
                 }
 
@@ -427,6 +431,7 @@ namespace ryu::core {
                                  header.width + column_pad)
                     });
                 }
+
                 total_width += header.width + column_pad;
             }
 

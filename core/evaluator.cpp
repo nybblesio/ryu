@@ -126,17 +126,18 @@ namespace ryu::core {
                         break;
                     }
                     case directive_t::types::data: {
-                        std::vector<uint32_t> data {};
+                        std::vector<uint8_t> data {};
 
                         if (node->lhs != nullptr) {
                             // xxx: add identifier to symbol table with pointer
                         }
 
                         for (const auto& parameter_node : node->rhs->children) {
+                            std::vector<uint8_t> data_bytes {};
                             auto value = evaluate(result, parameter_node);
                             if (value.which() == variant::types::string_literal) {
                                 auto text = boost::get<string_literal_t>(value).value;
-                                assembler->write_data(text);
+                                data_bytes = assembler->write_data(text);
                             } else {
                                 if (value.which() != variant::types::numeric_literal) {
                                     listing.annotate_line_error(
@@ -146,9 +147,13 @@ namespace ryu::core {
                                     break;
                                 }
                                 auto number = boost::get<numeric_literal_t>(value).value;
-                                // XXX: should I be casting this?
-                                assembler->write_data(directive.data_size, static_cast<uint32_t>(number));
+                                data_bytes = assembler->write_data(
+                                        directive.data_size,
+                                        static_cast<uint32_t>(number));
                             }
+
+                            for (const auto d : data_bytes)
+                                data.push_back(d);
                         }
 
                         listing.annotate_line(
