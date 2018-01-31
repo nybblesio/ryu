@@ -35,15 +35,13 @@ namespace ryu::core {
         auto& listing = assembler->listing();
 
         switch (node->token) {
-            case ast_node_t::command:
-                break;
             case ast_node_t::comment: {
                 // XXX: remove from ast
                 break;
             }
             case ast_node_t::basic_block: {
-                for (const auto& block_child : node->children) {
-                    // recursively do something
+                for (auto const& block_child : node->children) {
+                    pass1_transform_node(result, assembler, block_child);
                 }
                 break;
             }
@@ -59,13 +57,35 @@ namespace ryu::core {
                 // call evaluate
                 break;
             case ast_node_t::label:
-            case ast_node_t::identifier:
-                break;
-            case ast_node_t::branch: {
+            case ast_node_t::identifier: {
+                std::string identifier_name;
+                switch (node->token) {
+                    case ast_node_t::label:
+                        identifier_name = boost::get<label_t>(node->value).value;
+                        break;
+                    case ast_node_t::identifier:
+                        identifier_name = boost::get<identifier_t>(node->value).value;
+                        break;
+                    default:
+                        listing.annotate_line_error(
+                                node->line,
+                                "unknown assembler state; this should not happen");
+                        error(result, "E004", "unknown assembler state; this should not happen");
+                        break;
+                }
+                auto address_node = std::make_shared<ast_node_t>();
+                address_node->token = ast_node_t::tokens::address;
+                address_node->value = numeric_literal_t {assembler->location_counter()};
+                address_node->lhs = node;
+                assembler
+                        ->symbol_table()
+                        ->put(identifier_name, address_node);
                 break;
             }
-            case ast_node_t::parameter_list:
+            case ast_node_t::branch: {
+                // N.B. currently a nop
                 break;
+            }
             case ast_node_t::directive: {
                 auto directive = boost::get<directive_t>(node->value);
                 switch (directive.type) {
@@ -129,38 +149,52 @@ namespace ryu::core {
                         std::vector<uint8_t> data {};
 
                         if (node->lhs != nullptr) {
-                            // xxx: add identifier to symbol table with pointer
+                            pass1_transform_node(result, assembler, node->lhs);
                         }
 
                         for (const auto& parameter_node : node->rhs->children) {
                             std::vector<uint8_t> data_bytes {};
                             auto value = evaluate(result, parameter_node);
-                            if (value.which() == variant::types::string_literal) {
-                                auto text = boost::get<string_literal_t>(value).value;
-                                data_bytes = assembler->write_data(text);
+                            if (result.is_failed()) {
+                                auto messages = result.messages();
+                                listing.annotate_line_error(
+                                        node->line,
+                                        messages[messages.size() - 1].message());
                             } else {
-                                if (value.which() != variant::types::numeric_literal) {
-                                    listing.annotate_line_error(
-                                            node->line,
-                                            "data directives require constant numeric values");
-                                    error(result, "E004", "data directives require constant numeric values");
-                                    break;
+                                if (value.which() == variant::types::string_literal) {
+                                    auto text = boost::get<string_literal_t>(value).value;
+                                    data_bytes = assembler->write_data(text);
+                                } else if (value.which() == variant::types::char_literal) {
+                                    auto char_byte = boost::get<char_literal_t>(value).value;
+                                    data_bytes = assembler->write_data(
+                                            directive_t::data_sizes::byte,
+                                            char_byte);
+                                } else {
+                                    if (value.which() != variant::types::numeric_literal) {
+                                        listing.annotate_line_error(
+                                                node->line,
+                                                "data directives require constant numeric values");
+                                        error(result, "E004", "data directives require constant numeric values");
+                                        break;
+                                    }
+                                    auto number = boost::get<numeric_literal_t>(value).value;
+                                    data_bytes = assembler->write_data(
+                                            directive.data_size,
+                                            static_cast<uint32_t>(number));
                                 }
-                                auto number = boost::get<numeric_literal_t>(value).value;
-                                data_bytes = assembler->write_data(
-                                        directive.data_size,
-                                        static_cast<uint32_t>(number));
-                            }
 
-                            for (const auto d : data_bytes)
-                                data.push_back(d);
+                                for (const auto d : data_bytes)
+                                    data.push_back(d);
+                            }
                         }
 
-                        listing.annotate_line(
-                                node->line,
-                                assembler->location_counter(),
-                                data,
-                                assembly_listing::row_flags::none);
+                        if (!result.is_failed()) {
+                            listing.annotate_line(
+                                    node->line,
+                                    assembler->location_counter(),
+                                    data,
+                                    assembly_listing::row_flags::none);
+                        }
 
                         break;
                     }
@@ -170,6 +204,45 @@ namespace ryu::core {
                                 0,
                                 {},
                                 assembly_listing::row_flags::none);
+                        break;
+                    }
+                    case directive_t::types::if_block:
+                    case directive_t::types::elseif_block: {
+                        auto branch_node = node->children[0];
+                        auto variant = evaluate(result, node->rhs);
+                        if (!result.is_failed()) {
+                            auto is_true = boost::get<boolean_literal_t>(variant).value;
+                            if (is_true) {
+                                pass1_transform_node(result, assembler, branch_node->lhs);
+                            } else {
+                                if (branch_node->rhs != nullptr)
+                                    pass1_transform_node(result, assembler, branch_node->rhs);
+                            }
+                            listing.annotate_line(
+                                    node->line,
+                                    0,
+                                    {},
+                                    assembly_listing::row_flags::none);
+                         } else {
+                            auto messages = result.messages();
+                            listing.annotate_line_error(
+                                    node->line,
+                                    messages[messages.size() - 1].message());
+                        }
+                        break;
+                    }
+                    case directive_t::types::else_block: {
+                        auto branch_node = node->children[0];
+                        pass1_transform_node(result, assembler, branch_node->lhs);
+                        listing.annotate_line(
+                                node->line,
+                                0,
+                                {},
+                                assembly_listing::row_flags::none);
+                        break;
+                    }
+                    case directive_t::types::end_block: {
+                        // N.B. currently a nop
                         break;
                     }
                     default: {
@@ -240,10 +313,11 @@ namespace ryu::core {
                 }
                 break;
             }
+            case ast_node_t::address:
             case ast_node_t::number_literal: {
                 switch (node->value.which()) {
                     case variant::types::radix_numeric_literal: {
-                        int32_t out;
+                        uint32_t out = 0;
                         auto value = boost::get<radix_number_t>(node->value);
                         if (value.parse(out) != radix_number_t::conversion_result::success) {
                             error(result, "E004", "numeric conversion error");
@@ -284,18 +358,22 @@ namespace ryu::core {
                         numeric_literal_t lhs;
                         numeric_literal_t rhs;
                         if (lhs_node.which() == variant::types::boolean_literal) {
-                            lhs = numeric_literal_t {boost::get<boolean_literal_t>(lhs_node).value};
+                            lhs = numeric_literal_t {boost::get<boolean_literal_t>(lhs_node).value != 0};
                         } else if (lhs_node.which() == variant::types::numeric_literal) {
                             lhs = boost::get<numeric_literal_t>(lhs_node);
+                        } else if(lhs_node.which() == variant::types::char_literal) {
+                            lhs = numeric_literal_t {boost::get<char_literal_t>(rhs_node).value};
                         } else {
                             error(result,
                                   "E005",
                                   "only integer values can be used with arithmetic/relational operators");
                         }
                         if (rhs_node.which() == variant::types::boolean_literal) {
-                            rhs = numeric_literal_t {boost::get<boolean_literal_t>(rhs_node).value};
+                            rhs = numeric_literal_t {boost::get<boolean_literal_t>(rhs_node).value != 0};
                         } else if (rhs_node.which() == variant::types::numeric_literal) {
                             rhs = boost::get<numeric_literal_t>(rhs_node);
+                        } else if(rhs_node.which() == variant::types::char_literal) {
+                            rhs = numeric_literal_t {boost::get<char_literal_t>(rhs_node).value};
                         } else {
                             error(result,
                                   "E005",
@@ -376,7 +454,7 @@ namespace ryu::core {
                     case operator_t::arithmetic: {
                         numeric_literal_t rhs;
                         if (rhs_node.which() == variant::types::boolean_literal) {
-                            rhs = numeric_literal_t {boost::get<boolean_literal_t>(rhs_node).value};
+                            rhs = numeric_literal_t {boost::get<boolean_literal_t>(rhs_node).value != 0};
                         } else if (rhs_node.which() == variant::types::numeric_literal) {
                             rhs = boost::get<numeric_literal_t>(rhs_node);
                         } else {

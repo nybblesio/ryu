@@ -203,6 +203,9 @@ namespace ryu::core {
                     default:
                         break;
                 }
+            } else {
+                if (current_identifier != nullptr)
+                    scope->children.push_back(current_identifier);
             }
 
             // XXX: access custom assembly language parser here

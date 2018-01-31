@@ -383,7 +383,7 @@ namespace ryu::core {
     };
 
     struct radix_number_t {
-        int radix = 0;
+        uint8_t radix = 0;
         std::string value;
 
         enum conversion_result {
@@ -393,22 +393,22 @@ namespace ryu::core {
             inconvertible
         };
 
-        conversion_result parse(int32_t& out) const {
+        conversion_result parse(uint32_t& out) const {
             const char* s = value.c_str();
             char* end;
             long l;
             errno = 0;
             l = strtol(s, &end, radix);
-            if ((errno == ERANGE && l == LONG_MAX) || l > INT_MAX) {
+            if ((errno == ERANGE && l == LONG_MAX) || l > UINT_MAX) {
                 return overflow;
             }
-            if ((errno == ERANGE && l == LONG_MIN) || l < INT_MIN) {
+            if ((errno == ERANGE && l == LONG_MIN)) {
                 return underflow;
             }
             if (*s == '\0' || *end != '\0') {
                 return inconvertible;
             }
-            out = static_cast<int32_t>(l);
+            out = static_cast<uint32_t>(l);
             return success;
         }
 
@@ -469,15 +469,6 @@ namespace ryu::core {
         }
     };
 
-    struct char_literal_t {
-        char value;
-
-        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
-            stream << "'" << lit.value << "'";
-            return stream;
-        }
-    };
-
     struct boolean_literal_t {
         bool value;
         boolean_literal_t operator! () {
@@ -501,13 +492,43 @@ namespace ryu::core {
         }
     };
 
+    struct char_literal_t {
+        unsigned char value;
+
+        boolean_literal_t operator== (const char_literal_t& other) {
+            return boolean_literal_t {value == other.value};
+        }
+        boolean_literal_t operator!= (const char_literal_t& other) {
+            return boolean_literal_t {value != other.value};
+        }
+        boolean_literal_t operator< (const char_literal_t& other) {
+            return boolean_literal_t {value < other.value};
+        }
+        boolean_literal_t operator<= (const char_literal_t& other) {
+            return boolean_literal_t {value <= other.value};
+        }
+        boolean_literal_t operator> (const char_literal_t& other) {
+            return boolean_literal_t {value > other.value};
+        }
+        boolean_literal_t operator>= (const char_literal_t& other) {
+            return boolean_literal_t {value >= other.value};
+        }
+        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
+            stream << "'" << lit.value << "'";
+            return stream;
+        }
+    };
+
     struct numeric_literal_t {
-        int32_t value;
+        uint32_t value;
+
         numeric_literal_t operator~ () {
             return numeric_literal_t {~value};
         }
         numeric_literal_t operator- () {
-            return numeric_literal_t {-value};
+            return numeric_literal_t {
+                static_cast<uint32_t>(-value)
+            };
         }
         numeric_literal_t operator+ (const numeric_literal_t& other) {
             return numeric_literal_t {value + other.value};
@@ -597,7 +618,8 @@ namespace ryu::core {
             boolean_literal,
             directive,
             parameter_list,
-            branch
+            branch,
+            address
         };
 
         void serialize(std::ostream& stream) {
@@ -653,6 +675,7 @@ namespace ryu::core {
                     stream << value << " ";
                     break;
                 case command:
+                case address:
                 case string_literal:
                 case number_literal:
                 case boolean_literal:

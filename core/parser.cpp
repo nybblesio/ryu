@@ -593,7 +593,7 @@ namespace ryu::core {
                 if (token != nullptr && *token == '\'') {
                     move_to_next_token();
                     auto character_literal = create_ast_node(ast_node_t::tokens::character_literal);
-                    character_literal->value = char_literal_t{value};
+                    character_literal->value = char_literal_t {static_cast<unsigned char>(value)};
                     return character_literal;
                 } else {
                     error("P008", "unbalanced single quote of character literal");
