@@ -22,71 +22,72 @@ namespace ryu::core {
     class result;
     class environment;
 
-    enum command_types : uint8_t {
-        quit = 1,
-        help,
-        clear,
+    struct command {
+        enum types : uint8_t {
+            quit = 1,
+            help,
+            clear,
 
-        add_symbol,
-        remove_symbol,
-        show_symbol_table,
+            add_symbol,
+            remove_symbol,
+            show_symbol_table,
 
-        assemble,
-        evaluate,
-        disassemble,
-        dump_memory,
-        search_memory,
-        fill_memory,
-        copy_memory,
-        jump_to_address,
-        go_to_address,
-        register_editor,
+            assemble,
+            evaluate,
+            disassemble,
+            dump_memory,
+            search_memory,
+            fill_memory,
+            copy_memory,
+            jump_to_address,
+            go_to_address,
+            register_editor,
 
-        move_file,
-        list_files,
-        remove_file,
-        make_directory,
-        change_directory,
-        print_working_directory,
+            move_file,
+            list_files,
+            remove_file,
+            make_directory,
+            change_directory,
+            print_working_directory,
 
-        new_project,
-        edit_project,
-        load_project,
-        save_project,
-        close_project,
-        clone_project,
-        new_project_file,
-        save_project_file,
-        list_project_files,
-        remove_project_file,
+            new_project,
+            edit_project,
+            load_project,
+            save_project,
+            close_project,
+            clone_project,
+            new_project_file,
+            save_project_file,
+            list_project_files,
+            remove_project_file,
 
-        new_environment,
-        list_environments,
-        remove_environment,
-        switch_environment,
+            new_environment,
+            list_environments,
+            remove_environment,
+            switch_environment,
 
-        list_machines,
-        edit_machine,
-        delete_machine,
-        use_machine,
+            list_machines,
+            edit_machine,
+            delete_machine,
+            use_machine,
 
-        open_editor,
-        source_editor,
-        memory_editor,
-        sprite_editor,
-        tile_editor,
-        background_editor,
-        module_editor,
-        sample_editor,
+            open_editor,
+            source_editor,
+            memory_editor,
+            sprite_editor,
+            tile_editor,
+            background_editor,
+            module_editor,
+            sample_editor,
 
-        read_binary_to_memory,
-        write_memory_to_binary,
-        read_text,
-        write_text,
-        goto_line,
-        find_text
+            read_binary_to_memory,
+            write_memory_to_binary,
+            read_text,
+            write_text,
+            goto_line,
+            find_text
+        };
     };
-
     struct variant {
         enum types {
             radix_numeric_literal = 0,
@@ -146,10 +147,10 @@ namespace ryu::core {
     typedef uint8_t command_flags_t;
 
     struct command_spec_t {
-        command_types type;
+        command::types type {};
         command_flags_t valid_sizes = command_size_flags::none;
-        std::vector<command_parameter_spec_t> params;
-        std::string help;
+        std::vector<command_parameter_spec_t> params {};
+        std::string help {};
     };
 
     struct command_t {

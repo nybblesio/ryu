@@ -29,219 +29,219 @@ namespace ryu::core {
 
     command_handler_dict environment::_command_handlers = {
         {
-            core::command_types::quit,
+            core::command::types::quit,
             std::bind(&environment::on_quit, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::help,
+            core::command::types::help,
             std::bind(&environment::on_help, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::clear,
+            core::command::types::clear,
             std::bind(&environment::on_clear, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::add_symbol,
+            core::command::types::add_symbol,
             std::bind(&environment::on_add_symbol, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_symbol,
+            core::command::types::remove_symbol,
             std::bind(&environment::on_remove_symbol, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::show_symbol_table,
+            core::command::types::show_symbol_table,
             std::bind(&environment::on_show_symbol_table, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::assemble,
+            core::command::types::assemble,
             std::bind(&environment::on_assemble, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::evaluate,
+            core::command::types::evaluate,
             std::bind(&environment::on_evaluate, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::disassemble,
+            core::command::types::disassemble,
             std::bind(&environment::on_disassemble, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::dump_memory,
+            core::command::types::dump_memory,
             std::bind(&environment::on_dump_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::search_memory,
+            core::command::types::search_memory,
             std::bind(&environment::on_search_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::fill_memory,
+            core::command::types::fill_memory,
             std::bind(&environment::on_fill_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::copy_memory,
+            core::command::types::copy_memory,
             std::bind(&environment::on_copy_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::jump_to_address,
+            core::command::types::jump_to_address,
             std::bind(&environment::on_jump_to_address, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::go_to_address,
+            core::command::types::go_to_address,
             std::bind(&environment::on_go_to_address, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::register_editor,
+            core::command::types::register_editor,
             std::bind(&environment::on_register_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_files,
+            core::command::types::list_files,
             std::bind(&environment::on_list_files, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_file,
+            core::command::types::remove_file,
             std::bind(&environment::on_remove_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::move_file,
+            core::command::types::move_file,
             std::bind(&environment::on_move_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::make_directory,
+            core::command::types::make_directory,
             std::bind(&environment::on_make_directory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::change_directory,
+            core::command::types::change_directory,
             std::bind(&environment::on_change_directory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::print_working_directory,
+            core::command::types::print_working_directory,
             std::bind(&environment::on_print_working_directory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::new_project,
+            core::command::types::new_project,
             std::bind(&environment::on_new_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::edit_project,
+            core::command::types::edit_project,
             std::bind(&environment::on_edit_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::load_project,
+            core::command::types::load_project,
             std::bind(&environment::on_load_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::save_project,
+            core::command::types::save_project,
             std::bind(&environment::on_save_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::close_project,
+            core::command::types::close_project,
             std::bind(&environment::on_close_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::clone_project,
+            core::command::types::clone_project,
             std::bind(&environment::on_clone_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::new_project_file,
+            core::command::types::new_project_file,
             std::bind(&environment::on_new_project_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::save_project_file,
+            core::command::types::save_project_file,
             std::bind(&environment::on_save_project_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_project_file,
+            core::command::types::remove_project_file,
             std::bind(&environment::on_remove_project_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_project_files,
+            core::command::types::list_project_files,
             std::bind(&environment::on_list_project_files, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::new_environment,
+            core::command::types::new_environment,
             std::bind(&environment::on_new_environment, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_environment,
+            core::command::types::remove_environment,
             std::bind(&environment::on_remove_environment, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::switch_environment,
+            core::command::types::switch_environment,
             std::bind(&environment::on_switch_environment, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_environments,
+            core::command::types::list_environments,
             std::bind(&environment::on_list_environments, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::edit_machine,
+            core::command::types::edit_machine,
             std::bind(&environment::on_edit_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_machines,
+            core::command::types::list_machines,
             std::bind(&environment::on_list_machines, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::delete_machine,
+            core::command::types::delete_machine,
             std::bind(&environment::on_delete_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::use_machine,
+            core::command::types::use_machine,
             std::bind(&environment::on_use_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::open_editor,
+            core::command::types::open_editor,
             std::bind(&environment::on_open_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::source_editor,
+            core::command::types::source_editor,
             std::bind(&environment::on_source_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::memory_editor,
+            core::command::types::memory_editor,
             std::bind(&environment::on_memory_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::sprite_editor,
+            core::command::types::sprite_editor,
             std::bind(&environment::on_sprite_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::tile_editor,
+            core::command::types::tile_editor,
             std::bind(&environment::on_tile_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::background_editor,
+            core::command::types::background_editor,
             std::bind(&environment::on_background_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::module_editor,
+            core::command::types::module_editor,
             std::bind(&environment::on_module_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::sample_editor,
+            core::command::types::sample_editor,
             std::bind(&environment::on_sample_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::read_binary_to_memory,
+            core::command::types::read_binary_to_memory,
             std::bind(&environment::on_read_binary_to_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::write_memory_to_binary,
+            core::command::types::write_memory_to_binary,
             std::bind(&environment::on_write_memory_to_binary, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::read_text,
+            core::command::types::read_text,
             std::bind(&environment::on_read_text, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::write_text,
+            core::command::types::write_text,
             std::bind(&environment::on_write_text, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::goto_line,
+            core::command::types::goto_line,
             std::bind(&environment::on_goto_line, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::find_text,
+            core::command::types::find_text,
             std::bind(&environment::on_find_text, std::placeholders::_1, std::placeholders::_2)
         },
     };
@@ -792,6 +792,14 @@ namespace ryu::core {
 
     bool environment::on_memory_editor(
             const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C033",
+                    "no project is loaded; unable to open memory editor",
+                    true);
+            return false;
+        }
+
         context.result.add_data("command_action", {{"action", std::string("edit_memory")}});
         return true;
     }
