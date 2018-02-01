@@ -42,7 +42,7 @@ namespace ryu::core {
         table.headers.push_back({"Addr", 4, 4});
 
         for (auto i = 0; i < bytes; i++)
-            table.headers.push_back({fmt::format("{:02}", i), 2, 2});
+            table.headers.push_back({fmt::format("{:02x}", i), 2, 2});
 
         for (auto i = 0; i < bytes; i++) {
             table.headers.push_back({
