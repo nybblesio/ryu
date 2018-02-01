@@ -100,6 +100,7 @@ namespace ryu::core {
             comment_literal,
             directive,
             label,
+            dup_literal,
 
             // N.B. these must always be the last values
             variadic,
@@ -120,6 +121,7 @@ namespace ryu::core {
                 case directive:             return "directive";
                 case label:                 return "label";
                 case variadic:              return "variadic";
+                case dup_literal:           return "dup_literal";
                 case any:                   return "any";
             }
             return "unknown";
@@ -316,7 +318,7 @@ namespace ryu::core {
     };
 
     struct operator_t {
-        enum op {
+        enum op : uint16_t {
             invert,
             negate,
             pow,
@@ -352,7 +354,8 @@ namespace ryu::core {
             arithmetic,
             relational,
             grouping,
-            logical
+            logical,
+            conversion
         };
 
         enum associativity_type {
@@ -374,7 +377,7 @@ namespace ryu::core {
             return stream;
         }
 
-        op op;
+        uint16_t op;
         std::string symbol;
         uint8_t precedence = 0;
         uint8_t type = op_type::no_op;
@@ -492,33 +495,6 @@ namespace ryu::core {
         }
     };
 
-    struct char_literal_t {
-        unsigned char value;
-
-        boolean_literal_t operator== (const char_literal_t& other) {
-            return boolean_literal_t {value == other.value};
-        }
-        boolean_literal_t operator!= (const char_literal_t& other) {
-            return boolean_literal_t {value != other.value};
-        }
-        boolean_literal_t operator< (const char_literal_t& other) {
-            return boolean_literal_t {value < other.value};
-        }
-        boolean_literal_t operator<= (const char_literal_t& other) {
-            return boolean_literal_t {value <= other.value};
-        }
-        boolean_literal_t operator> (const char_literal_t& other) {
-            return boolean_literal_t {value > other.value};
-        }
-        boolean_literal_t operator>= (const char_literal_t& other) {
-            return boolean_literal_t {value >= other.value};
-        }
-        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
-            stream << "'" << lit.value << "'";
-            return stream;
-        }
-    };
-
     struct numeric_literal_t {
         uint32_t value;
 
@@ -578,6 +554,45 @@ namespace ryu::core {
         }
     };
 
+    struct char_literal_t {
+        unsigned char value;
+
+        operator numeric_literal_t() {
+            return numeric_literal_t {value};
+        }
+        boolean_literal_t operator== (const char_literal_t& other) {
+            return boolean_literal_t {value == other.value};
+        }
+        boolean_literal_t operator!= (const char_literal_t& other) {
+            return boolean_literal_t {value != other.value};
+        }
+        boolean_literal_t operator< (const char_literal_t& other) {
+            return boolean_literal_t {value < other.value};
+        }
+        boolean_literal_t operator<= (const char_literal_t& other) {
+            return boolean_literal_t {value <= other.value};
+        }
+        boolean_literal_t operator> (const char_literal_t& other) {
+            return boolean_literal_t {value > other.value};
+        }
+        boolean_literal_t operator>= (const char_literal_t& other) {
+            return boolean_literal_t {value >= other.value};
+        }
+        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
+            stream << "'" << lit.value << "'";
+            return stream;
+        }
+    };
+
+    struct dup_literal_t {
+        uint32_t count;
+        std::vector<numeric_literal_t> values;
+
+        friend std::ostream& operator<<(std::ostream& stream, const dup_literal_t& lit) {
+            return stream;
+        }
+    };
+
     typedef std::map<std::string, operator_t> operator_dict;
 
     typedef boost::variant<
@@ -591,7 +606,8 @@ namespace ryu::core {
         command_t,
         comment_t,
         directive_t,
-        label_t> variant_t;
+        label_t,
+        dup_literal_t> variant_t;
 
     struct ast_node_t;
 

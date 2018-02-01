@@ -19,7 +19,7 @@ namespace ryu::core {
 
     class assembler {
     public:
-        assembler() = default;
+        assembler();
 
         virtual ~assembler() = default;
 

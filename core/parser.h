@@ -54,6 +54,12 @@ namespace ryu::core {
         void push_operand(const ast_node_shared_ptr& node);
 
     protected: // core
+        void error(
+                const std::string& code,
+                const std::string& message);
+
+        char* set_token();
+
         void clear_stacks();
 
         void pop_position();
@@ -64,11 +70,13 @@ namespace ryu::core {
 
         char* current_token();
 
+        void register_operator(
+                const std::string& key,
+                const core::operator_t& op);
+
         bool is_failed() const {
             return _result.is_failed();
         }
-
-        char* set_token();
 
         char* move_to_next_token();
 
@@ -76,11 +84,11 @@ namespace ryu::core {
 
         size_t forget_top_position();
 
-        void consume_tokens(int count);
-
         inline uint32_t line() const {
             return _line;
         }
+
+        void consume_tokens(int count);
 
         inline uint32_t column() const {
             return _column;
@@ -89,8 +97,6 @@ namespace ryu::core {
         void reset(const std::string& input);
 
         ast_node_shared_ptr create_ast_node(ast_node_t::tokens type);
-
-        void error(const std::string& code, const std::string& message);
 
     protected: // parsers
         operator_t* parse_operator();

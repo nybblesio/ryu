@@ -22,7 +22,13 @@ namespace ryu::core {
     // .include [path] - recursively assembly file
     // .loop           - repeat the basic_block
     // .local          - create a unique label name
-    // dup             - .byte 5 dup($c0)  or .byte 10 dup(2, 8)
+    //
+    // dup             - .byte 5 dup($c0)
+    //                           or .byte 10 dup(2, 8) * no parser support yet
+    //
+    // #               - paste operator
+    // `               - quote operator
+    // offset          - offset of identifier variable
     //
     //
     // 1. directives
@@ -135,7 +141,16 @@ namespace ryu::core {
 
     class assembler_parser : public core::parser {
     public:
+        enum operators : uint16_t {
+            dup = 500,
+            quote,
+            paste,
+            offset
+        };
+
         assembler_parser() = default;
+
+        void register_operators();
 
         ast_node_shared_ptr parse(const std::string& input) override;
 

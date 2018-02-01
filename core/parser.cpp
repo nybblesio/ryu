@@ -40,12 +40,43 @@ namespace ryu::core {
             {"]",  {operator_t::op::right_bracket,     "]",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
     };
 
+    void parser::error(
+            const std::string& code,
+            const std::string& message) {
+        std::stringstream stream;
+        stream << "Syntax error: " << message << "\n"
+               << _input << "\n"
+               << std::setw(_column) << '^';
+        _result.add_message(code, stream.str(), true);
+        _result.fail();
+    }
+
+    char* parser::set_token() {
+        if (_index > _input.length() - 1) {
+            _token = nullptr;
+        } else {
+            _column++;
+            _token = &_input[_index];
+        }
+        return _token;
+    }
+
     bool parser::has_operand() {
         return !_operand_stack.empty();
     }
 
     bool parser::has_operator() {
         return !_operator_stack.empty();
+    }
+
+    void parser::clear_stacks() {
+        _operator_stack.clear();
+
+        while (!_position_stack.empty())
+            _position_stack.pop();
+
+        while (!_operand_stack.empty())
+            _operand_stack.pop();
     }
 
     void parser::pop_position() {
@@ -63,15 +94,6 @@ namespace ryu::core {
         _position_stack.pop();
     }
 
-    char* parser::current_token() {
-        if (_token == nullptr) {
-            set_token();
-            if (_token == nullptr)
-                move_to_next_token();
-        }
-        return _token;
-    }
-
     void parser::push_position() {
         _position_stack.push(scanner_pos_t {
                 _line,
@@ -84,30 +106,19 @@ namespace ryu::core {
         _line++;
     }
 
-    ast_node_shared_ptr parser::pop_operand() {
-        if (_operand_stack.empty())
-            return nullptr;
-        auto top = _operand_stack.top();
-        _operand_stack.pop();
-        return top;
-    }
-
-    size_t parser::forget_top_position() {
-        if (_position_stack.empty())
-            return _index;
-        auto pos = _position_stack.top();
-        _position_stack.pop();
-        return pos.index;
-    }
-
-    char* parser::set_token() {
-        if (_index > _input.length() - 1) {
-            _token = nullptr;
-        } else {
-            _column++;
-            _token = &_input[_index];
+    char* parser::current_token() {
+        if (_token == nullptr) {
+            set_token();
+            if (_token == nullptr)
+                move_to_next_token();
         }
         return _token;
+    }
+
+    void parser::register_operator(
+            const std::string& key,
+            const core::operator_t& op) {
+        _operators.insert(std::make_pair(key, op));
     }
 
     char* parser::move_to_next_token() {
@@ -118,12 +129,43 @@ namespace ryu::core {
     void parser::consume_white_space() {
         auto token = current_token();
         while (token != nullptr && isspace(*token)) {
-            if (*token == '\n')
+            if (*token == '\n') {
                 increment_line();
+                move_to_next_token();
+                break;
+            }
             token = move_to_next_token();
             if (token == nullptr)
                 return;
         }
+    }
+
+    size_t parser::forget_top_position() {
+        if (_position_stack.empty())
+            return _index;
+        auto pos = _position_stack.top();
+        _position_stack.pop();
+        return pos.index;
+    }
+
+    void parser::consume_tokens(int count) {
+        for (auto i = 0; i < count; ++i) {
+            auto token = move_to_next_token();
+            if (token == nullptr)
+                break;
+        }
+    }
+
+    ast_node_shared_ptr parser::pop_operand() {
+        if (_operand_stack.empty())
+            return nullptr;
+        auto top = _operand_stack.top();
+        _operand_stack.pop();
+        return top;
+    }
+
+    const core::result& parser::result() const {
+        return _result;
     }
 
     ast_node_shared_ptr parser::parse_number() {
@@ -204,6 +246,15 @@ namespace ryu::core {
         return nullptr;
     }
 
+    void parser::reset(const std::string& input) {
+        _line = 1;
+        _index = 0;
+        _column = 1;
+        _result = {};
+        _input = input;
+        clear_stacks();
+    }
+
     operator_t* parser::pop_operator() {
         if (_operator_stack.empty())
             return nullptr;
@@ -212,60 +263,10 @@ namespace ryu::core {
         return top;
     }
 
-    ast_node_shared_ptr parser::peek_operand() {
-        if (_operand_stack.empty())
-            return nullptr;
-        return _operand_stack.top();
-    }
-
     operator_t* parser::peek_operator() {
         if (_operator_stack.empty())
             return nullptr;
         return _operator_stack.front();
-    }
-
-    void parser::clear_stacks() {
-        _operator_stack.clear();
-
-        while (!_position_stack.empty())
-            _position_stack.pop();
-
-        while (!_operand_stack.empty())
-            _operand_stack.pop();
-    }
-
-    ast_node_shared_ptr parser::parse_comment() {
-        auto token = current_token();
-        if (token == nullptr)
-            return nullptr;
-        if (*token == '*' || *token == ';') {
-            token = move_to_next_token();
-            std::stringstream stream;
-            while (token != nullptr && *token != '\n') {
-                stream << *token;
-                token = move_to_next_token();
-            }
-            auto comment = create_ast_node(ast_node_t::tokens::comment);
-            comment->value = comment_t {stream.str()};
-            return comment;
-        }
-        return nullptr;
-    }
-
-    std::vector<operator_t*> parser::find_matching_operators(
-            std::vector<operator_t*> candidates,
-            char token,
-            int index) {
-        std::vector<operator_t*> matches;
-        for (auto it = candidates.begin(); it != candidates.end(); ++it) {
-            auto op = *it;
-            if (op->precedence == 0)
-                continue;
-            if (token == op->symbol[index]) {
-                matches.push_back(op);
-            }
-        }
-        return matches;
     }
 
     operator_t* parser::parse_operator() {
@@ -325,6 +326,30 @@ namespace ryu::core {
         return op;
     }
 
+    ast_node_shared_ptr parser::peek_operand() {
+        if (_operand_stack.empty())
+            return nullptr;
+        return _operand_stack.top();
+    }
+
+    ast_node_shared_ptr parser::parse_comment() {
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (*token == '*' || *token == ';') {
+            token = move_to_next_token();
+            std::stringstream stream;
+            while (token != nullptr && *token != '\n') {
+                stream << *token;
+                token = move_to_next_token();
+            }
+            auto comment = create_ast_node(ast_node_t::tokens::comment);
+            comment->value = comment_t {stream.str()};
+            return comment;
+        }
+        return nullptr;
+    }
+
     ast_node_shared_ptr parser::parse_identifier() {
         auto token = current_token();
         if (token == nullptr)
@@ -358,6 +383,10 @@ namespace ryu::core {
                 identifier_node->value = identifier_t{stream.str()};
                 return identifier_node;
             }
+        } else {
+            if (*token == ':') {
+                error("P008", "Unexpected colon without valid identifier");
+            }
         }
 
         pop_position();
@@ -367,6 +396,10 @@ namespace ryu::core {
 
     core::symbol_table* parser::symbol_table() {
         return _symbol_table;
+    }
+
+    void parser::push_operator(operator_t* op) {
+        _operator_stack.insert(_operator_stack.begin(), op);
     }
 
     ast_node_shared_ptr parser::parse_expression() {
@@ -488,14 +521,6 @@ namespace ryu::core {
         return pop_operand();
     }
 
-    void parser::consume_tokens(int count) {
-        for (auto i = 0; i < count; ++i) {
-            auto token = move_to_next_token();
-            if (token == nullptr)
-                break;
-        }
-    }
-
     ast_node_shared_ptr parser::parse_null_literal() {
         push_position();
         auto token = current_token();
@@ -507,10 +532,6 @@ namespace ryu::core {
         }
         pop_position();
         return nullptr;
-    }
-
-    void parser::push_operator(operator_t* op) {
-        _operator_stack.insert(_operator_stack.begin(), op);
     }
 
     ast_node_shared_ptr parser::parse_string_literal() {
@@ -541,14 +562,6 @@ namespace ryu::core {
         return nullptr;
     }
 
-    const core::result& parser::result() const {
-        return _result;
-    }
-
-    void parser::push_operand(const ast_node_shared_ptr& node) {
-        _operand_stack.push(node);
-    }
-
     ast_node_shared_ptr parser::parse_boolean_literal() {
         push_position();
         auto token = current_token();
@@ -569,17 +582,12 @@ namespace ryu::core {
         return nullptr;
     }
 
-    void parser::reset(const std::string& input) {
-        _line = 1;
-        _index = 0;
-        _column = 1;
-        _result = {};
-        _input = input;
-        clear_stacks();
-    }
-
     bool parser::operator_stack_has(operator_t* op) {
         return std::find(_operator_stack.begin(), _operator_stack.end(), op) != _operator_stack.end();
+    }
+
+    void parser::symbol_table(core::symbol_table* value) {
+        _symbol_table = value;
     }
 
     ast_node_shared_ptr parser::parse_character_literal() {
@@ -605,10 +613,6 @@ namespace ryu::core {
         return nullptr;
     }
 
-    void parser::symbol_table(core::symbol_table* value) {
-        _symbol_table = value;
-    }
-
     bool parser::match_literal(const std::string& literal) {
         auto token = current_token();
         for (auto i = 0; i < literal.length(); ++i) {
@@ -625,6 +629,26 @@ namespace ryu::core {
         return true;
     }
 
+    std::vector<operator_t*> parser::find_matching_operators(
+            std::vector<operator_t*> candidates,
+            char token,
+            int index) {
+        std::vector<operator_t*> matches;
+        for (auto it = candidates.begin(); it != candidates.end(); ++it) {
+            auto op = *it;
+            if (op->precedence == 0)
+                continue;
+            if (token == op->symbol[index]) {
+                matches.push_back(op);
+            }
+        }
+        return matches;
+    }
+
+    void parser::push_operand(const ast_node_shared_ptr& node) {
+        _operand_stack.push(node);
+    }
+
     ast_node_shared_ptr parser::create_ast_node(ast_node_t::tokens type) {
         auto node = std::make_shared<ast_node_t>();
         node->token = type;
@@ -636,15 +660,6 @@ namespace ryu::core {
     ast_node_shared_ptr parser::parse_expression(const std::string& input) {
         reset(input);
         return parse_expression();
-    }
-
-    void parser::error(const std::string& code, const std::string& message) {
-        std::stringstream stream;
-        stream << "Syntax error: " << message << "\n"
-               << _input << "\n"
-               << std::setw(_column) << '^';
-        _result.add_message(code, stream.str(), true);
-        _result.fail();
     }
 
 }

@@ -113,9 +113,9 @@ namespace ryu::core {
         row.columns.push_back(fmt::format("{:04d}", line_number));
         row.columns.emplace_back(std::string(8, ' '));
         row.columns.emplace_back(std::string(25, ' '));
-        row.columns.emplace_back("    e ");
+        row.columns.emplace_back("   e ");
         row.columns.emplace_back(fmt::format("<red>^ {}<>", error));
-        if (line_number < _table.rows.size()) {
+        if (line_number < _table.rows.size() - 1) {
             _table.rows.insert(
                     _table.rows.begin() + (line_number - 1),
                     row);

@@ -16,6 +16,10 @@
 
 namespace ryu::core {
 
+    assembler::assembler() {
+        _parser.register_operators();
+    }
+
     bool assembler::assemble(
             core::result& result,
             std::string& input) {

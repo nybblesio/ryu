@@ -402,6 +402,34 @@ namespace ryu::core {
                 auto lhs_node = evaluate(result, node->lhs);
                 auto rhs_node = evaluate(result, node->rhs);
                 switch (op.group) {
+                    case operator_t::op_group::conversion: {
+                        switch (op.op) {
+                            case assembler_parser::operators::dup: {
+                                auto data_count = boost::get<numeric_literal_t>(lhs_node).value;
+                                dup_literal_t dup_literal {data_count};
+                                if (rhs_node.which() == variant::types::numeric_literal) {
+                                    dup_literal.values.push_back(boost::get<numeric_literal_t>(rhs_node));
+                                } else if (rhs_node.which() == variant::types::char_literal) {
+                                    dup_literal.values.push_back(boost::get<char_literal_t>(rhs_node));
+                                } else {
+                                    error(
+                                        result,
+                                        "E008",
+                                        "dup supports character and numeric literals");
+                                    break;
+                                }
+                                return dup_literal;
+                            }
+                            default: {
+                                error(
+                                    result,
+                                    "E008",
+                                    fmt::format("operator {} is not supported", op.symbol));
+                                break;
+                            }
+                        }
+                        break;
+                    }
                     case operator_t::op_group::relational:
                     case operator_t::op_group::arithmetic: {
                         numeric_literal_t lhs;
@@ -500,6 +528,24 @@ namespace ryu::core {
                 auto rhs_node = evaluate(result, node->rhs);
                 auto op = boost::get<operator_t>(node->value);
                 switch (op.group) {
+                    case operator_t::conversion: {
+                        switch (op.op) {
+                            case assembler_parser::operators::paste: {
+                                break;
+                            }
+                            case assembler_parser::operators::quote: {
+                                break;
+                            }
+                            case assembler_parser::operators::offset: {
+                                break;
+                            }
+                            default: {
+                                error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
+                                break;
+                            }
+                        }
+                        break;
+                    }
                     case operator_t::arithmetic: {
                         numeric_literal_t rhs;
                         if (rhs_node.which() == variant::types::boolean_literal) {

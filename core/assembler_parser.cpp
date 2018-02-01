@@ -14,6 +14,49 @@
 
 namespace ryu::core {
 
+    void assembler_parser::register_operators() {
+        register_operator(
+                "paste",
+                {
+                        operators::paste,
+                        "#",
+                        8,
+                        operator_t::op_type::binary,
+                        operator_t::associativity_type::left,
+                        operator_t::op_group::conversion
+                });
+        register_operator(
+                "quote",
+                {
+                        operators::quote,
+                        "`",
+                        11,
+                        operator_t::op_type::unary,
+                        operator_t::associativity_type::right,
+                        operator_t::op_group::conversion
+                });
+        register_operator(
+                "offset",
+                {
+                        operators::offset,
+                        "offset",
+                        11,
+                        operator_t::op_type::unary,
+                        operator_t::associativity_type::right,
+                        operator_t::op_group::conversion
+                });
+        register_operator(
+                "dup",
+                {
+                        operators::dup,
+                        "dup",
+                        8,
+                        operator_t::op_type::binary,
+                        operator_t::associativity_type::left,
+                        operator_t::op_group::conversion
+                });
+    }
+
     ast_node_shared_ptr assembler_parser::pop_scope() {
         if (_scope_stack.empty())
             return nullptr;
@@ -31,7 +74,7 @@ namespace ryu::core {
             auto scope = current_scope();
 
             token = current_token();
-            if (token == nullptr)
+            if (token == nullptr || is_failed())
                 break;
 
             consume_white_space();
