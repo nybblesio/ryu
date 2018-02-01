@@ -195,6 +195,7 @@ namespace ryu::core {
                     }
                     case directive_t::types::data: {
                         std::vector<uint8_t> data {};
+                        auto start_location_counter = assembler->location_counter();
 
                         if (node->lhs != nullptr) {
                             pass1_transform_node(result, assembler, node->lhs);
@@ -239,7 +240,7 @@ namespace ryu::core {
                         if (!result.is_failed()) {
                             listing.annotate_line(
                                     node->line,
-                                    assembler->location_counter(),
+                                    start_location_counter,
                                     data,
                                     assembly_listing::row_flags::none);
                         }

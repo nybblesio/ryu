@@ -22,8 +22,7 @@ namespace ryu::core {
 
     class text_editor : public core::view {
     public:
-        using document_changed_callable = std::function<void (const core::document&)>;
-        using caret_changed_callable = std::function<void (const core::caret&)>;
+        using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
         using char_action_callable = std::function<void (uint32_t, uint16_t)>;
 
         explicit text_editor(const std::string& name);
@@ -60,13 +59,11 @@ namespace ryu::core {
 
         void on_caret_changed(const caret_changed_callable& callable);
 
-        void on_document_changed(const document_changed_callable& callable);
-
     protected:
         struct metrics_t {
-            uint8_t page_width;
-            uint8_t page_height;
-            int line_number_width;
+            uint8_t page_width {};
+            uint8_t page_height {};
+            int line_number_width {};
             const int left_padding = 10;
             const int right_padding = 10;
         };
@@ -138,7 +135,6 @@ namespace ryu::core {
         uint8_t _line_number_color;
         core::selection _selection;
         caret_changed_callable _caret_changed_callback;
-        document_changed_callable _document_changed_callback;
     };
 
 };

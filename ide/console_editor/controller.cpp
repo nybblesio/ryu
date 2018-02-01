@@ -154,7 +154,9 @@ namespace ryu::ide::console_editor {
         });
         _console.on_caret_changed([&](const core::caret& caret, const core::document& document) {
             _document_status.value(fmt::format(
-                    "R:{:04d}/{:04d}",
+                    "C:{:03d}/{:03d} R:{:04d}/{:04d}",
+                    document.column() + caret.column() + 1,
+                    document.columns(),
                     document.row() + caret.row() + 1,
                     document.rows()));
             _caret_status.value(fmt::format(

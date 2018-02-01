@@ -47,7 +47,7 @@ namespace ryu::core {
         void begin_assembly(const std::string& source);
 
     private:
-        data_table_row_t format_line(
+        std::vector<data_table_row_t> format_rows(
                 uint32_t line_number,
                 uint32_t address,
                 const std::vector<uint8_t>& opcodes,

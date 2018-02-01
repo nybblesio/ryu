@@ -58,7 +58,7 @@ namespace ryu::core {
     }
 
     bool document::clamp_row() {
-        if (_row > _rows) {
+        if (_row < 0) {
             _row = 0;
             return true;
         }
@@ -78,9 +78,8 @@ namespace ryu::core {
     }
 
     bool document::scroll_left() {
-        auto last_column = _column;
         --_column;
-        auto clamped = clamp_column(last_column);
+        auto clamped = clamp_column();
         raise_document_changed();
         return clamped;
     }
@@ -94,12 +93,12 @@ namespace ryu::core {
 
     bool document::scroll_right() {
         ++_column;
-        auto clamped = clamp_column(_column);
+        auto clamped = clamp_column();
         raise_document_changed();
         return clamped;
     }
 
-    uint32_t document::row() const {
+    int32_t document::row() const {
         return _row;
     }
 
@@ -114,7 +113,7 @@ namespace ryu::core {
         return clamped;
     }
 
-    uint16_t document::column() const {
+    int16_t document::column() const {
         return _column;
     }
 
@@ -141,7 +140,7 @@ namespace ryu::core {
 
     bool document::column(uint16_t column) {
         _column = column;
-        auto clamped = clamp_column(_column);
+        auto clamped = clamp_column();
         raise_document_changed();
         return clamped;
     }
@@ -287,9 +286,9 @@ namespace ryu::core {
         return empty;
     }
 
-    bool document::clamp_column(uint16_t last_col) {
-        if (_column > last_col) {
-            _column = last_col;
+    bool document::clamp_column() {
+        if (_column < 0) {
+            _column = 0;
             return true;
         }
 

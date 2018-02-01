@@ -557,9 +557,9 @@ namespace ryu::core {
     data_table_t environment::create_symbol_table() {
         data_table_t table {};
 
-        table.headers.push_back({"Identifier", 16, 32});
-        table.headers.push_back({"Expression", 16, 32});
-        table.footers.push_back({"Symbol Count", 32, 64});
+        table.headers.push_back({"Identifier",   40, 40});
+        table.headers.push_back({"Expression",   40, 75});
+        table.footers.push_back({"Symbol Count", 49, 64});
 
         auto identifiers = _symbol_table->identifiers();
         for (const auto& symbol : identifiers) {
@@ -631,16 +631,16 @@ namespace ryu::core {
         table.line_spacing = 1;
         table.headers.push_back({
                 "Command",
-                10,
-                32,
+                20,
+                40,
                 alignment::horizontal::left,
                 1,
                 format_options::style_codes
         });
         table.headers.push_back({
                 "Help",
-                10,
-                50,
+                35,
+                75,
                 alignment::horizontal::left,
                 1,
                 format_options::style_codes | format_options::word_wrap

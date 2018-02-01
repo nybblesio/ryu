@@ -16,9 +16,9 @@
 // TODO
 //
 // - support select, cut, copy, paste (use text_editor implementation for start)
-// - full document support
 // - bug fixes
 // - format_data_table needs some bug fixes and improvements around column data formatting
+// - ^^^^ specifically: columns that have style_codes enabled don't align properly
 
 namespace ryu::core {
 
@@ -81,11 +81,13 @@ namespace ryu::core {
 
     void console::caret_end() {
         _caret.column(_metrics.page_width);
+        _document.end(_metrics.page_width);
         update_virtual_position();
     }
 
     void console::caret_home() {
         _caret.column(0);
+        _document.home();
         update_virtual_position();
     }
 
@@ -164,8 +166,8 @@ namespace ryu::core {
     }
 
     void console::update_virtual_position() {
-        _vrow = _document.row() + _caret.row();
-        _vcol = _document.column() + _caret.column();
+        _vrow = static_cast<uint32_t>(_document.row() + _caret.row());
+        _vcol = static_cast<uint16_t>(_document.column() + _caret.column());
 
         if (_caret.mode() != core::caret::mode::select)
             _selection.clear();
@@ -186,8 +188,10 @@ namespace ryu::core {
     bool console::caret_left(uint8_t columns) {
         auto overflow = false;
         if (_caret.left(columns)) {
-            caret_up();
-            caret_end();
+            if (_document.scroll_left()) {
+                caret_up();
+                caret_end();
+            }
             overflow = true;
         }
         update_virtual_position();
@@ -197,8 +201,10 @@ namespace ryu::core {
     bool console::caret_right(uint8_t columns) {
         auto overflow = false;
         if (_caret.right(columns)) {
-            caret_down();
-            caret_home();
+            if (_document.scroll_right()) {
+                caret_down();
+                caret_home();
+            }
             overflow = true;
         }
         update_virtual_position();
@@ -223,12 +229,17 @@ namespace ryu::core {
         auto y = bounds.top();
         auto row_index = _document.row();
         for (uint32_t row = 0; row < _metrics.page_height; row++) {
-            auto x = bounds.left();
+            uint16_t col_start = static_cast<uint16_t>(_document.column());
+            uint16_t col_end = col_start + _metrics.page_width;
+
             auto chunks = _document.get_line_chunks(
-                    row_index++,
-                    0,
-                    _metrics.page_width);
+                    static_cast<uint32_t>(row_index++),
+                    col_start,
+                    col_end);
+
+            auto x = bounds.left();
             auto max_line_height = font_face()->line_height;
+
             for (const auto& chunk : chunks) {
                 font_style(chunk.attr.style);
                 auto face = font_face();
@@ -247,6 +258,7 @@ namespace ryu::core {
                 surface.draw_text(face, x, y, chunk.text, color);
                 x += width;
             }
+
             y += max_line_height;
         }
     }
@@ -322,7 +334,7 @@ namespace ryu::core {
     }
 
     void console::scale_columns(std::vector<data_table_column_t>& columns) {
-        auto target_width = _metrics.page_width - 4;
+        auto target_width = _document.columns() - 10;
 
         auto get_working_size = [&]() {
             auto working_size = 0;
@@ -391,7 +403,7 @@ namespace ryu::core {
                 auto column_pad = j < row.columns.size() - 1 ?
                                   header.padding : 0;
 
-                auto styled_text = col;
+                std::string styled_text;
                 auto word_wrapped = (header.options & format_options::word_wrap) != 0;
                 auto styled = (header.options & format_options::style_codes) != 0;
 
@@ -401,6 +413,8 @@ namespace ryu::core {
                             header.width,
                             total_width);
                     styled = true;
+                } else {
+                    styled_text = col;
                 }
 
                 if (styled) {
@@ -748,6 +762,10 @@ namespace ryu::core {
                             _caret.insert();
                         return true;
                     }
+                    break;
+
+                default:
+                    break;
             }
         }
         return false;

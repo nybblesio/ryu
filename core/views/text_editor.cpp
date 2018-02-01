@@ -102,7 +102,7 @@ namespace ryu::core {
 
     void text_editor::raise_caret_changed() {
         if (_caret_changed_callback != nullptr)
-            _caret_changed_callback(_caret);
+            _caret_changed_callback(_caret, _document);
     }
 
     void text_editor::caret_up(uint8_t rows) {
@@ -126,14 +126,9 @@ namespace ryu::core {
         update_virtual_position();
     }
 
-    void text_editor::raise_document_changed() {
-        if (_document_changed_callback != nullptr)
-            _document_changed_callback(_document);
-    }
-
     void text_editor::update_virtual_position() {
-        _vrow = _document.row() + _caret.row();
-        _vcol = _document.column() + _caret.column();
+        _vrow = static_cast<uint32_t>(_document.row() + _caret.row());
+        _vcol = static_cast<uint16_t>(_document.column() + _caret.column());
 
         if (_caret.mode() != core::caret::mode::select)
             _selection.clear();
@@ -200,11 +195,14 @@ namespace ryu::core {
         for (auto row = row_start; row < row_stop; row++) {
             surface.draw_text(font_face(), bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
 
-            uint16_t col_start = _document.column();
+            uint16_t col_start = static_cast<uint16_t>(_document.column());
             uint16_t col_end = col_start + _metrics.page_width;
 
             auto x = bounds.left() + _caret.padding().left();
-            auto chunks = _document.get_line_chunks(row, col_start, col_end);
+            auto chunks = _document.get_line_chunks(
+                    static_cast<uint32_t>(row),
+                    col_start,
+                    col_end);
             for (const auto& chunk : chunks) {
                 auto width = static_cast<int32_t>(face->width * chunk.text.length());
                 auto color = pal[chunk.attr.color];
@@ -475,6 +473,9 @@ namespace ryu::core {
                         _caret.insert();
                     return true;
                 }
+                default: {
+                    break;
+                }
             }
         }
         return false;
@@ -506,7 +507,7 @@ namespace ryu::core {
         _caret.initialize(0, 0);
 
         _document.on_document_changed([&]() {
-            raise_document_changed();
+            raise_caret_changed();
         });
         _document.default_attr(core::attr_t {fg_color(), core::font::styles::normal});
         _document.document_size(rows, columns);
@@ -571,10 +572,6 @@ namespace ryu::core {
                 line_end = _document.find_line_end(row);
             }
         }
-    }
-
-    void text_editor::on_document_changed(const text_editor::document_changed_callable& callable) {
-        _document_changed_callback = callable;
     }
 
 }

@@ -199,22 +199,20 @@ namespace ryu::ide::source_editor {
         _editor.caret_color(ide::colors::caret);
         _editor.selection_color(ide::colors::selection);
         _editor.line_number_color(ide::colors::info_text);
-        _editor.on_document_changed([&](const core::document& document) {
+        _editor.on_caret_changed([&](const core::caret& caret, const core::document& document) {
             std::string file_name = document.filename();
             if (file_name.empty()) {
                 file_name = "(none)";
             }
-            _file_status.value(fmt::format("| file: {0}", file_name));
+            _file_status.value(fmt::format("| file: {}", file_name));
             _document_status.value(fmt::format(
-                    "C:{0:03d}/{1:03d} R:{2:04d}/{3:04d}",
-                    document.column() + 1,
+                    "C:{:03d}/{:03d} R:{:04d}/{:04d}",
+                    document.column() + caret.column() + 1,
                     document.columns(),
-                    document.row() + 1,
+                    document.row() + caret.row() + 1,
                     document.rows()));
-        });
-        _editor.on_caret_changed([&](const core::caret& caret) {
             _caret_status.value(fmt::format(
-                    "| X:{0:03d} Y:{1:02d} | {2}",
+                    "| X:{:03d} Y:{:02d} | {}",
                     caret.column() + 1,
                     caret.row() + 1,
                     caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
