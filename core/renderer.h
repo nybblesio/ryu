@@ -66,6 +66,8 @@ namespace ryu::core {
 
         void draw_line(int x1, int y1, int x2, int y2);
 
+        void fill_polygon(const vertex_list& vertices);
+
         void set_color(const core::palette_entry& color);
 
     private:

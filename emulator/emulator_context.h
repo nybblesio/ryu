@@ -17,21 +17,20 @@ namespace ryu::emulator {
 
     class emulator_context : public core::context {
     public:
-        struct colors {
-            enum indexes {
-                black = 0,
-
-                dark_grey = 1,
-                fill_color = 1,
-            };
-        };
-
         explicit emulator_context(const std::string& name);
+
+        core::context_window::sizes size() const;
+
+        void size(core::context_window::sizes value);
 
         void parent_resize(const core::rect& parent_bounds);
 
     protected:
+        void on_draw(core::renderer& surface) override;
+
         bool on_initialize(core::result& result) override;
+
+        bool on_process_event(const SDL_Event* e) override;
 
     private:
         void configure_palette();
@@ -39,6 +38,7 @@ namespace ryu::emulator {
     private:
         core::palette _palette;
         controller _emulator_state;
+        core::context_window::sizes _size = core::context_window::sizes::split;
     };
 
 };

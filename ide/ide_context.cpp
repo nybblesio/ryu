@@ -8,10 +8,11 @@
 // this source code file.
 //
 
-#include <hardware/registry.h>
 #include <core/font_book.h>
-#include "ide_context.h"
+#include <hardware/registry.h>
+#include <emulator/emulator_context.h>
 #include "ide_types.h"
+#include "ide_context.h"
 
 namespace ryu::ide {
 
@@ -21,42 +22,6 @@ namespace ryu::ide {
                                                         _console_state("console"),
                                                         _source_editor_state("text editor"),
                                                         _machine_editor_state("machine editor") {
-    }
-
-    void ide_context::project(core::project* project) {
-        _project = project;
-    }
-
-    bool ide_context::on_initialize(core::result& result) {
-        configure_palette();
-
-        add_state(
-                &_console_state,
-                [&](const std::string& command, const core::parameter_dict& params) {
-                    if (command == "edit_source") {
-                        push_state(_source_editor_state.id(), params);
-                        return true;
-                    } else if (command == "edit_memory") {
-                        push_state(_hex_editor_state.id(), params);
-                        return true;
-                    } else if (command == "edit_machine") {
-                        push_state(_machine_editor_state.id(), params);
-                        return true;
-                    }
-                    return false;
-                });
-        add_state(&_hex_editor_state);
-        add_state(&_source_editor_state);
-        add_state(&_machine_editor_state);
-        push_state(_console_state.id(), {});
-
-        parent_resize(bounds());
-
-        return true;
-    }
-
-    core::project* ide_context::project() {
-        return _project;
     }
 
     void ide_context::configure_palette() {
@@ -165,14 +130,143 @@ namespace ryu::ide {
         palette(&_palette);
     }
 
-    void ide_context::parent_resize(const core::rect& parent_bounds) {
-        bounds({
-                0,
-                0,
-                (parent_bounds.width() / 2) - 1,
-                parent_bounds.height()
-        });
+    void ide_context::on_draw(core::renderer& surface) {
+        if (size() == core::context_window::sizes::expanded)
+            return;
 
+        const int16_t tab_width = 32;
+        const int16_t tab_slope = 16;
+        const int16_t tab_height = 128;
+        const int16_t offset_height = 64;
+
+        auto rect = bounds();
+        auto middle = static_cast<int16_t>((rect.height() / 2) - (tab_height + offset_height));
+        core::vertex_list tab_vertices = {
+            {static_cast<int16_t>(rect.right() + tab_width), static_cast<int16_t>(middle)},
+            {static_cast<int16_t>(rect.right()),             static_cast<int16_t>(middle - tab_slope)},
+            {static_cast<int16_t>(rect.right()),             static_cast<int16_t>(middle + tab_height + tab_slope)},
+            {static_cast<int16_t>(rect.right() + tab_width), static_cast<int16_t>(middle + tab_height)},
+            {static_cast<int16_t>(rect.right() + tab_width), static_cast<int16_t>(middle)},
+        };
+        surface.set_color(_palette[colors::fill_color]);
+        surface.fill_polygon(tab_vertices);
+        surface.set_color(_palette[colors::black]);
+        surface.draw_line(
+                rect.right(),
+                middle - tab_slope,
+                rect.right() + tab_width,
+                middle);
+        surface.draw_line(
+                rect.right() + tab_width,
+                middle + tab_height,
+                rect.right() + tab_width,
+                middle);
+        surface.draw_line(
+                rect.right() + tab_width,
+                middle + tab_height,
+                rect.right(),
+                middle + tab_height + tab_slope);
+    }
+
+    bool ide_context::on_initialize(core::result& result) {
+        configure_palette();
+
+        add_state(
+                &_console_state,
+                [&](const std::string& command, const core::parameter_dict& params) {
+                    if (command == "edit_source") {
+                        push_state(_source_editor_state.id(), params);
+                        return true;
+                    } else if (command == "edit_memory") {
+                        push_state(_hex_editor_state.id(), params);
+                        return true;
+                    } else if (command == "edit_machine") {
+                        push_state(_machine_editor_state.id(), params);
+                        return true;
+                    }
+                    return false;
+                });
+        add_state(&_hex_editor_state);
+        add_state(&_source_editor_state);
+        add_state(&_machine_editor_state);
+        push_state(_console_state.id(), {});
+
+        parent_resize(bounds());
+
+        return true;
+    }
+
+    core::context_window::sizes ide_context::size() const {
+        return _size;
+    }
+
+    bool ide_context::on_process_event(const SDL_Event* e) {
+        auto alt_pressed = (SDL_GetModState() & KMOD_ALT) != 0;
+
+        if (e->type == SDL_KEYDOWN) {
+            switch (e->key.keysym.sym) {
+                case SDLK_F1: {
+                    if (alt_pressed) {
+                        auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
+                        switch (_size) {
+                            case core::context_window::split:
+                                size(core::context_window::expanded);
+                                emulator_context->size(core::context_window::collapsed);
+                                break;
+                            case core::context_window::expanded:
+                            case core::context_window::collapsed:
+                                size(core::context_window::split);
+                                emulator_context->size(core::context_window::split);
+                                break;
+                            default:
+                                break;
+                        }
+                        return true;
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    void ide_context::size(core::context_window::sizes value) {
+        if (value != _size) {
+            _size = value;
+            engine()->raise_resize();
+        }
+    }
+
+    void ide_context::parent_resize(const core::rect& parent_bounds) {
+        switch (_size) {
+            case core::context_window::split:
+                bounds({
+                               0,
+                               0,
+                               (parent_bounds.width() / 2) - 1,
+                               parent_bounds.height()
+                       });
+                break;
+            case core::context_window::expanded:
+                bounds({
+                               0,
+                               0,
+                               parent_bounds.width() - 16,
+                               parent_bounds.height()
+                       });
+                break;
+            case core::context_window::collapsed:
+                bounds({
+                               0,
+                               0,
+                               16,
+                               parent_bounds.height()
+                       });
+                break;
+        }
     }
 
 }

@@ -133,6 +133,74 @@ namespace ryu::core {
         SDL_SetRenderDrawColor(_surface, color.red(), color.green(), color.blue(), color.alpha());
     }
 
+    void renderer::fill_polygon(const vertex_list& vertices) {
+        auto vertex_count = static_cast<int16_t>(vertices.size());
+        if (vertex_count < 3)
+            return;
+
+        auto min_y = vertices[0].y;
+        auto max_y = vertices[0].y;
+
+        for (const auto& v : vertices) {
+            if (v.y < min_y)
+                min_y = v.y;
+            else if (v.y > max_y)
+                max_y = v.y;
+        }
+
+
+        int16_t y1 = 0, y2 = 0;
+        int16_t x1 = 0, x2 = 0;
+        int16_t ind1 = 0, ind2 = 0;
+
+        for (int16_t y = min_y; y <= max_y; y++) {
+            std::vector<int32_t> points {};
+
+            for (int16_t i = 0; i < vertex_count; i++) {
+                if (i == 0) {
+                    ind1 = static_cast<int16_t>(vertex_count - 1);
+                    ind2 = 0;
+                } else {
+                    ind1 = static_cast<int16_t>(i - 1);
+                    ind2 = i;
+                }
+                y1 = vertices[ind1].y;
+                y2 = vertices[ind2].y;
+                if (y1 < y2) {
+                    x1 = vertices[ind1].x;
+                    x2 = vertices[ind2].x;
+                } else if (y1 > y2) {
+                    y2 = vertices[ind1].y;
+                    y1 = vertices[ind2].y;
+                    x2 = vertices[ind1].x;
+                    x1 = vertices[ind2].x;
+                } else {
+                    continue;
+                }
+                if (((y >= y1) && (y < y2))
+                ||  ((y == max_y) && (y > y1) && (y <= y2))) {
+                    auto point = ((65536 * (y - y1)) / (y2 - y1)) * (x2 - x1) + (65536 * x1);
+                    points.push_back(point);
+                }
+            }
+
+            std::sort(
+                    points.begin(),
+                    points.end(),
+                    [](int32_t left, int32_t right) {
+                        return left < right;
+                    });
+
+            for (auto i = 0; (i < points.size()); i += 2) {
+                auto xa = points[i] + 1;
+                xa = (xa >> 16) + ((xa & 32768) >> 15);
+                auto xb = points[i + 1] - 1;
+                xb = (xb >> 16) + ((xb & 32768) >> 15);
+                draw_line(xa, y, xb, y);
+            }
+        }
+    }
+
     int renderer::measure_text(const font_t* font_face, const std::string& value) {
         return FC_GetWidth(font_face->glyph, value.c_str());
     }
