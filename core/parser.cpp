@@ -15,29 +15,259 @@
 namespace ryu::core {
 
     operator_dict parser::_operators = {
-            {"~",  {operator_t::op::invert,            "~",  12, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
-            {"`",  {operator_t::op::negate,            "-",  11, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
-            {"!",  {operator_t::op::logical_not,       "!",  11, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::logical}},
-            {"^",  {operator_t::op::pow,               "^",  10, operator_t::op_type::binary, operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
-            {"*",  {operator_t::op::multiply,          "*",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"/",  {operator_t::op::divide,            "/",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"\\", {operator_t::op::modulo,            "\\",  9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"+",  {operator_t::op::add,               "+",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"-",  {operator_t::op::subtract,          "-",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"&",  {operator_t::op::binary_and,        "&",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"|",  {operator_t::op::binary_or,         "|",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {">",  {operator_t::op::greater_than,      ">",   7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {">=", {operator_t::op::greater_than_equal,">=",  7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"<",  {operator_t::op::less_than,         "<",   7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"<=", {operator_t::op::less_than_equal,   "<=",  7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"==", {operator_t::op::equal,             "==",  6, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"!=", {operator_t::op::not_equal,         "!=",  6, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"&&", {operator_t::op::logical_and,       "&&",  5, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::logical}},
-            {"||", {operator_t::op::logical_or,        "||",  4, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::logical}},
-            {"(",  {operator_t::op::left_parenthesis,  "(",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
-            {")",  {operator_t::op::right_parenthesis, ")",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
-            {"[",  {operator_t::op::left_bracket,      "[",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
-            {"]",  {operator_t::op::right_bracket,     "]",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
+        {
+            "~",
+            {
+                operator_t::op::invert,
+                "~",
+                12,
+                operator_t::op_type::unary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "`",
+            {
+                operator_t::op::negate,
+                "-",
+                11,
+                operator_t::op_type::unary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "!",
+            {
+                operator_t::op::logical_not,
+                "!",
+                11,
+                operator_t::op_type::unary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::logical
+            }
+        },
+        {
+            "^",
+            {
+                operator_t::op::pow,
+                "^",
+                10,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "*",
+            {
+                operator_t::op::multiply,
+                "*",
+                9,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "/",
+            {
+                operator_t::op::divide,
+                "/",
+                9,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "\\",
+            {
+                operator_t::op::modulo,
+                "\\",
+                9,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "+",
+            {
+                operator_t::op::add,
+                "+",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "-",
+            {
+                operator_t::op::subtract,
+                "-",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "&",
+            {
+                operator_t::op::binary_and,
+                "&",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "|",
+            {
+                operator_t::op::binary_or,
+                "|",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            ">",
+            {
+                operator_t::op::greater_than,
+                ">",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            ">=",
+            {
+                operator_t::op::greater_than_equal,
+                ">=",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "<",
+            {
+                operator_t::op::less_than,
+                "<",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "<=",
+            {
+                operator_t::op::less_than_equal,
+                "<=",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "==",
+            {
+                operator_t::op::equal,
+                "==",
+                6,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "!=",
+            {
+                operator_t::op::not_equal,
+                "!=",
+                6,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "&&",
+            {
+                operator_t::op::logical_and,
+                "&&",
+                5,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::logical
+            }
+        },
+        {
+            "||",
+            {
+                operator_t::op::logical_or,
+                "||",
+                4,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::logical
+            }
+        },
+        {
+            "(",
+            {
+                operator_t::op::left_parenthesis,
+                "(",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
+        {
+            ")",
+            {
+                operator_t::op::right_parenthesis,
+                ")",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
+        {
+            "[",
+            {
+                operator_t::op::left_bracket,
+                "[",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
+        {
+            "]",
+            {
+                operator_t::op::right_bracket,
+                "]",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
     };
 
     void parser::error(
@@ -175,6 +405,8 @@ namespace ryu::core {
         if (token == nullptr)
             return nullptr;
 
+        push_position();
+
         if (*token == '$') {
             std::stringstream stream;
             while (true) {
@@ -238,10 +470,14 @@ namespace ryu::core {
         }
 
         if (number.radix != 0) {
+            forget_top_position();
+
             auto number_literal = create_ast_node(ast_node_t::tokens::number_literal);
             number_literal->value = number;
             return number_literal;
         }
+
+        pop_position();
 
         return nullptr;
     }
@@ -307,7 +543,8 @@ namespace ryu::core {
             index++;
         }
 
-        if (!candidates.empty() && candidates.size() < _operators.size()) {
+        if (!candidates.empty()
+        &&   candidates.size() < _operators.size()) {
             auto top_op = peek_operator();
             auto top_operand = peek_operand();
             auto top_is_binary_op = top_op != nullptr && (top_op->type & operator_t::op_type::binary) != 0;
@@ -562,6 +799,20 @@ namespace ryu::core {
         return nullptr;
     }
 
+    ast_node_shared_ptr parser::parse_uninitialized() {
+        push_position();
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (*token == '?') {
+            forget_top_position();
+            move_to_next_token();
+            return create_ast_node(ast_node_t::tokens::uninitialized_literal);
+        }
+        pop_position();
+        return nullptr;
+    }
+
     ast_node_shared_ptr parser::parse_boolean_literal() {
         push_position();
         auto token = current_token();
@@ -647,6 +898,20 @@ namespace ryu::core {
 
     void parser::push_operand(const ast_node_shared_ptr& node) {
         _operand_stack.push(node);
+    }
+
+    ast_node_shared_ptr parser::parse_location_counter_literal() {
+        push_position();
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (*token == '$') {
+            forget_top_position();
+            move_to_next_token();
+            return create_ast_node(ast_node_t::tokens::location_counter_literal);
+        }
+        pop_position();
+        return nullptr;
     }
 
     ast_node_shared_ptr parser::create_ast_node(ast_node_t::tokens type) {

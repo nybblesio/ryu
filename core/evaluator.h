@@ -18,11 +18,10 @@ namespace ryu::core {
 
     class evaluator {
     public:
-        evaluator() = default;
+        explicit evaluator(core::assembler* assembler);
 
         bool pass1_transform(
                 core::result& result,
-                core::assembler* assembler,
                 const core::ast_node_shared_ptr& program_node);
 
         variant_t evaluate(
@@ -42,10 +41,18 @@ namespace ryu::core {
     private:
         bool pass1_transform_node(
                 core::result& result,
-                core::assembler* assembler,
+                const core::ast_node_shared_ptr& node);
+
+        bool transform_identifier_node(
+                core::result& result,
+                const core::ast_node_shared_ptr& node);
+
+        bool transform_directive_node(
+                core::result& result,
                 const core::ast_node_shared_ptr& node);
 
     private:
+        core::assembler* _assembler = nullptr;
         core::symbol_table* _symbol_table = nullptr;
     };
 

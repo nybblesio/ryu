@@ -53,7 +53,8 @@ namespace ryu::core {
                         8,
                         operator_t::op_type::binary,
                         operator_t::associativity_type::left,
-                        operator_t::op_group::conversion
+                        operator_t::op_group::conversion,
+                        true
                 });
     }
 
@@ -130,7 +131,9 @@ namespace ryu::core {
                         break;
                     }
                     case directive_t::align:
-                    case directive_t::origin: {
+                    case directive_t::origin:
+                    case directive_t::binary:
+                    case directive_t::include: {
                         directive_node->rhs = parse_expression();
                         break;
                     }

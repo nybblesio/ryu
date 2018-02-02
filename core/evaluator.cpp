@@ -8,14 +8,19 @@
 // this source code file.
 //
 
+#include <fstream>
 #include <iostream>
 #include <hardware/machine.h>
 #include "project.h"
 #include "evaluator.h"
 #include "assembler.h"
+#include "project_file.h"
 #include "symbol_table.h"
 
 namespace ryu::core {
+
+    evaluator::evaluator(core::assembler* assembler) : _assembler(assembler) {
+    }
 
     void evaluator::error(
             core::result& result,
@@ -27,12 +32,9 @@ namespace ryu::core {
 
     bool evaluator::pass1_transform_node(
             core::result& result,
-            core::assembler* assembler,
             const core::ast_node_shared_ptr& node) {
         if (node == nullptr)
             return false;
-
-        auto& listing = assembler->listing();
 
         switch (node->token) {
             case ast_node_t::comment: {
@@ -41,7 +43,7 @@ namespace ryu::core {
             }
             case ast_node_t::basic_block: {
                 for (auto const& block_child : node->children) {
-                    pass1_transform_node(result, assembler, block_child);
+                    pass1_transform_node(result, block_child);
                 }
                 break;
             }
@@ -58,28 +60,7 @@ namespace ryu::core {
                 break;
             case ast_node_t::label:
             case ast_node_t::identifier: {
-                std::string identifier_name;
-                switch (node->token) {
-                    case ast_node_t::label:
-                        identifier_name = boost::get<label_t>(node->value).value;
-                        break;
-                    case ast_node_t::identifier:
-                        identifier_name = boost::get<identifier_t>(node->value).value;
-                        break;
-                    default:
-                        listing.annotate_line_error(
-                                node->line,
-                                "unknown assembler state; this should not happen");
-                        error(result, "E004", "unknown assembler state; this should not happen");
-                        break;
-                }
-                auto address_node = std::make_shared<ast_node_t>();
-                address_node->token = ast_node_t::tokens::address;
-                address_node->value = numeric_literal_t {assembler->location_counter()};
-                address_node->lhs = node;
-                assembler
-                        ->symbol_table()
-                        ->put(identifier_name, address_node);
+                transform_identifier_node(result, node);
                 break;
             }
             case ast_node_t::branch: {
@@ -87,221 +68,7 @@ namespace ryu::core {
                 break;
             }
             case ast_node_t::directive: {
-                auto directive = boost::get<directive_t>(node->value);
-                switch (directive.type) {
-                    case directive_t::types::align: {
-                        auto variant = evaluate(result, node->rhs);
-                        if (variant.which() != variant::types::numeric_literal) {
-                            listing.annotate_line_error(
-                                    node->line,
-                                    "align directive requires a numeric constant");
-                            error(result, "E004", "align directive requires a numeric constant");
-                            break;
-                        }
-                        auto size = boost::get<numeric_literal_t>(variant).value;
-                        if (size > 0 && (size & (size - 1)) == 0) {
-                            assembler->align(static_cast<uint8_t>(size));
-                            listing.annotate_line(
-                                    node->line,
-                                    assembler->location_counter(),
-                                    {},
-                                    assembly_listing::row_flags::none);
-                        } else {
-                            listing.annotate_line_error(
-                                    node->line,
-                                    "align directive requires an integer power of 2 value");
-                            error(result, "E004", "align directive requires an integer power of 2 value");
-                        }
-                        break;
-                    }
-                    case directive_t::types::origin: {
-                        auto value = evaluate(result, node->rhs);
-                        if (value.which() != variant::types::numeric_literal) {
-                            listing.annotate_line_error(
-                                    node->line,
-                                    "origin directive requires a numeric constant");
-                            error(result, "E004", "origin directive requires a numeric constant");
-                            break;
-                        }
-                        if (!result.is_failed()) {
-                            auto number = boost::get<numeric_literal_t>(value).value;
-                            assembler->location_counter(static_cast<uint32_t>(number));
-                            listing.annotate_line(
-                                    node->line,
-                                    assembler->location_counter(),
-                                    {},
-                                    assembly_listing::row_flags::none);
-                        }
-                        break;
-                    }
-                    case directive_t::types::target: {
-                        auto value = evaluate(result, node->rhs);
-                        if (value.which() != variant::types::string_literal) {
-                            listing.annotate_line_error(
-                                    node->line,
-                                    "target directive requires a string constant");
-                            error(result, "E004", "target directive requires a string constant");
-                            break;
-                        }
-                        if (!result.is_failed()) {
-                            auto component_name = boost::get<string_literal_t>(value).value;
-                            if (assembler->load_target(result, component_name)) {
-                                listing.annotate_line(
-                                        node->line,
-                                        0,
-                                        {},
-                                        assembly_listing::row_flags::none);
-                            } else {
-                                auto messages = result.messages();
-                                listing.annotate_line_error(
-                                        node->line,
-                                        messages[messages.size() - 1].message());
-                            }
-                        }
-                        break;
-                    }
-                    case directive_t::types::equate: {
-                        auto identifier_name = boost::get<identifier_t>(node->lhs->value).value;
-                        assembler->symbol_table()->put(identifier_name, node->rhs);
-                        listing.annotate_line(
-                                node->line,
-                                0,
-                                {},
-                                assembly_listing::row_flags::none);
-                        break;
-                    }
-                    case directive_t::types::local: {
-                        listing.annotate_line(
-                                node->line,
-                                0,
-                                {},
-                                assembly_listing::row_flags::none);
-                        break;
-                    }
-                    case directive_t::types::macro:
-                    case directive_t::types::structure: {
-                        auto statement_node = node->rhs;
-                        auto parameter_list = statement_node->lhs;
-                        auto identifier_name = boost::get<identifier_t>(parameter_list->children[0]->value).value;
-                        assembler
-                                ->symbol_table()
-                                ->put(identifier_name, statement_node);
-                        listing.annotate_line(
-                                node->line,
-                                0,
-                                {},
-                                assembly_listing::row_flags::none);
-                        break;
-                    }
-                    case directive_t::types::data: {
-                        std::vector<uint8_t> data {};
-                        auto start_location_counter = assembler->location_counter();
-
-                        if (node->lhs != nullptr) {
-                            pass1_transform_node(result, assembler, node->lhs);
-                        }
-
-                        for (const auto& parameter_node : node->rhs->children) {
-                            std::vector<uint8_t> data_bytes {};
-                            auto value = evaluate(result, parameter_node);
-                            if (result.is_failed()) {
-                                auto messages = result.messages();
-                                listing.annotate_line_error(
-                                        node->line,
-                                        messages[messages.size() - 1].message());
-                            } else {
-                                if (value.which() == variant::types::string_literal) {
-                                    auto text = boost::get<string_literal_t>(value).value;
-                                    data_bytes = assembler->write_data(text);
-                                } else if (value.which() == variant::types::char_literal) {
-                                    auto char_byte = boost::get<char_literal_t>(value).value;
-                                    data_bytes = assembler->write_data(
-                                            directive_t::data_sizes::byte,
-                                            char_byte);
-                                } else {
-                                    if (value.which() != variant::types::numeric_literal) {
-                                        listing.annotate_line_error(
-                                                node->line,
-                                                "data directives require constant numeric values");
-                                        error(result, "E004", "data directives require constant numeric values");
-                                        break;
-                                    }
-                                    auto number = boost::get<numeric_literal_t>(value).value;
-                                    data_bytes = assembler->write_data(
-                                            directive.data_size,
-                                            static_cast<uint32_t>(number));
-                                }
-
-                                for (const auto d : data_bytes)
-                                    data.push_back(d);
-                            }
-                        }
-
-                        if (!result.is_failed()) {
-                            listing.annotate_line(
-                                    node->line,
-                                    start_location_counter,
-                                    data,
-                                    assembly_listing::row_flags::none);
-                        }
-
-                        break;
-                    }
-                    case directive_t::types::loop: {
-                        listing.annotate_line(
-                                node->line,
-                                0,
-                                {},
-                                assembly_listing::row_flags::none);
-                        break;
-                    }
-                    case directive_t::types::if_block:
-                    case directive_t::types::elseif_block: {
-                        auto branch_node = node->children[0];
-                        auto variant = evaluate(result, node->rhs);
-                        if (!result.is_failed()) {
-                            auto is_true = boost::get<boolean_literal_t>(variant).value;
-                            if (is_true) {
-                                pass1_transform_node(result, assembler, branch_node->lhs);
-                            } else {
-                                if (branch_node->rhs != nullptr)
-                                    pass1_transform_node(result, assembler, branch_node->rhs);
-                            }
-                            listing.annotate_line(
-                                    node->line,
-                                    0,
-                                    {},
-                                    assembly_listing::row_flags::none);
-                         } else {
-                            auto messages = result.messages();
-                            listing.annotate_line_error(
-                                    node->line,
-                                    messages[messages.size() - 1].message());
-                        }
-                        break;
-                    }
-                    case directive_t::types::else_block: {
-                        auto branch_node = node->children[0];
-                        pass1_transform_node(result, assembler, branch_node->lhs);
-                        listing.annotate_line(
-                                node->line,
-                                0,
-                                {},
-                                assembly_listing::row_flags::none);
-                        break;
-                    }
-                    case directive_t::types::end_block: {
-                        // N.B. currently a nop
-                        break;
-                    }
-                    default: {
-                        listing.annotate_line_error(
-                                node->line,
-                                "unknown assembler directive");
-                        error(result, "E004", "unknown assembler directive");
-                        break;
-                    }
-                }
+                transform_directive_node(result, node);
                 break;
             }
             default:
@@ -314,9 +81,13 @@ namespace ryu::core {
 
     bool evaluator::pass1_transform(
             core::result& result,
-            core::assembler* assembler,
             const core::ast_node_shared_ptr& program_node) {
-        if (program_node == nullptr || assembler == nullptr) {
+        if (_assembler == nullptr) {
+            // XXX: add error about missing assembler
+            return false;
+        }
+
+        if (program_node == nullptr) {
             // XXX: add error
             return false;
         }
@@ -325,7 +96,7 @@ namespace ryu::core {
         program_node->serialize(std::cout);
 
         for (const auto& program_child : program_node->children) {
-            if (!pass1_transform_node(result, assembler, program_child)) {
+            if (!pass1_transform_node(result, program_child)) {
                 break;
             }
         }
@@ -393,7 +164,20 @@ namespace ryu::core {
             case ast_node_t::statement:
             case ast_node_t::basic_block:
             case ast_node_t::parameter_list:
+            case ast_node_t::uninitialized_literal: {
                 break;
+            }
+            case ast_node_t::location_counter_literal: {
+                if (_assembler != nullptr) {
+                    return numeric_literal_t {_assembler->location_counter()};
+                } else {
+                    error(
+                        result,
+                        "E008",
+                        "no valid assembler assigned to evaluator");
+                }
+                break;
+            }
             case ast_node_t::expression: {
                 return evaluate(result, node->children[0]);
             }
@@ -592,7 +376,7 @@ namespace ryu::core {
         }
 
         return {};
-    }
+     }
 
     core::symbol_table* evaluator::symbol_table() {
         return _symbol_table;
@@ -600,6 +384,345 @@ namespace ryu::core {
 
     void evaluator::symbol_table(core::symbol_table* value) {
         _symbol_table = value;
+    }
+
+    bool evaluator::transform_directive_node(
+            core::result& result,
+            const core::ast_node_shared_ptr& node) {
+        if (node == nullptr)
+            return false;
+
+        auto& listing = _assembler->listing();
+
+        auto directive = boost::get<directive_t>(node->value);
+        switch (directive.type) {
+            case directive_t::types::align: {
+                auto variant = evaluate(result, node->rhs);
+                if (variant.which() != variant::types::numeric_literal) {
+                    listing.annotate_line_error(
+                            node->line,
+                            "align directive requires a numeric constant");
+                    error(result, "E004", "align directive requires a numeric constant");
+                    break;
+                }
+                auto size = boost::get<numeric_literal_t>(variant).value;
+                if (size > 0 && (size & (size - 1)) == 0) {
+                    _assembler->align(static_cast<uint8_t>(size));
+                    listing.annotate_line(
+                            node->line,
+                            _assembler->location_counter(),
+                            {},
+                            assembly_listing::row_flags::address);
+                } else {
+                    listing.annotate_line_error(
+                            node->line,
+                            "align directive requires an integer power of 2 value");
+                    error(result, "E004", "align directive requires an integer power of 2 value");
+                }
+                break;
+            }
+            case directive_t::types::origin: {
+                auto value = evaluate(result, node->rhs);
+                if (value.which() != variant::types::numeric_literal) {
+                    listing.annotate_line_error(
+                            node->line,
+                            "origin directive requires a numeric constant");
+                    error(result, "E004", "origin directive requires a numeric constant");
+                    break;
+                }
+                if (!result.is_failed()) {
+                    auto number = boost::get<numeric_literal_t>(value).value;
+                    _assembler->location_counter(static_cast<uint32_t>(number));
+                    listing.annotate_line(
+                            node->line,
+                            _assembler->location_counter(),
+                            {},
+                            assembly_listing::row_flags::address);
+                }
+                break;
+            }
+            case directive_t::types::target: {
+                auto value = evaluate(result, node->rhs);
+                if (value.which() != variant::types::string_literal) {
+                    listing.annotate_line_error(
+                            node->line,
+                            "target directive requires a string constant");
+                    error(result, "E004", "target directive requires a string constant");
+                    break;
+                }
+                if (!result.is_failed()) {
+                    auto component_name = boost::get<string_literal_t>(value).value;
+                    if (_assembler->load_target(result, component_name)) {
+                        listing.annotate_line(
+                                node->line,
+                                0,
+                                {},
+                                assembly_listing::row_flags::none);
+                    } else {
+                        auto messages = result.messages();
+                        listing.annotate_line_error(
+                                node->line,
+                                messages[messages.size() - 1].message());
+                    }
+                }
+                break;
+            }
+            case directive_t::types::equate: {
+                auto identifier_name = boost::get<identifier_t>(node->lhs->value).value;
+                _assembler->symbol_table()->put(identifier_name, node->rhs);
+                listing.annotate_line(
+                        node->line,
+                        0,
+                        {},
+                        assembly_listing::row_flags::none);
+                break;
+            }
+            case directive_t::types::local: {
+                listing.annotate_line(
+                        node->line,
+                        0,
+                        {},
+                        assembly_listing::row_flags::none);
+                break;
+            }
+            case directive_t::types::macro:
+            case directive_t::types::structure: {
+                auto statement_node = node->rhs;
+                auto parameter_list = statement_node->lhs;
+                auto identifier_name = boost::get<identifier_t>(parameter_list->children[0]->value).value;
+                _assembler
+                        ->symbol_table()
+                        ->put(identifier_name, statement_node);
+                listing.annotate_line(
+                        node->line,
+                        0,
+                        {},
+                        assembly_listing::row_flags::none);
+                break;
+            }
+            case directive_t::types::include: {
+                auto value = evaluate(result, node->rhs);
+                if (value.which() != variant::types::string_literal) {
+                    listing.annotate_line_error(
+                            node->line,
+                            "binary directive requires a string constant for the path");
+                    error(result, "E004", "binary directive requires a string constant for the path");
+                    break;
+                }
+
+                auto path = boost::get<string_literal_t>(value).value;
+                auto project = core::project::instance();
+                auto project_file = project->find_file(path);
+
+                std::stringstream source;
+                if (!project_file->read(result, source)) {
+                    listing.annotate_line_error(
+                            node->line,
+                            fmt::format("include failed for path: {}", path));
+                    error(result, "E004", fmt::format("include failed for path: {}", path));
+                    break;
+                }
+
+                listing.annotate_line(
+                        node->line,
+                        0,
+                        {},
+                        assembly_listing::row_flags::none);
+
+                auto source_text = source.str();
+                _assembler->assemble_stream(result, source_text);
+                break;
+            }
+            case directive_t::types::binary: {
+                auto value = evaluate(result, node->rhs);
+                if (value.which() != variant::types::string_literal) {
+                    listing.annotate_line_error(
+                            node->line,
+                            "binary directive requires a string constant for the path");
+                    error(result, "E004", "binary directive requires a string constant for the path");
+                    break;
+                }
+
+                std::vector<uint8_t> data_bytes {};
+                auto start_location_counter = _assembler->location_counter();
+
+                auto path = boost::get<string_literal_t>(value).value;
+                std::ifstream file(path, std::ios::in|std::ios::binary);
+                if (file.is_open()) {
+                    char data_byte;
+                    while (!file.eof()) {
+                        file.get(data_byte);
+                        _assembler->write_data(
+                                directive_t::data_sizes::byte,
+                                static_cast<uint32_t>(data_byte));
+                        data_bytes.push_back(static_cast<uint8_t&&>(data_byte));
+                    }
+                    file.close();
+                }
+
+                if (!result.is_failed()) {
+                    listing.annotate_line(
+                            node->line,
+                            start_location_counter,
+                            data_bytes,
+                              assembly_listing::row_flags::address
+                            | assembly_listing::row_flags::binary);
+                }
+
+                break;
+            }
+            case directive_t::types::data: {
+                std::vector<uint8_t> data {};
+                auto start_location_counter = _assembler->location_counter();
+
+                if (node->lhs != nullptr) {
+                    pass1_transform_node(result, node->lhs);
+                }
+
+                for (const auto& parameter_node : node->rhs->children) {
+                    std::vector<uint8_t> data_bytes {};
+                    auto value = evaluate(result, parameter_node);
+                    if (result.is_failed()) {
+                        auto messages = result.messages();
+                        listing.annotate_line_error(
+                                node->line,
+                                messages[messages.size() - 1].message());
+                    } else {
+                        if (value.which() == variant::types::string_literal) {
+                            auto text = boost::get<string_literal_t>(value).value;
+                            data_bytes = _assembler->write_data(text);
+                        } else if (value.which() == variant::types::char_literal) {
+                            auto char_byte = boost::get<char_literal_t>(value).value;
+                            data_bytes = _assembler->write_data(
+                                    directive_t::data_sizes::byte,
+                                    char_byte);
+                        } else if (parameter_node->token == ast_node_t::uninitialized_literal) {
+                            _assembler->increment_location_counter(directive.data_size);
+                        }
+                        else {
+                            if (value.which() != variant::types::numeric_literal) {
+                                listing.annotate_line_error(
+                                        node->line,
+                                        "data directives require constant numeric values");
+                                error(result, "E004", "data directives require constant numeric values");
+                                break;
+                            }
+                            auto number = boost::get<numeric_literal_t>(value).value;
+                            data_bytes = _assembler->write_data(
+                                    directive.data_size,
+                                    static_cast<uint32_t>(number));
+                        }
+
+                        for (const auto d : data_bytes)
+                            data.push_back(d);
+                    }
+                }
+
+                if (!result.is_failed()) {
+                    listing.annotate_line(
+                            node->line,
+                            start_location_counter,
+                            data,
+                            assembly_listing::row_flags::address);
+                }
+
+                break;
+            }
+            case directive_t::types::loop: {
+                listing.annotate_line(
+                        node->line,
+                        0,
+                        {},
+                        assembly_listing::row_flags::none);
+                break;
+            }
+            case directive_t::types::if_block:
+            case directive_t::types::elseif_block: {
+                auto branch_node = node->children[0];
+                auto variant = evaluate(result, node->rhs);
+                if (!result.is_failed()) {
+                    auto is_true = boost::get<boolean_literal_t>(variant).value;
+                    if (is_true) {
+                        pass1_transform_node(result, branch_node->lhs);
+                    } else {
+                        if (branch_node->rhs != nullptr)
+                            pass1_transform_node(result, branch_node->rhs);
+                    }
+                    listing.annotate_line(
+                            node->line,
+                            0,
+                            {},
+                            assembly_listing::row_flags::none);
+                } else {
+                    auto messages = result.messages();
+                    listing.annotate_line_error(
+                            node->line,
+                            messages[messages.size() - 1].message());
+                }
+                break;
+            }
+            case directive_t::types::else_block: {
+                auto branch_node = node->children[0];
+                pass1_transform_node(result, branch_node->lhs);
+                listing.annotate_line(
+                        node->line,
+                        0,
+                        {},
+                        assembly_listing::row_flags::none);
+                break;
+            }
+            case directive_t::types::end_block: {
+                // N.B. currently a nop
+                break;
+            }
+            default: {
+                listing.annotate_line_error(
+                        node->line,
+                        "unknown assembler directive");
+                error(result, "E004", "unknown assembler directive");
+                break;
+            }
+        }
+
+        return !result.is_failed();
+    }
+
+    bool evaluator::transform_identifier_node(
+            core::result& result,
+            const core::ast_node_shared_ptr& node) {
+        if (node == nullptr)
+            return false;
+
+        auto& listing = _assembler->listing();
+
+        std::string identifier_name;
+        switch (node->token) {
+            case ast_node_t::label:
+                identifier_name = boost::get<label_t>(node->value).value;
+                break;
+            case ast_node_t::identifier:
+                identifier_name = boost::get<identifier_t>(node->value).value;
+                break;
+            default:
+                listing.annotate_line_error(
+                        node->line,
+                        "unknown assembler state; this should not happen");
+                error(
+                        result,
+                        "E004",
+                        "unknown assembler state; this should not happen");
+                break;
+        }
+
+        auto address_node = std::make_shared<ast_node_t>();
+        address_node->token = ast_node_t::tokens::address;
+        address_node->value = numeric_literal_t {_assembler->location_counter()};
+        address_node->lhs = node;
+        _assembler
+                ->symbol_table()
+                ->put(identifier_name, address_node);
+
+        return !result.is_failed();
     }
 
 }

@@ -10,9 +10,15 @@
 
 #pragma once
 
+#include <queue>
 #include "core_types.h"
 
 namespace ryu::core {
+
+    struct assembly_listing_scope_t {
+        uint32_t line_number = 1;
+        std::vector<std::string> lines {};
+    };
 
     class assembly_listing {
     public:
@@ -21,7 +27,8 @@ namespace ryu::core {
             include = 0b00000001,
             binary  = 0b00000010,
             macro   = 0b00000100,
-            error   = 0b00001000
+            error   = 0b00001000,
+            address = 0b00010000
         };
 
         typedef uint8_t row_flags_t;
@@ -30,7 +37,9 @@ namespace ryu::core {
 
         virtual ~assembly_listing() = default;
 
-        core::data_table_t& table();
+        void reset();
+
+        void finalize();
 
         void end_assembly();
 
@@ -44,9 +53,13 @@ namespace ryu::core {
                 uint32_t line_number,
                 const std::string& error);
 
+        core::data_table_t& table();
+
         void begin_assembly(const std::string& source);
 
     private:
+        assembly_listing_scope_t* current_scope();
+
         std::vector<data_table_row_t> format_rows(
                 uint32_t line_number,
                 uint32_t address,
@@ -57,7 +70,7 @@ namespace ryu::core {
         uint32_t _current_line = 1;
         core::data_table_t _table {};
         uint32_t _annotated_line_count = 0;
-        std::vector<std::string> _lines {};
+        std::stack<assembly_listing_scope_t> _scopes {};
     };
 
 };

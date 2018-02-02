@@ -16,15 +16,16 @@ namespace ryu::core {
 
     // FEB 1 GOALS:
     //
-    // ?               - uninitialized
-    // $               - location counter alias
-    // .binary [path]  - include binary data into assembly
-    // .include [path] - recursively assembly file
+    // *done: ?               - uninitialized
+    // *done: $               - location counter alias
+    // *done: .binary [path]  - include binary data into assembly
+    // *done: .include [path] - recursively assembly file
+    //
+    // *partially: dup        - .byte 5 dup($c0)
+    //                           or .byte 10 dup(2, 8) * no parser support yet
+    //
     // .loop           - repeat the basic_block
     // .local          - create a unique label name
-    //
-    // dup             - .byte 5 dup($c0)
-    //                           or .byte 10 dup(2, 8) * no parser support yet
     //
     // #               - paste operator
     // `               - quote operator

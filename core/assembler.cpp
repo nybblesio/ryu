@@ -16,7 +16,7 @@
 
 namespace ryu::core {
 
-    assembler::assembler() {
+    assembler::assembler() : _evaluator(this) {
         _parser.register_operators();
     }
 
@@ -27,31 +27,13 @@ namespace ryu::core {
                 ->machine()
                 ->set_write_latches(true);
 
-        _listing.begin_assembly(input);
-
-        auto program_node = _parser.parse(input);
-        auto parser_result = _parser.result();
-        if (program_node == nullptr && parser_result.is_failed()) {
-            for (auto& msg : parser_result.messages())
-                result.add_message(
-                        msg.code(),
-                        msg.message(),
-                        msg.details(),
-                        msg.is_error());
-            return false;
-        }
-
-        if (program_node != nullptr) {
-            if (!_evaluator.pass1_transform(result, this, program_node)) {
-
-            }
-        }
+        _listing.reset();
+        assemble_stream(result, input);
+        _listing.finalize();
 
         core::project::instance()
                 ->machine()
                 ->set_write_latches(false);
-
-        _listing.end_assembly();
 
         return !result.is_failed();
     }
@@ -89,6 +71,34 @@ namespace ryu::core {
         _target = component;
 
         return true;
+    }
+
+    bool assembler::assemble_stream(
+            core::result& result,
+            std::string& input) {
+        _listing.begin_assembly(input);
+
+        auto program_node = _parser.parse(input);
+        auto parser_result = _parser.result();
+        if (program_node == nullptr && parser_result.is_failed()) {
+            for (auto& msg : parser_result.messages())
+                result.add_message(
+                        msg.code(),
+                        msg.message(),
+                        msg.details(),
+                        msg.is_error());
+            return false;
+        }
+
+        if (program_node != nullptr) {
+            if (!_evaluator.pass1_transform(result, program_node)) {
+
+            }
+        }
+
+        _listing.end_assembly();
+
+        return !result.is_failed();
     }
 
     void assembler::align(uint8_t size) {
@@ -149,6 +159,12 @@ namespace ryu::core {
         _location_counter = value;
     }
 
+    void assembler::symbol_table(core::symbol_table* value) {
+        _symbol_table = value;
+        _parser.symbol_table(_symbol_table);
+        _evaluator.symbol_table(_symbol_table);
+    }
+
     std::vector<uint8_t> assembler::write_data(const std::string& value) {
         std::vector<uint8_t> data {};
 
@@ -164,10 +180,21 @@ namespace ryu::core {
         return data;
     }
 
-    void assembler::symbol_table(core::symbol_table* value) {
-        _symbol_table = value;
-        _parser.symbol_table(_symbol_table);
-        _evaluator.symbol_table(_symbol_table);
+    void assembler::increment_location_counter(directive_t::data_sizes size) {
+        switch (size) {
+            case directive_t::byte:
+            case directive_t::ascii:
+                ++_location_counter;
+                break;
+            case directive_t::word:
+                _location_counter += 2;
+                break;
+            case directive_t::dword:
+                _location_counter += 4;
+                break;
+            default:
+                break;
+        }
     }
 
 }

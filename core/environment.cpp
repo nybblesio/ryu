@@ -340,7 +340,7 @@ namespace ryu::core {
         }
 
         auto command = boost::get<core::command_t>(root->value);
-        core::evaluator evaluator;
+        core::evaluator evaluator(_assembler.get());
         evaluator.symbol_table(_symbol_table.get());
 
         core::command_parameter_dict params;

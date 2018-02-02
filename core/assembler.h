@@ -31,6 +31,10 @@ namespace ryu::core {
                 core::result& result,
                 const std::string& name);
 
+        bool assemble_stream(
+                core::result& result,
+                std::string& input);
+
         void align(uint8_t size);
 
         hardware::component* target();
@@ -51,8 +55,10 @@ namespace ryu::core {
 
         std::vector<uint8_t> write_data(const std::string& value);
 
+        void increment_location_counter(directive_t::data_sizes size);
+
     private:
-        core::evaluator _evaluator {};
+        core::evaluator _evaluator;
         uint32_t _location_counter = 0;
         core::assembler_parser _parser {};
         core::assembly_listing _listing {};

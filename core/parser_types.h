@@ -206,7 +206,8 @@ namespace ryu::core {
             else_block,
             loop,
             macro,
-            include
+            include,
+            binary
         };
 
         enum data_sizes {
@@ -281,6 +282,10 @@ namespace ryu::core {
                     break;
                 case include:
                     stream << ".include";
+                    break;
+                case binary:
+                    stream << ".binary";
+                    break;
                 default:
                     stream << "***unknown***";
                     break;
@@ -384,6 +389,7 @@ namespace ryu::core {
         uint8_t type = op_type::no_op;
         associativity_type associativity = associativity_type::none;
         op_group group = op_group::arithmetic;
+        bool requires_parens = false;
     };
 
     struct radix_number_t {
@@ -636,7 +642,9 @@ namespace ryu::core {
             directive,
             parameter_list,
             branch,
-            address
+            address,
+            uninitialized_literal,
+            location_counter_literal
         };
 
         void serialize(std::ostream& stream) {
@@ -705,6 +713,12 @@ namespace ryu::core {
                     break;
                 case null_literal:
                     stream << "null";
+                    break;
+                case uninitialized_literal:
+                    stream << "?";
+                    break;
+                case location_counter_literal:
+                    stream << "$";
                     break;
             }
         }

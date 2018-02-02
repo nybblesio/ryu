@@ -111,11 +111,15 @@ namespace ryu::core {
 
         ast_node_shared_ptr parse_null_literal();
 
+        ast_node_shared_ptr parse_uninitialized();
+
         ast_node_shared_ptr parse_string_literal();
 
         ast_node_shared_ptr parse_boolean_literal();
 
         ast_node_shared_ptr parse_character_literal();
+
+        ast_node_shared_ptr parse_location_counter_literal();
 
     private:
         bool operator_stack_has(operator_t* op);
@@ -136,6 +140,8 @@ namespace ryu::core {
                 [&] () {return parse_identifier();},
                 [&] () {return parse_string_literal();},
                 [&] () {return parse_character_literal();},
+                [&] () {return parse_uninitialized();},
+                [&] () {return parse_location_counter_literal();},
         };
 
         static operator_dict _operators;

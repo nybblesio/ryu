@@ -60,19 +60,35 @@ namespace ryu::core {
         _table.footers.push_back({"Line Count", 15, 20});
     }
 
+    void assembly_listing::reset() {
+        while (!_scopes.empty())
+            _scopes.pop();
+        _table.rows.clear();
+        _current_line = 1;
+        _annotated_line_count = 0;
+    }
+
+    void assembly_listing::finalize() {
+        _table.rows.push_back({
+            {fmt::format("{} lines assembled", _annotated_line_count)}
+        });
+    }
+
     void assembly_listing::end_assembly() {
-        for (; _current_line < _lines.size(); _current_line++) {
+        auto scope = current_scope();
+
+        for (; scope->line_number < scope->lines.size(); scope->line_number++) {
             auto rows = format_rows(
-                    _current_line,
+                    scope->line_number,
                     0,
                     {},
                     assembly_listing::row_flags::none);
             for (const auto& row : rows)
                 _table.rows.push_back(row);
         }
-        _table.rows.push_back({
-              {fmt::format("{} lines assembled", _annotated_line_count)}
-        });
+
+        if (!_scopes.empty())
+            _scopes.pop();
     }
 
     void assembly_listing::annotate_line(
@@ -80,9 +96,11 @@ namespace ryu::core {
             uint32_t address,
             const std::vector<uint8_t>& opcodes,
             assembly_listing::row_flags_t flags) {
-        for (; _current_line < line_number; _current_line++) {
+        auto scope = current_scope();
+
+        for (; scope->line_number < line_number; scope->line_number++) {
             auto rows = format_rows(
-                    _current_line,
+                    scope->line_number,
                     0,
                     {},
                     assembly_listing::row_flags::none);
@@ -91,7 +109,7 @@ namespace ryu::core {
         }
 
         auto rows = format_rows(
-                _current_line++,
+                scope->line_number++,
                 address,
                 opcodes,
                 flags);
@@ -113,7 +131,13 @@ namespace ryu::core {
         row.columns.push_back(fmt::format("{:04d}", line_number));
         row.columns.emplace_back(std::string(8, ' '));
         row.columns.emplace_back(std::string(25, ' '));
-        row.columns.emplace_back("   e ");
+
+        std::string flag_chars(5, ' ');
+        if (_scopes.size() > 1)
+            flag_chars[1] = 'i';
+        flag_chars[3] = 'e';
+        row.columns.emplace_back(flag_chars);
+
         row.columns.emplace_back(fmt::format("<red>^ {}<>", error));
         if (line_number < _table.rows.size() - 1) {
             _table.rows.insert(
@@ -132,11 +156,9 @@ namespace ryu::core {
         std::vector<data_table_row_t> rows {};
 
         core::data_table_row_t row {};
-        row.columns.push_back(fmt::format("{:04d}", line_number));
+        row.columns.push_back(fmt::format("{:04d}", _current_line++));
 
-        if ((flags & row_flags::none) != 0
-        ||  (flags & row_flags::error) != 0
-        ||  address == 0) {
+        if ((flags & row_flags::address) == 0) {
             row.columns.emplace_back(8, ' ');
         } else {
             row.columns.push_back(fmt::format("{:08x}", address));
@@ -147,7 +169,8 @@ namespace ryu::core {
         }
         else {
             std::stringstream stream;
-            for (auto i = 0; i < 8; i++) {
+            auto data_count = std::min<size_t>(opcodes.size(), 8);
+            for (auto i = 0; i < data_count; i++) {
                 stream << fmt::format("{:02x} ", opcodes[i]);
             }
             row.columns.push_back(stream.str());
@@ -156,7 +179,7 @@ namespace ryu::core {
         std::string flag_chars(5, ' ');
         if ((flags & row_flags::binary) != 0)
             flag_chars[0] = 'b';
-        if ((flags & row_flags::include) != 0)
+        if ((flags & row_flags::include) != 0 || _scopes.size() > 1)
             flag_chars[1] = 'i';
         if ((flags & row_flags::macro) != 0)
             flag_chars[2] = 'm';
@@ -164,19 +187,28 @@ namespace ryu::core {
             flag_chars[3] = 'e';
         row.columns.push_back(flag_chars);
 
-        if (line_number < _lines.size())
-            row.columns.push_back(_lines[line_number - 1]);
+        auto scope = current_scope();
+        if (line_number < scope->lines.size())
+            row.columns.push_back(scope->lines[line_number - 1]);
         else
             row.columns.emplace_back(75, ' ');
 
         rows.push_back(row);
 
-        auto create_overflow_row = [](auto addr, auto data) -> data_table_row_t {
+        auto create_overflow_row = [&](auto addr, auto data) -> data_table_row_t {
             data_table_row_t overflow_row {};
             overflow_row.columns.emplace_back(4, ' ');
             overflow_row.columns.push_back(fmt::format("{:08x}", addr));
             overflow_row.columns.emplace_back(data);
-            overflow_row.columns.emplace_back("    c");
+
+            std::string overflow_flags(5, ' ');
+            if ((flags & row_flags::binary) != 0)
+                overflow_flags[0] = 'b';
+            if (_scopes.size() > 1)
+                overflow_flags[1] = 'i';
+            overflow_flags[4] = 'c';
+            overflow_row.columns.emplace_back(overflow_flags);
+
             overflow_row.columns.emplace_back(75, ' ');
             return overflow_row;
         };
@@ -206,18 +238,23 @@ namespace ryu::core {
         return _table;
     }
 
-    void assembly_listing::begin_assembly(const std::string& source) {
-        _table.rows.clear();
-        _lines.clear();
+    assembly_listing_scope_t* assembly_listing::current_scope() {
+        if (_scopes.empty())
+            return nullptr;
+        return &_scopes.top();
+    }
 
-        _current_line = 1;
-        _annotated_line_count = 0;
+    void assembly_listing::begin_assembly(const std::string& source) {
+        assembly_listing_scope_t scope {};
 
         std::stringstream stream;
-        stream << source;
+        stream << source << "\n";
         std::string line;
         while (std::getline(stream, line)) {
-            _lines.push_back(line);
+            scope.lines.push_back(line);
         }
+
+        _scopes.push(scope);
     }
+
 }

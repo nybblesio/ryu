@@ -167,14 +167,14 @@ namespace ryu::core {
     }
 
     void memory_editor::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
-        auto pal = *palette();
+//        auto bounds = client_bounds();
+//        auto pal = *palette();
 
-        auto& info_text_color = pal[_line_number_color];
+//        auto& info_text_color = pal[_line_number_color];
 
         // XXX: this may not be correct because the font metrics may change
-        auto face = font_face();
-        auto y = bounds.top();
+//        auto face = font_face();
+//        auto y = bounds.top();
 
 //        auto row_start = _document.row();
 //        auto row_stop = row_start + _metrics.page_height;
@@ -215,8 +215,8 @@ namespace ryu::core {
     void memory_editor::delete_selection() {
         _selection.normalize();
 
-        auto row = _selection.start().row;
-        auto last_row = _selection.end().row;
+//        auto row = _selection.start().row;
+//        auto last_row = _selection.end().row;
 
 //        if (row == last_row) {
 //            auto line_end = _document.find_line_end(row);
@@ -267,7 +267,7 @@ namespace ryu::core {
                 }
                 case SDLK_v: {
                     if (ctrl_pressed && SDL_HasClipboardText()) {
-                        auto text = SDL_GetClipboardText();
+//                        auto text = SDL_GetClipboardText();
                         //insert_text(text);
                     }
                     break;
