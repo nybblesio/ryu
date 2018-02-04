@@ -554,6 +554,9 @@ namespace ryu::core {
             return false;
         } else if (_state == states::wait) {
             if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_SPACE) {
+                caret_home();
+                caret_up();
+                caret_up();
                 _state = states::resume_processing;
                 return true;
             }

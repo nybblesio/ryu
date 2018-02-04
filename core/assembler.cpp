@@ -76,27 +76,26 @@ namespace ryu::core {
     bool assembler::assemble_stream(
             core::result& result,
             std::string& input) {
-        _listing.begin_assembly(input);
-
         auto program_node = _parser.parse(input);
         auto parser_result = _parser.result();
-        if (program_node == nullptr && parser_result.is_failed()) {
+        if (parser_result.is_failed()) {
             for (auto& msg : parser_result.messages())
                 result.add_message(
                         msg.code(),
                         msg.message(),
                         msg.details(),
                         msg.is_error());
-            return false;
-        }
+        } else {
+            if (program_node != nullptr) {
+                _listing.begin_assembly(input);
 
-        if (program_node != nullptr) {
-            if (!_evaluator.pass1_transform(result, program_node)) {
+                if (!_evaluator.pass1_transform(result, program_node)) {
 
+                }
+
+                _listing.end_assembly();
             }
         }
-
-        _listing.end_assembly();
 
         return !result.is_failed();
     }

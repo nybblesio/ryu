@@ -274,11 +274,22 @@ namespace ryu::core {
             const std::string& code,
             const std::string& message) {
         std::stringstream stream;
-        stream << "Syntax error: " << message << "\n"
-               << _input << "\n"
-               << std::setw(_column) << '^';
+        stream << "\n";
+        auto start_line = std::max<int32_t>(0, static_cast<int32_t>(_line) - 4);
+        auto stop_line = std::min<int32_t>(static_cast<int32_t>(_lines.size()), _line + 4);
+        for (auto i = start_line; i < stop_line; i++) {
+            if (i == _line - 1) {
+                stream << fmt::format("{:04d}: ", i + 1)
+                       << _lines[i] << "\n"
+                       << std::setw(_column + 8)
+                       << "<red>^ " << message << "<>\n";
+            } else {
+                stream << fmt::format("{:04d}: ", i + 1)
+                       << _lines[i] << "\n";
+            }
+        }
+
         _result.add_message(code, stream.str(), true);
-        _result.fail();
     }
 
     char* parser::set_token() {
@@ -399,7 +410,7 @@ namespace ryu::core {
     }
 
     ast_node_shared_ptr parser::parse_number() {
-        radix_number_t number;
+        radix_numeric_literal_t number;
 
         auto token = current_token();
         if (token == nullptr)
@@ -489,6 +500,14 @@ namespace ryu::core {
         _result = {};
         _input = input;
         clear_stacks();
+
+        _lines.clear();
+        std::stringstream source;
+        source << _input << "\n";
+        std::string line;
+        while (std::getline(source, line)) {
+            _lines.push_back(line);
+        }
     }
 
     operator_t* parser::pop_operator() {

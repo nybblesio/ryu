@@ -492,12 +492,16 @@ namespace ryu::core {
                 break;
         }
 
-        result.add_data(
-            "command_result",
-            {
-                    {"listing", _assembler->listing().table()},
-                    {"symbols", create_symbol_table()}
-            });
+        auto listing_table = _assembler->listing().table();
+
+        if (listing_table.rows.size() > 2) {
+            result.add_data(
+                    "command_result",
+                    {
+                        {"listing", listing_table},
+                        {"symbols", create_symbol_table()}
+                    });
+        }
 
         return !result.is_failed();
     }

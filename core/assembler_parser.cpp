@@ -58,13 +58,6 @@ namespace ryu::core {
                 });
     }
 
-    ast_node_shared_ptr assembler_parser::pop_scope() {
-        if (_scope_stack.empty())
-            return nullptr;
-        _scope_stack.pop();
-        return _scope_stack.top();
-    }
-
     void assembler_parser::parse_assembly() {
         auto token = current_token();
         if (token == nullptr)
@@ -79,18 +72,22 @@ namespace ryu::core {
                 break;
 
             consume_white_space();
+
             auto comment_node = parse_comment();
             if (comment_node != nullptr) {
                 scope->children.push_back(comment_node);
+                continue;
             }
 
             consume_white_space();
+
             current_identifier = parse_identifier();
 
             consume_white_space();
+
             auto directive_node = parse_directive();
             if (directive_node != nullptr) {
-                auto directive = boost::get<directive_t>(directive_node->value);
+                auto directive = directive_node->directive_type();
 
                 if (directive.type != directive_t::types::elseif_block
                 &&  directive.type != directive_t::types::else_block)
@@ -249,13 +246,25 @@ namespace ryu::core {
                     default:
                         break;
                 }
+
+                continue;
             } else {
-                if (current_identifier != nullptr)
+                if (current_identifier != nullptr) {
                     scope->children.push_back(current_identifier);
+                    continue;
+                }
             }
 
-            // XXX: access custom assembly language parser here
+            if (!isspace(*token))
+                error("A002", "unexpected assembly language instruction");
         }
+    }
+
+    ast_node_shared_ptr assembler_parser::pop_scope() {
+        if (_scope_stack.empty())
+            return nullptr;
+        _scope_stack.pop();
+        return _scope_stack.top();
     }
 
     ast_node_shared_ptr assembler_parser::parse_directive() {
@@ -279,8 +288,9 @@ namespace ryu::core {
         }
 
         auto directive_name = boost::to_lower_copy<std::string>(stream.str());
-        if (directive_name.empty())
+        if (directive_name.empty()) {
             return nullptr;
+        }
 
         if (directive_name.length() < 2) {
             error("A001", "unexpected end of assembler directive.");

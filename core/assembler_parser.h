@@ -24,12 +24,11 @@ namespace ryu::core {
     // *partially: dup        - .byte 5 dup($c0)
     //                           or .byte 10 dup(2, 8) * no parser support yet
     //
-    // .loop           - repeat the basic_block
-    // .local          - create a unique label name
+    // .loop                  - repeat the basic_block
+    // .local                 - create a unique label name
     //
-    // #               - paste operator
-    // `               - quote operator
-    // offset          - offset of identifier variable
+    // *done: #               - paste operator
+    // *done: `               - quote operator
     //
     //
     // 1. directives

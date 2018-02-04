@@ -392,7 +392,7 @@ namespace ryu::core {
         bool requires_parens = false;
     };
 
-    struct radix_number_t {
+    struct radix_numeric_literal_t {
         uint8_t radix = 0;
         std::string value;
 
@@ -422,7 +422,7 @@ namespace ryu::core {
             return success;
         }
 
-        friend std::ostream& operator<<(std::ostream& stream, const radix_number_t& lit) {
+        friend std::ostream& operator<<(std::ostream& stream, const radix_numeric_literal_t& lit) {
             switch (lit.radix) {
                 case 2:
                     stream << fmt::format("%{0}", lit.value);
@@ -603,7 +603,7 @@ namespace ryu::core {
     typedef std::map<std::string, operator_t> operator_dict;
 
     typedef boost::variant<
-        radix_number_t,
+        radix_numeric_literal_t,
         numeric_literal_t,
         boolean_literal_t,
         identifier_t,
@@ -721,6 +721,46 @@ namespace ryu::core {
                     stream << "$";
                     break;
             }
+        }
+
+        label_t label_type() const {
+            return boost::get<label_t>(value);
+        }
+
+        command_t command_type() const {
+            return boost::get<command_t>(value);
+        }
+
+        operator_t operator_type() const {
+            return boost::get<operator_t>(value);
+        }
+
+        directive_t directive_type() const {
+            return boost::get<directive_t>(value);
+        }
+
+        identifier_t identifier_type() const {
+            return boost::get<identifier_t>(value);
+        }
+
+        char_literal_t char_literal_type() const {
+            return boost::get<char_literal_t>(value);
+        }
+
+        string_literal_t string_literal_type() const {
+            return boost::get<string_literal_t>(value);
+        }
+
+        boolean_literal_t boolean_literal_type() const {
+            return boost::get<boolean_literal_t>(value);
+        }
+
+        numeric_literal_t numeric_literal_type() const {
+            return boost::get<numeric_literal_t>(value);
+        }
+
+        radix_numeric_literal_t radix_numeric_literal_type() const {
+            return boost::get<radix_numeric_literal_t>(value);
         }
 
         tokens token;

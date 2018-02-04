@@ -152,6 +152,7 @@ namespace ryu::core {
         std::string _input;
         core::result _result;
         char* _token = nullptr;
+        std::vector<std::string> _lines {};
         std::vector<operator_t*> _operator_stack;
         std::stack<scanner_pos_t> _position_stack;
         core::symbol_table* _symbol_table = nullptr;
