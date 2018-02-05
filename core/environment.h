@@ -159,6 +159,9 @@ namespace ryu::core {
         bool on_delete_machine(
                 const command_handler_context_t& context);
 
+        bool on_memory_map(
+                const command_handler_context_t& context);
+
         // ----------------------------------------------------------
         // project & project file commands
         // ----------------------------------------------------------

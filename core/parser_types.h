@@ -76,6 +76,7 @@ namespace ryu::core {
             edit_machine,
             delete_machine,
             use_machine,
+            memory_map,
 
             open_editor,
             source_editor,
@@ -157,7 +158,13 @@ namespace ryu::core {
         command_flags_t valid_sizes = command_size_flags::none;
         std::vector<command_parameter_spec_t> params {};
         std::string help {};
+        std::string category = "system";
+        uint32_t sequence {};
+        std::string full_help;
+        std::string command_name;
     };
+
+    typedef std::vector<command_spec_t> command_spec_list;
 
     struct command_t {
         command_spec_t spec;

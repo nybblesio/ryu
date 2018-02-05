@@ -13,7 +13,9 @@ Project & Admin tasks
 IDE UI & related tasks
 ----------------------
 
-- categorize help and ordering so they're consistent
+- implement help [cmd] detail variant
+
+- implement remaining memory commands on core::environment
 
 - add "map" command to dump out the memory map of the active machine
 
@@ -71,3 +73,4 @@ DONE
 - create new struct that packages up source text/stream to parse, chunked lines, and formatted lines
 - core::environment now has fields for core::command_parser and core::evaluator and optimized assignment of
   symbol table and assembler pointers to these instances.
+- categorize help and ordering so they're consistent

@@ -185,6 +185,10 @@ namespace ryu::core {
             std::bind(&environment::on_delete_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::memory_map,
+            std::bind(&environment::on_memory_map, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::use_machine,
             std::bind(&environment::on_use_machine, std::placeholders::_1, std::placeholders::_2)
         },
@@ -521,81 +525,131 @@ namespace ryu::core {
 
         const auto commands = core::command_parser::command_catalog();
 
-        data_table_t table{};
-        table.line_spacing = 1;
-        table.headers.push_back({
-                "Command",
-                20,
-                40,
-                alignment::horizontal::left,
-                1,
-                format_options::style_codes
-        });
-        table.headers.push_back({
-                "Help",
-                35,
-                75,
-                alignment::horizontal::left,
-                1,
-                format_options::style_codes | format_options::word_wrap
-        });
-        table.footers.push_back({"Command Count", 15, 20});
+        std::string command_name;
+        auto cmd_it = context.params.find("cmd");
+        if (cmd_it != context.params.end())
+            command_name = boost::get<core::string_literal_t>(cmd_it->second.front()).value;
 
-        for (const auto& c : commands) {
-            data_table_row_t row{};
+        if (!command_name.empty()) {
 
-            std::stringstream stream;
-            stream << c.first;
+        } else {
+            data_table_t table{};
+            table.headers.push_back({
+                    "Category",
+                    20,
+                    20,
+                    alignment::horizontal::left,
+                    1,
+                    format_options::style_codes
+            });
+            table.headers.push_back({
+                    "Command",
+                    35,
+                    35,
+                    alignment::horizontal::left,
+                    1,
+                    format_options::style_codes
+            });
+            table.headers.push_back({
+                    "Help",
+                    60,
+                    60,
+                    alignment::horizontal::left,
+                    1,
+                    format_options::style_codes | format_options::word_wrap
+            });
+            table.footers.push_back({"Command Count", 15, 20});
 
-            if (c.second.valid_sizes != core::command_size_flags::none) {
-                stream << "<italic>[.";
+            std::map<std::string, std::shared_ptr<command_spec_list>> categorized_commands;
 
-                if ((c.second.valid_sizes & core::command_size_flags::byte) != 0) {
-                    stream << "b";
+            for (auto c : commands) {
+                std::shared_ptr<command_spec_list> spec_list = nullptr;
+
+                auto spec_it = categorized_commands.find(c.second.category);
+                if (spec_it == categorized_commands.end()) {
+                    spec_list = std::make_shared<command_spec_list>();
+                    categorized_commands.insert(std::make_pair(c.second.category, spec_list));
+                } else {
+                    spec_list = spec_it->second;
                 }
 
-                if ((c.second.valid_sizes & core::command_size_flags::word) != 0) {
-                    stream << "|w";
-                }
-
-                if ((c.second.valid_sizes & core::command_size_flags::dword) != 0) {
-                    stream << "|dw";
-                }
-
-                if ((c.second.valid_sizes & core::command_size_flags::qword) != 0) {
-                    stream << "|qw";
-                }
-
-                stream << "]<>";
+                c.second.command_name = c.first;
+                spec_list->push_back(c.second);
             }
 
-            if (!c.second.params.empty()) {
-                stream << " ";
-                for (size_t i = 0; i < c.second.params.size(); i++) {
-                    auto param_spec = c.second.params[i];
-                    if (param_spec.required) {
-                        stream << "<bold>" << param_spec.name << "<>";
+            for (const auto& c : categorized_commands) {
+                auto sorted_list = *(c.second);
+                std::sort(
+                        sorted_list.begin(),
+                        sorted_list.end(),
+                        [](const command_spec_t& l, const command_spec_t& r) {
+                            return l.category < r.category && l.sequence < r.sequence;
+                        });
+
+                std::string category_name;
+
+                for (const auto& cmd_spec : sorted_list) {
+                    data_table_row_t row{};
+
+                    if (category_name != cmd_spec.category) {
+                        category_name = cmd_spec.category;
+                        row.columns.push_back(category_name);
                     } else {
-                        stream << "<italic>[" << param_spec.name << "]<>";
+                        row.columns.push_back("");
                     }
-                    if (i < c.second.params.size() - 1)
+
+                    std::stringstream stream;
+                    stream << cmd_spec.command_name;
+
+                    if (cmd_spec.valid_sizes != core::command_size_flags::none) {
+                        stream << "<italic>[.";
+
+                        if ((cmd_spec.valid_sizes & core::command_size_flags::byte) != 0) {
+                            stream << "b";
+                        }
+
+                        if ((cmd_spec.valid_sizes & core::command_size_flags::word) != 0) {
+                            stream << "|w";
+                        }
+
+                        if ((cmd_spec.valid_sizes & core::command_size_flags::dword) != 0) {
+                            stream << "|dw";
+                        }
+
+                        if ((cmd_spec.valid_sizes & core::command_size_flags::qword) != 0) {
+                            stream << "|qw";
+                        }
+
+                        stream << "]<>";
+                    }
+
+                    if (!cmd_spec.params.empty()) {
                         stream << " ";
+                        for (size_t i = 0; i < cmd_spec.params.size(); i++) {
+                            auto param_spec = cmd_spec.params[i];
+                            if (param_spec.required) {
+                                stream << "<bold>" << param_spec.name << "<>";
+                            } else {
+                                stream << "<italic>[" << param_spec.name << "]<>";
+                            }
+                            if (i < cmd_spec.params.size() - 1)
+                                stream << " ";
+                        }
+                    }
+
+                    row.columns.push_back(stream.str());
+                    row.columns.push_back(cmd_spec.help);
+
+                    table.rows.push_back(row);
                 }
             }
 
-            row.columns.push_back(stream.str());
-            row.columns.push_back(c.second.help);
+            table.rows.push_back({
+                 {fmt::format("{} available commands", commands.size())}
+            });
 
-            table.rows.push_back(row);
+            context.result.add_data("command_result", {{"data", table}});
         }
-
-        table.rows.push_back({
-                {fmt::format("{} available commands", commands.size())}
-        });
-
-        context.result.add_data(
-                "command_result",
-                {{"data", table}});
 
         return true;
     }
@@ -1149,6 +1203,11 @@ namespace ryu::core {
     // ----------------------------------------------------------
     // machine commands
     // ----------------------------------------------------------
+    bool environment::on_memory_map(
+            const command_handler_context_t& context) {
+        return false;
+    }
+
     bool environment::on_use_machine(
             const command_handler_context_t& context) {
         if (core::project::instance() == nullptr) {
