@@ -66,6 +66,7 @@ add_executable(
         common
         LICENSE
         README.md
+        todo.txt
         machines.yaml
         .gitignore
         main.cpp

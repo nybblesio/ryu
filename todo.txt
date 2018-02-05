@@ -1,0 +1,53 @@
+THINGS TO DO
+------------
+
+Project & Admin tasks
+---------------------
+
+- Flesh out README.md for GitHub
+
+- Create website for Ryu project
+
+- Add Ryu & other project information to Twitch profile & banner bitmap
+
+IDE UI & related tasks
+----------------------
+
+- refactoring/consolidating the attr_chunk_t/attr_chunks & text_formatter::formatted_text_t/formatted_text_span_t
+  to one interface so all UI elements using document work the same way.
+
+- refactor core::document to implement "piece table" model which should get us undo/redo/cut/copy/paste in a much
+  nicer model and api.
+
+- implement selection/cut/copy/paste in text_editor view and console view.
+
+- implement marks in document and surface in console & text_editor for quick navigation
+
+- figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
+
+- implement the memory_editor controller & view.  need a listener interface on memory_mapper that notifies registered
+  listeners that memory has changed.
+
+- implement remaining memory commands in core::environment
+
+- create new struct that packages up source text/stream to parse, chunked lines, and formatted lines
+
+- implement full & correct machine editor interface
+
+- implement full & correct project editor interface + shortcut selection UI
+
+- implement palette editor
+
+- implement tile/sprite editor
+
+- implement preferences UI
+
+Emulator & related tasks
+------------------------
+
+- implement integrated_circuit subclass for midway_mcr_video_generator that displays background map of tiles &
+  foreground layer of sprites, controller initially through memory_editor & commands
+
+- implement integrated_circuit subclass for joystick input
+
+- implement dip_switch subclass for integrated_circuit
