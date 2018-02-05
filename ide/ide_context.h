@@ -24,25 +24,29 @@ namespace ryu::ide {
     public:
         explicit ide_context(const std::string& name);
 
-        core::project* project();
+        core::context_window::sizes size() const;
 
-        void project(core::project* project);
+        void size(core::context_window::sizes value);
 
         void parent_resize(const core::rect& parent_bounds);
 
     protected:
+        void on_draw(core::renderer& surface) override;
+
         bool on_initialize(core::result& result) override;
+
+        bool on_process_event(const SDL_Event* e) override;
 
     private:
         void configure_palette();
 
     private:
         core::palette _palette;
-        core::project* _project = nullptr;
         hex_editor::controller _hex_editor_state;
         console_editor::controller _console_state;
         source_editor::controller _source_editor_state;
         machine_editor::controller _machine_editor_state;
+        core::context_window::sizes _size = core::context_window::sizes::split;
     };
 
 };

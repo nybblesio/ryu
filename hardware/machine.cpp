@@ -37,6 +37,16 @@ namespace ryu::hardware {
         return _description;
     }
 
+    void machine::set_write_latches(bool flag) {
+        for (auto it = _components.begin();
+             it != _components.end();
+             ++it) {
+            auto ic = it->second->ic();
+            if (ic != nullptr)
+                ic->write_latch(flag);
+        }
+    }
+
     void machine::remove_component(uint32_t id) {
         auto component = find_component(id);
         if (component != nullptr) {
@@ -88,6 +98,16 @@ namespace ryu::hardware {
         auto it = _components.find(id);
         if (it != _components.end())
             return it->second;
+        return nullptr;
+    }
+
+    hardware::component* machine::find_component(const std::string& name) {
+        for (auto it = _components.begin();
+             it != _components.end();
+             ++it) {
+            if (it->second->name() == name)
+                return it->second;
+        }
         return nullptr;
     }
 

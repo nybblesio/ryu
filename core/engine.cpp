@@ -132,8 +132,24 @@ namespace ryu::core {
         _blackboard[name] = value;
     }
 
+    void engine::raise_move() {
+        if (_move_callback != nullptr) {
+            _move_callback(_window_rect);
+        }
+    }
+
     void engine::focus(int id) {
         _focused_context = id;
+    }
+
+    void engine::raise_resize() {
+        if (_resize_callback != nullptr) {
+            _resize_callback(core::rect{
+                    0,
+                    0,
+                    _window_rect.width(),
+                    _window_rect.height()});
+        }
     }
 
     core::rect engine::bounds() const {
@@ -165,7 +181,7 @@ namespace ryu::core {
             surface.set_color({0x00, 0x00, 0x00, 0xff});
             surface.clear();
 
-            std::deque<SDL_Event> events;
+            event_list events {};
             SDL_Event e {};
             while (SDL_PollEvent(&e) != 0) {
                 switch (e.type) {
@@ -178,20 +194,14 @@ namespace ryu::core {
                             case SDL_WINDOWEVENT_MOVED:
                                 _window_rect.left(e.window.data1);
                                 _window_rect.top(e.window.data2);
-                                if (_move_callback != nullptr) {
-                                    _move_callback(_window_rect);
-                                }
+                                raise_move();
                                 break;
                             case SDL_WINDOWEVENT_RESIZED:
                                 _window_rect.width(e.window.data1);
                                 _window_rect.height(e.window.data2);
-                                if (_resize_callback != nullptr) {
-                                    _resize_callback(core::rect{
-                                            0,
-                                            0,
-                                            _window_rect.width(),
-                                            _window_rect.height()});
-                                }
+                                raise_resize();
+                                break;
+                            default:
                                 break;
                         }
                         break;
@@ -206,6 +216,11 @@ namespace ryu::core {
 
             for (auto& it : _contexts)
                 it.second->update(dt, surface, events);
+
+            // N.B. this is an override/overlay draw so contexts
+            //      can "bleed" into other contexts.
+            for (auto& it : _contexts)
+                it.second->draw(surface);
 
             surface.set_clip_rect(bounds());
 
@@ -282,6 +297,16 @@ namespace ryu::core {
 
     void engine::on_move(const engine::move_callable& callback) {
         _move_callback = callback;
+    }
+
+    core::context* engine::find_context(const std::string& name) {
+        for (auto it = _contexts.begin();
+             it != _contexts.end();
+             ++it) {
+            if (it->second->name() == name)
+                return it->second;
+        }
+        return nullptr;
     }
 
     std::string engine::blackboard(const std::string& name) const {

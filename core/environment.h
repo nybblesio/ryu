@@ -11,17 +11,18 @@
 #pragma once
 
 #include <core/result.h>
-#include <core/symbol_table.h>
 #include "project.h"
-#include "assembler.h"
 
 namespace ryu::core {
 
+    class assembler;
+    class symbol_table;
+
     class environment {
     public:
-        environment() = default;
+        environment();
 
-        virtual ~environment() = default;
+        virtual ~environment();
 
         bool load(
                 core::result& result,
@@ -40,6 +41,9 @@ namespace ryu::core {
         void name(const std::string& value);
 
         bool execute(core::result& result, const std::string& line);
+
+    private:
+        data_table_t create_symbol_table();
 
     private:
         // ----------------------------------------------------------
@@ -229,8 +233,8 @@ namespace ryu::core {
         static command_handler_dict _command_handlers;
 
         std::string _name;
-        core::assembler _assembler {};
-        core::symbol_table _symbol_table;
+        std::unique_ptr<core::assembler> _assembler;
+        std::unique_ptr<core::symbol_table> _symbol_table;
     };
 
 };

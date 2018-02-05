@@ -68,6 +68,14 @@ namespace ryu::core {
 
         void window_position(const core::rect& value);
 
+        core::context_window::sizes ide_window_size() const;
+
+        void ide_window_size(core::context_window::sizes size);
+
+        core::context_window::sizes emulator_window_size() const;
+
+        void emulator_window_size(core::context_window::sizes size);
+
     private:
         bool _full_screen = false;
         fs::path _default_path {};
@@ -78,6 +86,8 @@ namespace ryu::core {
         font_value_t _engine_font {"topaz", 16};
         font_value_t _emulator_font {"topaz", 16};
         fs::path _font_book_path {"assets/fonts/font_book.yaml"};
+        core::context_window::sizes _ide_window_size = core::context_window::sizes::split;
+        core::context_window::sizes _emulator_window_size = core::context_window::sizes::split;
     };
 
 };

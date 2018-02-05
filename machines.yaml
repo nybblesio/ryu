@@ -16,27 +16,27 @@ machines:
         ic:
           type_id: 10
           address_space: 0xffff
+      - id: 107
+        name: Program ROM
+        description:
+          Game code gets stored in this ROM.
+        address: 0x0000
+        ic:
+          type_id: 4
+          address_space: 0x4000
       - id: 103
         name: Work RAM
         description:
           RAM available for the CPU to store state.
-        address: 0xa000
+        address: 0x5000
         ic:
           type_id: 3
           address_space: 0x0fff
       - id: 104
-        name: Tiles ROM 1
+        name: Background Tiles ROM 1
         description:
           ROM bank 1 for background tiles
-        address: 0xb000
-        ic:
-          type_id: 4
-          address_space: 0x0fff
-      - id: 105
-        name: Tiles ROM 2
-        description:
-          ROM bank 2 for background tiles
-        address: 0xc000
+        address: 0x6000
         ic:
           type_id: 4
           address_space: 0x0fff
@@ -44,15 +44,7 @@ machines:
         name: Foreground ROM 1
         description:
           ROM bank 1 for foreground
-        address: 0xd000
+        address: 0x8000
         ic:
           type_id: 4
-          address_space: 0x0fff
-      - id: 107
-        name: Foreground ROM 2
-        description:
-          ROM bank 2 for foreground
-        address: 0xe000
-        ic:
-          type_id: 4
-          address_space: 0x0fff
+          address_space: 0x4000

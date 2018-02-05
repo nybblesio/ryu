@@ -119,19 +119,21 @@ namespace ryu::ide::source_editor {
                     if (action_it != params.end()) {
                         // XXX: need to refactor this, it makes my head hurt
                         auto command = boost::get<std::string>(action_it->second);
-                        if (command == "quit")
+                        if (command == "quit") {
                             context()->engine()->quit();
-                        else if (command == "read_text") {
+                        } else if (command == "save_project_file") {
+                            _editor.save(result);
+                        } else if (command == "read_text") {
                             auto name_it = params.find("name");
                             if (name_it != params.end()) {
-                                _editor.load(boost::get<std::string>(name_it->second));
+                                _editor.load(result, boost::get<std::string>(name_it->second));
                             } else {
                                 // XXX: handle errors
                             }
                         } else if (command == "write_text") {
                             auto name_it = params.find("name");
                             if (name_it != params.end()) {
-                                _editor.save(boost::get<std::string>(name_it->second));
+                                _editor.save(result, boost::get<std::string>(name_it->second));
                             } else {
                                 // XXX: handle errors
                             }
@@ -197,22 +199,20 @@ namespace ryu::ide::source_editor {
         _editor.caret_color(ide::colors::caret);
         _editor.selection_color(ide::colors::selection);
         _editor.line_number_color(ide::colors::info_text);
-        _editor.on_document_changed([&](const core::document& document) {
+        _editor.on_caret_changed([&](const core::caret& caret, const core::document& document) {
             std::string file_name = document.filename();
             if (file_name.empty()) {
                 file_name = "(none)";
             }
-            _file_status.value(fmt::format("| file: {0}", file_name));
+            _file_status.value(fmt::format("| file: {}", file_name));
             _document_status.value(fmt::format(
-                    "C:{0:03d}/{1:03d} R:{2:04d}/{3:04d}",
-                    document.column() + 1,
+                    "C:{:03d}/{:03d} R:{:04d}/{:04d}",
+                    document.column() + caret.column() + 1,
                     document.columns(),
-                    document.row() + 1,
+                    document.row() + caret.row() + 1,
                     document.rows()));
-        });
-        _editor.on_caret_changed([&](const core::caret& caret) {
             _caret_status.value(fmt::format(
-                    "| X:{0:03d} Y:{1:02d} | {2}",
+                    "| X:{:03d} Y:{:02d} | {}",
                     caret.column() + 1,
                     caret.row() + 1,
                     caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
@@ -262,6 +262,17 @@ namespace ryu::ide::source_editor {
             }
         }
         return _layout_panel.process_event(e);
+    }
+
+    void controller::on_activate(const core::parameter_dict& params) {
+        core::result result;
+
+        auto path_it = params.find("path");
+        if (path_it != params.end()) {
+            _editor.load(result, boost::get<std::string>(path_it->second));
+        }
+
+        // XXX: handle result if errored
     }
 
 }

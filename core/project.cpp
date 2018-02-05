@@ -208,6 +208,10 @@ namespace ryu::core {
         return true;
     }
 
+    fs::path project::find_project_root() {
+        return fs::current_path();
+    }
+
     void project::resume_notify() {
         _notify_enabled = true;
         notify_listeners();

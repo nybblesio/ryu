@@ -61,6 +61,8 @@ namespace ryu::core {
         emitter << YAML::Key << "width" << YAML::Value << _window_position.width();
         emitter << YAML::Key << "height" << YAML::Value << _window_position.height();
         emitter << YAML::Key << "full_screen" << YAML::Value << _full_screen;
+        emitter << YAML::Key << "ide_window_size" << YAML::Value << _ide_window_size;
+        emitter << YAML::Key << "emulator_window_size" << YAML::Value << _emulator_window_size;
         emitter << YAML::EndMap;
 
         emitter << YAML::EndMap;
@@ -173,6 +175,18 @@ namespace ryu::core {
             if (full_screen_node != nullptr) {
                 _full_screen = full_screen_node.as<bool>();
             }
+
+            auto ide_window_size = window_node["ide_window_size"];
+            if (ide_window_size != nullptr
+            &&  ide_window_size.IsScalar()) {
+                _ide_window_size = (core::context_window::sizes)ide_window_size.as<int>();
+            }
+
+            auto emulator_window_size = window_node["emulator_window_size"];
+            if (emulator_window_size != nullptr
+            && emulator_window_size.IsScalar()) {
+                _emulator_window_size = (core::context_window::sizes)emulator_window_size.as<int>();
+            }
         }
 
         return !result.is_failed();
@@ -250,6 +264,22 @@ namespace ryu::core {
 
     void preferences::emulator_font(const font_value_t& value) {
         _emulator_font = value;
+    }
+
+    core::context_window::sizes preferences::ide_window_size() const {
+        return _ide_window_size;
+    }
+
+    core::context_window::sizes preferences::emulator_window_size() const {
+        return _emulator_window_size;
+    }
+
+    void preferences::ide_window_size(core::context_window::sizes size) {
+        _ide_window_size = size;
+    }
+
+    void preferences::emulator_window_size(core::context_window::sizes size) {
+        _emulator_window_size = size;
     }
 
 }

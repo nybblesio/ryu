@@ -58,7 +58,7 @@ namespace ryu::core {
     }
 
     bool document::clamp_row() {
-        if (_row > _rows) {
+        if (_row < 0) {
             _row = 0;
             return true;
         }
@@ -78,9 +78,8 @@ namespace ryu::core {
     }
 
     bool document::scroll_left() {
-        auto last_column = _column;
         --_column;
-        auto clamped = clamp_column(last_column);
+        auto clamped = clamp_column();
         raise_document_changed();
         return clamped;
     }
@@ -94,12 +93,12 @@ namespace ryu::core {
 
     bool document::scroll_right() {
         ++_column;
-        auto clamped = clamp_column(_column);
+        auto clamped = clamp_column();
         raise_document_changed();
         return clamped;
     }
 
-    uint32_t document::row() const {
+    int32_t document::row() const {
         return _row;
     }
 
@@ -114,7 +113,7 @@ namespace ryu::core {
         return clamped;
     }
 
-    uint16_t document::column() const {
+    int16_t document::column() const {
         return _column;
     }
 
@@ -141,7 +140,7 @@ namespace ryu::core {
 
     bool document::column(uint16_t column) {
         _column = column;
-        auto clamped = clamp_column(_column);
+        auto clamped = clamp_column();
         raise_document_changed();
         return clamped;
     }
@@ -184,15 +183,33 @@ namespace ryu::core {
         _default_attr = value;
     }
 
-    void document::load(const fs::path& path) {
+    bool document::load(core::result& result, const fs::path& path) {
         _path = path;
-        std::fstream file;
-        file.open(_path.string());
-        load(file);
-        file.close();
+
+        if (!fs::exists(_path)) {
+            result.add_message(
+                    "D001",
+                    fmt::format("document does not exist: {}", _path.string()),
+                    true);
+            return false;
+        }
+
+        try {
+            std::fstream file;
+            file.open(_path.string());
+            load(result, file);
+            file.close();
+        } catch (std::exception& e) {
+            result.add_message(
+                    "D001",
+                    fmt::format("unable to load document: {}", e.what()),
+                    true);
+        }
+
+        return !result.is_failed();
     }
 
-    void document::load(std::istream& stream) {
+    bool document::load(core::result& result, std::istream& stream) {
         clear();
         uint32_t row = 0;
         std::string line;
@@ -210,25 +227,37 @@ namespace ryu::core {
             ++row;
         }
         raise_document_changed();
+        return true;
     }
 
-    void document::save(std::ostream& stream) {
+    bool document::save(core::result& result, std::ostream& stream) {
         for (uint32_t row = 0; row < _lines.size(); row++) {
             std::stringstream line;
             write_line(line, row, 0, _columns);
             stream << ryu::rtrimmed(line.str()) << "\n";
         }
         raise_document_changed();
+        return true;
     }
 
-    void document::save(const fs::path& path) {
+    bool document::save(core::result& result, const fs::path& path) {
         auto target_path = path;
         if (target_path.empty())
             target_path = _path;
-        std::fstream file;
-        file.open(target_path.string());
-        save(file);
-        file.close();
+
+        try {
+            std::fstream file;
+            file.open(target_path.string());
+            save(result, file);
+            file.close();
+        } catch (std::exception& e) {
+            result.add_message(
+                    "D001",
+                    fmt::format("unable to save document: {}", e.what()),
+                    true);
+        }
+
+        return !result.is_failed();
     }
 
     uint16_t document::find_line_end(uint32_t row) {
@@ -257,9 +286,9 @@ namespace ryu::core {
         return empty;
     }
 
-    bool document::clamp_column(uint16_t last_col) {
-        if (_column > last_col) {
-            _column = last_col;
+    bool document::clamp_column() {
+        if (_column < 0) {
+            _column = 0;
             return true;
         }
 

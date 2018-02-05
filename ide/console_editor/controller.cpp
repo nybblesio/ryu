@@ -154,7 +154,9 @@ namespace ryu::ide::console_editor {
         });
         _console.on_caret_changed([&](const core::caret& caret, const core::document& document) {
             _document_status.value(fmt::format(
-                    "R:{:04d}/{:04d}",
+                    "C:{:03d}/{:03d} R:{:04d}/{:04d}",
+                    document.column() + caret.column() + 1,
+                    document.columns(),
                     document.row() + caret.row() + 1,
                     document.rows()));
             _caret_status.value(fmt::format(
@@ -230,13 +232,14 @@ namespace ryu::ide::console_editor {
     }
 
     void controller::on_activate(const core::parameter_dict& params) {
-        if (_show_banner) {
-            _console.write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>");
-            _console.write_message(" Copyright (C) 2017 Jeff Panici");
-            _console.write_message(" See details in <underline><bold>LICENSE<> file");
-            _console.caret_down();
-            _console.write_message("Ready.");
-            _show_banner = false;
-        }
+        if (!_show_banner)
+            return;
+
+        _console.write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>");
+        _console.write_message(" Copyright (C) 2017 Jeff Panici");
+        _console.write_message(" See details in <underline><bold>LICENSE<> file");
+        _console.caret_down();
+        _console.write_message("Ready.");
+        _show_banner = false;
     }
 }

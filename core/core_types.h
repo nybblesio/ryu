@@ -48,6 +48,15 @@ namespace ryu::core {
     class context;
 
     typedef std::map<int, context*> context_dict;
+    typedef std::vector<SDL_Event> event_list;
+
+    struct context_window {
+        enum sizes {
+            split,
+            expanded,
+            collapsed
+        };
+    };
 
     class state;
 
@@ -121,6 +130,19 @@ namespace ryu::core {
             top
         };
     };
+
+    struct vertex_t {
+        int16_t x {};
+        int16_t y {};
+    };
+
+    struct span_t {
+        int16_t left {};
+        int16_t right {};
+    };
+
+    typedef std::vector<span_t> span_list;
+    typedef std::vector<vertex_t> vertex_list;
 
     // --------------------
     // data tables

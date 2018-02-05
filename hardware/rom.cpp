@@ -34,7 +34,7 @@ namespace ryu::hardware {
     }
 
     void rom::zero() {
-        if (_write_latch)
+        if (write_latch())
             std::memset(_buffer, 0, address_space());
     }
 
@@ -49,17 +49,79 @@ namespace ryu::hardware {
         write_latch(false);
     }
 
+    uint16_t rom::read_word(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        auto value = *(reinterpret_cast<uint16_t*>(_buffer + address));
+
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            return endian_swap_word(value);
+        }
+
+        return value;
+    }
+
+    uint32_t rom::read_dword(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        auto value = *(reinterpret_cast<uint32_t*>(_buffer + address));
+
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            return endian_swap_dword(value);
+        }
+
+        return value;
+    }
+
+    std::vector<uint8_t> rom::write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess) {
+        std::vector<uint8_t> data {};
+
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            value = endian_swap_word(value);
+        }
+        auto byte_ptr = reinterpret_cast<uint8_t*>(&value);
+        _buffer[address]     = *byte_ptr;
+        _buffer[address + 1] = *(byte_ptr + 1);
+
+        data.push_back(*byte_ptr);
+        data.push_back(*(byte_ptr + 1));
+
+        return data;
+    }
+
+    std::vector<uint8_t> rom::write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess) {
+        std::vector<uint8_t> data {};
+
+        if (is_platform_little_endian()
+        &&  endianess == integrated_circuit::endianness::types::big) {
+            value = endian_swap_dword(value);
+        }
+        auto byte_ptr = reinterpret_cast<uint8_t*>(&value);
+        _buffer[address]     = *byte_ptr;
+        _buffer[address + 1] = *(byte_ptr + 1);
+        _buffer[address + 2] = *(byte_ptr + 2);
+        _buffer[address + 3] = *(byte_ptr + 3);
+
+        data.push_back(*byte_ptr);
+        data.push_back(*(byte_ptr + 1));
+        data.push_back(*(byte_ptr + 2));
+        data.push_back(*(byte_ptr + 3));
+
+        return data;
+    }
+
     void rom::fill(uint8_t value) {
-        if (_write_latch)
+        if (write_latch())
             std::memset(_buffer, value, address_space());
-    }
-
-    bool rom::write_latch() const {
-        return _write_latch;
-    }
-
-    void rom::write_latch(bool enabled) {
-        _write_latch = enabled;
     }
 
     void rom::on_address_space_changed() {
@@ -67,7 +129,10 @@ namespace ryu::hardware {
     }
 
     access_type_flags rom::access_type() const {
-        return access_types::readable;
+        if (write_latch())
+            return access_types::readable | access_types::writable;
+        else
+            return access_types::readable;
     }
 
     uint8_t rom::read_byte(uint32_t address) const {
@@ -75,7 +140,7 @@ namespace ryu::hardware {
     }
 
     void rom::write_byte(uint32_t address, uint8_t value) {
-        if (!_write_latch)
+        if (!write_latch())
             return;
         _buffer[address] = value;
     }

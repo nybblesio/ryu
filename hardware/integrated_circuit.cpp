@@ -29,8 +29,42 @@ namespace ryu::hardware {
     void integrated_circuit::zero() {
     }
 
+    bool integrated_circuit::write_latch() const {
+        return _write_latch;
+    }
+
+    void integrated_circuit::write_latch(bool enabled) {
+        _write_latch = enabled;
+    }
+
     uint32_t integrated_circuit::id() const {
         return _id;
+    }
+
+    uint16_t integrated_circuit::read_word(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        return 0;
+    }
+
+    uint32_t integrated_circuit::read_dword(
+            uint32_t address,
+            integrated_circuit::endianness::types endianess) const {
+        return 0;
+    }
+
+    std::vector<uint8_t> integrated_circuit::write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess) {
+        return {};
+    }
+
+    std::vector<uint8_t> integrated_circuit::write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess) {
+        return {};
     }
 
     void integrated_circuit::fill(uint8_t value) {
@@ -58,12 +92,23 @@ namespace ryu::hardware {
         return access_types::none;
     }
 
+    uint8_t integrated_circuit::read_byte(uint32_t address) const {
+        return 0;
+    }
+
     core::assembly_language_parser* integrated_circuit::assembler() {
         return nullptr;
     }
 
-    uint8_t integrated_circuit::read_byte(uint32_t address) const {
-        return 0;
+    uint16_t integrated_circuit::endian_swap_word(uint16_t value) const {
+        return (value >> 8) | (value << 8);
+    }
+
+    uint32_t integrated_circuit::endian_swap_dword(uint32_t value) const {
+        return ((value >> 24) & 0xff)
+               |  ((value << 8) & 0xff0000)
+               |  ((value >> 8) & 0xff00)
+               |  ((value << 24) & 0xff000000);
     }
 
     const hardware::memory_map& integrated_circuit::memory_map() const {
@@ -71,6 +116,10 @@ namespace ryu::hardware {
     }
 
     void integrated_circuit::write_byte(uint32_t address, uint8_t value) {
+    }
+
+    integrated_circuit::endianness::types integrated_circuit::endianess() const {
+        return endianness::types::none;
     }
 
 }

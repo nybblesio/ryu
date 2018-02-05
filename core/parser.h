@@ -17,9 +17,10 @@
 #include "result.h"
 #include "core_types.h"
 #include "parser_types.h"
-#include "symbol_table.h"
 
 namespace ryu::core {
+
+    class symbol_table;
 
     class parser {
     public:
@@ -53,6 +54,12 @@ namespace ryu::core {
         void push_operand(const ast_node_shared_ptr& node);
 
     protected: // core
+        void error(
+                const std::string& code,
+                const std::string& message);
+
+        char* set_token();
+
         void clear_stacks();
 
         void pop_position();
@@ -63,21 +70,33 @@ namespace ryu::core {
 
         char* current_token();
 
+        void register_operator(
+                const std::string& key,
+                const core::operator_t& op);
+
         bool is_failed() const {
             return _result.is_failed();
         }
-
-        int forget_top_position();
 
         char* move_to_next_token();
 
         void consume_white_space();
 
+        size_t forget_top_position();
+
+        inline uint32_t line() const {
+            return _line;
+        }
+
         void consume_tokens(int count);
+
+        inline uint32_t column() const {
+            return _column;
+        }
 
         void reset(const std::string& input);
 
-        void error(const std::string& code, const std::string& message);
+        ast_node_shared_ptr create_ast_node(ast_node_t::tokens type);
 
     protected: // parsers
         operator_t* parse_operator();
@@ -92,11 +111,15 @@ namespace ryu::core {
 
         ast_node_shared_ptr parse_null_literal();
 
+        ast_node_shared_ptr parse_uninitialized();
+
         ast_node_shared_ptr parse_string_literal();
 
         ast_node_shared_ptr parse_boolean_literal();
 
         ast_node_shared_ptr parse_character_literal();
+
+        ast_node_shared_ptr parse_location_counter_literal();
 
     private:
         bool operator_stack_has(operator_t* op);
@@ -117,16 +140,19 @@ namespace ryu::core {
                 [&] () {return parse_identifier();},
                 [&] () {return parse_string_literal();},
                 [&] () {return parse_character_literal();},
+                [&] () {return parse_uninitialized();},
+                [&] () {return parse_location_counter_literal();},
         };
 
         static operator_dict _operators;
 
-        int _line {};
-        int _index {};
-        int _column {};
+        size_t _index {};
+        uint32_t _line {};
+        uint32_t _column {};
         std::string _input;
         core::result _result;
         char* _token = nullptr;
+        std::vector<std::string> _lines {};
         std::vector<operator_t*> _operator_stack;
         std::stack<scanner_pos_t> _position_stack;
         core::symbol_table* _symbol_table = nullptr;

@@ -96,6 +96,9 @@ namespace ryu {
                     emulator_font_family->size()));
         }
 
+        _prefs.ide_window_size(_ide_context.size());
+        _prefs.emulator_window_size(_emulator_context.size());
+
         if (!_prefs.save(result)) {
             std::cout << "saving preferences failed:\n";
             show_result_messages(result);
@@ -153,9 +156,9 @@ namespace ryu {
                     true);
             return false;
         }
-
         _ide_context.font_face(face);
         _ide_context.bg_color(ide::colors::fill_color);
+        _ide_context.size(_prefs.ide_window_size());
         return _ide_context.initialize(result, _engine.bounds());
     }
 
@@ -188,7 +191,8 @@ namespace ryu {
         }
 
         _emulator_context.font_face(face);
-        _emulator_context.bg_color(emulator::emulator_context::colors::fill_color);
+        _emulator_context.bg_color(ide::colors::fill_color);
+        _emulator_context.size(_prefs.emulator_window_size());
         return _emulator_context.initialize(result, _engine.bounds());
     }
 

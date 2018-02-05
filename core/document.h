@@ -13,6 +13,7 @@
 #include <map>
 #include <list>
 #include <boost/filesystem.hpp>
+#include "result.h"
 
 namespace ryu::core {
 
@@ -92,13 +93,13 @@ namespace ryu::core {
 
         bool scroll_right();
 
-        uint32_t row() const;
+        int32_t row() const;
 
         uint32_t rows() const;
 
         bool row(uint32_t row);
 
-        uint16_t column() const;
+        int16_t column() const;
 
         uint16_t columns() const;
 
@@ -116,12 +117,6 @@ namespace ryu::core {
 
         void delete_line(uint32_t row);
 
-        void load(const fs::path& path);
-
-        void load(std::istream& stream);
-
-        void save(std::ostream& stream);
-
         void default_attr(attr_t value);
 
         bool is_line_empty(uint32_t row);
@@ -134,8 +129,6 @@ namespace ryu::core {
 
         uint16_t find_line_end(uint32_t row);
 
-        void save(const fs::path& path = "");
-
         void page_size(uint8_t height, uint8_t width);
 
         element_t* get(uint32_t row, uint16_t column);
@@ -143,6 +136,14 @@ namespace ryu::core {
         void split_line(uint32_t row, uint16_t column);
 
         void document_size(uint32_t rows, uint16_t columns);
+
+        bool load(core::result& result, const fs::path& path);
+
+        bool load(core::result& result, std::istream& stream);
+
+        bool save(core::result& result, std::ostream& stream);
+
+        bool save(core::result& result, const fs::path& path = "");
 
         void put(uint32_t row, uint16_t column, const element_t& value);
 
@@ -163,17 +164,17 @@ namespace ryu::core {
     protected:
         bool clamp_row();
 
+        bool clamp_column();
+
         void raise_document_changed();
 
         line_t* line_at(uint32_t row);
 
-        bool clamp_column(uint16_t last_col);
-
     private:
         fs::path _path;
-        uint32_t _row = 0;
+        int32_t _row = 0;
         uint32_t _rows = 1;
-        uint16_t _column = 0;
+        int16_t _column = 0;
         uint16_t _columns = 80;
         attr_t _default_attr {};
         uint8_t _page_width = 0;

@@ -11,25 +11,18 @@
 #pragma once
 
 #include <core/view.h>
-#include <core/project.h>
-#include <core/document.h>
 #include <core/selection.h>
 #include "caret.h"
 
 namespace ryu::core {
 
-    namespace fs = boost::filesystem;
-
-    class text_editor : public core::view {
+    class memory_editor : public core::view {
     public:
-        using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
-        using char_action_callable = std::function<void (uint32_t, uint16_t)>;
+        using caret_changed_callable = std::function<void(const core::caret&)>;
 
-        explicit text_editor(const std::string& name);
+        explicit memory_editor(const std::string& name);
 
         void clear();
-
-        void goto_line(uint32_t row);
 
         int page_width() const {
             return _metrics.page_width;
@@ -39,23 +32,17 @@ namespace ryu::core {
             return _metrics.page_height;
         }
 
-        std::string filename() const {
-            return _document.filename();
-        }
-
         void caret_color(uint8_t value);
+
+        void address_color(uint8_t value);
+
+        void goto_address(uint32_t address);
 
         void selection_color(uint8_t value);
 
         void find(const std::string& needle);
 
-        void line_number_color(uint8_t value);
-
         void initialize(uint32_t rows, uint16_t columns);
-
-        bool load(core::result& result, const fs::path& path);
-
-        bool save(core::result& result, const fs::path& path = "");
 
         void on_caret_changed(const caret_changed_callable& callable);
 
@@ -111,24 +98,17 @@ namespace ryu::core {
 
         void caret_down(uint8_t rows = 1);
 
-        void insert_text(const char* text);
-
         void caret_left(uint8_t columns = 1);
 
         bool caret_right(uint8_t columns = 1);
 
         void update_selection(uint16_t line_end);
 
-        void get_selected_text(std::stringstream& stream);
-
-        void for_each_selection_char(const char_action_callable& action);
-
     private:
         uint16_t _vcol;
         uint32_t _vrow;
         core::caret _caret;
         metrics_t _metrics;
-        core::document _document;
         uint8_t _selection_color;
         uint8_t _line_number_color;
         core::selection _selection;

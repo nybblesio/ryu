@@ -15,30 +15,292 @@
 namespace ryu::core {
 
     operator_dict parser::_operators = {
-            {"~",  {operator_t::op::invert,            "~",  12, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
-            {"`",  {operator_t::op::negate,            "-",  11, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
-            {"!",  {operator_t::op::logical_not,       "!",  11, operator_t::op_type::unary,  operator_t::associativity_type::right, operator_t::op_group::logical}},
-            {"^",  {operator_t::op::pow,               "^",  10, operator_t::op_type::binary, operator_t::associativity_type::right, operator_t::op_group::arithmetic}},
-            {"*",  {operator_t::op::multiply,          "*",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"/",  {operator_t::op::divide,            "/",   9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"\\", {operator_t::op::modulo,            "\\",  9, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"+",  {operator_t::op::add,               "+",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"-",  {operator_t::op::subtract,          "-",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"&",  {operator_t::op::binary_and,        "&",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {"|",  {operator_t::op::binary_or,         "|",   8, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::arithmetic}},
-            {">",  {operator_t::op::greater_than,      ">",   7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {">=", {operator_t::op::greater_than_equal,">=",  7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"<",  {operator_t::op::less_than,         "<",   7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"<=", {operator_t::op::less_than_equal,   "<=",  7, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"==", {operator_t::op::equal,             "==",  6, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"!=", {operator_t::op::not_equal,         "!=",  6, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::relational}},
-            {"&&", {operator_t::op::logical_and,       "&&",  5, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::logical}},
-            {"||", {operator_t::op::logical_or,        "||",  4, operator_t::op_type::binary, operator_t::associativity_type::left,  operator_t::op_group::logical}},
-            {"(",  {operator_t::op::left_parenthesis,  "(",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
-            {")",  {operator_t::op::right_parenthesis, ")",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
-            {"[",  {operator_t::op::left_bracket,      "[",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
-            {"]",  {operator_t::op::right_bracket,     "]",   1, operator_t::op_type::no_op,  operator_t::associativity_type::none,  operator_t::op_group::grouping}},
+        {
+            "~",
+            {
+                operator_t::op::invert,
+                "~",
+                12,
+                operator_t::op_type::unary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "`",
+            {
+                operator_t::op::negate,
+                "-",
+                11,
+                operator_t::op_type::unary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "!",
+            {
+                operator_t::op::logical_not,
+                "!",
+                11,
+                operator_t::op_type::unary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::logical
+            }
+        },
+        {
+            "^",
+            {
+                operator_t::op::pow,
+                "^",
+                10,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::right,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "*",
+            {
+                operator_t::op::multiply,
+                "*",
+                9,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "/",
+            {
+                operator_t::op::divide,
+                "/",
+                9,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "\\",
+            {
+                operator_t::op::modulo,
+                "\\",
+                9,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "+",
+            {
+                operator_t::op::add,
+                "+",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "-",
+            {
+                operator_t::op::subtract,
+                "-",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "&",
+            {
+                operator_t::op::binary_and,
+                "&",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "|",
+            {
+                operator_t::op::binary_or,
+                "|",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            ">",
+            {
+                operator_t::op::greater_than,
+                ">",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            ">=",
+            {
+                operator_t::op::greater_than_equal,
+                ">=",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "<",
+            {
+                operator_t::op::less_than,
+                "<",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "<=",
+            {
+                operator_t::op::less_than_equal,
+                "<=",
+                7,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "==",
+            {
+                operator_t::op::equal,
+                "==",
+                6,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "!=",
+            {
+                operator_t::op::not_equal,
+                "!=",
+                6,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::relational
+            }
+        },
+        {
+            "&&",
+            {
+                operator_t::op::logical_and,
+                "&&",
+                5,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::logical
+            }
+        },
+        {
+            "||",
+            {
+                operator_t::op::logical_or,
+                "||",
+                4,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::logical
+            }
+        },
+        {
+            "(",
+            {
+                operator_t::op::left_parenthesis,
+                "(",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
+        {
+            ")",
+            {
+                operator_t::op::right_parenthesis,
+                ")",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
+        {
+            "[",
+            {
+                operator_t::op::left_bracket,
+                "[",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
+        {
+            "]",
+            {
+                operator_t::op::right_bracket,
+                "]",
+                1,
+                operator_t::op_type::no_op,
+                operator_t::associativity_type::none,
+                operator_t::op_group::grouping
+            }
+        },
     };
+
+    void parser::error(
+            const std::string& code,
+            const std::string& message) {
+        std::stringstream stream;
+        stream << "\n";
+        auto start_line = std::max<int32_t>(0, static_cast<int32_t>(_line) - 4);
+        auto stop_line = std::min<int32_t>(static_cast<int32_t>(_lines.size()), _line + 4);
+        for (auto i = start_line; i < stop_line; i++) {
+            if (i == _line - 1) {
+                stream << fmt::format("{:04d}: ", i + 1)
+                       << _lines[i] << "\n"
+                       << std::setw(_column + 8)
+                       << "<red>^ " << message << "<>\n";
+            } else {
+                stream << fmt::format("{:04d}: ", i + 1)
+                       << _lines[i] << "\n";
+            }
+        }
+
+        _result.add_message(code, stream.str(), true);
+    }
+
+    char* parser::set_token() {
+        if (_index > _input.length() - 1) {
+            _token = nullptr;
+        } else {
+            _column++;
+            _token = &_input[_index];
+        }
+        return _token;
+    }
 
     bool parser::has_operand() {
         return !_operand_stack.empty();
@@ -46,6 +308,16 @@ namespace ryu::core {
 
     bool parser::has_operator() {
         return !_operator_stack.empty();
+    }
+
+    void parser::clear_stacks() {
+        _operator_stack.clear();
+
+        while (!_position_stack.empty())
+            _position_stack.pop();
+
+        while (!_operand_stack.empty())
+            _operand_stack.pop();
     }
 
     void parser::pop_position() {
@@ -63,22 +335,66 @@ namespace ryu::core {
         _position_stack.pop();
     }
 
-    char* parser::current_token() {
-        if (_token == nullptr)
-            move_to_next_token();
-        return _token;
-    }
-
     void parser::push_position() {
         _position_stack.push(scanner_pos_t {
                 _line,
-                std::min(_index, static_cast<int>(_input.length())),
+                std::min(_index, _input.length()),
                 _column});
     }
 
     void parser::increment_line() {
         _column = 1;
         _line++;
+    }
+
+    char* parser::current_token() {
+        if (_token == nullptr) {
+            set_token();
+            if (_token == nullptr)
+                move_to_next_token();
+        }
+        return _token;
+    }
+
+    void parser::register_operator(
+            const std::string& key,
+            const core::operator_t& op) {
+        _operators.insert(std::make_pair(key, op));
+    }
+
+    char* parser::move_to_next_token() {
+        _index++;
+        return set_token();
+    }
+
+    void parser::consume_white_space() {
+        auto token = current_token();
+        while (token != nullptr && isspace(*token)) {
+            if (*token == '\n') {
+                increment_line();
+                move_to_next_token();
+                break;
+            }
+            token = move_to_next_token();
+            if (token == nullptr)
+                return;
+        }
+    }
+
+    size_t parser::forget_top_position() {
+        if (_position_stack.empty())
+            return _index;
+        auto pos = _position_stack.top();
+        _position_stack.pop();
+        return pos.index;
+    }
+
+    void parser::consume_tokens(int count) {
+        for (auto i = 0; i < count; ++i) {
+            auto token = move_to_next_token();
+            if (token == nullptr)
+                break;
+        }
     }
 
     ast_node_shared_ptr parser::pop_operand() {
@@ -89,42 +405,18 @@ namespace ryu::core {
         return top;
     }
 
-    int parser::forget_top_position() {
-        if (_position_stack.empty())
-            return _index;
-        auto pos = _position_stack.top();
-        _position_stack.pop();
-        return pos.index;
-    }
-
-    char* parser::move_to_next_token() {
-        _index++;
-        if (_index > _input.length() - 1) {
-            _token = nullptr;
-        } else {
-            _column++;
-            _token = &_input[_index];
-        }
-        return _token;
-    }
-
-    void parser::consume_white_space() {
-        auto token = current_token();
-        while (token != nullptr && isspace(*token)) {
-            if (*token == '\n')
-                increment_line();
-            token = move_to_next_token();
-            if (token == nullptr)
-                return;
-        }
+    const core::result& parser::result() const {
+        return _result;
     }
 
     ast_node_shared_ptr parser::parse_number() {
-        radix_number_t number;
+        radix_numeric_literal_t number;
 
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
+
+        push_position();
 
         if (*token == '$') {
             std::stringstream stream;
@@ -189,13 +481,33 @@ namespace ryu::core {
         }
 
         if (number.radix != 0) {
-            auto number_literal = std::make_shared<ast_node_t>();
+            forget_top_position();
+
+            auto number_literal = create_ast_node(ast_node_t::tokens::number_literal);
             number_literal->value = number;
-            number_literal->token = ast_node_t::tokens::number_literal;
             return number_literal;
         }
 
+        pop_position();
+
         return nullptr;
+    }
+
+    void parser::reset(const std::string& input) {
+        _line = 1;
+        _index = 0;
+        _column = 1;
+        _result = {};
+        _input = input;
+        clear_stacks();
+
+        _lines.clear();
+        std::stringstream source;
+        source << _input << "\n";
+        std::string line;
+        while (std::getline(source, line)) {
+            _lines.push_back(line);
+        }
     }
 
     operator_t* parser::pop_operator() {
@@ -206,61 +518,10 @@ namespace ryu::core {
         return top;
     }
 
-    ast_node_shared_ptr parser::peek_operand() {
-        if (_operand_stack.empty())
-            return nullptr;
-        return _operand_stack.top();
-    }
-
     operator_t* parser::peek_operator() {
         if (_operator_stack.empty())
             return nullptr;
         return _operator_stack.front();
-    }
-
-    void parser::clear_stacks() {
-        _operator_stack.clear();
-
-        while (!_position_stack.empty())
-            _position_stack.pop();
-
-        while (!_operand_stack.empty())
-            _operand_stack.pop();
-    }
-
-    ast_node_shared_ptr parser::parse_comment() {
-        auto token = current_token();
-        if (token == nullptr)
-            return nullptr;
-        if (*token == '*' || *token == ';') {
-            token = move_to_next_token();
-            std::stringstream stream;
-            while (token != nullptr && *token != '\n') {
-                stream << *token;
-                token = move_to_next_token();
-            }
-            auto comment = std::make_shared<ast_node_t>();
-            comment->value = comment_t {stream.str()};
-            comment->token = ast_node_t::tokens::comment;
-            return comment;
-        }
-        return nullptr;
-    }
-
-    std::vector<operator_t*> parser::find_matching_operators(
-            std::vector<operator_t*> candidates,
-            char token,
-            int index) {
-        std::vector<operator_t*> matches;
-        for (auto it = candidates.begin(); it != candidates.end(); ++it) {
-            auto op = *it;
-            if (op->precedence == 0)
-                continue;
-            if (token == op->symbol[index]) {
-                matches.push_back(op);
-            }
-        }
-        return matches;
     }
 
     operator_t* parser::parse_operator() {
@@ -301,7 +562,8 @@ namespace ryu::core {
             index++;
         }
 
-        if (!candidates.empty() && candidates.size() < _operators.size()) {
+        if (!candidates.empty()
+        &&   candidates.size() < _operators.size()) {
             auto top_op = peek_operator();
             auto top_operand = peek_operand();
             auto top_is_binary_op = top_op != nullptr && (top_op->type & operator_t::op_type::binary) != 0;
@@ -318,6 +580,30 @@ namespace ryu::core {
         }
 
         return op;
+    }
+
+    ast_node_shared_ptr parser::peek_operand() {
+        if (_operand_stack.empty())
+            return nullptr;
+        return _operand_stack.top();
+    }
+
+    ast_node_shared_ptr parser::parse_comment() {
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (*token == '*' || *token == ';') {
+            token = move_to_next_token();
+            std::stringstream stream;
+            while (token != nullptr && *token != '\n') {
+                stream << *token;
+                token = move_to_next_token();
+            }
+            auto comment = create_ast_node(ast_node_t::tokens::comment);
+            comment->value = comment_t {stream.str()};
+            return comment;
+        }
+        return nullptr;
     }
 
     ast_node_shared_ptr parser::parse_identifier() {
@@ -343,15 +629,19 @@ namespace ryu::core {
                     break;
             }
 
-            if (token == nullptr) {
-                error("A001", "unexpected end of identifier.");
+            if (token != nullptr && *token == ':') {
+                move_to_next_token();
+                auto identifier_node = create_ast_node(ast_node_t::tokens::label);
+                identifier_node->value = label_t{stream.str()};
+                return identifier_node;
             } else {
-                if (*token != ':') {
-                    auto identifier_node = std::make_shared<ast_node_t>();
-                    identifier_node->value = identifier_t {stream.str()};
-                    identifier_node->token = ast_node_t::tokens::identifier;
-                    return identifier_node;
-                }
+                auto identifier_node = create_ast_node(ast_node_t::tokens::identifier);
+                identifier_node->value = identifier_t{stream.str()};
+                return identifier_node;
+            }
+        } else {
+            if (*token == ':') {
+                error("P008", "Unexpected colon without valid identifier");
             }
         }
 
@@ -362,6 +652,10 @@ namespace ryu::core {
 
     core::symbol_table* parser::symbol_table() {
         return _symbol_table;
+    }
+
+    void parser::push_operator(operator_t* op) {
+        _operator_stack.insert(_operator_stack.begin(), op);
     }
 
     ast_node_shared_ptr parser::parse_expression() {
@@ -381,7 +675,21 @@ namespace ryu::core {
                 return nullptr;
 
             if (op != nullptr) {
-                if (op->symbol == "(") {
+                if (op->custom_parser != nullptr) {
+                    switch (op->type) {
+                        case operator_t::op_type::binary: {
+                            auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
+                            bin_op_node->value = *op;
+                            bin_op_node->lhs = pop_operand();
+                            bin_op_node->rhs = op->custom_parser();
+                            return bin_op_node;
+                        }
+                        default: {
+                            error("P009", "unexpected operator type.");
+                            break;
+                        }
+                    }
+                } else if (op->symbol == "(") {
                     auto top = peek_operator();
                     if (top == nullptr && peek_operand() != nullptr) {
                         pop_position();
@@ -392,17 +700,15 @@ namespace ryu::core {
                     while (has_operator()) {
                         op = pop_operator();
                         if (op == &_operators["("]) {
-                            auto subexpression = std::make_shared<ast_node_t>();
-                            subexpression->token = ast_node_t::tokens::expression;
+                            auto subexpression = create_ast_node(ast_node_t::tokens::expression);
                             subexpression->children.push_back(pop_operand());
                             push_operand(subexpression);
                             goto main;
                         }
-                        auto bin_op_node = std::make_shared<ast_node_t>();
+                        auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
                         bin_op_node->value = *op;
                         bin_op_node->rhs = pop_operand();
                         bin_op_node->lhs = pop_operand();
-                        bin_op_node->token = ast_node_t::tokens::binary_op;
                         push_operand(bin_op_node);
                     }
                     error("P008", "unbalanced right parentheses");
@@ -413,17 +719,15 @@ namespace ryu::core {
                             || (op->compare_precedence(*top) < 0)) {
                             pop_operator();
                             if ((top->type & operator_t::op_type::unary) != 0) {
-                                auto unary_op_node = std::make_shared<ast_node_t>();
+                                auto unary_op_node = create_ast_node(ast_node_t::tokens::unary_op);
                                 unary_op_node->value = *top;
                                 unary_op_node->rhs = pop_operand();
-                                unary_op_node->token = ast_node_t::tokens::unary_op;
                                 push_operand(unary_op_node);
                             } else {
-                                auto bin_op_node = std::make_shared<ast_node_t>();
+                                auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
                                 bin_op_node->value = *top;
                                 bin_op_node->rhs = pop_operand();
                                 bin_op_node->lhs = pop_operand();
-                                bin_op_node->token = ast_node_t::tokens::binary_op;
                                 push_operand(bin_op_node);
                             }
                         } else
@@ -468,18 +772,16 @@ namespace ryu::core {
             }
 
             if ((op->type & operator_t::op_type::unary) != 0) {
-                auto unary_op_node = std::make_shared<ast_node_t>();
+                auto unary_op_node = create_ast_node(ast_node_t::tokens::unary_op);
                 unary_op_node->value = *op;
                 unary_op_node->rhs = pop_operand();
-                unary_op_node->token = ast_node_t::tokens::unary_op;
                 push_operand(unary_op_node);
             }
             if ((op->type & operator_t::op_type::binary) != 0) {
-                auto bin_op_node = std::make_shared<ast_node_t>();
+                auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
                 bin_op_node->value = *op;
                 bin_op_node->rhs = pop_operand();
                 bin_op_node->lhs = pop_operand();
-                bin_op_node->token = ast_node_t::tokens::binary_op;
                 push_operand(bin_op_node);
             }
         }
@@ -489,14 +791,6 @@ namespace ryu::core {
         return pop_operand();
     }
 
-    void parser::consume_tokens(int count) {
-        for (auto i = 0; i < count; ++i) {
-            auto token = move_to_next_token();
-            if (token == nullptr)
-                break;
-        }
-    }
-
     ast_node_shared_ptr parser::parse_null_literal() {
         push_position();
         auto token = current_token();
@@ -504,16 +798,10 @@ namespace ryu::core {
             return nullptr;
         if (match_literal("null")) {
             forget_top_position();
-            auto identifier_node = std::make_shared<ast_node_t>();
-            identifier_node->token = ast_node_t::tokens::null_literal;
-            return identifier_node;
+            return create_ast_node(ast_node_t::tokens::null_literal);
         }
         pop_position();
         return nullptr;
-    }
-
-    void parser::push_operator(operator_t* op) {
-        _operator_stack.insert(_operator_stack.begin(), op);
     }
 
     ast_node_shared_ptr parser::parse_string_literal() {
@@ -536,21 +824,26 @@ namespace ryu::core {
             }
             auto value = stream.str();
             if (!value.empty()) {
-                auto string_literal = std::make_shared<ast_node_t>();
+                auto string_literal = create_ast_node(ast_node_t::tokens::string_literal);
                 string_literal->value = string_literal_t{value};
-                string_literal->token = ast_node_t::tokens::string_literal;
                 return string_literal;
             }
         }
         return nullptr;
     }
 
-    const core::result& parser::result() const {
-        return _result;
-    }
-
-    void parser::push_operand(const ast_node_shared_ptr& node) {
-        _operand_stack.push(node);
+    ast_node_shared_ptr parser::parse_uninitialized() {
+        push_position();
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (*token == '?') {
+            forget_top_position();
+            move_to_next_token();
+            return create_ast_node(ast_node_t::tokens::uninitialized_literal);
+        }
+        pop_position();
+        return nullptr;
     }
 
     ast_node_shared_ptr parser::parse_boolean_literal() {
@@ -560,32 +853,25 @@ namespace ryu::core {
             return nullptr;
         if (match_literal("true")) {
             forget_top_position();
-            auto identifier_node = std::make_shared<ast_node_t>();
+            auto identifier_node = create_ast_node(ast_node_t::tokens::boolean_literal);
             identifier_node->value = boolean_literal_t {true};
-            identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         } else if (match_literal("false")) {
             forget_top_position();
-            auto identifier_node = std::make_shared<ast_node_t>();
+            auto identifier_node = create_ast_node(ast_node_t::tokens::boolean_literal);
             identifier_node->value = boolean_literal_t {false};
-            identifier_node->token = ast_node_t::tokens::boolean_literal;
             return identifier_node;
         }
         pop_position();
         return nullptr;
     }
 
-    void parser::reset(const std::string& input) {
-        _line = 1;
-        _column = 1;
-        _index = -1;
-        _result = {};
-        _input = input;
-        clear_stacks();
-    }
-
     bool parser::operator_stack_has(operator_t* op) {
         return std::find(_operator_stack.begin(), _operator_stack.end(), op) != _operator_stack.end();
+    }
+
+    void parser::symbol_table(core::symbol_table* value) {
+        _symbol_table = value;
     }
 
     ast_node_shared_ptr parser::parse_character_literal() {
@@ -598,9 +884,8 @@ namespace ryu::core {
                 token = move_to_next_token();
                 if (token != nullptr && *token == '\'') {
                     move_to_next_token();
-                    auto character_literal = std::make_shared<ast_node_t>();
-                    character_literal->value = char_literal_t{value};
-                    character_literal->token = ast_node_t::tokens::character_literal;
+                    auto character_literal = create_ast_node(ast_node_t::tokens::character_literal);
+                    character_literal->value = char_literal_t {static_cast<unsigned char>(value)};
                     return character_literal;
                 } else {
                     error("P008", "unbalanced single quote of character literal");
@@ -610,10 +895,6 @@ namespace ryu::core {
             }
         }
         return nullptr;
-    }
-
-    void parser::symbol_table(core::symbol_table* value) {
-        _symbol_table = value;
     }
 
     bool parser::match_literal(const std::string& literal) {
@@ -632,18 +913,51 @@ namespace ryu::core {
         return true;
     }
 
+    std::vector<operator_t*> parser::find_matching_operators(
+            std::vector<operator_t*> candidates,
+            char token,
+            int index) {
+        std::vector<operator_t*> matches;
+        for (auto it = candidates.begin(); it != candidates.end(); ++it) {
+            auto op = *it;
+            if (op->precedence == 0)
+                continue;
+            if (token == op->symbol[index]) {
+                matches.push_back(op);
+            }
+        }
+        return matches;
+    }
+
+    void parser::push_operand(const ast_node_shared_ptr& node) {
+        _operand_stack.push(node);
+    }
+
+    ast_node_shared_ptr parser::parse_location_counter_literal() {
+        push_position();
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+        if (*token == '$') {
+            forget_top_position();
+            move_to_next_token();
+            return create_ast_node(ast_node_t::tokens::location_counter_literal);
+        }
+        pop_position();
+        return nullptr;
+    }
+
+    ast_node_shared_ptr parser::create_ast_node(ast_node_t::tokens type) {
+        auto node = std::make_shared<ast_node_t>();
+        node->token = type;
+        node->line = _line;
+        node->column = _column;
+        return node;
+    }
+
     ast_node_shared_ptr parser::parse_expression(const std::string& input) {
         reset(input);
         return parse_expression();
-    }
-
-    void parser::error(const std::string& code, const std::string& message) {
-        std::stringstream stream;
-        stream << "Syntax error: " << message << "\n"
-               << _input << "\n"
-               << std::setw(_column) << '^';
-        _result.add_message(code, stream.str(), true);
-        _result.fail();
     }
 
 }

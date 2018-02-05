@@ -14,47 +14,76 @@
 
 namespace ryu::core {
 
+    // *done: ?               - uninitialized
+    // *done: $               - location counter alias
+    // *done: .binary [path]  - include binary data into assembly
+    // *done: .include [path] - recursively assembly file
+    //
+    // *done: dup             - .byte 5 dup $c0 or .byte 10 dup 2, 8
+    //
+    // *done: #               - paste operator
+    // *done: `               - quote operator
+    //
+    // STILL TODO:
+    // .loop                  - repeat the basic_block
+    // .local                 - create a unique label name
+    //
     // 1. directives
     // ---------------------------------
-    // .org [addr] - changes the insertion point address
-    // .target "name-of-component"
-    // .equ | =
+    // .org [addr] - changes the insertion point address *done
+    // .target "name-of-component" *done
+    // .equ *done
+    //
+    // this includes assembly text:
+    // .include [path]
+    //
+    // this includes binary data
+    // .binary [path]
+    //
     //
     // data directives
     // ---------------------------------
     //
-    // .struct [name]
+    // .struct [name]               *done
     //      label   .byte
     // .end
     //
-    // .align [size]
+    // .align [size]                *done
     //
-    // .byte $00 | ?, $af, 256
+    // .byte $00 | ?, $af, 256      *done except ? uninitialized
     //
     // string examples:
-    //  .ascii "this is a string"
-    //  .byte "this is a string too"
+    //  .ascii "this is a string"    *done
+    //  .byte "this is a string too" *done
     //
-    // .word $ffff | ?, $a000, $c000
-    // .dword $ffffffff | ?
+    // .word $ffff | ?, $a000, $c000 *done
+    // .dword $ffffffff | ?          *done
     //
 
     // 2. operators & functions
     // ----------------------------------
     // dup [size]([initializer] = ? | number)
     //
-    // > and < are operators for nybbles
+    // push this down to cpu specific parser:
+    // -    > and < are operators for nybbles
+    // example:
+    //      lda >#$ffaa
+    //      lda <#$ffaa
     //
-    // ltrim, rtrim, trim, substr
+    // examples from fasm:
     //
-    // upper, lower
+    //  # - paste operator/concatenate operator
+    //  ` - converts any symbol into a string
     //
+    // directives within macros/structures:
+    //  common, forward, reverse
     //
+    // $ = current location counter
 
     // 3. variables & labels
     // ----------------------------------
     //
-    // [0000] foo  .byte   ?  * uninitialized variable
+    // [0000] foo  .byte   ?  * done except uninitialized variable
     //
     // Example:
     //      lda     #foo
@@ -62,18 +91,20 @@ namespace ryu::core {
     // foo:                   * label (pointer)
     //      lda     #$0f
     //
-    // [0100] foo: .word   ?  * a label (pointer) to a word
+    // [0100] foo: .word   ?  * done except unitialized, a label (pointer) to a word
     //
     // Example:
     //      ldd     #foo      * load effective address
     //
     // .local [name]          * scoped to the current block
     //
-
+    //
+    // for branches, what symbol to use for backward/forward?
+    //
     // 4. macros
     // ----------------------------------
     //
-    // .if [expression]         * has to evaluate to bool
+    // .if [expression]         * done
     // .elseif [expression]
     // .else
     // .end
@@ -89,7 +120,7 @@ namespace ryu::core {
     // .end
     //
     //
-    // .macro [name](param1, param2, ...)
+    // .macro [name](param1, param2, ...) *done
     //      .local silly_loop
     //
     //  silly_loop:
@@ -107,25 +138,33 @@ namespace ryu::core {
 
     class assembler_parser : public core::parser {
     public:
+        enum operators : uint16_t {
+            dup = 500,
+            quote,
+            paste,
+            offset
+        };
+
         assembler_parser() = default;
+
+        void register_operators();
 
         ast_node_shared_ptr parse(const std::string& input) override;
 
-    protected: // directive related parsers
+    protected:
         ast_node_shared_ptr parse_directive();
 
-    protected: // label related parsers
-        ast_node_shared_ptr parse_label();
+        ast_node_shared_ptr parse_dup_operator();
 
     protected:
-        ast_node_shared_ptr parse_assembly();
+        void parse_assembly();
 
     private:
-        void pop_scope();
+        ast_node_shared_ptr pop_scope();
 
         ast_node_shared_ptr current_scope() const;
 
-        void push_scope(const ast_node_shared_ptr& node);
+        ast_node_shared_ptr push_scope(const ast_node_shared_ptr& node);
 
     private:
         std::stack<ast_node_shared_ptr> _scope_stack {};

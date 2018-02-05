@@ -46,11 +46,15 @@ namespace ryu::core {
                 const std::string& name,
                 const std::string& value);
 
+        void raise_move();
+
         int focus() const {
             return _focused_context;
         }
 
         void focus(int id);
+
+        void raise_resize();
 
         core::rect bounds() const;
 
@@ -85,6 +89,8 @@ namespace ryu::core {
         void erase_blackboard(const std::string& name);
 
         void on_resize(const resize_callable& callback);
+
+        core::context* find_context(const std::string& name);
 
         std::string blackboard(const std::string& name) const;
 

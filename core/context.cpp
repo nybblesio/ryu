@@ -15,12 +15,13 @@
 #include "engine.h"
 #include "context.h"
 #include "id_pool.h"
+#include "environment.h"
 
 namespace ryu::core {
 
     context::context(const std::string& name) : _id(core::id_pool::instance()->allocate()),
                                                 _name(name),
-                                                _environment() {
+                                                _environment(std::make_unique<core::environment>()) {
     }
 
     context::~context() {
@@ -30,21 +31,23 @@ namespace ryu::core {
     void context::update(
             uint32_t dt,
             core::renderer& renderer,
-            std::deque<SDL_Event>& events) {
+            event_list& events) {
         renderer.push_clip_rect(_bounds);
         renderer.push_blend_mode(SDL_BLENDMODE_NONE);
 
-        auto current_state_id = _stack.peek();
-        if (current_state_id != -1) {
-            auto active = _stack.active();
-            if (_engine->focus() == _id) {
-                while (!events.empty()) {
-                    auto processed = active->process_event(&events.front());
-                    if (!processed) {
-                        // XXX: We may need to do something with this event
-                    }
-                    events.pop_front();
-                }
+        auto it = events.begin();
+        while (it != events.end()) {
+            bool processed = false;
+
+            if (_engine->focus() == _id && _stack.peek() != -1) {
+                auto active = _stack.active();
+                processed = active->process_event(it.base());
+            }
+
+            if (!processed && on_process_event(it.base())) {
+                it = events.erase(it);
+            } else {
+                ++it;
             }
         }
 
@@ -58,6 +61,35 @@ namespace ryu::core {
 
         renderer.pop_blend_mode();
         renderer.pop_clip_rect();
+    }
+
+    void context::add_state(
+            core::state* state,
+            const state_transition_callable& callback) {
+        if (state == nullptr)
+            return;
+        state->context(this);
+        _stack.add_state(state, callback);
+        state->initialize(bounds());
+    }
+
+    void context::push_state(
+            int id,
+            const core::parameter_dict& params) {
+        _stack.push(id, params);
+    }
+
+    bool context::initialize(
+            core::result& result,
+            const core::rect& bounds) {
+        _bounds = bounds;
+        return on_initialize(result);
+    }
+
+    void context::blackboard(
+            const std::string& name,
+            const std::string& value) {
+        _blackboard[name] = value;
     }
 
     void context::resize() {
@@ -90,6 +122,10 @@ namespace ryu::core {
         state->initialize(bounds());
     }
 
+    void context::draw(core::renderer& renderer) {
+        on_draw(renderer);
+    }
+
     void context::palette(core::palette* palette) {
         _palette = palette;
     }
@@ -99,6 +135,13 @@ namespace ryu::core {
             return;
         state->context(nullptr);
         _stack.remove_state(state);
+    }
+
+    void context::on_draw(core::renderer& surface) {
+    }
+
+    bool context::on_process_event(const SDL_Event* e) {
+        return false;
     }
 
     bool context::on_initialize(core::result& result) {
@@ -123,27 +166,6 @@ namespace ryu::core {
             return it->second;
         }
         return "";
-    }
-
-    void context::push_state(int id, const core::parameter_dict& params) {
-        _stack.push(id, params);
-    }
-
-    bool context::initialize(core::result& result, const core::rect& bounds) {
-        _bounds = bounds;
-        return on_initialize(result);
-    }
-
-    void context::blackboard(const std::string& name, const std::string& value) {
-        _blackboard[name] = value;
-    }
-
-    void context::add_state(core::state* state, const state_transition_callable& callback) {
-        if (state == nullptr)
-            return;
-        state->context(this);
-        _stack.add_state(state, callback);
-        state->initialize(bounds());
     }
 
 }

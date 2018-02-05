@@ -22,71 +22,78 @@ namespace ryu::core {
     class result;
     class environment;
 
-    enum command_types : uint8_t {
-        quit = 1,
-        help,
-        clear,
+    struct ast_node_t;
 
-        add_symbol,
-        remove_symbol,
-        show_symbol_table,
+    typedef std::shared_ptr<ast_node_t> ast_node_shared_ptr;
+    typedef std::vector<ast_node_shared_ptr> ast_node_list;
+    typedef std::map<std::string, ast_node_shared_ptr> symbol_dict;
 
-        assemble,
-        evaluate,
-        disassemble,
-        dump_memory,
-        search_memory,
-        fill_memory,
-        copy_memory,
-        jump_to_address,
-        go_to_address,
-        register_editor,
+    struct command {
+        enum types : uint8_t {
+            quit = 1,
+            help,
+            clear,
 
-        move_file,
-        list_files,
-        remove_file,
-        make_directory,
-        change_directory,
-        print_working_directory,
+            add_symbol,
+            remove_symbol,
+            show_symbol_table,
 
-        new_project,
-        edit_project,
-        load_project,
-        save_project,
-        close_project,
-        clone_project,
-        new_project_file,
-        save_project_file,
-        list_project_files,
-        remove_project_file,
+            assemble,
+            evaluate,
+            disassemble,
+            dump_memory,
+            search_memory,
+            fill_memory,
+            copy_memory,
+            jump_to_address,
+            go_to_address,
+            register_editor,
 
-        new_environment,
-        list_environments,
-        remove_environment,
-        switch_environment,
+            move_file,
+            list_files,
+            remove_file,
+            make_directory,
+            change_directory,
+            print_working_directory,
 
-        list_machines,
-        edit_machine,
-        delete_machine,
-        use_machine,
+            new_project,
+            edit_project,
+            load_project,
+            save_project,
+            close_project,
+            clone_project,
+            new_project_file,
+            save_project_file,
+            list_project_files,
+            remove_project_file,
 
-        open_editor,
-        source_editor,
-        memory_editor,
-        sprite_editor,
-        tile_editor,
-        background_editor,
-        module_editor,
-        sample_editor,
+            new_environment,
+            list_environments,
+            remove_environment,
+            switch_environment,
 
-        read_binary_to_memory,
-        write_memory_to_binary,
-        read_text,
-        write_text,
-        goto_line,
-        find_text
+            list_machines,
+            edit_machine,
+            delete_machine,
+            use_machine,
+
+            open_editor,
+            source_editor,
+            memory_editor,
+            sprite_editor,
+            tile_editor,
+            background_editor,
+            module_editor,
+            sample_editor,
+
+            read_binary_to_memory,
+            write_memory_to_binary,
+            read_text,
+            write_text,
+            goto_line,
+            find_text
+        };
     };
-
     struct variant {
         enum types {
             radix_numeric_literal = 0,
@@ -100,6 +107,7 @@ namespace ryu::core {
             comment_literal,
             directive,
             label,
+            dup_literal,
 
             // N.B. these must always be the last values
             variadic,
@@ -120,6 +128,7 @@ namespace ryu::core {
                 case directive:             return "directive";
                 case label:                 return "label";
                 case variadic:              return "variadic";
+                case dup_literal:           return "dup_literal";
                 case any:                   return "any";
             }
             return "unknown";
@@ -144,10 +153,10 @@ namespace ryu::core {
     typedef uint8_t command_flags_t;
 
     struct command_spec_t {
-        command_types type;
+        command::types type {};
         command_flags_t valid_sizes = command_size_flags::none;
-        std::vector<command_parameter_spec_t> params;
-        std::string help;
+        std::vector<command_parameter_spec_t> params {};
+        std::string help {};
     };
 
     struct command_t {
@@ -203,7 +212,8 @@ namespace ryu::core {
             else_block,
             loop,
             macro,
-            include
+            include,
+            binary
         };
 
         enum data_sizes {
@@ -216,24 +226,6 @@ namespace ryu::core {
 
         types type;
         data_sizes data_size;
-
-        bool is_block() {
-            switch (type) {
-                case structure:
-                case if_block:
-                case elseif_block:
-                case else_block:
-                case loop:
-                case macro:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        bool is_block_end() {
-            return type == end_block;
-        }
 
         friend std::ostream& operator<<(
                 std::ostream& stream,
@@ -259,7 +251,7 @@ namespace ryu::core {
                     break;
                 }
                 case equate:
-                    stream << "=";
+                    stream << ".equ";
                     break;
                 case origin:
                     stream << ".org";
@@ -296,6 +288,10 @@ namespace ryu::core {
                     break;
                 case include:
                     stream << ".include";
+                    break;
+                case binary:
+                    stream << ".binary";
+                    break;
                 default:
                     stream << "***unknown***";
                     break;
@@ -328,13 +324,15 @@ namespace ryu::core {
     };
 
     struct scanner_pos_t {
-        int line;
-        int index;
-        int column;
+        uint32_t line;
+        size_t index;
+        uint32_t column;
     };
 
+    using custom_parser_callable = std::function<ast_node_shared_ptr ()>;
+
     struct operator_t {
-        enum op {
+        enum op : uint16_t {
             invert,
             negate,
             pow,
@@ -370,7 +368,8 @@ namespace ryu::core {
             arithmetic,
             relational,
             grouping,
-            logical
+            logical,
+            conversion
         };
 
         enum associativity_type {
@@ -392,16 +391,17 @@ namespace ryu::core {
             return stream;
         }
 
-        op op;
+        uint16_t op;
         std::string symbol;
         uint8_t precedence = 0;
         uint8_t type = op_type::no_op;
         associativity_type associativity = associativity_type::none;
         op_group group = op_group::arithmetic;
+        custom_parser_callable custom_parser;
     };
 
-    struct radix_number_t {
-        int radix = 0;
+    struct radix_numeric_literal_t {
+        uint8_t radix = 0;
         std::string value;
 
         enum conversion_result {
@@ -411,26 +411,26 @@ namespace ryu::core {
             inconvertible
         };
 
-        conversion_result parse(int32_t& out) const {
+        conversion_result parse(uint32_t& out) const {
             const char* s = value.c_str();
             char* end;
             long l;
             errno = 0;
             l = strtol(s, &end, radix);
-            if ((errno == ERANGE && l == LONG_MAX) || l > INT_MAX) {
+            if ((errno == ERANGE && l == LONG_MAX) || l > UINT_MAX) {
                 return overflow;
             }
-            if ((errno == ERANGE && l == LONG_MIN) || l < INT_MIN) {
+            if ((errno == ERANGE && l == LONG_MIN)) {
                 return underflow;
             }
             if (*s == '\0' || *end != '\0') {
                 return inconvertible;
             }
-            out = static_cast<int32_t>(l);
+            out = static_cast<uint32_t>(l);
             return success;
         }
 
-        friend std::ostream& operator<<(std::ostream& stream, const radix_number_t& lit) {
+        friend std::ostream& operator<<(std::ostream& stream, const radix_numeric_literal_t& lit) {
             switch (lit.radix) {
                 case 2:
                     stream << fmt::format("%{0}", lit.value);
@@ -453,7 +453,7 @@ namespace ryu::core {
         std::string value;
 
         friend std::ostream& operator<<(std::ostream& stream, const comment_t& comment) {
-            stream << "; " << comment.value;
+            stream << "* " << comment.value;
             return stream;
         }
     };
@@ -487,15 +487,6 @@ namespace ryu::core {
         }
     };
 
-    struct char_literal_t {
-        char value;
-
-        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
-            stream << "'" << lit.value << "'";
-            return stream;
-        }
-    };
-
     struct boolean_literal_t {
         bool value;
         boolean_literal_t operator! () {
@@ -520,12 +511,15 @@ namespace ryu::core {
     };
 
     struct numeric_literal_t {
-        int32_t value;
+        uint32_t value;
+
         numeric_literal_t operator~ () {
             return numeric_literal_t {~value};
         }
         numeric_literal_t operator- () {
-            return numeric_literal_t {-value};
+            return numeric_literal_t {
+                static_cast<uint32_t>(-value)
+            };
         }
         numeric_literal_t operator+ (const numeric_literal_t& other) {
             return numeric_literal_t {value + other.value};
@@ -575,10 +569,49 @@ namespace ryu::core {
         }
     };
 
+    struct char_literal_t {
+        unsigned char value;
+
+        operator numeric_literal_t() {
+            return numeric_literal_t {value};
+        }
+        boolean_literal_t operator== (const char_literal_t& other) {
+            return boolean_literal_t {value == other.value};
+        }
+        boolean_literal_t operator!= (const char_literal_t& other) {
+            return boolean_literal_t {value != other.value};
+        }
+        boolean_literal_t operator< (const char_literal_t& other) {
+            return boolean_literal_t {value < other.value};
+        }
+        boolean_literal_t operator<= (const char_literal_t& other) {
+            return boolean_literal_t {value <= other.value};
+        }
+        boolean_literal_t operator> (const char_literal_t& other) {
+            return boolean_literal_t {value > other.value};
+        }
+        boolean_literal_t operator>= (const char_literal_t& other) {
+            return boolean_literal_t {value >= other.value};
+        }
+        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
+            stream << "'" << lit.value << "'";
+            return stream;
+        }
+    };
+
+    struct dup_literal_t {
+        uint32_t count;
+        std::vector<numeric_literal_t> values;
+
+        friend std::ostream& operator<<(std::ostream& stream, const dup_literal_t& lit) {
+            return stream;
+        }
+    };
+
     typedef std::map<std::string, operator_t> operator_dict;
 
     typedef boost::variant<
-        radix_number_t,
+        radix_numeric_literal_t,
         numeric_literal_t,
         boolean_literal_t,
         identifier_t,
@@ -588,13 +621,8 @@ namespace ryu::core {
         command_t,
         comment_t,
         directive_t,
-        label_t> variant_t;
-
-    struct ast_node_t;
-
-    typedef std::shared_ptr<ast_node_t> ast_node_shared_ptr;
-    typedef std::vector<ast_node_shared_ptr> ast_node_list;
-    typedef std::map<std::string, ast_node_shared_ptr> symbol_dict;
+        label_t,
+        dup_literal_t> variant_t;
 
     struct ast_node_t {
         enum tokens {
@@ -613,22 +641,39 @@ namespace ryu::core {
             number_literal,
             null_literal,
             boolean_literal,
-            directive
+            directive,
+            parameter_list,
+            branch,
+            address,
+            uninitialized_literal,
+            location_counter_literal,
+            placeholder
         };
-
-        bool is_block() const {
-            return token == tokens::basic_block;
-        }
 
         void serialize(std::ostream& stream) {
             switch (token) {
-                case statement:
-                case basic_block:
+                case placeholder:
+                    break;
+                case branch:
+                    lhs->serialize(stream);
+                    if (rhs != nullptr)
+                        rhs->serialize(stream);
                     break;
                 case program:
+                case basic_block:
                     for (const auto& child : children)
                         child->serialize(stream);
                     break;
+                case parameter_list: {
+                    auto child_count = children.size();
+                    for (size_t i = 0; i < child_count; i++) {
+                        const auto& child = children[i];
+                        child->serialize(stream);
+                        if (i < child_count - 1)
+                            stream << ",";
+                    }
+                    break;
+                }
                 case expression:
                     stream << "(";
                     for (const auto& child : children)
@@ -644,26 +689,83 @@ namespace ryu::core {
                     stream << value;
                     rhs->serialize(stream);
                     break;
+                case statement:
                 case directive: {
-                    stream << value;
+                    // XXX: custom macro serialization
+                    if (lhs != nullptr)
+                        lhs->serialize(stream);
+                    stream << value << " ";
+                    if (rhs != nullptr)
+                        rhs->serialize(stream);
                     for (const auto& child : children)
                         child->serialize(stream);
                     break;
                 }
                 case label:
-                case command:
-                case comment:
                 case identifier:
+                    stream << value;
+                    break;
+                case command:
+                case address:
                 case string_literal:
                 case number_literal:
                 case boolean_literal:
                 case character_literal:
                     stream << value;
                     break;
+                case comment:
+                    stream << value;
+                    break;
                 case null_literal:
                     stream << "null";
                     break;
+                case uninitialized_literal:
+                    stream << "?";
+                    break;
+                case location_counter_literal:
+                    stream << "$";
+                    break;
             }
+        }
+
+        label_t label_type() const {
+            return boost::get<label_t>(value);
+        }
+
+        command_t command_type() const {
+            return boost::get<command_t>(value);
+        }
+
+        operator_t operator_type() const {
+            return boost::get<operator_t>(value);
+        }
+
+        directive_t directive_type() const {
+            return boost::get<directive_t>(value);
+        }
+
+        identifier_t identifier_type() const {
+            return boost::get<identifier_t>(value);
+        }
+
+        char_literal_t char_literal_type() const {
+            return boost::get<char_literal_t>(value);
+        }
+
+        string_literal_t string_literal_type() const {
+            return boost::get<string_literal_t>(value);
+        }
+
+        boolean_literal_t boolean_literal_type() const {
+            return boost::get<boolean_literal_t>(value);
+        }
+
+        numeric_literal_t numeric_literal_type() const {
+            return boost::get<numeric_literal_t>(value);
+        }
+
+        radix_numeric_literal_t radix_numeric_literal_type() const {
+            return boost::get<radix_numeric_literal_t>(value);
         }
 
         tokens token;
@@ -671,6 +773,9 @@ namespace ryu::core {
         ast_node_list children;
         ast_node_shared_ptr lhs = nullptr;
         ast_node_shared_ptr rhs = nullptr;
+        ast_node_shared_ptr parent = nullptr;
+        uint32_t line = 0;
+        uint32_t column = 0;
     };
 
     typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;

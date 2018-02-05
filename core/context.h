@@ -17,9 +17,10 @@
 #include "palette.h"
 #include "renderer.h"
 #include "state_stack.h"
-#include "environment.h"
 
 namespace ryu::core {
+
+    class environment;
 
     class context {
     public:
@@ -30,7 +31,7 @@ namespace ryu::core {
         void update(
                 uint32_t dt,
                 core::renderer& renderer,
-                std::deque<SDL_Event>& events);
+                event_list& events);
 
         void resize();
 
@@ -41,6 +42,14 @@ namespace ryu::core {
         void blackboard(
                 const std::string& name,
                 const std::string& value);
+
+        void push_state(
+                int id,
+                const core::parameter_dict& params);
+
+        bool initialize(
+                core::result& result,
+                const core::rect& bounds);
 
         uint32_t id() const;
 
@@ -70,6 +79,10 @@ namespace ryu::core {
 
         core::font_family* font_family();
 
+        inline std::string name() const {
+            return _name;
+        }
+
         inline core::rect bounds() const {
             return _bounds;
         }
@@ -79,6 +92,8 @@ namespace ryu::core {
         }
 
         void add_state(core::state* state);
+
+        void draw(core::renderer& renderer);
 
         void palette(core::palette* palette);
 
@@ -97,7 +112,7 @@ namespace ryu::core {
         }
 
         inline core::environment* environment() {
-            return &_environment;
+            return _environment.get();
         }
 
         void font_face(const core::font_t* value);
@@ -113,12 +128,12 @@ namespace ryu::core {
 
         std::string blackboard(const std::string& name) const;
 
-        void push_state(int id, const core::parameter_dict& params);
-
-        bool initialize(core::result& result, const core::rect& bounds);
-
     protected:
+        virtual void on_draw(core::renderer& surface);
+
         virtual bool on_initialize(core::result& result);
+
+        virtual bool on_process_event(const SDL_Event* e);
 
     private:
         uint32_t _id = 0;
@@ -127,12 +142,12 @@ namespace ryu::core {
         uint8_t _bg_color = 0;
         core::rect _bounds {};
         core::state_stack _stack {};
-        core::environment _environment;
         core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
         core::palette* _palette = nullptr;
         const core::font_t* _font = nullptr;
         core::font_family* _family = nullptr;
+        std::unique_ptr<core::environment> _environment;
     };
 
 };

@@ -17,8 +17,10 @@
 #include <core/command_parser.h>
 #include <common/string_support.h>
 #include <boost/algorithm/string.hpp>
+#include "assembler.h"
 #include "environment.h"
 #include "project_file.h"
+#include "symbol_table.h"
 #include "hex_formatter.h"
 #include "text_formatter.h"
 #include "project_file_type.h"
@@ -27,328 +29,220 @@ namespace ryu::core {
 
     command_handler_dict environment::_command_handlers = {
         {
-            core::command_types::quit,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_quit(context);
-            }
+            core::command::types::quit,
+            std::bind(&environment::on_quit, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::help,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_help(context);
-            }
+            core::command::types::help,
+            std::bind(&environment::on_help, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::clear,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_clear(context);
-            }
+            core::command::types::clear,
+            std::bind(&environment::on_clear, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::add_symbol,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_add_symbol(context);
-            }
+            core::command::types::add_symbol,
+            std::bind(&environment::on_add_symbol, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_symbol,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_remove_symbol(context);
-            }
+            core::command::types::remove_symbol,
+            std::bind(&environment::on_remove_symbol, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::show_symbol_table,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_show_symbol_table(context);
-            }
+            core::command::types::show_symbol_table,
+            std::bind(&environment::on_show_symbol_table, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::assemble,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_assemble(context);
-            }
+            core::command::types::assemble,
+            std::bind(&environment::on_assemble, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::evaluate,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_evaluate(context);
-            }
+            core::command::types::evaluate,
+            std::bind(&environment::on_evaluate, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::disassemble,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_disassemble(context);
-            }
+            core::command::types::disassemble,
+            std::bind(&environment::on_disassemble, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::dump_memory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_dump_memory(context);
-            }
+            core::command::types::dump_memory,
+            std::bind(&environment::on_dump_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::search_memory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_search_memory(context);
-            }
+            core::command::types::search_memory,
+            std::bind(&environment::on_search_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::fill_memory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_fill_memory(context);
-            }
+            core::command::types::fill_memory,
+            std::bind(&environment::on_fill_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::copy_memory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_copy_memory(context);
-            }
+            core::command::types::copy_memory,
+            std::bind(&environment::on_copy_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::jump_to_address,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_jump_to_address(context);
-            }
+            core::command::types::jump_to_address,
+            std::bind(&environment::on_jump_to_address, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::go_to_address,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_go_to_address(context);
-            }
+            core::command::types::go_to_address,
+            std::bind(&environment::on_go_to_address, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::register_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_register_editor(context);
-            }
+            core::command::types::register_editor,
+            std::bind(&environment::on_register_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_files,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_list_files(context);
-            }
+            core::command::types::list_files,
+            std::bind(&environment::on_list_files, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_file,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_remove_file(context);
-            }
+            core::command::types::remove_file,
+            std::bind(&environment::on_remove_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::move_file,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_move_file(context);
-            }
+            core::command::types::move_file,
+            std::bind(&environment::on_move_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::make_directory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_make_directory(context);
-            }
+            core::command::types::make_directory,
+            std::bind(&environment::on_make_directory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::change_directory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_change_directory(context);
-            }
+            core::command::types::change_directory,
+            std::bind(&environment::on_change_directory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::print_working_directory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_print_working_directory(context);
-            }
+            core::command::types::print_working_directory,
+            std::bind(&environment::on_print_working_directory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::new_project,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_new_project(context);
-            }
+            core::command::types::new_project,
+            std::bind(&environment::on_new_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::edit_project,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_edit_project(context);
-            }
+            core::command::types::edit_project,
+            std::bind(&environment::on_edit_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::load_project,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_load_project(context);
-            }
+            core::command::types::load_project,
+            std::bind(&environment::on_load_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::save_project,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_save_project(context);
-            }
+            core::command::types::save_project,
+            std::bind(&environment::on_save_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::close_project,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_close_project(context);
-            }
+            core::command::types::close_project,
+            std::bind(&environment::on_close_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::clone_project,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_clone_project(context);
-            }
+            core::command::types::clone_project,
+            std::bind(&environment::on_clone_project, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::new_project_file,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_new_project_file(context);
-            }
+            core::command::types::new_project_file,
+            std::bind(&environment::on_new_project_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::save_project_file,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_save_project_file(context);
-            }
+            core::command::types::save_project_file,
+            std::bind(&environment::on_save_project_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_project_file,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_remove_project_file(context);
-            }
+            core::command::types::remove_project_file,
+            std::bind(&environment::on_remove_project_file, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_project_files,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_list_project_files(context);
-            }
+            core::command::types::list_project_files,
+            std::bind(&environment::on_list_project_files, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::new_environment,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_new_environment(context);
-            }
+            core::command::types::new_environment,
+            std::bind(&environment::on_new_environment, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::remove_environment,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_remove_environment(context);
-            }
+            core::command::types::remove_environment,
+            std::bind(&environment::on_remove_environment, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::switch_environment,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_switch_environment(context);
-            }
+            core::command::types::switch_environment,
+            std::bind(&environment::on_switch_environment, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_environments,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_list_environments(context);
-            }
+            core::command::types::list_environments,
+            std::bind(&environment::on_list_environments, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::edit_machine,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_edit_machine(context);
-            }
+            core::command::types::edit_machine,
+            std::bind(&environment::on_edit_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::list_machines,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_list_machines(context);
-            }
+            core::command::types::list_machines,
+            std::bind(&environment::on_list_machines, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::delete_machine,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_delete_machine(context);
-            }
+            core::command::types::delete_machine,
+            std::bind(&environment::on_delete_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::use_machine,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_use_machine(context);
-            }
+            core::command::types::use_machine,
+            std::bind(&environment::on_use_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::open_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_open_editor(context);
-            }
+            core::command::types::open_editor,
+            std::bind(&environment::on_open_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::source_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_source_editor(context);
-            }
+            core::command::types::source_editor,
+            std::bind(&environment::on_source_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::memory_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_memory_editor(context);
-            }
+            core::command::types::memory_editor,
+            std::bind(&environment::on_memory_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::sprite_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_sprite_editor(context);
-            }
+            core::command::types::sprite_editor,
+            std::bind(&environment::on_sprite_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::tile_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_tile_editor(context);
-            }
+            core::command::types::tile_editor,
+            std::bind(&environment::on_tile_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::background_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_background_editor(context);
-            }
+            core::command::types::background_editor,
+            std::bind(&environment::on_background_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::module_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_module_editor(context);
-            }
+            core::command::types::module_editor,
+            std::bind(&environment::on_module_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::sample_editor,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_sample_editor(context);
-            }
+            core::command::types::sample_editor,
+            std::bind(&environment::on_sample_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::read_binary_to_memory,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_read_binary_to_memory(context);
-            }
+            core::command::types::read_binary_to_memory,
+            std::bind(&environment::on_read_binary_to_memory, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::write_memory_to_binary,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_write_memory_to_binary(context);
-            }
+            core::command::types::write_memory_to_binary,
+            std::bind(&environment::on_write_memory_to_binary, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::read_text,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_read_text(context);
-            }
+            core::command::types::read_text,
+            std::bind(&environment::on_read_text, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::write_text,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_write_text(context);
-            }
+            core::command::types::write_text,
+            std::bind(&environment::on_write_text, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::goto_line,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_goto_line(context);
-            }
+            core::command::types::goto_line,
+            std::bind(&environment::on_goto_line, std::placeholders::_1, std::placeholders::_2)
         },
         {
-            core::command_types::find_text,
-            [](environment* env, const command_handler_context_t& context) {
-                return env->on_find_text(context);
-            }
+            core::command::types::find_text,
+            std::bind(&environment::on_find_text, std::placeholders::_1, std::placeholders::_2)
         },
     };
 
@@ -410,6 +304,13 @@ namespace ryu::core {
         results.push_back(fmt::format(binary_fmt_spec, signed_value));
     }
 
+    environment::environment() : _assembler(std::make_unique<core::assembler>()),
+                                 _symbol_table(std::make_unique<core::symbol_table>()) {
+    }
+
+    environment::~environment() {
+    }
+
     bool environment::load(
             core::result& result,
             std::iostream& stream) {
@@ -428,7 +329,7 @@ namespace ryu::core {
         using namespace boost::filesystem;
 
         core::command_parser parser;
-        parser.symbol_table(&_symbol_table);
+        parser.symbol_table(_symbol_table.get());
 
         auto root = parser.parse(line);
         if (root == nullptr || parser.result().is_failed()) {
@@ -439,8 +340,8 @@ namespace ryu::core {
         }
 
         auto command = boost::get<core::command_t>(root->value);
-        core::evaluator evaluator;
-        evaluator.symbol_table(&_symbol_table);
+        core::evaluator evaluator(_assembler.get());
+        evaluator.symbol_table(_symbol_table.get());
 
         core::command_parameter_dict params;
         if (root->children.empty()) {
@@ -538,11 +439,32 @@ namespace ryu::core {
     }
 
     core::symbol_table* environment::symbol_table() {
-        return &_symbol_table;
+        return _symbol_table.get();
     }
 
     void environment::name(const std::string& value) {
         _name = value;
+    }
+
+    data_table_t environment::create_symbol_table() {
+        data_table_t table {};
+
+        table.headers.push_back({"Identifier",   40, 40});
+        table.headers.push_back({"Expression",   40, 75});
+        table.footers.push_back({"Symbol Count", 49, 64});
+
+        auto identifiers = _symbol_table->identifiers();
+        for (const auto& symbol : identifiers) {
+            std::stringstream stream;
+            _symbol_table->get(symbol)->serialize(stream);
+            table.rows.push_back({{symbol, stream.str()}});
+        }
+
+        table.rows.push_back({
+            {fmt::format("{} symbols defined", identifiers.size())}
+        });
+
+        return table;
     }
 
     bool environment::assemble(core::result& result) {
@@ -554,16 +476,31 @@ namespace ryu::core {
             return false;
         }
 
-        _assembler.symbol_table(&_symbol_table);
+        _assembler->symbol_table(_symbol_table.get());
 
         auto files = core::project::instance()->files();
         for (auto& file : files) {
+            if (!file.should_assemble())
+                continue;
+
             std::stringstream source;
             if (!file.read(result, source))
                 break;
 
-            if (!_assembler.assemble(result, source))
+            auto source_text = source.str();
+            if (!_assembler->assemble(result, source_text))
                 break;
+        }
+
+        auto listing_table = _assembler->listing().table();
+
+        if (listing_table.rows.size() > 2) {
+            result.add_data(
+                    "command_result",
+                    {
+                        {"listing", listing_table},
+                        {"symbols", create_symbol_table()}
+                    });
         }
 
         return !result.is_failed();
@@ -590,16 +527,16 @@ namespace ryu::core {
         table.line_spacing = 1;
         table.headers.push_back({
                 "Command",
-                10,
-                32,
+                20,
+                40,
                 alignment::horizontal::left,
                 1,
                 format_options::style_codes
         });
         table.headers.push_back({
                 "Help",
-                10,
-                50,
+                35,
+                75,
                 alignment::horizontal::left,
                 1,
                 format_options::style_codes | format_options::word_wrap
@@ -699,7 +636,7 @@ namespace ryu::core {
     bool environment::on_add_symbol(
             const command_handler_context_t& context) {
         auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
-        _symbol_table.put(identifier, context.root->children[1]);
+        _symbol_table->put(identifier, context.root->children[1]);
         return true;
     }
 
@@ -711,32 +648,15 @@ namespace ryu::core {
     bool environment::on_remove_symbol(
             const command_handler_context_t& context) {
         auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
-        _symbol_table.remove(identifier);
+        _symbol_table->remove(identifier);
         return true;
     }
 
     bool environment::on_show_symbol_table(
             const command_handler_context_t& context) {
-        data_table_t table {};
-
-        table.headers.push_back({"Identifier", 16, 32});
-        table.headers.push_back({"Expression", 16, 32});
-        table.footers.push_back({"Symbol Count", 32, 64});
-
-        auto identifiers = _symbol_table.identifiers();
-        for (const auto& symbol : identifiers) {
-            std::stringstream stream;
-            _symbol_table.get(symbol)->serialize(stream);
-            table.rows.push_back({{symbol, stream.str()}});
-        }
-
-        table.rows.push_back({
-            {fmt::format("{} symbols", identifiers.size())}
-        });
-
         context.result.add_data(
                 "command_result",
-                {{"data", table}});
+                {{"data", create_symbol_table()}});
 
         return true;
     }
@@ -860,7 +780,7 @@ namespace ryu::core {
             {
                 {
                     "data",
-                    core::hex_formatter::dump_to_table(buffer, 128)
+                    core::hex_formatter::dump_to_table(buffer, 128, 16)
                 }
             });
 
@@ -876,6 +796,14 @@ namespace ryu::core {
 
     bool environment::on_memory_editor(
             const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C033",
+                    "no project is loaded; unable to open memory editor",
+                    true);
+            return false;
+        }
+
         context.result.add_data("command_action", {{"action", std::string("edit_memory")}});
         return true;
     }
@@ -1383,7 +1311,7 @@ namespace ryu::core {
                 "command_action",
                 {
                         {"action", std::string("edit_source")},
-                        {"path", path}
+                        {"path", project::find_project_root().append(path).string()}
                 });
         return true;
     }

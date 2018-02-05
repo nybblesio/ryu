@@ -40,6 +40,8 @@ namespace ryu::ide::source_editor {
 
         bool on_process_event(const SDL_Event* e) override;
 
+        void on_activate(const core::parameter_dict& params) override;
+
     private:
         metrics_t _metrics;
         core::label _cpu_status;

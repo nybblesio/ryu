@@ -42,7 +42,9 @@ add_library(
         text_formatter.cpp text_formatter.h
         views/pick_list.cpp views/pick_list.h
         assembler_parser.cpp assembler_parser.h
+        assembly_listing.cpp assembly_listing.h
         views/text_editor.cpp views/text_editor.h
         project_file_type.cpp project_file_type.h
+        views/memory_editor.cpp views/memory_editor.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h
         assembly_language_parser.cpp assembly_language_parser.h)

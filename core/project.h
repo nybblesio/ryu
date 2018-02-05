@@ -40,6 +40,8 @@ namespace ryu::core {
 
         static core::project* instance();
 
+        static fs::path find_project_root();
+
         static bool close(core::result& result);
 
         static void add_listener(const project_changed_callable& callable);

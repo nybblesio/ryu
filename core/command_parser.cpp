@@ -19,7 +19,7 @@ namespace ryu::core {
         {
             "help",
             {
-                command_types::help,
+                command::types::help,
                 command_size_flags::none,
                 {
                     {"cmd", variant::types::command_literal, false}
@@ -31,7 +31,7 @@ namespace ryu::core {
         {
             "!",
             {
-                command_types::quit,
+                command::types::quit,
                 command_size_flags::none,
                 {},
                 "Exit this application."
@@ -41,7 +41,7 @@ namespace ryu::core {
         {
             "%",
             {
-                command_types::open_editor,
+                command::types::open_editor,
                 command_size_flags::none,
                 {
                     {"name",  variant::types::string_literal},
@@ -54,7 +54,7 @@ namespace ryu::core {
         {
             "clear",
             {
-                command_types::clear,
+                command::types::clear,
                 command_size_flags::none,
                 {},
                 "Clear console and home the cursor at the top."
@@ -67,7 +67,7 @@ namespace ryu::core {
         {
             "?",
             {
-                command_types::evaluate,
+                command::types::evaluate,
                 command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
                 {
                     {"...",  variant::types::variadic}
@@ -79,7 +79,7 @@ namespace ryu::core {
         {
             "a",
             {
-                command_types::assemble,
+                command::types::assemble,
                 command_size_flags::none,
                 {},
                 "Assemble project source files."
@@ -89,7 +89,7 @@ namespace ryu::core {
         {
             "e",
             {
-                command_types::source_editor,
+                command::types::source_editor,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -101,7 +101,7 @@ namespace ryu::core {
         {
             "m",
             {
-                command_types::memory_editor,
+                command::types::memory_editor,
                 command_size_flags::none,
                 {
                     {"addr", variant::types::numeric_literal}
@@ -113,7 +113,7 @@ namespace ryu::core {
         {
             "d",
             {
-                command_types::disassemble,
+                command::types::disassemble,
                 command_size_flags::none,
                 {
                     {"addr", variant::types::numeric_literal},
@@ -126,7 +126,7 @@ namespace ryu::core {
         {
             "h",
             {
-                command_types::dump_memory,
+                command::types::dump_memory,
                 command_size_flags::none,
                 {
                     {"addr", variant::types::numeric_literal}
@@ -139,7 +139,7 @@ namespace ryu::core {
             // XXX: what should the result of this command be?
             "s",
             {
-                command_types::search_memory,
+                command::types::search_memory,
                 command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
                 {
                     {"addr",  variant::types::numeric_literal},
@@ -153,7 +153,7 @@ namespace ryu::core {
         {
             "f",
             {
-                command_types::fill_memory,
+                command::types::fill_memory,
                 command_size_flags::none,
                 {
                     {"addr",  variant::types::numeric_literal},
@@ -167,7 +167,7 @@ namespace ryu::core {
         {
             "c",
             {
-                command_types::copy_memory,
+                command::types::copy_memory,
                 command_size_flags::none,
                 {
                     {"dest",  variant::types::numeric_literal},
@@ -181,7 +181,7 @@ namespace ryu::core {
         {
             "j",
             {
-                command_types::jump_to_address,
+                command::types::jump_to_address,
                 command_size_flags::none,
                 {
                     {"addr",  variant::types::numeric_literal, false}
@@ -193,7 +193,7 @@ namespace ryu::core {
         {
             "g",
             {
-                command_types::go_to_address,
+                command::types::go_to_address,
                 command_size_flags::none,
                 {
                     {"addr",  variant::types::numeric_literal}
@@ -205,7 +205,7 @@ namespace ryu::core {
         {
             "r",
             {
-                command_types::register_editor,
+                command::types::register_editor,
                 command_size_flags::none,
                 {},
                 "Edit the active CPU registers."
@@ -215,7 +215,7 @@ namespace ryu::core {
         {
             "rb",
             {
-                command_types::read_binary_to_memory,
+                command::types::read_binary_to_memory,
                 command_size_flags::none,
                 {
                     {"path",  variant::types::string_literal},
@@ -229,7 +229,7 @@ namespace ryu::core {
         {
             "wb",
             {
-                command_types::write_memory_to_binary,
+                command::types::write_memory_to_binary,
                 command_size_flags::none,
                 {
                     {"path",  variant::types::string_literal},
@@ -246,7 +246,7 @@ namespace ryu::core {
         {
             "rm",
             {
-                command_types::remove_file,
+                command::types::remove_file,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -258,7 +258,7 @@ namespace ryu::core {
         {
             "mv",
             {
-                command_types::move_file,
+                command::types::move_file,
                 command_size_flags::none,
                 {
                     {"src", variant::types::string_literal},
@@ -271,7 +271,7 @@ namespace ryu::core {
         {
             "ls",
             {
-                command_types::list_files,
+                command::types::list_files,
                 command_size_flags::none,
                 {},
                 "List the contents of the current working directory."
@@ -281,7 +281,7 @@ namespace ryu::core {
         {
             "cd",
             {
-                command_types::change_directory,
+                command::types::change_directory,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -293,7 +293,7 @@ namespace ryu::core {
         {
             "pwd",
             {
-                command_types::print_working_directory,
+                command::types::print_working_directory,
                 command_size_flags::none,
                 {},
                 "Show the current working directory."
@@ -303,7 +303,7 @@ namespace ryu::core {
         {
             "mkdir",
             {
-                command_types::make_directory,
+                command::types::make_directory,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -318,17 +318,17 @@ namespace ryu::core {
         {
             "save",
             {
-                    command_types::save_project_file,
-                    command_size_flags::none,
-                    {},
-                    "Save the currently open file."
+                command::types::save_project_file,
+                command_size_flags::none,
+                {},
+                "Save the currently open file."
             }
         },
 
         {
             "newproj",
             {
-                command_types::new_project,
+                command::types::new_project,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -340,7 +340,7 @@ namespace ryu::core {
         {
             "ldproj",
             {
-                command_types::load_project,
+                command::types::load_project,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal, false}
@@ -354,7 +354,7 @@ namespace ryu::core {
         {
             "lsfiles",
             {
-                command_types::list_project_files,
+                command::types::list_project_files,
                 command_size_flags::none,
                 {},
                 "List files for currently loaded project."
@@ -364,32 +364,32 @@ namespace ryu::core {
         {
             "newfile",
             {
-                    command_types::new_project_file,
-                    command_size_flags::none,
-                    {
-                        {"path",  variant::types::string_literal},
-                        {"type",  variant::types::identifier, false, false}
-                    },
-                    "Add a new file to the currently loaded project; optionally specify <italic>type<>."
+                command::types::new_project_file,
+                command_size_flags::none,
+                {
+                    {"path",  variant::types::string_literal},
+                    {"type",  variant::types::identifier, false, false}
+                },
+                "Add a new file to the currently loaded project; optionally specify <italic>type<>."
             }
         },
 
         {
             "rmfile",
             {
-                    command_types::remove_project_file,
-                    command_size_flags::none,
-                    {
-                        {"path", variant::types::string_literal}
-                    },
-                    "Removes a project file from the currently loaded project."
+                command::types::remove_project_file,
+                command_size_flags::none,
+                {
+                    {"path", variant::types::string_literal}
+                },
+                "Removes a project file from the currently loaded project."
             }
         },
 
         {
             "edproj",
             {
-                command_types::edit_project,
+                command::types::edit_project,
                 command_size_flags::none,
                 {},
                 "Open the project editor."
@@ -399,7 +399,7 @@ namespace ryu::core {
         {
             "saveproj",
             {
-                command_types::save_project,
+                command::types::save_project,
                 command_size_flags::none,
                 {},
                 "Save the currently open project to disk."
@@ -409,7 +409,7 @@ namespace ryu::core {
         {
             "clproj",
             {
-                command_types::close_project,
+                command::types::close_project,
                 command_size_flags::none,
                 {},
                 "Close the currently open project."
@@ -419,7 +419,7 @@ namespace ryu::core {
         {
             "cpyproj",
             {
-                command_types::clone_project,
+                command::types::clone_project,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -434,7 +434,7 @@ namespace ryu::core {
         {
             "rt",
             {
-                command_types::read_text,
+                command::types::read_text,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -446,7 +446,7 @@ namespace ryu::core {
         {
             "wt",
             {
-                command_types::write_text,
+                command::types::write_text,
                 command_size_flags::none,
                 {
                     {"path", variant::types::string_literal}
@@ -458,7 +458,7 @@ namespace ryu::core {
         {
             ":",
             {
-                command_types::goto_line,
+                command::types::goto_line,
                 command_size_flags::none,
                 {
                     {"line", variant::types::numeric_literal}
@@ -471,7 +471,7 @@ namespace ryu::core {
             // XXX: needs to be fixed in the source editor
             "/",
             {
-                command_types::find_text,
+                command::types::find_text,
                 command_size_flags::none,
                 {
                     {"needle", variant::types::string_literal}
@@ -486,7 +486,7 @@ namespace ryu::core {
         {
             "lsmach",
             {
-                command_types::list_machines,
+                command::types::list_machines,
                 command_size_flags::none,
                 {},
                 "List machine registry to console."
@@ -496,7 +496,7 @@ namespace ryu::core {
         {
             "edmach",
             {
-                command_types::edit_machine,
+                command::types::edit_machine,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}
@@ -508,7 +508,7 @@ namespace ryu::core {
         {
             "newmach",
             {
-                command_types::edit_machine,
+                command::types::edit_machine,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}
@@ -520,7 +520,7 @@ namespace ryu::core {
         {
             "delmach",
             {
-                command_types::delete_machine,
+                command::types::delete_machine,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}
@@ -532,7 +532,7 @@ namespace ryu::core {
         {
             "usemach",
             {
-                command_types::use_machine,
+                command::types::use_machine,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}
@@ -547,7 +547,7 @@ namespace ryu::core {
         {
             "edsample",
             {
-                command_types::sample_editor,
+                command::types::sample_editor,
                 command_size_flags::none,
                 {},
                 "Open the sample editor."
@@ -557,7 +557,7 @@ namespace ryu::core {
         {
             "edmodule",
             {
-                command_types::module_editor,
+                command::types::module_editor,
                 command_size_flags::none,
                 {},
                 "Open the module editor."
@@ -567,7 +567,7 @@ namespace ryu::core {
         {
             "edtiles",
             {
-                command_types::tile_editor,
+                command::types::tile_editor,
                 command_size_flags::none,
                 {},
                 "Open the tile editor."
@@ -577,7 +577,7 @@ namespace ryu::core {
         {
             "edsprites",
             {
-                command_types::sprite_editor,
+                command::types::sprite_editor,
                 command_size_flags::none,
                 {},
                 "Open the sprite editor."
@@ -587,7 +587,7 @@ namespace ryu::core {
         {
             "edbg",
             {
-                command_types::background_editor,
+                command::types::background_editor,
                 command_size_flags::none,
                 {},
                 "Open the backgrounds editor."
@@ -600,7 +600,7 @@ namespace ryu::core {
         {
             "lsenv",
             {
-                command_types::list_environments,
+                command::types::list_environments,
                 command_size_flags::none,
                 {},
                 "List environments for currently loaded project."
@@ -610,7 +610,7 @@ namespace ryu::core {
         {
             "newenv",
             {
-                command_types::new_environment,
+                command::types::new_environment,
                 command_size_flags::none,
                 {
                     {"name",  variant::types::string_literal}
@@ -622,7 +622,7 @@ namespace ryu::core {
         {
             "rmenv",
             {
-                command_types::remove_environment,
+                command::types::remove_environment,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}
@@ -634,7 +634,7 @@ namespace ryu::core {
         {
             "switchenv",
             {
-                command_types::switch_environment,
+                command::types::switch_environment,
                 command_size_flags::none,
                 {
                     {"name", variant::types::string_literal}
@@ -649,7 +649,7 @@ namespace ryu::core {
         {
             "set",
             {
-                command_types::add_symbol,
+                command::types::add_symbol,
                 command_size_flags::none,
                 {
                     {"name", variant::types::identifier, true, false},
@@ -662,7 +662,7 @@ namespace ryu::core {
         {
             "unset",
             {
-                command_types::remove_symbol,
+                command::types::remove_symbol,
                 command_size_flags::none,
                 {
                     {"name", variant::types::identifier, true, false}
@@ -674,7 +674,7 @@ namespace ryu::core {
         {
             "symbols",
             {
-                command_types::show_symbol_table,
+                command::types::show_symbol_table,
                 command_size_flags::none,
                 {},
                 "List the symbol table contents to the console."
@@ -756,12 +756,11 @@ namespace ryu::core {
                 return nullptr;
             }
 
-            auto command_node = std::make_shared<ast_node_t>();
+            auto command_node = create_ast_node(ast_node_t::tokens::command);
             command_node->value = command_t {
                     command_spec,
                     stream.str(),
                     size};
-            command_node->token = ast_node_t::tokens::command;
 
             while (true) {
                 auto expr = parse_expression();
