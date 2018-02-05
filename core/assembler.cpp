@@ -22,7 +22,7 @@ namespace ryu::core {
 
     bool assembler::assemble(
             core::result& result,
-            std::string& input) {
+            const parser_input_t& input) {
         core::project::instance()
                 ->machine()
                 ->set_write_latches(true);
@@ -75,7 +75,7 @@ namespace ryu::core {
 
     bool assembler::assemble_stream(
             core::result& result,
-            std::string& input) {
+            const parser_input_t& input) {
         auto program_node = _parser.parse(input);
         auto parser_result = _parser.result();
         if (parser_result.is_failed()) {
@@ -87,13 +87,13 @@ namespace ryu::core {
                         msg.is_error());
         } else {
             if (program_node != nullptr) {
-                _listing.begin_assembly(input);
+                _listing.begin_assembly_scope(input);
 
                 if (!_evaluator.pass1_transform(result, program_node)) {
 
                 }
 
-                _listing.end_assembly();
+                _listing.end_assembly_scope();
             }
         }
 

@@ -74,10 +74,10 @@ namespace ryu::core {
         });
     }
 
-    void assembly_listing::end_assembly() {
+    void assembly_listing::end_assembly_scope() {
         auto scope = current_scope();
 
-        for (; scope->line_number < scope->lines.size(); scope->line_number++) {
+        for (; scope->line_number < scope->input.source_lines.size(); scope->line_number++) {
             auto rows = format_rows(
                     scope->line_number,
                     0,
@@ -188,8 +188,8 @@ namespace ryu::core {
         row.columns.push_back(flag_chars);
 
         auto scope = current_scope();
-        if (line_number < scope->lines.size())
-            row.columns.push_back(scope->lines[line_number - 1]);
+        if (line_number < scope->input.source_lines.size())
+            row.columns.push_back(scope->input.source_lines[line_number - 1]);
         else
             row.columns.emplace_back(75, ' ');
 
@@ -244,16 +244,8 @@ namespace ryu::core {
         return &_scopes.top();
     }
 
-    void assembly_listing::begin_assembly(const std::string& source) {
-        assembly_listing_scope_t scope {};
-
-        std::stringstream stream;
-        stream << source << "\n";
-        std::string line;
-        while (std::getline(stream, line)) {
-            scope.lines.push_back(line);
-        }
-
+    void assembly_listing::begin_assembly_scope(const parser_input_t& source) {
+        assembly_listing_scope_t scope {1, source};
         _scopes.push(scope);
     }
 

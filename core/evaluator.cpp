@@ -550,7 +550,7 @@ namespace ryu::core {
                         assembly_listing::row_flags::none);
 
                 auto source_text = source.str();
-                _assembler->assemble_stream(result, source_text);
+                _assembler->assemble_stream(result, parser_input_t{source_text});
                 break;
             }
             case directive_t::types::binary: {

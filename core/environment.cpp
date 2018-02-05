@@ -331,7 +331,7 @@ namespace ryu::core {
         core::command_parser parser;
         parser.symbol_table(_symbol_table.get());
 
-        auto root = parser.parse(line);
+        auto root = parser.parse(parser_input_t{line});
         if (root == nullptr || parser.result().is_failed()) {
             for (auto& msg : parser.result().messages())
                 result.add_message(msg.code(), msg.message(), msg.is_error());
@@ -488,7 +488,7 @@ namespace ryu::core {
                 break;
 
             auto source_text = source.str();
-            if (!_assembler->assemble(result, source_text))
+            if (!_assembler->assemble(result, parser_input_t {source_text}))
                 break;
         }
 

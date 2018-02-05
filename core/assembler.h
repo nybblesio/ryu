@@ -25,7 +25,7 @@ namespace ryu::core {
 
         bool assemble(
                 core::result& result,
-                std::string& input);
+                const parser_input_t& input);
 
         bool load_target(
                 core::result& result,
@@ -33,7 +33,7 @@ namespace ryu::core {
 
         bool assemble_stream(
                 core::result& result,
-                std::string& input);
+                const parser_input_t& input);
 
         void align(uint8_t size);
 

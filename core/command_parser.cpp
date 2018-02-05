@@ -689,7 +689,7 @@ namespace ryu::core {
     command_parser::command_parser() : parser() {
     }
 
-    ast_node_shared_ptr command_parser::parse(const std::string& input) {
+    ast_node_shared_ptr command_parser::parse(const parser_input_t& input) {
         reset(input);
         return parse_command();
     }

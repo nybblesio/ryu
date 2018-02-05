@@ -32,9 +32,9 @@ namespace ryu::core {
 
         void symbol_table(core::symbol_table* value);
 
-        ast_node_shared_ptr parse_expression(const std::string& input);
+        ast_node_shared_ptr parse_expression(const parser_input_t& input);
 
-        virtual ast_node_shared_ptr parse(const std::string& input) = 0;
+        virtual ast_node_shared_ptr parse(const parser_input_t& input) = 0;
 
     protected: // shunting yard
         bool has_operand();
@@ -94,7 +94,7 @@ namespace ryu::core {
             return _column;
         }
 
-        void reset(const std::string& input);
+        void reset(const parser_input_t& input);
 
         ast_node_shared_ptr create_ast_node(ast_node_t::tokens type);
 
@@ -149,10 +149,9 @@ namespace ryu::core {
         size_t _index {};
         uint32_t _line {};
         uint32_t _column {};
-        std::string _input;
         core::result _result;
         char* _token = nullptr;
-        std::vector<std::string> _lines {};
+        parser_input_t _input {};
         std::vector<operator_t*> _operator_stack;
         std::stack<scanner_pos_t> _position_stack;
         core::symbol_table* _symbol_table = nullptr;

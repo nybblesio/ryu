@@ -21,7 +21,7 @@ namespace ryu::core {
 
         virtual ~assembly_language_parser() = default;
 
-        ast_node_shared_ptr parse(const std::string& input) override;
+        ast_node_shared_ptr parse(const parser_input_t& input) override;
 
     protected:
         ast_node_shared_ptr parse_dialect();

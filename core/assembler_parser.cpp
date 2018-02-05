@@ -342,7 +342,7 @@ namespace ryu::core {
         return top;
     }
 
-    ast_node_shared_ptr assembler_parser::parse(const std::string& input) {
+    ast_node_shared_ptr assembler_parser::parse(const parser_input_t& input) {
         if (input.empty())
             return nullptr;
 

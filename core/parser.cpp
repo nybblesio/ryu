@@ -276,16 +276,16 @@ namespace ryu::core {
         std::stringstream stream;
         stream << "\n";
         auto start_line = std::max<int32_t>(0, static_cast<int32_t>(_line) - 4);
-        auto stop_line = std::min<int32_t>(static_cast<int32_t>(_lines.size()), _line + 4);
+        auto stop_line = std::min<int32_t>(static_cast<int32_t>(_input.source_lines.size()), _line + 4);
         for (auto i = start_line; i < stop_line; i++) {
             if (i == _line - 1) {
                 stream << fmt::format("{:04d}: ", i + 1)
-                       << _lines[i] << "\n"
+                       << _input.source_lines[i] << "\n"
                        << std::setw(_column + 8)
                        << "<red>^ " << message << "<>\n";
             } else {
                 stream << fmt::format("{:04d}: ", i + 1)
-                       << _lines[i] << "\n";
+                       << _input.source_lines[i] << "\n";
             }
         }
 
@@ -297,7 +297,7 @@ namespace ryu::core {
             _token = nullptr;
         } else {
             _column++;
-            _token = &_input[_index];
+            _token = &_input.source[_index];
         }
         return _token;
     }
@@ -329,7 +329,7 @@ namespace ryu::core {
         _index = pos.index;
         _column = pos.column;
         if (_index < _input.length())
-            _token = &_input[_index];
+            _token = &_input.source[_index];
         else
             _token = nullptr;
         _position_stack.pop();
@@ -493,21 +493,13 @@ namespace ryu::core {
         return nullptr;
     }
 
-    void parser::reset(const std::string& input) {
+    void parser::reset(const parser_input_t& input) {
         _line = 1;
         _index = 0;
         _column = 1;
         _result = {};
         _input = input;
         clear_stacks();
-
-        _lines.clear();
-        std::stringstream source;
-        source << _input << "\n";
-        std::string line;
-        while (std::getline(source, line)) {
-            _lines.push_back(line);
-        }
     }
 
     operator_t* parser::pop_operator() {
@@ -955,7 +947,7 @@ namespace ryu::core {
         return node;
     }
 
-    ast_node_shared_ptr parser::parse_expression(const std::string& input) {
+    ast_node_shared_ptr parser::parse_expression(const parser_input_t& input) {
         reset(input);
         return parse_expression();
     }
