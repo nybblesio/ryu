@@ -13,15 +13,24 @@ Project & Admin tasks
 IDE UI & related tasks
 ----------------------
 
-- refactoring/consolidating the attr_chunk_t/attr_chunks & text_formatter::formatted_text_t/formatted_text_span_t
-  to one interface so all UI elements using document work the same way.
+- encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
+    - need to explicitly filter out non-ASCII characters during input
 
-- refactor core::document to implement "piece table" model which should get us undo/redo/cut/copy/paste in a much
-  nicer model and api.
+- bug: console header, project and machine fields not properly resizing
 
-- implement selection/cut/copy/paste in text_editor view and console view.
+- core::document changes:
+    - refactor core::document to implement "piece table" model which should get us undo/redo/cut/copy/paste in a much
+      nicer model and api.
+    - implement marks in document and surface in console & text_editor for quick navigation
+    - implement selection/cut/copy/paste in text_editor view and console view.
 
-- implement marks in document and surface in console & text_editor for quick navigation
+    MEAT COMPUTER STACK
+    -------------------
+    - refactoring/consolidating the attr_chunk_t/attr_chunks & text_formatter::formatted_text_t/formatted_text_span_t
+      to one interface so all UI elements using document work the same way.
+
+- core::console & core::text_editor
+    - columnar output should be based on column spans instead of spaces for formatting
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
