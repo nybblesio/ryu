@@ -102,6 +102,12 @@ namespace ryu::core {
         // ----------------------------------------------------------
         // memory commands
         // ----------------------------------------------------------
+        bool on_peek_memory(
+                const command_handler_context_t& context);
+
+        bool on_poke_memory(
+                const command_handler_context_t& context);
+
         bool on_fill_memory(
                 const command_handler_context_t& context);
 

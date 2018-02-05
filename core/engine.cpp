@@ -222,6 +222,8 @@ namespace ryu::core {
             for (auto& it : _contexts)
                 it.second->draw(surface);
 
+            events.clear();
+
             surface.set_clip_rect(bounds());
 
             if (_font != nullptr) {

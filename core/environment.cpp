@@ -53,6 +53,14 @@ namespace ryu::core {
             std::bind(&environment::on_show_symbol_table, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::peek,
+            std::bind(&environment::on_peek_memory, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
+            core::command::types::poke,
+            std::bind(&environment::on_poke_memory, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::assemble,
             std::bind(&environment::on_assemble, std::placeholders::_1, std::placeholders::_2)
         },
@@ -789,14 +797,138 @@ namespace ryu::core {
     // ----------------------------------------------------------
     // memory commands
     // ----------------------------------------------------------
+    bool environment::on_peek_memory(
+            const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C033",
+                    "no project is loaded; peek memory failed",
+                    true);
+            return false;
+        }
+
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+        _assembler->location_counter(addr);
+
+        std::vector<uint8_t> data_bytes {};
+        switch (context.command.size) {
+            case command_size_flags::none:
+            case command_size_flags::byte:
+                data_bytes = _assembler->read_data(directive_t::data_sizes::byte);
+                break;
+            case command_size_flags::word:
+                data_bytes = _assembler->read_data(directive_t::data_sizes::word);
+                break;
+            case command_size_flags::dword:
+                data_bytes = _assembler->read_data(directive_t::data_sizes::dword);
+                break;
+            default:
+                break;
+        }
+
+        std::stringstream stream;
+        stream << fmt::format("{:08x}: ", addr);
+        for (auto byte_value : data_bytes)
+            stream << fmt::format("{:02x}", byte_value);
+        stream << "\n";
+
+        context.result.add_data("command_result", {{"data", stream.str()}});
+
+        return !context.result.is_failed();
+    }
+
+    bool environment::on_poke_memory(
+            const command_handler_context_t& context) {
+        if (core::project::instance() == nullptr) {
+            context.result.add_message(
+                    "C033",
+                    "no project is loaded; peek memory failed",
+                    true);
+            return false;
+        }
+
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+        _assembler->location_counter(addr);
+
+        const auto& values = context.params["..."];
+        for (const auto& param : values) {
+            uint32_t data_value = 0;
+
+            switch (param.which()) {
+                case core::variant::types::char_literal: {
+                    data_value = boost::get<core::char_literal_t>(param).value;
+                    break;
+                }
+                case core::variant::types::numeric_literal: {
+                    data_value = boost::get<core::numeric_literal_t>(param).value;
+                    break;
+                }
+                case core::variant::types::string_literal: {
+                    auto string_value = boost::get<core::string_literal_t>(param).value;
+                    break;
+                }
+                case core::variant::types::boolean_literal: {
+                    data_value = boost::get<core::boolean_literal_t>(param).value ? 1 : 0;
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            switch (context.command.size) {
+                case command_size_flags::none:
+                case command_size_flags::byte:
+                    _assembler->write_data(directive_t::data_sizes::byte, data_value);
+                    break;
+                case command_size_flags::word:
+                    _assembler->write_data(directive_t::data_sizes::word, data_value);
+                    break;
+                case command_size_flags::dword:
+                    _assembler->write_data(directive_t::data_sizes::dword, data_value);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return !context.result.is_failed();
+    }
+
     bool environment::on_copy_memory(
             const command_handler_context_t& context) {
-        return true;
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_fill_memory(
             const command_handler_context_t& context) {
-        return true;
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+        _assembler->location_counter(addr);
+
+        auto count = boost::get<core::numeric_literal_t>(context.params["count"].front()).value;
+        auto value = boost::get<core::numeric_literal_t>(context.params["value"].front()).value;
+        auto byte_count = command_t::size_to_byte_count(context.command.size);
+
+        for (size_t i = 0; i < count / byte_count; i++) {
+            switch (context.command.size) {
+                case command_size_flags::none:
+                case command_size_flags::byte:
+                    _assembler->write_data(directive_t::data_sizes::byte, value);
+                    break;
+                case command_size_flags::word:
+                    _assembler->write_data(directive_t::data_sizes::word, value);
+                    break;
+                case command_size_flags::dword:
+                    _assembler->write_data(directive_t::data_sizes::dword, value);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_dump_memory(
@@ -843,7 +975,8 @@ namespace ryu::core {
 
     bool environment::on_search_memory(
             const command_handler_context_t& context) {
-        return true;
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+        return !context.result.is_failed();
     }
 
     bool environment::on_memory_editor(
@@ -881,12 +1014,16 @@ namespace ryu::core {
 
     bool environment::on_read_binary_to_memory(
             const command_handler_context_t& context) {
-        return true;
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_write_memory_to_binary(
             const command_handler_context_t& context) {
-        return true;
+        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+
+        return !context.result.is_failed();
     }
 
     // ----------------------------------------------------------

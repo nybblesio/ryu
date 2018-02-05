@@ -179,6 +179,44 @@ namespace ryu::core {
         return data;
     }
 
+    std::vector<uint8_t> assembler::read_data(directive_t::data_sizes size) {
+        std::vector<uint8_t> data {};
+        if (_target == nullptr)
+            return data;
+
+        auto machine = core::project::instance()->machine();
+        switch (size) {
+            case directive_t::word: {
+                auto word = machine
+                        ->mapper()
+                        ->read_word(_location_counter, _target->ic()->endianess());
+                auto byte_ptr = reinterpret_cast<uint8_t*>(&word);
+                data.push_back(*(byte_ptr + 1));
+                data.push_back(*byte_ptr);
+                break;
+            }
+            case directive_t::dword: {
+                auto dword = machine
+                        ->mapper()
+                        ->read_dword(_location_counter, _target->ic()->endianess());
+                auto byte_ptr = reinterpret_cast<uint8_t*>(&dword);
+                data.push_back(*(byte_ptr + 3));
+                data.push_back(*(byte_ptr + 2));
+                data.push_back(*(byte_ptr + 1));
+                data.push_back(*byte_ptr);
+                break;
+            }
+            default: {
+                data.push_back(machine
+                        ->mapper()
+                        ->read_byte(_location_counter));
+                break;
+            }
+        }
+
+        return data;
+    }
+
     void assembler::increment_location_counter(directive_t::data_sizes size) {
         switch (size) {
             case directive_t::byte:

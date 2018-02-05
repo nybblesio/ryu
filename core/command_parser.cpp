@@ -87,6 +87,35 @@ namespace ryu::core {
         },
 
         {
+            "^",
+            {
+                command::types::poke,
+                command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
+                {
+                    {"addr", variant::types::numeric_literal},
+                    {"...",  variant::types::variadic}
+                },
+                "Poke one or more expressions starting at <italic>addr<>.",
+                "assembler",
+                0
+            }
+        },
+
+        {
+            "@",
+            {
+                command::types::peek,
+                command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
+                {
+                    {"addr", variant::types::numeric_literal}
+                },
+                "Peek the value by size specifier at <italic>addr<>.",
+                "assembler",
+                0
+            }
+        },
+
+        {
             "a",
             {
                 command::types::assemble,
@@ -133,26 +162,26 @@ namespace ryu::core {
                 command::types::dump_memory,
                 command_size_flags::none,
                 {
-                    {"addr", variant::types::numeric_literal}
+                    {"addr",  variant::types::numeric_literal},
+                    {"bytes", variant::types::numeric_literal, false}
                 },
-                "Dump memory contents at <italic>addr<> to the console.",
+                "Dump memory contents at <italic>addr<> to the console; optionally specify the number of <italic>bytes<> (default: 128).",
                 "assembler",
                 4
             }
         },
 
         {
-            // XXX: what should the result of this command be?
             "s",
             {
                 command::types::search_memory,
                 command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
                 {
                     {"addr",  variant::types::numeric_literal},
-                    {"bytes", variant::types::numeric_literal},
+                    {"count", variant::types::numeric_literal},
                     {"value", variant::types::any}
                 },
-                "Search memory starting at <italic>addr<> for <italic>bytes<> looking for <italic>value<>.",
+                "Search memory starting at <italic>addr<> for <italic>count<> of specified size, looking for <italic>value<>.",
                 "assembler",
                 5
             }
@@ -162,13 +191,13 @@ namespace ryu::core {
             "f",
             {
                 command::types::fill_memory,
-                command_size_flags::none,
+                command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
                 {
                     {"addr",  variant::types::numeric_literal},
-                    {"bytes", variant::types::numeric_literal},
+                    {"count", variant::types::numeric_literal},
                     {"value", variant::types::any}
                 },
-                "Fill memory starting at <italic>addr<> for <italic>bytes<> with <italic>value<>.",
+                "Fill memory starting at <italic>addr<> for <italic>count<> of specified size with <italic>value<>.",
                 "assembler",
                 6
             }
@@ -178,13 +207,13 @@ namespace ryu::core {
             "c",
             {
                 command::types::copy_memory,
-                command_size_flags::none,
+                command_size_flags::byte | command_size_flags::word | command_size_flags::dword,
                 {
                     {"dest",  variant::types::numeric_literal},
                     {"src",   variant::types::numeric_literal},
-                    {"bytes", variant::types::numeric_literal}
+                    {"count", variant::types::numeric_literal}
                 },
-                "Copy memory to <italic>dest<> from <italic>src<> for <italic>bytes<>.",
+                "Copy memory to <italic>dest<> from <italic>src<> for <italic>count<> of size specifier.",
                 "assembler",
                 7
             }

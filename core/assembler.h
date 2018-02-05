@@ -55,6 +55,8 @@ namespace ryu::core {
 
         std::vector<uint8_t> write_data(const std::string& value);
 
+        std::vector<uint8_t> read_data(directive_t::data_sizes size);
+
         void increment_location_counter(directive_t::data_sizes size);
 
     private:

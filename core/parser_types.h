@@ -38,6 +38,8 @@ namespace ryu::core {
             remove_symbol,
             show_symbol_table,
 
+            peek,
+            poke,
             assemble,
             evaluate,
             disassemble,
@@ -191,6 +193,15 @@ namespace ryu::core {
             return stream;
         }
 
+        static uint32_t size_to_byte_count(command_size_flags flags) {
+            switch (flags) {
+                default:    return 1;
+                case word:  return 2;
+                case dword: return 4;
+                case qword: return 8;
+            }
+        }
+
         static command_size_flags token_to_size(const std::string& token) {
             if (token == "b")
                 return command_size_flags::byte;
@@ -240,16 +251,16 @@ namespace ryu::core {
             switch (directive.type) {
                 case data: {
                     switch (directive.data_size) {
-                        case data_sizes::byte:
+                        case directive_t::data_sizes::byte:
                             stream << ".byte";
                             break;
-                        case data_sizes::word:
+                        case directive_t::data_sizes::word:
                             stream << ".word";
                             break;
-                        case data_sizes::dword:
+                        case directive_t::data_sizes::dword:
                             stream << ".dword";
                             break;
-                        case data_sizes::ascii:
+                        case directive_t::data_sizes::ascii:
                             stream << ".ascii";
                             break;
                         default:

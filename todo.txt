@@ -15,7 +15,9 @@ IDE UI & related tasks
 
 - implement help [cmd] detail variant
 
-- implement remaining memory commands on core::environment
+- implement core::environment::on_search_memory
+
+- implement core::environment::on_copy_memory
 
 - add "map" command to dump out the memory map of the active machine
 
@@ -74,3 +76,6 @@ DONE
 - core::environment now has fields for core::command_parser and core::evaluator and optimized assignment of
   symbol table and assembler pointers to these instances.
 - categorize help and ordering so they're consistent
+- added @[.b|.w|.dw] for peek
+- added ^[.b|.w|.dw] for poke
+- implemented core::environment::fill_memory
