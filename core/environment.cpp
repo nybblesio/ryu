@@ -305,7 +305,12 @@ namespace ryu::core {
     }
 
     environment::environment() : _assembler(std::make_unique<core::assembler>()),
-                                 _symbol_table(std::make_unique<core::symbol_table>()) {
+                                 _evaluator(std::make_unique<core::evaluator>(_assembler.get())),
+                                 _symbol_table(std::make_unique<core::symbol_table>()),
+                                 _command_parser(std::make_unique<core::command_parser>()) {
+        _evaluator->symbol_table(_symbol_table.get());
+        _assembler->symbol_table(_symbol_table.get());
+        _command_parser->symbol_table(_symbol_table.get());
     }
 
     environment::~environment() {
@@ -328,20 +333,15 @@ namespace ryu::core {
             const std::string& line) {
         using namespace boost::filesystem;
 
-        core::command_parser parser;
-        parser.symbol_table(_symbol_table.get());
-
-        auto root = parser.parse(parser_input_t{line});
-        if (root == nullptr || parser.result().is_failed()) {
-            for (auto& msg : parser.result().messages())
+        auto root = _command_parser->parse(parser_input_t{line});
+        if (root == nullptr || _command_parser->result().is_failed()) {
+            for (auto& msg : _command_parser->result().messages())
                 result.add_message(msg.code(), msg.message(), msg.is_error());
             result.fail();
             return false;
         }
 
         auto command = boost::get<core::command_t>(root->value);
-        core::evaluator evaluator(_assembler.get());
-        evaluator.symbol_table(_symbol_table.get());
 
         core::command_parameter_dict params;
         if (root->children.empty()) {
@@ -382,7 +382,7 @@ namespace ryu::core {
                 values = &it->second;
 
                 auto value = param_spec.evaluate ?
-                             evaluator.evaluate(result, root->children[idx]) :
+                             _evaluator->evaluate(result, root->children[idx]) :
                              root->children[idx]->value;
 
                 if (result.is_failed())
@@ -407,7 +407,7 @@ namespace ryu::core {
                     ++idx;
                     while (idx < root->children.size()) {
                         value = param_spec.evaluate ?
-                                evaluator.evaluate(result, root->children[idx++]) :
+                                _evaluator->evaluate(result, root->children[idx++]) :
                                 root->children[idx]->value;
                         if (result.is_failed())
                             break;
@@ -475,8 +475,6 @@ namespace ryu::core {
                     true);
             return false;
         }
-
-        _assembler->symbol_table(_symbol_table.get());
 
         auto files = core::project::instance()->files();
         for (auto& file : files) {

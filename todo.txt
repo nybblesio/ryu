@@ -30,8 +30,6 @@ IDE UI & related tasks
 
 - implement remaining memory commands in core::environment
 
-- create new struct that packages up source text/stream to parse, chunked lines, and formatted lines
-
 - implement full & correct machine editor interface
 
 - implement full & correct project editor interface + shortcut selection UI
@@ -51,3 +49,9 @@ Emulator & related tasks
 - implement integrated_circuit subclass for joystick input
 
 - implement dip_switch subclass for integrated_circuit
+
+DONE
+----
+- create new struct that packages up source text/stream to parse, chunked lines, and formatted lines
+- core::environment now has fields for core::command_parser and core::evaluator and optimized assignment of
+  symbol table and assembler pointers to these instances.

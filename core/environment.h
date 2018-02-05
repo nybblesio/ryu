@@ -16,7 +16,9 @@
 namespace ryu::core {
 
     class assembler;
+    class evaluator;
     class symbol_table;
+    class command_parser;
 
     class environment {
     public:
@@ -234,7 +236,9 @@ namespace ryu::core {
 
         std::string _name;
         std::unique_ptr<core::assembler> _assembler;
+        std::unique_ptr<core::evaluator> _evaluator;
         std::unique_ptr<core::symbol_table> _symbol_table;
+        std::unique_ptr<core::command_parser> _command_parser;
     };
 
 };
