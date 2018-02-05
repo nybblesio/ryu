@@ -14,22 +14,19 @@
 
 namespace ryu::core {
 
-    // FEB 1 GOALS:
-    //
     // *done: ?               - uninitialized
     // *done: $               - location counter alias
     // *done: .binary [path]  - include binary data into assembly
     // *done: .include [path] - recursively assembly file
     //
-    // *partially: dup        - .byte 5 dup($c0)
-    //                           or .byte 10 dup(2, 8) * no parser support yet
-    //
-    // .loop                  - repeat the basic_block
-    // .local                 - create a unique label name
+    // *done: dup             - .byte 5 dup $c0 or .byte 10 dup 2, 8
     //
     // *done: #               - paste operator
     // *done: `               - quote operator
     //
+    // STILL TODO:
+    // .loop                  - repeat the basic_block
+    // .local                 - create a unique label name
     //
     // 1. directives
     // ---------------------------------
@@ -154,8 +151,10 @@ namespace ryu::core {
 
         ast_node_shared_ptr parse(const std::string& input) override;
 
-    protected: // directive related parsers
+    protected:
         ast_node_shared_ptr parse_directive();
+
+        ast_node_shared_ptr parse_dup_operator();
 
     protected:
         void parse_assembly();

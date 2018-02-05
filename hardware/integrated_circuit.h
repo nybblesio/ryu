@@ -45,8 +45,6 @@ namespace ryu::hardware {
 
         bool write_latch() const;
 
-        void write_latch(bool enabled);
-
         virtual uint16_t read_word(
                 uint32_t address,
                 integrated_circuit::endianness::types endianess) const;
@@ -64,6 +62,8 @@ namespace ryu::hardware {
                 uint32_t address,
                 uint32_t value,
                 integrated_circuit::endianness::types endianess);
+
+        void write_latch(bool enabled);
 
         uint32_t address_space() const;
 

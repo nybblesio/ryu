@@ -54,7 +54,7 @@ namespace ryu::core {
                         operator_t::op_type::binary,
                         operator_t::associativity_type::left,
                         operator_t::op_group::conversion,
-                        true
+                        std::bind(&assembler_parser::parse_dup_operator, this)
                 });
     }
 
@@ -71,19 +71,13 @@ namespace ryu::core {
             if (token == nullptr || is_failed())
                 break;
 
-            consume_white_space();
-
             auto comment_node = parse_comment();
             if (comment_node != nullptr) {
                 scope->children.push_back(comment_node);
                 continue;
             }
 
-            consume_white_space();
-
             current_identifier = parse_identifier();
-
-            consume_white_space();
 
             auto directive_node = parse_directive();
             if (directive_node != nullptr) {
@@ -104,15 +98,17 @@ namespace ryu::core {
 
                         while (true) {
                             auto expression_node = parse_expression();
-                            if (expression_node != nullptr) {
-                                parameter_list_node->children.push_back(expression_node);
-                                consume_white_space();
-                                token = current_token();
-                                if (token == nullptr || *token != ',') {
-                                    break;
-                                }
-                                move_to_next_token();
+                            if (expression_node == nullptr) {
+                                error("E004", "missing expected data directive value expression");
+                                break;
                             }
+                            parameter_list_node->children.push_back(expression_node);
+                            consume_white_space();
+                            token = current_token();
+                            if (token == nullptr || *token != ',') {
+                                break;
+                            }
+                            move_to_next_token();
                         }
 
                         directive_node->rhs = parameter_list_node;
@@ -146,15 +142,16 @@ namespace ryu::core {
 
                         while (true) {
                             auto identifier_node = parse_identifier();
-                            if (identifier_node != nullptr) {
-                                parameter_list_node->children.push_back(identifier_node);
-                                consume_white_space();
-                                token = current_token();
-                                if (token == nullptr || *token != ',') {
-                                    break;
-                                }
-                                move_to_next_token();
+                            if (identifier_node == nullptr) {
+                                break;
                             }
+                            parameter_list_node->children.push_back(identifier_node);
+                            consume_white_space();
+                            token = current_token();
+                            if (token == nullptr || *token != ',') {
+                                break;
+                            }
+                            move_to_next_token();
                         }
 
                         break;
@@ -268,6 +265,8 @@ namespace ryu::core {
     }
 
     ast_node_shared_ptr assembler_parser::parse_directive() {
+        consume_white_space();
+
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
@@ -310,6 +309,30 @@ namespace ryu::core {
         directive_node->value = directive;
 
         return directive_node;
+    }
+
+    ast_node_shared_ptr assembler_parser::parse_dup_operator() {
+        auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+
+        consume_white_space();
+
+        auto parameter_list_node = create_ast_node(ast_node_t::tokens::parameter_list);
+        while (true) {
+            auto expression_node = parse_expression();
+            if (expression_node == nullptr)
+                break;
+            parameter_list_node->children.push_back(expression_node);
+            consume_white_space();
+            token = current_token();
+            if (token == nullptr || *token != ',') {
+                break;
+            }
+            move_to_next_token();
+        }
+
+        return parameter_list_node;
     }
 
     ast_node_shared_ptr assembler_parser::current_scope() const {

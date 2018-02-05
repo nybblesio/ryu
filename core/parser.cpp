@@ -675,7 +675,21 @@ namespace ryu::core {
                 return nullptr;
 
             if (op != nullptr) {
-                if (op->symbol == "(") {
+                if (op->custom_parser != nullptr) {
+                    switch (op->type) {
+                        case operator_t::op_type::binary: {
+                            auto bin_op_node = create_ast_node(ast_node_t::tokens::binary_op);
+                            bin_op_node->value = *op;
+                            bin_op_node->lhs = pop_operand();
+                            bin_op_node->rhs = op->custom_parser();
+                            return bin_op_node;
+                        }
+                        default: {
+                            error("P009", "unexpected operator type.");
+                            break;
+                        }
+                    }
+                } else if (op->symbol == "(") {
                     auto top = peek_operator();
                     if (top == nullptr && peek_operand() != nullptr) {
                         pop_position();

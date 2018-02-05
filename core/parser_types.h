@@ -22,6 +22,12 @@ namespace ryu::core {
     class result;
     class environment;
 
+    struct ast_node_t;
+
+    typedef std::shared_ptr<ast_node_t> ast_node_shared_ptr;
+    typedef std::vector<ast_node_shared_ptr> ast_node_list;
+    typedef std::map<std::string, ast_node_shared_ptr> symbol_dict;
+
     struct command {
         enum types : uint8_t {
             quit = 1,
@@ -323,6 +329,8 @@ namespace ryu::core {
         uint32_t column;
     };
 
+    using custom_parser_callable = std::function<ast_node_shared_ptr ()>;
+
     struct operator_t {
         enum op : uint16_t {
             invert,
@@ -389,7 +397,7 @@ namespace ryu::core {
         uint8_t type = op_type::no_op;
         associativity_type associativity = associativity_type::none;
         op_group group = op_group::arithmetic;
-        bool requires_parens = false;
+        custom_parser_callable custom_parser;
     };
 
     struct radix_numeric_literal_t {
@@ -616,12 +624,6 @@ namespace ryu::core {
         label_t,
         dup_literal_t> variant_t;
 
-    struct ast_node_t;
-
-    typedef std::shared_ptr<ast_node_t> ast_node_shared_ptr;
-    typedef std::vector<ast_node_shared_ptr> ast_node_list;
-    typedef std::map<std::string, ast_node_shared_ptr> symbol_dict;
-
     struct ast_node_t {
         enum tokens {
             program,
@@ -644,11 +646,14 @@ namespace ryu::core {
             branch,
             address,
             uninitialized_literal,
-            location_counter_literal
+            location_counter_literal,
+            placeholder
         };
 
         void serialize(std::ostream& stream) {
             switch (token) {
+                case placeholder:
+                    break;
                 case branch:
                     lhs->serialize(stream);
                     if (rhs != nullptr)

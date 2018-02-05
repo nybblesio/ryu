@@ -108,6 +108,8 @@ namespace ryu::core {
             return {};
 
         switch (node->token) {
+            case ast_node_t::placeholder:
+                break;
             case ast_node_t::comment:
             case ast_node_t::command:
             case ast_node_t::null_literal:
@@ -185,20 +187,26 @@ namespace ryu::core {
                         switch (op.op) {
                             case assembler_parser::operators::dup: {
                                 auto lhs_node = evaluate(result, node->lhs);
-                                auto rhs_node = evaluate(result, node->rhs);
-
-                                auto data_count = boost::get<numeric_literal_t>(lhs_node).value;
-                                dup_literal_t dup_literal {data_count};
-                                if (rhs_node.which() == variant::types::numeric_literal) {
-                                    dup_literal.values.push_back(boost::get<numeric_literal_t>(rhs_node));
-                                } else if (rhs_node.which() == variant::types::char_literal) {
-                                    dup_literal.values.push_back(boost::get<char_literal_t>(rhs_node));
-                                } else {
-                                    error(
-                                        result,
-                                        "E008",
-                                        "dup supports character and numeric literals");
-                                    break;
+                                dup_literal_t dup_literal {boost::get<numeric_literal_t>(lhs_node).value};
+                                ast_node_list& children = node->rhs->children;
+                                for (size_t i = 0; i < children.size(); i++) {
+                                    auto& child_node = children[i];
+                                    auto variant = evaluate(result, child_node);
+                                    if (variant.which() == variant::types::numeric_literal) {
+                                        dup_literal
+                                                .values
+                                                .push_back(boost::get<numeric_literal_t>(variant));
+                                    } else if (variant.which() == variant::types::char_literal) {
+                                        dup_literal
+                                                .values
+                                                .push_back(numeric_literal_t{boost::get<char_literal_t>(variant).value});
+                                    } else {
+                                        error(
+                                                result,
+                                                "E001",
+                                                "dup pattern values must be integer or character literals");
+                                        break;
+                                    }
                                 }
                                 return dup_literal;
                             }
@@ -596,33 +604,45 @@ namespace ryu::core {
 
                 for (const auto& parameter_node : node->rhs->children) {
                     std::vector<uint8_t> data_bytes {};
-                    auto value = evaluate(result, parameter_node);
+                    auto variant = evaluate(result, parameter_node);
                     if (result.is_failed()) {
                         auto messages = result.messages();
                         listing.annotate_line_error(
                                 node->line,
                                 messages[messages.size() - 1].message());
                     } else {
-                        if (value.which() == variant::types::string_literal) {
-                            auto text = boost::get<string_literal_t>(value).value;
+                        if (variant.which() == variant::types::string_literal) {
+                            auto text = boost::get<string_literal_t>(variant).value;
                             data_bytes = _assembler->write_data(text);
-                        } else if (value.which() == variant::types::char_literal) {
-                            auto char_byte = boost::get<char_literal_t>(value).value;
+                        } else if (variant.which() == variant::types::char_literal) {
+                            auto char_byte = boost::get<char_literal_t>(variant).value;
                             data_bytes = _assembler->write_data(
                                     directive_t::data_sizes::byte,
                                     char_byte);
+                        } else if (variant.which() == variant::types::dup_literal) {
+                            auto pattern_index = 0;
+                            auto dup_literal = boost::get<dup_literal_t>(variant);
+                            for (size_t i = 0; i < dup_literal.count; i++) {
+                                auto numeric_literal = dup_literal.values[pattern_index++];
+                                if (pattern_index >= dup_literal.values.size())
+                                    pattern_index = 0;
+                                auto temp_bytes = _assembler->write_data(
+                                        directive.data_size,
+                                        static_cast<uint32_t>(numeric_literal.value));
+                                for (auto b : temp_bytes)
+                                    data_bytes.push_back(b);
+                            }
                         } else if (parameter_node->token == ast_node_t::uninitialized_literal) {
                             _assembler->increment_location_counter(directive.data_size);
-                        }
-                        else {
-                            if (value.which() != variant::types::numeric_literal) {
+                        } else {
+                            if (variant.which() != variant::types::numeric_literal) {
                                 listing.annotate_line_error(
                                         node->line,
                                         "data directives require constant numeric values");
                                 error(result, "E004", "data directives require constant numeric values");
                                 break;
                             }
-                            auto number = boost::get<numeric_literal_t>(value).value;
+                            auto number = boost::get<numeric_literal_t>(variant).value;
                             data_bytes = _assembler->write_data(
                                     directive.data_size,
                                     static_cast<uint32_t>(number));
