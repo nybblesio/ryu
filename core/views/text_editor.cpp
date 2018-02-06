@@ -187,24 +187,32 @@ namespace ryu::core {
 
         auto& info_text_color = pal[_line_number_color];
 
-        // XXX: this may not be correct because the font metrics may change
-        auto face = font_face();
         auto y = bounds.top();
         auto row_start = _document.row();
         auto row_stop = row_start + _metrics.page_height;
         for (auto row = row_start; row < row_stop; row++) {
-            surface.draw_text(font_face(), bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
+            surface.draw_text(
+                    font_face(),
+                    bounds.left(),
+                    y,
+                    fmt::format("{0:04}", row + 1),
+                    info_text_color);
 
             uint16_t col_start = static_cast<uint16_t>(_document.column());
             uint16_t col_end = col_start + _metrics.page_width;
 
-            auto x = bounds.left() + _caret.padding().left();
             auto chunks = _document.get_line_chunks(
                     static_cast<uint32_t>(row),
                     col_start,
                     col_end);
+
+            auto max_line_height = font_face()->line_height;
+            auto x = bounds.left() + _caret.padding().left();
+
             for (const auto& chunk : chunks) {
-                auto width = static_cast<int32_t>(face->width * chunk.text.length());
+                font_style(chunk.attr.style);
+                auto face = font_face();
+                auto width = face->measure_text(chunk.text);
                 auto color = pal[chunk.attr.color];
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
@@ -216,12 +224,12 @@ namespace ryu::core {
                     surface.pop_blend_mode();
                 }
 
-                font_style(chunk.attr.style);
-                surface.draw_text(font_face(), x, y, chunk.text, color);
+                surface.draw_text(face, x, y, chunk.text, color);
+
                 x += width;
             }
 
-            y += face->line_height;
+            y += max_line_height;
         }
     }
 

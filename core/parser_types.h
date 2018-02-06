@@ -764,12 +764,12 @@ namespace ryu::core {
             address,
             uninitialized_literal,
             location_counter_literal,
-            placeholder
+            redirection
         };
 
         void serialize(std::ostream& stream) {
             switch (token) {
-                case placeholder:
+                case redirection:
                     break;
                 case branch:
                     lhs->serialize(stream);

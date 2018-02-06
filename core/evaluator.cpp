@@ -108,7 +108,7 @@ namespace ryu::core {
             return {};
 
         switch (node->token) {
-            case ast_node_t::placeholder:
+            case ast_node_t::redirection:
                 break;
             case ast_node_t::comment:
             case ast_node_t::command:

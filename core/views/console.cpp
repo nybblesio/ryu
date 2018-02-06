@@ -117,6 +117,10 @@ namespace ryu::core {
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
+    bool console::more() const {
+        return _more;
+    }
+
     void console::update(uint32_t) {
         switch (_state) {
             case input: {
@@ -144,6 +148,10 @@ namespace ryu::core {
             default:
                 break;
         }
+    }
+
+    void console::more(bool flag) {
+        _more = flag;
     }
 
     void console::raise_caret_changed() {
@@ -246,7 +254,7 @@ namespace ryu::core {
                 if (face->line_height > max_line_height)
                     max_line_height = face->line_height;
 
-                auto width = static_cast<int32_t>(face->width * chunk.text.length());
+                auto width = face->measure_text(chunk.text);
                 auto color = pal[chunk.attr.color];
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
@@ -293,9 +301,6 @@ namespace ryu::core {
     void console::on_process_command() {
         auto& entry = _output_queue.front();
 
-        caret_down();
-        caret_home();
-
         auto more_to_process = true;
         while (_remaining_lines > 0) {
             auto output_result = entry.process(this);
@@ -305,12 +310,15 @@ namespace ryu::core {
             _remaining_lines -= output_result.line_count;
         }
 
-        caret_down();
-        caret_home();
-
         if (more_to_process) {
-            write_message("<rev><bold> MORE (SPACE to continue) <>", false);
-            _state = states::wait;
+            if (more()) {
+                caret_down();
+                caret_home();
+                write_message("<rev><bold> MORE (SPACE to continue) <>", false);
+                _state = states::wait;
+            } else {
+                _state = states::resume_processing;
+            }
         } else {
             _state = states::post_processing;
         }
@@ -400,18 +408,18 @@ namespace ryu::core {
             for (size_t j = 0; j < row.columns.size(); j++) {
                 const auto& header = table.headers[j];
                 const auto& col = row.columns[j];
-                auto column_pad = j < row.columns.size() - 1 ?
-                                  header.padding : 0;
+                auto column_pad = static_cast<uint32_t>(j < row.columns.size() - 1 ?
+                                  header.padding : 0);
 
                 std::string styled_text;
-                auto word_wrapped = (header.options & format_options::word_wrap) != 0;
                 auto styled = (header.options & format_options::style_codes) != 0;
+                auto word_wrapped = (header.options & format_options::word_wrap) != 0;
 
                 if (word_wrapped) {
                     styled_text = word_wrap(
                             col,
                             header.width,
-                            total_width);
+                            total_width + 1);
                     styled = true;
                 } else {
                     styled_text = col;
@@ -436,6 +444,12 @@ namespace ryu::core {
                     }
                     for (const auto& span : formatted_text.spans)
                         row_line.spans.push_back(span);
+                    if (column_pad > 0) {
+                        row_line.spans.push_back({
+                            "",
+                            std::string(column_pad, ' ')
+                        });
+                    }
                 } else {
                     row_line.spans.push_back({
                          "",
@@ -528,9 +542,13 @@ namespace ryu::core {
             }
         }
 
+        caret_down();
+        caret_home();
         write_message("Ready.");
 
         _output_queue.pop_front();
+
+        more(false);
 
         _state = states::input;
     }
@@ -546,7 +564,9 @@ namespace ryu::core {
         auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
         auto mode = _caret.mode();
 
-        if (_state == states::processing) {
+        if (_state == states::processing
+        ||  _state == states::post_processing
+        ||  _state == states::resume_processing) {
             return false;
         } else if (_state == states::wait) {
             if (e->type == SDL_KEYDOWN && e->key.keysym.sym == SDLK_SPACE) {
@@ -683,8 +703,8 @@ namespace ryu::core {
                         if (str.length() > 0 && _execute_command_callback != nullptr) {
                             _execute_command_callback(result, str);
                             _output_queue.emplace_back(result);
+                            more(result.find_code("pipe_to_more") != nullptr);
                             _state = states::pre_processing;
-                            return true;
                         }
                     }
 
@@ -802,14 +822,12 @@ namespace ryu::core {
                 }
             }
 
-            auto token = span.text.begin();
-            while (token != span.text.end()) {
+            for (size_t i = 0; i < span.text.length(); i++) {
                 _document.put(
                         _vrow,
                         _vcol,
-                        core::element_t {static_cast<uint8_t>(*token), attr});
+                        core::element_t {static_cast<uint8_t>(span.text[i]), attr});
                 caret_right();
-                ++token;
             }
         }
 

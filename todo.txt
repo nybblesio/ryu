@@ -96,3 +96,10 @@ DONE
 - fmt::format should recognize our custom types because we have a std::ostream operator<< override.
   however, it isn't working the way I'd expect, so need to research.
     SOLUTION: was missing #include <fmt/ostream.h>
+- OFFSTREAM|FIXED: core::console now formats styled text correctly!
+- OFFSTREAM      : more behavior in console is now optional and activated by using the @| operator
+- OFFSTREAM      : added @> and @>> redirection operators to console commands
+- OFFSTREAM|FIXED: font_family::add_style now uses space to get a proper width measurement
+- OFFSTREAM|FIXED: core::console and core::text_editor now measure the chunks to get the most accurate width
+- OFFSTREAM      : updated to latest Hack font TTF files
+- OFFSTREAM|FIXED: parser wasn't setting _token to nullptr in reset.

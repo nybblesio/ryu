@@ -349,7 +349,8 @@ namespace ryu::core {
             const std::string& line) {
         using namespace boost::filesystem;
 
-        auto root = _command_parser->parse(parser_input_t{line});
+        parser_input_t input{line};
+        auto root = _command_parser->parse(input);
         if (root == nullptr || _command_parser->result().is_failed()) {
             for (auto& msg : _command_parser->result().messages())
                 result.add_message(msg.code(), msg.message(), msg.is_error());
@@ -358,9 +359,10 @@ namespace ryu::core {
         }
 
         auto command = root->command_type();
+        auto statement_node = root->lhs;
 
         core::command_parameter_dict params;
-        if (root->children.empty()) {
+        if (statement_node->rhs->children.empty()) {
             for (const auto& param_spec : command.spec.params) {
                 if (param_spec.required) {
                     result.add_message(
@@ -376,7 +378,7 @@ namespace ryu::core {
                 std::vector<core::variant_t>* values = nullptr;
 
                 if (param_spec.required) {
-                    if (idx >= root->children.size()) {
+                    if (idx >= statement_node->rhs->children.size()) {
                         result.add_message(
                                 "C801",
                                 fmt::format("the parameter <italic>'{}'<> is required.", param_spec.name),
@@ -386,7 +388,7 @@ namespace ryu::core {
                     }
                 }
 
-                if (idx >= root->children.size())
+                if (idx >= statement_node->rhs->children.size())
                     break;
 
                 auto it = params.find(param_spec.name);
@@ -398,8 +400,8 @@ namespace ryu::core {
                 values = &it->second;
 
                 auto value = param_spec.evaluate ?
-                             _evaluator->evaluate(result, root->children[idx]) :
-                             root->children[idx]->value;
+                             _evaluator->evaluate(result, statement_node->rhs->children[idx]) :
+                             statement_node->rhs->children[idx]->value;
 
                 if (result.is_failed())
                     break;
@@ -421,10 +423,10 @@ namespace ryu::core {
                     values->push_back(value);
 
                     ++idx;
-                    while (idx < root->children.size()) {
+                    while (idx < statement_node->rhs->children.size()) {
                         value = param_spec.evaluate ?
-                                _evaluator->evaluate(result, root->children[idx++]) :
-                                root->children[idx]->value;
+                                _evaluator->evaluate(result, statement_node->rhs->children[idx++]) :
+                                statement_node->rhs->children[idx]->value;
                         if (result.is_failed())
                             break;
                         values->push_back(value);
@@ -443,6 +445,14 @@ namespace ryu::core {
         if (handler_it == _command_handlers.end()) {
             result.add_message("C400", "Command not implemented.", true);
             return false;
+        }
+
+        if (!root->rhs->children.empty()) {
+            auto redirection_node = root->rhs->children[0];
+            auto redirection_symbol = redirection_node->lhs->string_literal_type();
+            if (redirection_symbol == "|") {
+                result.add_data("pipe_to_more", {{"enabled", true}});
+            }
         }
 
         return handler_it->second(this, {result, command, params, root});
@@ -602,6 +612,7 @@ namespace ryu::core {
             }
         } else {
             data_table_t table{};
+            table.line_spacing = 1;
             table.headers.push_back({
                     "Category",
                     20,
@@ -726,7 +737,8 @@ namespace ryu::core {
     bool environment::on_add_symbol(
             const command_handler_context_t& context) {
         auto identifier = context.get_parameter<core::identifier_t>("name");
-        _symbol_table->put(identifier, context.root->children[1]);
+        auto statement_node = context.root->rhs;
+        _symbol_table->put(identifier, statement_node->rhs->children[1]);
         return true;
     }
 

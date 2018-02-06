@@ -276,17 +276,22 @@ namespace ryu::core {
         std::stringstream stream;
         stream << "\n";
         auto start_line = std::max<int32_t>(0, static_cast<int32_t>(_line) - 4);
-        auto stop_line = std::min<int32_t>(static_cast<int32_t>(_input.source_lines.size()), _line + 4);
+        auto stop_line = std::min<int32_t>(
+                static_cast<int32_t>(_input.source_lines.size()),
+                _line + 4);
         for (auto i = start_line; i < stop_line; i++) {
             if (i == _line - 1) {
                 stream << fmt::format("{:04d}: ", i + 1)
                        << _input.source_lines[i] << "\n"
                        << std::setw(_column + 8)
-                       << "<red>^ " << message << "<>\n";
+                       << "<red>^ " << message << "<>";
             } else {
                 stream << fmt::format("{:04d}: ", i + 1)
-                       << _input.source_lines[i] << "\n";
+                       << _input.source_lines[i];
             }
+
+            if (i < stop_line - 1)
+                stream << "\n";
         }
 
         _result.add_message(code, stream.str(), true);
@@ -499,6 +504,7 @@ namespace ryu::core {
         _column = 1;
         _result = {};
         _input = input;
+        _token = nullptr;
         clear_stacks();
     }
 

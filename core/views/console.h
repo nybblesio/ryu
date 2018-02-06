@@ -80,6 +80,10 @@ namespace ryu::core {
                 const formatted_text_t& formatted_text,
                 bool last_newline = true);
 
+        bool more() const;
+
+        void more(bool flag);
+
         void update(uint32_t dt);
 
         void caret_color(uint8_t color);
@@ -153,6 +157,7 @@ namespace ryu::core {
     private:
         static command_action_dict _handlers;
 
+        bool _more {};
         caret _caret;
         uint8_t _color;
         uint16_t _vcol;

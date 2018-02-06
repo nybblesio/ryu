@@ -854,11 +854,6 @@ namespace ryu::core {
     command_parser::command_parser() : parser() {
     }
 
-    ast_node_shared_ptr command_parser::parse(const parser_input_t& input) {
-        reset(input);
-        return parse_command();
-    }
-
     ast_node_shared_ptr command_parser::parse_command() {
         consume_white_space();
 
@@ -900,7 +895,8 @@ namespace ryu::core {
                             error("P011", "invalid size suffix");
                             return nullptr;
                         }
-                        size = command_t::token_to_size(size_token);                    } else {
+                        size = command_t::token_to_size(size_token);
+                    } else {
                         stream << *token;
                     }
                 }
@@ -927,16 +923,89 @@ namespace ryu::core {
                     stream.str(),
                     size};
 
+            auto statement_node = create_ast_node(ast_node_t::tokens::statement);
+            statement_node->rhs = create_ast_node(ast_node_t::tokens::parameter_list);
+
+            command_node->lhs = statement_node;
+            command_node->rhs = create_ast_node(ast_node_t::tokens::parameter_list);
+
             while (true) {
                 auto expr = parse_expression();
                 if (expr == nullptr)
                     break;
-                command_node->children.push_back(expr);
+                statement_node->rhs->children.push_back(expr);
+            }
+
+            consume_white_space();
+
+            token = current_token();
+            if (token != nullptr) {
+                if (*token == '@') {
+                    token = move_to_next_token();
+                    if (token == nullptr) {
+                        error("P011", "expected redirection operator");
+                        return nullptr;
+                    }
+
+                    if (*token == '|') {
+                        token = move_to_next_token();
+                        if (token == nullptr) {
+                            error("P011", "expected pipe destination");
+                            return nullptr;
+                        }
+
+                        consume_white_space();
+
+                        auto identifier = parse_identifier();
+                        if (identifier == nullptr) {
+                            error("P011", "expected pipe destination");
+                            return nullptr;
+                        }
+
+                        auto redirection_node = create_ast_node(ast_node_t::tokens::redirection);
+                        redirection_node->lhs = create_ast_node(ast_node_t::tokens::string_literal);
+                        redirection_node->lhs->value = string_literal_t{"|"};
+                        redirection_node->rhs = identifier;
+                        command_node->rhs->children.push_back(redirection_node);
+                    } else if (*token == '>') {
+                        std::string symbol(">");
+
+                        token = move_to_next_token();
+                        if (token != nullptr && *token == '>') {
+                            symbol += ">";
+                            token = move_to_next_token();
+                        }
+
+                        if (token == nullptr) {
+                            error("P011", "expected path string literal");
+                            return nullptr;
+                        }
+
+                        consume_white_space();
+
+                        auto string_literal = parse_string_literal();
+                        if (string_literal == nullptr) {
+                            error("P011", "expected path string literal");
+                            return nullptr;
+                        }
+
+                        auto redirection_node = create_ast_node(ast_node_t::tokens::redirection);
+                        redirection_node->lhs = create_ast_node(ast_node_t::tokens::string_literal);
+                        redirection_node->lhs->value = string_literal_t{symbol};
+                        redirection_node->rhs = string_literal;
+                        command_node->rhs->children.push_back(redirection_node);
+                    }
+                }
             }
 
             return is_failed() ? nullptr : command_node;
         }
         return nullptr;
+    }
+
+    ast_node_shared_ptr command_parser::parse(const parser_input_t& input) {
+        reset(input);
+        return parse_command();
     }
 
 }
