@@ -15,6 +15,7 @@
 #include <vector>
 #include <ostream>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <boost/variant.hpp>
 #include <boost/filesystem/path.hpp>
 

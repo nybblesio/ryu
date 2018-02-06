@@ -15,14 +15,10 @@ Project & Admin tasks
 Thoughts & Questions
 ----------------------
 
-- fmt::format should recognize our custom types because we have a std::ostream operator<< override.
-  however, it isn't working the way I'd expect, so need to research.
-
-- should we issue errors when trying to write unlatched ROM
-
 - should ROM even be write protected during "development"?
-  maybe the write latch should be disabled only during emulation/distribution
-  OR maybe the write latch is controlled through the environment file
+    * should we issue errors when trying to write unlatched ROM
+    * maybe the write latch should be disabled only during emulation/distribution
+    * OR maybe the write latch is controlled through the environment file
 
 IDE UI & related tasks
 ----------------------
@@ -97,3 +93,6 @@ DONE
 - implement a target command so that assembly isn't necessarily required
 - implement help [cmd] detail variant
 - implement core::environment::on_read_binary_to_memory
+- fmt::format should recognize our custom types because we have a std::ostream operator<< override.
+  however, it isn't working the way I'd expect, so need to research.
+    SOLUTION: was missing #include <fmt/ostream.h>

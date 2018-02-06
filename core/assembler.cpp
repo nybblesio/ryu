@@ -8,9 +8,9 @@
 // this source code file.
 //
 
+#include <fstream>
 #include <iostream>
 #include <hardware/component.h>
-#include <fstream>
 #include "project.h"
 #include "assembler.h"
 #include "symbol_table.h"

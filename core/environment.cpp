@@ -1155,14 +1155,14 @@ namespace ryu::core {
         if (!is_directory(path) && !is_regular_file(path)) {
             context.result.add_message(
                     "C008",
-                    fmt::format("invalid path: {}", path.value), true);
+                    fmt::format("invalid path: {}", path), true);
         } else {
             boost::system::error_code ec;
 
             if (remove(path, ec)) {
                 context.result.add_message(
                         "C008",
-                        fmt::format("removal success: {}", path.value));
+                        fmt::format("removal success: {}", path));
             } else {
                 context.result.add_message(
                         "C008",
@@ -1200,7 +1200,7 @@ namespace ryu::core {
         if (!is_directory(path)) {
             context.result.add_message(
                     "C007",
-                    fmt::format("invalid path: {}", path.value),
+                    fmt::format("invalid path: {}", path),
                     true);
             return false;
         }
@@ -1318,7 +1318,7 @@ namespace ryu::core {
         if (file == nullptr) {
             context.result.add_message(
                     "C032",
-                    fmt::format("no project file exists: {}", path.value),
+                    fmt::format("no project file exists: {}", path),
                     true);
             return false;
         }
@@ -1441,7 +1441,7 @@ namespace ryu::core {
         if (!is_regular_file(path)) {
             context.result.add_message(
                     "C021",
-                    fmt::format("invalid path: {}", path.value),
+                    fmt::format("invalid path: {}", path),
                     true);
             return false;
         }
@@ -1483,7 +1483,7 @@ namespace ryu::core {
         if (!is_regular_file(path)) {
             context.result.add_message(
                     "C022",
-                    fmt::format("invalid path: {}", path.value),
+                    fmt::format("invalid path: {}", path),
                     true);
             return false;
         }
@@ -1671,7 +1671,7 @@ namespace ryu::core {
         if (file == nullptr) {
             context.result.add_message(
                     "C032",
-                    fmt::format("no environment file exists: {}", name.value),
+                    fmt::format("no environment file exists: {}", name),
                     true);
             return false;
         }
@@ -1709,7 +1709,7 @@ namespace ryu::core {
         if (file == nullptr) {
             context.result.add_message(
                     "C032",
-                    fmt::format("no environment file exists: {}", name.value),
+                    fmt::format("no environment file exists: {}", name),
                     true);
             return false;
         }

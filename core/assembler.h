@@ -11,8 +11,8 @@
 #pragma once
 
 #include <hardware/component.h>
-#include "assembler_parser.h"
 #include "evaluator.h"
+#include "assembler_parser.h"
 #include "assembly_listing.h"
 
 namespace ryu::core {
