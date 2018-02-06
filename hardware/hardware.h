@@ -14,6 +14,7 @@
 #include <boost/filesystem/path.hpp>
 #include "ram.h"
 #include "rom.h"
+#include "dip_switch.h"
 #include "memory_mapper.h"
 #include "hardware_types.h"
 #include "cpus/mc6809/cpu.h"

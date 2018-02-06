@@ -18,6 +18,7 @@ namespace ryu::hardware {
             const fs::path& executable_path) {
         ram::init();
         rom::init();
+        dip_switch::init();
         memory_mapper::init();
         mc6809::cpu::init();
 

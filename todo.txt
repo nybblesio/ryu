@@ -79,8 +79,6 @@ Emulator & related tasks
 
 - implement integrated_circuit subclass for joystick input
 
-- implement dip_switch subclass for integrated_circuit
-
 DONE
 ----
 - create new struct that packages up source text/stream to parse, chunked lines, and formatted lines
@@ -103,3 +101,4 @@ DONE
 - OFFSTREAM|FIXED: core::console and core::text_editor now measure the chunks to get the most accurate width
 - OFFSTREAM      : updated to latest Hack font TTF files
 - OFFSTREAM|FIXED: parser wasn't setting _token to nullptr in reset.
+- OFFSTREAM      : implement dip_switch subclass for integrated_circuit

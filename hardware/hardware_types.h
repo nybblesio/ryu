@@ -34,6 +34,7 @@ namespace ryu::hardware {
     static constexpr uint16_t fm_synthesizer_id = 6;
     static constexpr uint16_t video_generator_id = 7;
     static constexpr uint16_t cpu_id = 10;
+    static constexpr uint16_t dip_switch_id = 11;
 
     class memory;
 
