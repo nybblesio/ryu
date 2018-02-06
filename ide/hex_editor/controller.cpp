@@ -119,37 +119,29 @@ namespace ryu::ide::hex_editor {
                     if (command_action_msg == nullptr)
                         return success;
 
-                    auto params = command_action_msg->params();
-                    auto action_it = params.find("action");
-                    if (action_it != params.end()) {
-                        // XXX: need to refactor this, it makes my head hurt
-                        auto command = boost::get<std::string>(action_it->second);
-                        if (command == "quit") {
-                            context()->engine()->quit();
-                        } else if (command == "read_text") {
-                            auto name_it = params.find("name");
-                            if (name_it != params.end()) {
-                                //_editor.load(result, boost::get<std::string>(name_it->second));
-                            } else {
-                                // XXX: handle errors
-                            }
-                        } else if (command == "write_text") {
-                            auto name_it = params.find("name");
-                            if (name_it != params.end()) {
-                                //_editor.save(result, boost::get<std::string>(name_it->second));
-                            } else {
-                                // XXX: handle errors
-                            }
-                        } else if (command == "goto_line") {
-                            auto line_number_it = params.find("line_number");
-                            if (line_number_it != params.end()) {
-                                _editor.goto_address(boost::get<std::uint32_t>(line_number_it->second));
-                            } else {
-                                // XXX: handle errors
-                            }
+                    // XXX: need to refactor this, it makes my head hurt
+                    auto command = command_action_msg->get_parameter<std::string>("action");
+                    if (command == "quit") {
+                        context()->engine()->quit();
+                    } else if (command == "read_text") {
+                        auto name = command_action_msg->get_parameter<std::string>("name");
+                        if (!name.empty()) {
+                            //_editor.load(result, boost::get<std::string>(name_it->second));
                         } else {
-                            // XXX: unknown command, error!
+                            // XXX: handle errors
                         }
+                    } else if (command == "write_text") {
+                        auto name = command_action_msg->get_parameter<std::string>("name");
+                        if (!name.empty()) {
+                            //_editor.save(result, boost::get<std::string>(name_it->second));
+                        } else {
+                            // XXX: handle errors
+                        }
+                    } else if (command == "goto_line") {
+                        auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
+                        _editor.goto_address(line_number);
+                    } else {
+                        // XXX: unknown command, error!
                     }
                 }
 

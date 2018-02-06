@@ -521,14 +521,10 @@ namespace ryu::core {
 
         auto command_action_msg = entry.result.find_code("command_action");
         if (command_action_msg != nullptr) {
-            auto params = command_action_msg->params();
-            auto action_it = params.find("action");
-            if (action_it != params.end()) {
-                auto command = boost::get<std::string>(action_it->second);
-                auto handler_it = _handlers.find(command);
-                if (handler_it != _handlers.end()) {
-                    handler_it->second(*this, params);
-                }
+            auto command = command_action_msg->get_parameter<std::string>("action");
+            auto handler_it = _handlers.find(command);
+            if (handler_it != _handlers.end()) {
+                handler_it->second(*this, command_action_msg->params());
             }
         }
 

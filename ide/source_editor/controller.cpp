@@ -114,49 +114,41 @@ namespace ryu::ide::source_editor {
                     if (command_action_msg == nullptr)
                         return success;
 
-                    auto params = command_action_msg->params();
-                    auto action_it = params.find("action");
-                    if (action_it != params.end()) {
-                        // XXX: need to refactor this, it makes my head hurt
-                        auto command = boost::get<std::string>(action_it->second);
-                        if (command == "quit") {
-                            context()->engine()->quit();
-                        } else if (command == "save_project_file") {
-                            _editor.save(result);
-                        } else if (command == "read_text") {
-                            auto name_it = params.find("name");
-                            if (name_it != params.end()) {
-                                _editor.load(result, boost::get<std::string>(name_it->second));
-                            } else {
-                                // XXX: handle errors
-                            }
-                        } else if (command == "write_text") {
-                            auto name_it = params.find("name");
-                            if (name_it != params.end()) {
-                                _editor.save(result, boost::get<std::string>(name_it->second));
-                            } else {
-                                // XXX: handle errors
-                            }
-                        } else if (command == "clear") {
-                            _editor.clear();
-                        } else if (command == "goto_line") {
-                            auto line_number_it = params.find("line_number");
-                            if (line_number_it != params.end()) {
-                                _editor.goto_line(boost::get<std::uint32_t>(line_number_it->second));
-                            } else {
-                                // XXX: handle errors
-                            }
-                        } else if (command == "find_text") {
-                            auto needle_it = params.find("needle");
-                            if (needle_it != params.end()) {
-                                _editor.find(boost::get<std::string>(needle_it->second));
-                            } else {
-                                // XXX: handle errors
-                            }
+                    // XXX: need to refactor this, it makes my head hurt
+                    auto command = command_action_msg->get_parameter<std::string>("action");
+                    if (command == "quit") {
+                        context()->engine()->quit();
+                    } else if (command == "save_project_file") {
+                        _editor.save(result);
+                    } else if (command == "read_text") {
+                        auto name = command_action_msg->get_parameter<std::string>("name");
+                        if (!name.empty()) {
+                            _editor.load(result, name);
+                        } else {
+                            // XXX: handle errors
                         }
-                        else {
-                            // XXX: unknown command, error!
+                    } else if (command == "write_text") {
+                        auto name = command_action_msg->get_parameter<std::string>("name");
+                        if (!name.empty()) {
+                            _editor.save(result, name);
+                        } else {
+                            // XXX: handle errors
                         }
+                    } else if (command == "clear") {
+                        _editor.clear();
+                    } else if (command == "goto_line") {
+                        auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
+                        _editor.goto_line(line_number);
+                    } else if (command == "find_text") {
+                        auto needle = command_action_msg->get_parameter<std::string>("needle");
+                        if (!needle.empty()) {
+                            _editor.find(needle);
+                        } else {
+                            // XXX: handle errors
+                        }
+                    }
+                    else {
+                        // XXX: unknown command, error!
                     }
                 }
 

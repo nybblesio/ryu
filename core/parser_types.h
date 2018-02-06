@@ -16,6 +16,7 @@
 #include <ostream>
 #include <fmt/format.h>
 #include <boost/variant.hpp>
+#include <boost/filesystem/path.hpp>
 
 namespace ryu::core {
 
@@ -468,25 +469,65 @@ namespace ryu::core {
     };
 
     struct comment_t {
-        std::string value;
+        std::string value {};
 
-        friend std::ostream& operator<<(std::ostream& stream, const comment_t& comment) {
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const comment_t& comment) {
             stream << "* " << comment.value;
             return stream;
         }
     };
 
     struct identifier_t {
-        std::string value;
+        std::string value {};
 
-        friend std::ostream& operator<<(std::ostream& stream, const identifier_t& identifier) {
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const identifier_t& identifier) {
             stream << identifier.value;
             return stream;
         }
     };
 
     struct label_t {
-        std::string value;
+        std::string value {};
+
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
 
         friend std::ostream& operator<<(
                 std::ostream& stream,
@@ -497,16 +538,51 @@ namespace ryu::core {
     };
 
     struct string_literal_t {
-        std::string value;
+        std::string value {};
 
-        friend std::ostream& operator<<(std::ostream& stream, const string_literal_t& lit) {
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const string_literal_t& lit) {
             stream << "\"" << lit.value << "\"";
             return stream;
+        }
+
+        operator boost::filesystem::path() {
+            return value;
+        }
+
+        operator boost::filesystem::path() const {
+            return value;
         }
     };
 
     struct boolean_literal_t {
-        bool value;
+        bool value {};
+
+        operator bool() {
+            return value;
+        }
+        operator bool() const {
+            return value;
+        }
+        operator uint32_t() {
+            return value ? 1 : 0;
+        }
+        operator uint32_t() const {
+            return value ? 1 : 0;
+        }
         boolean_literal_t operator! () {
             return boolean_literal_t {!value};
         }
@@ -529,8 +605,14 @@ namespace ryu::core {
     };
 
     struct numeric_literal_t {
-        uint32_t value;
+        uint32_t value {};
 
+        operator uint32_t() {
+            return value;
+        }
+        operator uint32_t() const {
+            return value;
+        }
         numeric_literal_t operator~ () {
             return numeric_literal_t {~value};
         }
@@ -581,16 +663,27 @@ namespace ryu::core {
         boolean_literal_t operator>= (const numeric_literal_t& other) {
             return boolean_literal_t {value >= other.value};
         }
-        friend std::ostream& operator<<(std::ostream& stream, const numeric_literal_t& lit) {
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const numeric_literal_t& lit) {
             stream << lit.value;
             return stream;
         }
     };
 
     struct char_literal_t {
-        unsigned char value;
+        unsigned char value {};
 
+        operator unsigned char() {
+            return value;
+        }
+        operator unsigned char() const {
+            return value;
+        }
         operator numeric_literal_t() {
+            return numeric_literal_t {value};
+        }
+        operator numeric_literal_t() const {
             return numeric_literal_t {value};
         }
         boolean_literal_t operator== (const char_literal_t& other) {
@@ -611,7 +704,9 @@ namespace ryu::core {
         boolean_literal_t operator>= (const char_literal_t& other) {
             return boolean_literal_t {value >= other.value};
         }
-        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const char_literal_t& lit) {
             stream << "'" << lit.value << "'";
             return stream;
         }
@@ -621,7 +716,9 @@ namespace ryu::core {
         uint32_t count;
         std::vector<numeric_literal_t> values;
 
-        friend std::ostream& operator<<(std::ostream& stream, const dup_literal_t& lit) {
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const dup_literal_t& lit) {
             return stream;
         }
     };
@@ -796,13 +893,29 @@ namespace ryu::core {
         uint32_t column = 0;
     };
 
-    typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;
+    typedef std::vector<core::variant_t> variant_list;
+    typedef std::map<std::string, variant_list> command_parameter_dict;
 
     struct command_handler_context_t {
         core::result& result;
         core::command_t& command;
         core::command_parameter_dict& params;
         const core::ast_node_shared_ptr& root;
+
+        variant_list get_variadic_parameters() const {
+            auto it = params.find("...");
+            if (it == params.end())
+                return {};
+            return it->second;
+        }
+
+        template <typename T>
+        T get_parameter(const std::string& name) const {
+            auto it = params.find(name);
+            if (it == params.end())
+                return {};
+            return boost::get<T>(it->second.front());
+        }
     };
 
     using command_handler_callable = std::function<bool (environment*, const command_handler_context_t&)>;

@@ -10,8 +10,19 @@ Project & Admin tasks
 
 - Add Ryu & other project information to Twitch profile & banner bitmap
 
+Thoughts & Questions
+----------------------
+
+- fmt::format should recognize our custom types because we have a std::ostream operator<< override.
+  however, it isn't working the way I'd expect, so need to research.
+
+- should we issue errors when trying to write unlatched ROM
+
 IDE UI & related tasks
 ----------------------
+
+- implement a target command so that assembly isn't necessarily required
+    - NB: maybe the environment file handles this?
 
 - implement help [cmd] detail variant
 
@@ -19,7 +30,12 @@ IDE UI & related tasks
 
 - implement core::environment::on_copy_memory
 
-- add "map" command to dump out the memory map of the active machine
+- implement core::environment::on_read_binary_to_memory
+
+- implement core::environment::on_write_memory_to_binary
+
+- implement core::environment::on_memory_map to dump
+  out the memory map of the active machine
 
 - when switching env, actually assemble file
 
@@ -75,7 +91,7 @@ DONE
 - create new struct that packages up source text/stream to parse, chunked lines, and formatted lines
 - core::environment now has fields for core::command_parser and core::evaluator and optimized assignment of
   symbol table and assembler pointers to these instances.
-- categorize help and ordering so they're consistent
-- added @[.b|.w|.dw] for peek
-- added ^[.b|.w|.dw] for poke
-- implemented core::environment::fill_memory
+- OFFSTREAM: categorize help and ordering so they're consistent
+- OFFSTREAM: added @[.b|.w|.dw] for peek
+- OFFSTREAM: added ^[.b|.w|.dw] for poke
+- OFFSTREAM: implemented core::environment::fill_memory

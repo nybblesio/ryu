@@ -173,17 +173,13 @@ namespace ryu::ide::console_editor {
                 if (command_action_msg == nullptr)
                     return success;
 
-                auto params = command_action_msg->params();
-                auto action_it = params.find("action");
-                if (action_it != params.end()) {
-                    auto command = boost::get<std::string>(action_it->second);
-                    if (command == "quit") {
-                        context()->engine()->quit();
-                    } else if (command == "update_working_directory") {
-                        _working_directory.value(fmt::format(
-                                "| cwd: {}",
-                                boost::filesystem::current_path().string()));
-                    }
+                auto command = command_action_msg->get_parameter<std::string>("action");
+                if (command == "quit") {
+                    context()->engine()->quit();
+                } else if (command == "update_working_directory") {
+                    _working_directory.value(fmt::format(
+                            "| cwd: {}",
+                            boost::filesystem::current_path().string()));
                 }
             }
             return success;
