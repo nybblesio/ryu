@@ -10,6 +10,8 @@ Project & Admin tasks
 
 - Add Ryu & other project information to Twitch profile & banner bitmap
 
+- configure weechat to limit width of handles to prevent column scrunching
+
 Thoughts & Questions
 ----------------------
 
@@ -18,26 +20,23 @@ Thoughts & Questions
 
 - should we issue errors when trying to write unlatched ROM
 
+- should ROM even be write protected during "development"?
+  maybe the write latch should be disabled only during emulation/distribution
+  OR maybe the write latch is controlled through the environment file
+
 IDE UI & related tasks
 ----------------------
 
-- implement a target command so that assembly isn't necessarily required
-    - NB: maybe the environment file handles this?
-
-- implement help [cmd] detail variant
-
-- implement core::environment::on_search_memory
-
 - implement core::environment::on_copy_memory
 
-- implement core::environment::on_read_binary_to_memory
-
-- implement core::environment::on_write_memory_to_binary
+- implement core::environment::on_search_memory
 
 - implement core::environment::on_memory_map to dump
   out the memory map of the active machine
 
 - when switching env, actually assemble file
+
+- HALF: implement core::environment::on_write_memory_to_binary
 
 - encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
     - need to explicitly filter out non-ASCII characters during input
@@ -95,3 +94,6 @@ DONE
 - OFFSTREAM: added @[.b|.w|.dw] for peek
 - OFFSTREAM: added ^[.b|.w|.dw] for poke
 - OFFSTREAM: implemented core::environment::fill_memory
+- implement a target command so that assembly isn't necessarily required
+- implement help [cmd] detail variant
+- implement core::environment::on_read_binary_to_memory

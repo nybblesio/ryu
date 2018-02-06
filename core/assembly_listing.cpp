@@ -94,7 +94,7 @@ namespace ryu::core {
     void assembly_listing::annotate_line(
             uint32_t line_number,
             uint32_t address,
-            const std::vector<uint8_t>& opcodes,
+            const byte_list& opcodes,
             assembly_listing::row_flags_t flags) {
         auto scope = current_scope();
 
@@ -151,7 +151,7 @@ namespace ryu::core {
     std::vector<data_table_row_t> assembly_listing::format_rows(
             uint32_t line_number,
             uint32_t address,
-            const std::vector<uint8_t>& opcodes,
+            const byte_list& opcodes,
             assembly_listing::row_flags_t flags) {
         std::vector<data_table_row_t> rows {};
 

@@ -45,7 +45,18 @@ namespace ryu::core {
         bool execute(core::result& result, const std::string& line);
 
     private:
+        void format_data_bytes(
+                std::stringstream& stream,
+                uint32_t address,
+                const byte_list& bytes);
+
         data_table_t create_symbol_table();
+
+        bool has_valid_project(core::result& result);
+
+        bool has_valid_project_and_machine(core::result& result);
+
+        bool has_valid_project_machine_and_target(core::result& result);
 
     private:
         // ----------------------------------------------------------
@@ -67,6 +78,9 @@ namespace ryu::core {
         // environment commands
         // ----------------------------------------------------------
         bool on_assemble(
+                const command_handler_context_t& context);
+
+        bool on_set_target(
                 const command_handler_context_t& context);
 
         bool on_add_symbol(

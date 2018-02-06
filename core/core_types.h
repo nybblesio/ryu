@@ -193,4 +193,5 @@ namespace ryu::core {
     typedef std::map<std::string, parameter_variant_t> parameter_dict;
     typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
 
+    typedef std::vector<uint8_t> byte_list;
 };

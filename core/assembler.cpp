@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <hardware/component.h>
+#include <fstream>
 #include "project.h"
 #include "assembler.h"
 #include "symbol_table.h"
@@ -107,7 +108,7 @@ namespace ryu::core {
                             _location_counter;
     }
 
-    std::vector<uint8_t> assembler::write_data(
+    byte_list assembler::write_data(
             directive_t::data_sizes size,
             uint32_t value) {
         auto machine = core::project::instance()->machine();
@@ -164,8 +165,8 @@ namespace ryu::core {
         _evaluator.symbol_table(_symbol_table);
     }
 
-    std::vector<uint8_t> assembler::write_data(const std::string& value) {
-        std::vector<uint8_t> data {};
+    byte_list assembler::write_data(const std::string& value) {
+        byte_list data {};
 
         auto machine = core::project::instance()->machine();
         for (const auto& c : value) {
@@ -179,8 +180,8 @@ namespace ryu::core {
         return data;
     }
 
-    std::vector<uint8_t> assembler::read_data(directive_t::data_sizes size) {
-        std::vector<uint8_t> data {};
+    byte_list assembler::read_data(directive_t::data_sizes size) {
+        byte_list data {};
         if (_target == nullptr)
             return data;
 
@@ -232,6 +233,71 @@ namespace ryu::core {
             default:
                 break;
         }
+    }
+
+    bool assembler::read_location_counter_to_binary(
+            core::result& result,
+            const fs::path& path,
+            uint32_t end_address) {
+        auto bounds_check_end = end_address > _location_counter;
+
+        auto project = core::project::instance();
+        auto machine = project->machine();
+
+        std::ofstream file(
+                path.string(),
+                std::ios::out|std::ios::binary);
+        if (file.is_open()) {
+            while (_location_counter < machine->mapper()->address_space()) {
+                if (bounds_check_end
+                && _location_counter >= end_address) {
+                    break;
+                }
+                auto data_bytes = read_data(directive_t::data_sizes::byte);
+                file.write(reinterpret_cast<const char*>(data_bytes.data()), data_bytes.size());
+                ++_location_counter;
+            }
+            file.close();
+        }
+
+        return !result.is_failed();
+    }
+
+    bool assembler::load_binary_to_location_counter(
+            core::result& result,
+            byte_list& data_bytes,
+            const fs::path& path,
+            uint32_t end_address) {
+        core::project::instance()
+                ->machine()
+                ->set_write_latches(true);
+
+        auto bounds_check_end = end_address > _location_counter;
+
+        std::ifstream file(
+                path.string(),
+                std::ios::in|std::ios::binary);
+        if (file.is_open()) {
+            char data_byte;
+            while (!file.eof()) {
+                if (bounds_check_end
+                &&  _location_counter >= end_address) {
+                    break;
+                }
+                file.get(data_byte);
+                write_data(
+                        directive_t::data_sizes::byte,
+                        static_cast<uint32_t>(data_byte));
+                data_bytes.push_back(static_cast<uint8_t>(data_byte));
+            }
+            file.close();
+         }
+
+        core::project::instance()
+                ->machine()
+                ->set_write_latches(false);
+
+        return !result.is_failed();
     }
 
 }

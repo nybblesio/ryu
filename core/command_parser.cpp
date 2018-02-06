@@ -22,7 +22,7 @@ namespace ryu::core {
                 command::types::help,
                 command_size_flags::none,
                 {
-                    {"cmd", variant::types::command_literal, false}
+                    {"cmd", variant::types::string_literal, false}
                 },
                 "Show help for available commands.",
                 "system",
@@ -288,6 +288,20 @@ namespace ryu::core {
                 "Write binary from address <italic>start<> to <italic>end<> to disk at <italic>path<>.",
                 "assembler",
                 12
+            }
+        },
+
+        {
+            "t",
+            {
+                command::types::target,
+                command_size_flags::none,
+                {
+                    {"name", variant::types::string_literal}
+                },
+                "Find component on active machine matching <italic>name<> and set as target on assembler.",
+                "assembler",
+                13
             }
         },
 

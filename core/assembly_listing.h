@@ -45,7 +45,7 @@ namespace ryu::core {
         void annotate_line(
                 uint32_t line_number,
                 uint32_t address,
-                const std::vector<uint8_t>& opcodes,
+                const byte_list& opcodes,
                 row_flags_t flags);
 
         void annotate_line_error(
@@ -64,7 +64,7 @@ namespace ryu::core {
         std::vector<data_table_row_t> format_rows(
                 uint32_t line_number,
                 uint32_t address,
-                const std::vector<uint8_t>& opcodes,
+                const byte_list& opcodes,
                 row_flags_t flags);
 
     private:

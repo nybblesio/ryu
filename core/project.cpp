@@ -197,7 +197,7 @@ namespace ryu::core {
         if (_instance == nullptr) {
             result.add_message(
                     "C032",
-                    "no project is loaded; clone failed",
+                    "no project is loaded; close failed",
                     true);
             return false;
         }

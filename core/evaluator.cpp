@@ -566,22 +566,11 @@ namespace ryu::core {
                     break;
                 }
 
-                std::vector<uint8_t> data_bytes {};
                 auto start_location_counter = _assembler->location_counter();
-
                 auto path = boost::get<string_literal_t>(variant).value;
-                std::ifstream file(path, std::ios::in|std::ios::binary);
-                if (file.is_open()) {
-                    char data_byte;
-                    while (!file.eof()) {
-                        file.get(data_byte);
-                        _assembler->write_data(
-                                directive_t::data_sizes::byte,
-                                static_cast<uint32_t>(data_byte));
-                        data_bytes.push_back(static_cast<uint8_t&&>(data_byte));
-                    }
-                    file.close();
-                }
+
+                byte_list data_bytes {};
+                _assembler->load_binary_to_location_counter(result, data_bytes, path, 0);
 
                 if (!result.is_failed()) {
                     listing.annotate_line(
@@ -595,7 +584,7 @@ namespace ryu::core {
                 break;
             }
             case directive_t::types::data: {
-                std::vector<uint8_t> data {};
+                byte_list data {};
                 auto start_location_counter = _assembler->location_counter();
 
                 if (node->lhs != nullptr) {
@@ -603,7 +592,7 @@ namespace ryu::core {
                 }
 
                 for (const auto& parameter_node : node->rhs->children) {
-                    std::vector<uint8_t> data_bytes {};
+                    byte_list data_bytes {};
                     auto variant = evaluate(result, parameter_node);
                     if (result.is_failed()) {
                         auto messages = result.messages();

@@ -59,6 +59,7 @@ namespace ryu::core {
             change_directory,
             print_working_directory,
 
+            target,
             new_project,
             edit_project,
             load_project,
