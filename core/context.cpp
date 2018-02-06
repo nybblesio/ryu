@@ -38,13 +38,17 @@ namespace ryu::core {
         auto it = events.begin();
         while (it != events.end()) {
             bool processed = false;
+            auto event = *it;
 
             if (_engine->focus() == _id && _stack.peek() != -1) {
                 auto active = _stack.active();
-                processed = active->process_event(it.base());
+                processed = active->process_event(&event);
             }
 
-            if (!processed && on_process_event(it.base())) {
+            if (!processed)
+                processed = on_process_event(&event);
+
+            if (processed) {
                 it = events.erase(it);
             } else {
                 ++it;

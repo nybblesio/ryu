@@ -592,6 +592,7 @@ namespace ryu::core {
                 caret_right();
                 c++;
             }
+            return true;
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
                 case SDLK_1: {

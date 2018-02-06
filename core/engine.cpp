@@ -182,10 +182,13 @@ namespace ryu::core {
             surface.clear();
 
             event_list events {};
-            SDL_Event e {};
-            while (SDL_PollEvent(&e) != 0) {
+            for (size_t i = 0; i < 5; i++) {
+                SDL_Event e {};
+                if (!SDL_PollEvent(&e))
+                    break;
+
                 switch (e.type) {
-                    case SDL_WINDOWEVENT:
+                    case SDL_WINDOWEVENT: {
                         switch (e.window.event) {
                             case SDL_WINDOWEVENT_MINIMIZED:
                                 break;
@@ -205,24 +208,27 @@ namespace ryu::core {
                                 break;
                         }
                         break;
-                    case SDL_QUIT:
+                    }
+                    case SDL_QUIT: {
                         _quit = true;
                         continue;
-                    default:
+                    }
+                    default: {
                         events.push_back(e);
                         break;
+                    }
                 }
             }
 
             for (auto& it : _contexts)
                 it.second->update(dt, surface, events);
 
+            events.clear();
+
             // N.B. this is an override/overlay draw so contexts
             //      can "bleed" into other contexts.
             for (auto& it : _contexts)
                 it.second->draw(surface);
-
-            events.clear();
 
             surface.set_clip_rect(bounds());
 
