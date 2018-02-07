@@ -197,17 +197,15 @@ namespace ryu::ide::console_editor {
         _layout_panel.add_child(&_console);
 
         core::project::add_listener([&](){
-            auto env = context()->environment();
+            std::string name = "(none)";
             auto project = core::project::instance();
             if (project != nullptr) {
                 auto active_environment = project->active_environment();
                 if (active_environment != nullptr) {
-                    env->name(active_environment->path().filename().string());
+                    name = active_environment->name();
                 }
-            } else {
-                env->name("");
             }
-            _environment_status.value(fmt::format(" | env: {}", env->name()));
+            _environment_status.value(fmt::format(" | env: {}", name));
         });
     }
 

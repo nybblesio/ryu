@@ -8,12 +8,12 @@
 #include <core/engine.h>
 #include <ide/ide_types.h>
 #include <core/environment.h>
+#include <core/project_file.h>
 #include "controller.h"
 
 namespace ryu::ide::source_editor {
 
     controller::controller(const std::string& name) : ryu::core::state(name),
-                                                      _cpu_status("cpu-status-label"),
                                                       _file_status("file-status-label"),
                                                       _caret_status("caret-status-label"),
                                                       _editor("text-editor"),
@@ -43,14 +43,6 @@ namespace ryu::ide::source_editor {
         _machine_label.margin({0, context()->font_face()->width, 0, 0});
         _machine_label.value("| machine: (none)");
 
-        _cpu_status.font_family(context()->font_family());
-        _cpu_status.palette(context()->palette());
-        _cpu_status.dock(core::dock::styles::left);
-        _cpu_status.fg_color(ide::colors::info_text);
-        _cpu_status.bg_color(ide::colors::fill_color);
-        _cpu_status.margin({0, context()->font_face()->width, 0, 0});
-        _cpu_status.value("| cpu: (none)");
-
         _file_status.font_family(context()->font_family());
         _file_status.margin({0, 0, 0, 0});
         _file_status.value("| file: (none)");
@@ -62,7 +54,6 @@ namespace ryu::ide::source_editor {
         core::project::add_listener([&]() {
             std::string project_name = "(none)";
             std::string machine_name = "(none)";
-            std::string cpu = "(none)";
             std::string file = "(none)";
 
             if (core::project::instance() != nullptr) {
@@ -76,7 +67,6 @@ namespace ryu::ide::source_editor {
 
             _project_label.value(fmt::format("project: {}", project_name));
             _machine_label.value(fmt::format("| machine: {}", machine_name));
-            _cpu_status.value(fmt::format("| cpu: {}", cpu));
             _file_status.value(fmt::format("| file: {}", file));
         });
 
@@ -89,7 +79,6 @@ namespace ryu::ide::source_editor {
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header.add_child(&_project_label);
         _header.add_child(&_machine_label);
-        _header.add_child(&_cpu_status);
         _header.add_child(&_file_status);
 
         _command_line.width(60);
@@ -192,7 +181,7 @@ namespace ryu::ide::source_editor {
         _editor.selection_color(ide::colors::selection);
         _editor.line_number_color(ide::colors::info_text);
         _editor.on_caret_changed([&](const core::caret& caret, const core::document& document) {
-            std::string file_name = document.filename();
+            std::string file_name = document.path().filename().string();
             if (file_name.empty()) {
                 file_name = "(none)";
             }
@@ -259,9 +248,20 @@ namespace ryu::ide::source_editor {
     void controller::on_activate(const core::parameter_dict& params) {
         core::result result;
 
-        auto path_it = params.find("path");
+        auto path_it = params.find("name");
         if (path_it != params.end()) {
-            _editor.load(result, boost::get<std::string>(path_it->second));
+            std::string path = boost::get<std::string>(path_it->second);
+
+            if (core::project::instance() != nullptr) {
+                auto file = core::project::instance()->find_file(path);
+                if (file != nullptr)
+                    path = file->full_path().string();
+            }
+
+            if (!_editor.load(result, path)) {
+                _editor.clear();
+                _editor.path(path);
+            }
         }
 
         // XXX: handle result if errored

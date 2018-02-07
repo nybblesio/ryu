@@ -808,9 +808,9 @@ namespace ryu::core {
                 command::types::switch_environment,
                 command_size_flags::none,
                 {
-                    {"name", variant::types::string_literal}
+                    {"name", variant::types::string_literal, false}
                 },
-                "Switch to environment using <italic>name<>. NOTE: Clears symbol table before load.",
+                "Switch to environment using <italic>name<>.  If <italic>name<> is omitted, no environment is loaded. NOTE: Clears symbol table before load.",
                 "environment",
                 4
             }

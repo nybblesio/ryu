@@ -20,6 +20,8 @@ namespace ryu::core {
     public:
         symbol_table() = default;
 
+        void clear();
+
         bool missing_is_error() const {
             return _missing_is_error;
         }

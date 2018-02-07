@@ -13,13 +13,6 @@
 #include <common/string_support.h>
 #include "console.h"
 
-// TODO
-//
-// - support select, cut, copy, paste (use text_editor implementation for start)
-// - bug fixes
-// - format_data_table needs some bug fixes and improvements around column data formatting
-// - ^^^^ specifically: columns that have style_codes enabled don't align properly
-
 namespace ryu::core {
 
     console::command_action_dict console::_handlers = {

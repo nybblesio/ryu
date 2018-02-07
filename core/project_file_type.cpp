@@ -39,6 +39,7 @@ namespace ryu::core {
     static std::map<std::string, std::string> s_code_to_action = {
             {"mach",    "edit_machine"},
             {"text",    "edit_source"},
+            {"environ", "edit_source"},
             {"data",    "edit_memory"},
             {"tiles",   "edit_tiles"},
             {"sprites", "edit_sprites"},

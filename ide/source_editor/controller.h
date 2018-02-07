@@ -44,7 +44,6 @@ namespace ryu::ide::source_editor {
 
     private:
         metrics_t _metrics;
-        core::label _cpu_status;
         core::label _file_status;
         core::label _caret_status;
         core::text_editor _editor;

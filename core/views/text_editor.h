@@ -29,7 +29,9 @@ namespace ryu::core {
 
         void clear();
 
-        void goto_line(uint32_t row);
+        fs::path path() const {
+            return _document.path();
+        }
 
         int page_width() const {
             return _metrics.page_width;
@@ -39,11 +41,13 @@ namespace ryu::core {
             return _metrics.page_height;
         }
 
-        std::string filename() const {
-            return _document.filename();
-        }
+        void goto_line(uint32_t row);
 
         void caret_color(uint8_t value);
+
+        void path(const fs::path& value) {
+            _document.path(value);
+        }
 
         void selection_color(uint8_t value);
 

@@ -126,16 +126,16 @@ namespace ryu::core {
         raise_document_changed();
     }
 
+    fs::path document::path() const {
+        return _path;
+    }
+
     uint8_t document::page_width() const {
         return _page_width;
     }
 
     uint8_t document::page_height() const {
         return _page_height;
-    }
-
-    std::string document::filename() const {
-        return _path.filename().string();
     }
 
     bool document::column(uint16_t column) {
@@ -181,6 +181,10 @@ namespace ryu::core {
 
     void document::default_attr(attr_t value) {
         _default_attr = value;
+    }
+
+    void document::path(const fs::path& value) {
+        _path = value;
     }
 
     bool document::load(core::result& result, const fs::path& path) {
@@ -246,10 +250,11 @@ namespace ryu::core {
             target_path = _path;
 
         try {
-            std::fstream file;
-            file.open(target_path.string());
-            save(result, file);
-            file.close();
+            std::ofstream file(target_path.string());
+            if (file.is_open()) {
+                save(result, file);
+                file.close();
+            }
         } catch (std::exception& e) {
             result.add_message(
                     "D001",

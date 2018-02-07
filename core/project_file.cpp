@@ -97,7 +97,7 @@ namespace ryu::core {
     bool project_file::read(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path(project::find_project_root().append(_path.string()));
+        fs::path file_path = full_path();
         try {
             std::ifstream file;
             file.open(file_path.string());
@@ -115,7 +115,7 @@ namespace ryu::core {
     bool project_file::write(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path(project::find_project_root().append(_path.string()));
+        fs::path file_path = full_path();
         try {
             std::ofstream file;
             file.open(file_path.string());
@@ -138,7 +138,14 @@ namespace ryu::core {
         fs::path file_path = path;
 
         if (!file_path.is_absolute()) {
-            file_path = project::find_project_root().append(file_path.string());
+            if (_type == project_file_type::environment) {
+                file_path = project::find_project_root()
+                        .append(".ryu")
+                        .append(file_path.string());
+            } else {
+                file_path = project::find_project_root()
+                        .append(file_path.string());
+            }
         }
 
         if (fs::exists(file_path)) {
@@ -174,12 +181,28 @@ namespace ryu::core {
         return _id;
     }
 
+    fs::path project_file::full_path() const {
+        if (_type == project_file_type::environment) {
+            return project::find_project_root()
+                    .append(".ryu")
+                    .append(_path.string())
+                    .replace_extension(".env");
+        } else {
+            return project::find_project_root()
+                    .append(_path.string());
+        }
+    }
+
     fs::path project_file::path() const {
         return _path;
     }
 
     void project_file::dirty(bool value) {
         _dirty = value;
+    }
+
+    std::string project_file::name() const {
+        return _path.filename().string();
     }
 
     uint16_t project_file::sequence() const {
@@ -197,13 +220,17 @@ namespace ryu::core {
     }
 
     void project_file::should_assemble(bool flag) {
-        _should_assemble = flag;
-        _dirty = true;
+        if (flag != _should_assemble) {
+            _should_assemble = flag;
+            _dirty = true;
+        }
     }
 
     void project_file::path(const fs::path& value) {
-        _path = value;
-        _dirty = true;
+        if (value != _path) {
+            _path = value;
+            _dirty = true;
+        }
     }
 
     project_file_type::codes project_file::type() const {
@@ -211,8 +238,10 @@ namespace ryu::core {
     }
 
     void project_file::type(project_file_type::codes value) {
-        _type = value;
-        _dirty = true;
+        if (value != _type) {
+            _type = value;
+            _dirty = true;
+        }
     }
 
     bool project_file::save(core::result& result, YAML::Emitter& emitter) {

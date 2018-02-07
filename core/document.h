@@ -95,6 +95,8 @@ namespace ryu::core {
 
         int32_t row() const;
 
+        fs::path path() const;
+
         uint32_t rows() const;
 
         bool row(uint32_t row);
@@ -113,8 +115,6 @@ namespace ryu::core {
 
         bool column(uint16_t column);
 
-        std::string filename() const;
-
         void delete_line(uint32_t row);
 
         void default_attr(attr_t value);
@@ -122,6 +122,8 @@ namespace ryu::core {
         bool is_line_empty(uint32_t row);
 
         line_t* insert_line(uint32_t row);
+
+        void path(const fs::path& value);
 
         inline size_t line_count() const {
             return _lines.size();

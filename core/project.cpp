@@ -104,7 +104,6 @@ namespace ryu::core {
                     "C031",
                     "Project requires name.",
                     true);
-            result.fail();
             return false;
         }
 
@@ -336,9 +335,11 @@ namespace ryu::core {
     }
 
     void project::name(const std::string& value) {
-        _name = value;
-        _dirty = true;
-        notify_listeners();
+        if (value != _name) {
+            _name = value;
+            _dirty = true;
+            notify_listeners();
+        }
     }
 
     project_file* project::find_file(uint32_t id) {
@@ -355,9 +356,11 @@ namespace ryu::core {
     }
 
     void project::machine(hardware::machine* machine) {
-        _machine = machine;
-        _dirty = true;
-        notify_listeners();
+        if (machine != _machine) {
+            _machine = machine;
+            _dirty = true;
+            notify_listeners();
+        }
     }
 
     void project::add_file(const project_file& value) {
@@ -373,15 +376,19 @@ namespace ryu::core {
     }
 
     void project::description(const std::string& value) {
-        _description = value;
-        _dirty = true;
-        notify_listeners();
+        if (value != _description) {
+            _description = value;
+            _dirty = true;
+            notify_listeners();
+        }
     }
 
     void project::active_environment(project_file* value) {
-        _active_environment = value;
-        _dirty = true;
-        notify_listeners();
+        if (value != _active_environment) {
+            _active_environment = value;
+            _dirty = true;
+            notify_listeners();
+        }
     }
 
     project_file* project::find_file(const fs::path& path) {

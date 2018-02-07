@@ -23,8 +23,6 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- when switching env, actually assemble file
-
 - encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
     - need to explicitly filter out non-ASCII characters during input
     - implement mouse events for context tabs
@@ -105,3 +103,6 @@ DONE
                            EXAMPLE: set debug true
                            NOTE: looks to be related to the text "debug"; not sure why
                            RESULT: parser is seeing "ebug"
+- OFF STREAM      : when switching env, actually assemble file
+- OFF STREAM      : implement edenv command
+- OFF STREAM|FIXED: % command working again for source editor and environments

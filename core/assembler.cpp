@@ -90,11 +90,9 @@ namespace ryu::core {
         } else {
             if (program_node != nullptr) {
                 _listing.begin_assembly_scope(input);
-
                 if (!_evaluator.pass1_transform(result, program_node)) {
 
                 }
-
                 _listing.end_assembly_scope();
             }
         }

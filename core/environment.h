@@ -30,13 +30,13 @@ namespace ryu::core {
 
         bool assemble(
                 core::result& result,
-                core::project_file& file);
+                core::project_file* file);
+
+        bool apply_environment(
+                core::result& result,
+                core::project_file* file);
 
         core::symbol_table* symbol_table();
-
-        bool switch_environment(
-                core::result& result,
-                const std::string& name);
 
         bool assemble(core::result& result);
 

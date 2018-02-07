@@ -55,7 +55,11 @@ namespace ryu::core {
 
         void dirty(bool value);
 
+        std::string name() const;
+
         uint16_t sequence() const;
+
+        fs::path full_path() const;
 
         bool should_assemble() const;
 

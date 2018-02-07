@@ -498,41 +498,47 @@ namespace ryu::core {
 
     bool environment::assemble(
             core::result& result,
-            core::project_file& file) {
-        if (!file.should_assemble())
+            core::project_file* file) {
+        if (!file->should_assemble())
             return false;
 
         std::stringstream source;
-        if (!file.read(result, source))
+        if (!file->read(result, source))
             return false;
 
         auto source_text = source.str();
-        if (!_assembler->assemble(result, parser_input_t {source_text}))
-            return false;
-
-        return true;
+        return _assembler->assemble(result, parser_input_t {source_text});
     }
 
-    bool environment::switch_environment(
+    bool environment::apply_environment(
             core::result& result,
-            const std::string& name) {
+            core::project_file* file) {
         if (!has_valid_project(result))
             return false;
 
-        auto file = core::project::instance()->find_file(name);
-        if (file == nullptr) {
-            result.add_message(
-                    "C032",
-                    fmt::format("no environment file exists: {}", name),
-                    true);
-            return false;
-        }
+        _symbol_table->clear();
 
-        if (assemble(result, *file)) {
-            core::project::instance()->active_environment(file);
-            core::project::instance()->save(result);
-        } else {
-            // XXX: error condition to report
+        if (file != nullptr) {
+            result.add_message(
+                    "E001",
+                    fmt::format("Apply Environment: <bold>{}<>", file->name()));
+            result.add_message(
+                    "E001",
+                    fmt::format("Assemble: \n  <italic>{}<>\n", file->full_path()));
+            if (assemble(result, file)) {
+                name(file->name());
+            }
+
+            auto listing_table = _assembler->listing().table();
+
+            if (listing_table.rows.size() > 2) {
+                result.add_data(
+                        "command_result",
+                        {
+                                {"listing", listing_table},
+                                {"symbols", create_symbol_table()}
+                        });
+            }
         }
 
         return !result.is_failed();
@@ -543,8 +549,9 @@ namespace ryu::core {
             return false;
 
         auto files = core::project::instance()->files();
-        for (auto& file : files)
-            assemble(result, file);
+        for (auto& file : files) {
+            assemble(result, &file);
+        }
 
         auto listing_table = _assembler->listing().table();
 
@@ -732,6 +739,9 @@ namespace ryu::core {
 
     bool environment::on_open_editor(
             const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
+
         auto name = context.get_parameter<core::string_literal_t>("name");
         auto type = context.get_parameter<core::identifier_t>("type");
 
@@ -777,6 +787,31 @@ namespace ryu::core {
 
     bool environment::on_edit_environment(
             const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
+
+        core::project_file* active_environment = nullptr;
+
+        auto name = context.get_parameter<core::string_literal_t>("name");
+        if (name.empty()) {
+            active_environment = core::project::instance()->active_environment();
+        } else {
+            active_environment = core::project::instance()->find_file(name);
+        }
+
+        if (active_environment == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    fmt::format("no environment file exists: {}", name),
+                    true);
+            return false;
+        }
+
+        context.result.add_data("command_action", {
+                {"action", project_file_type::code_to_action("text")},
+                {"name", active_environment->full_path().string()}
+        });
+
         return false;
     }
 
@@ -1409,9 +1444,14 @@ namespace ryu::core {
 
     bool environment::on_load_project(
             const command_handler_context_t& context) {
-        return core::project::load(
-                context.result,
-                context.get_parameter<core::string_literal_t>("path").value);
+        auto path = context.get_parameter<core::string_literal_t>("path");
+        if (core::project::load(context.result, path)) {
+            apply_environment(
+                    context.result,
+                    core::project::instance()->active_environment());
+        }
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_save_project(
@@ -1775,7 +1815,7 @@ namespace ryu::core {
                 "command_action",
                 {
                     {"action", std::string("edit_source")},
-                    {"path", project::find_project_root().append(path.value).string()}
+                    {"name", path}
                 });
         return true;
     }
@@ -1948,8 +1988,27 @@ namespace ryu::core {
 
     bool environment::on_switch_environment(
             const command_handler_context_t& context) {
+        core::project_file* active_environment = nullptr;
+
         auto name = context.get_parameter<core::string_literal_t>("name");
-        return switch_environment(context.result, name);
+
+        if (!name.empty()) {
+            active_environment = core::project::instance()->find_file(name);
+            if (active_environment == nullptr) {
+                context.result.add_message(
+                        "C032",
+                        fmt::format("no environment file exists: {}", name),
+                        true);
+                return false;
+            }
+        }
+
+        core::project::instance()->active_environment(active_environment);
+        if (apply_environment(context.result, active_environment)) {
+            core::project::instance()->save(context.result);
+        }
+
+        return !context.result.is_failed();
     }
 
     bool environment::has_valid_project(core::result& result) {
