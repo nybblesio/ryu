@@ -26,17 +26,17 @@ namespace ryu::core {
 
         virtual ~environment();
 
-        bool load(
-                core::result& result,
-                std::iostream& stream);
-
-        bool save(
-                core::result& result,
-                std::iostream& stream);
-
         std::string name() const;
 
+        bool assemble(
+                core::result& result,
+                core::project_file& file);
+
         core::symbol_table* symbol_table();
+
+        bool switch_environment(
+                core::result& result,
+                const std::string& name);
 
         bool assemble(core::result& result);
 
@@ -84,6 +84,9 @@ namespace ryu::core {
                 const command_handler_context_t& context);
 
         bool on_add_symbol(
+                const command_handler_context_t& context);
+
+        bool on_edit_environment(
                 const command_handler_context_t& context);
 
         bool on_disassemble(

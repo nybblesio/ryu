@@ -789,6 +789,20 @@ namespace ryu::core {
         },
 
         {
+            "edenv",
+            {
+                command::types::edit_environment,
+                command_size_flags::none,
+                {
+                    {"name", variant::types::string_literal, false}
+                },
+                "Open environment in source editor.",
+                "environment",
+                3
+            }
+        },
+
+        {
             "switchenv",
             {
                 command::types::switch_environment,
@@ -798,7 +812,7 @@ namespace ryu::core {
                 },
                 "Switch to environment using <italic>name<>. NOTE: Clears symbol table before load.",
                 "environment",
-                3
+                4
             }
         },
 

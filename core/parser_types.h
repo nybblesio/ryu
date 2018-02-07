@@ -73,6 +73,7 @@ namespace ryu::core {
             remove_project_file,
 
             new_environment,
+            edit_environment,
             list_environments,
             remove_environment,
             switch_environment,
