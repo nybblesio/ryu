@@ -527,6 +527,8 @@ namespace ryu::core {
         if (token == nullptr)
             return nullptr;
 
+        push_position();
+
         std::vector<operator_t*> candidates;
         for (auto it = _operators.begin(); it != _operators.end(); ++it)
             candidates.push_back(&it->second);
@@ -537,6 +539,7 @@ namespace ryu::core {
         while (true) {
             if (token == nullptr) {
                 error("P008", "unexpected end of operator");
+                pop_position();
                 return nullptr;
             }
 
@@ -577,19 +580,27 @@ namespace ryu::core {
             }
         }
 
+        if (op != nullptr)
+            forget_top_position();
+        else
+            pop_position();
+
         return op;
     }
 
     ast_node_shared_ptr parser::peek_operand() {
         if (_operand_stack.empty())
             return nullptr;
+
         return _operand_stack.top();
     }
 
     ast_node_shared_ptr parser::parse_comment() {
         auto token = current_token();
+
         if (token == nullptr)
             return nullptr;
+
         if (*token == '*' || *token == ';') {
             token = move_to_next_token();
             std::stringstream stream;
@@ -601,6 +612,7 @@ namespace ryu::core {
             comment->value = comment_t {stream.str()};
             return comment;
         }
+
         return nullptr;
     }
 
@@ -791,14 +803,18 @@ namespace ryu::core {
 
     ast_node_shared_ptr parser::parse_null_literal() {
         push_position();
+
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
+
         if (match_literal("null")) {
             forget_top_position();
             return create_ast_node(ast_node_t::tokens::null_literal);
         }
+
         pop_position();
+
         return nullptr;
     }
 
@@ -835,23 +851,29 @@ namespace ryu::core {
 
     ast_node_shared_ptr parser::parse_uninitialized() {
         push_position();
+
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
+
         if (*token == '?') {
             forget_top_position();
             move_to_next_token();
             return create_ast_node(ast_node_t::tokens::uninitialized_literal);
         }
+
         pop_position();
+
         return nullptr;
     }
 
     ast_node_shared_ptr parser::parse_boolean_literal() {
         push_position();
+
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
+
         if (match_literal("true")) {
             forget_top_position();
             auto identifier_node = create_ast_node(ast_node_t::tokens::boolean_literal);
@@ -863,12 +885,17 @@ namespace ryu::core {
             identifier_node->value = boolean_literal_t {false};
             return identifier_node;
         }
+
         pop_position();
+
         return nullptr;
     }
 
     bool parser::operator_stack_has(operator_t* op) {
-        return std::find(_operator_stack.begin(), _operator_stack.end(), op) != _operator_stack.end();
+        return std::find(
+                _operator_stack.begin(),
+                _operator_stack.end(),
+                op) != _operator_stack.end();
     }
 
     void parser::symbol_table(core::symbol_table* value) {

@@ -1014,6 +1014,7 @@ namespace ryu::core {
 
             return is_failed() ? nullptr : command_node;
         }
+
         return nullptr;
     }
 

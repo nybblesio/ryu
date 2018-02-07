@@ -23,11 +23,6 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- BUG: parser is skipping first character of identifier
-       EXAMPLE: set debug true
-       NOTE: looks to be related to the text "debug"; not sure why
-       RESULT: parser is seeing "ebug"
-
 - when switching env, actually assemble file
 
 - encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
@@ -106,3 +101,7 @@ DONE
 - implement core::environment::on_search_memory
 - implement core::environment::on_memory_map to dump
   out the memory map of the active machine
+- OFF STREAM|FIXED: BUG: parser is skipping first character of identifier
+                           EXAMPLE: set debug true
+                           NOTE: looks to be related to the text "debug"; not sure why
+                           RESULT: parser is seeing "ebug"
