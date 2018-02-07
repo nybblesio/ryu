@@ -1489,7 +1489,92 @@ namespace ryu::core {
     // ----------------------------------------------------------
     bool environment::on_memory_map(
             const command_handler_context_t& context) {
-        return false;
+        using format_options = data_table_column_t::format_options;
+
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+
+        data_table_t table {};
+        table.headers.push_back({"Component Name",   20,  20});
+        table.headers.push_back({"Start",             8,   8});
+        table.headers.push_back({
+                "",
+                1,
+                1,
+                alignment::horizontal::types::left,
+                1
+        });
+        table.headers.push_back({"End",               8,   8});
+        table.headers.push_back({"Name",             10,  10});
+        table.headers.push_back({"Offset",            8,   8});
+        table.headers.push_back({"Size",              4,   4});
+        table.headers.push_back({
+                "Details",
+                55,
+                55,
+                alignment::horizontal::types::left,
+                1,
+                format_options::word_wrap | format_options::style_codes
+        });
+        table.footers.push_back({"Component Count",  15,  20});
+
+        auto mapper = core::project::instance()->machine()->mapper();
+        auto mapper_components = mapper->components();
+
+        struct once_value_t {
+            bool show = true;
+            void add_once_column(data_table_row_t& row, const std::string& value) {
+                if (show) {
+                    row.columns.push_back(value);
+                    show = false;
+                } else {
+                    row.columns.emplace_back("");
+                }
+            }
+        };
+
+        for (auto component_interval : mapper_components) {
+            auto map_entries = component_interval.value->memory_map().entries();
+
+            once_value_t component_name;
+            once_value_t component_start;
+            once_value_t component_end;
+
+            for (auto entry_interval : map_entries) {
+                data_table_row_t row {};
+
+                component_name.add_once_column(row, component_interval.value->component_name());
+                component_end.add_once_column(row, fmt::format("{:<8x}", component_interval.stop));
+                row.columns.emplace_back("-");
+                component_start.add_once_column(row, fmt::format("{:<8x}", component_interval.start));
+
+                row.columns.push_back(entry_interval.value->name());
+                row.columns.push_back(fmt::format("{:<8x}", entry_interval.start));
+                row.columns.push_back(fmt::format("{:<4x}", entry_interval.stop - entry_interval.start));
+                row.columns.push_back(entry_interval.value->description());
+                table.rows.push_back(row);
+            }
+
+            data_table_row_t row {};
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            table.rows.push_back(row);
+        }
+
+        table.rows.push_back({{fmt::format(
+                "{} components mapped",
+                table.rows.size())}});
+
+        context.result.add_data(
+                "command_result",
+                {{"data", table}});
+
+        return true;
     }
 
     bool environment::on_use_machine(

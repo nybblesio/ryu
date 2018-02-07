@@ -40,6 +40,10 @@ namespace ryu::hardware {
     }
 
     void rom::reallocate() {
+        clear_memory_map();
+
+        add_memory_map_entry(0, address_space(), "ROM", "Read-only memory block.");
+
         delete _buffer;
         _buffer = new uint8_t[address_space()];
 
@@ -76,11 +80,11 @@ namespace ryu::hardware {
         return value;
     }
 
-    std::vector<uint8_t> rom::write_word(
+    ryu::core::byte_list rom::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
-        std::vector<uint8_t> data {};
+        ryu::core::byte_list data {};
 
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {
@@ -96,11 +100,11 @@ namespace ryu::hardware {
         return data;
     }
 
-    std::vector<uint8_t> rom::write_dword(
+    ryu::core::byte_list rom::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
-        std::vector<uint8_t> data {};
+        ryu::core::byte_list data {};
 
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {

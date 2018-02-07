@@ -64,6 +64,10 @@ namespace ryu::hardware {
         return 0;
     }
 
+    const ic_interval_list& memory_mapper::components() const {
+        return _components;
+    }
+
     void memory_mapper::write_byte(uint32_t address, uint8_t value) {
         auto circuit = circuit_at_address(access_types::writable, address);
         if (circuit.ic != nullptr)
@@ -122,7 +126,7 @@ namespace ryu::hardware {
         return 0;
     }
 
-    std::vector<uint8_t> memory_mapper::write_word(
+    ryu::core::byte_list memory_mapper::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
@@ -132,7 +136,7 @@ namespace ryu::hardware {
         return {};
     }
 
-    std::vector<uint8_t> memory_mapper::write_dword(
+    ryu::core::byte_list memory_mapper::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {

@@ -11,6 +11,17 @@
 #include "memory_map_entry.h"
 
 namespace ryu::hardware {
+
+    memory_map_entry::memory_map_entry(
+            uint32_t offset,
+            uint32_t size,
+            const std::string& name,
+            const std::string& description)  : _size(size),
+                                               _offset(offset),
+                                               _name(name),
+                                               _description(description) {
+    }
+
     memory_map_entry::memory_map_entry(
             uint32_t offset,
             uint32_t size,

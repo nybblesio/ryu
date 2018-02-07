@@ -53,18 +53,22 @@ namespace ryu::hardware {
         return 0;
     }
 
-    std::vector<uint8_t> integrated_circuit::write_word(
+    ryu::core::byte_list integrated_circuit::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
         return {};
     }
 
-    std::vector<uint8_t> integrated_circuit::write_dword(
+    ryu::core::byte_list integrated_circuit::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
         return {};
+    }
+
+    void integrated_circuit::clear_memory_map() {
+        _memory_map.clear();
     }
 
     void integrated_circuit::fill(uint8_t value) {
@@ -74,11 +78,33 @@ namespace ryu::hardware {
         return _name;
     }
 
+    void integrated_circuit::add_memory_map_entry(
+            uint32_t offset,
+            uint32_t size,
+            const std::string& name,
+            const std::string& description) {
+        _memory_map.add(offset, size, name, description);
+    }
+
+    void integrated_circuit::add_memory_map_entry(
+            uint32_t offset,
+            uint32_t size,
+            const std::string& name,
+            const std::string& description,
+            const memory_map_entry::read_callable& reader,
+            const memory_map_entry::write_callable& writer) {
+        _memory_map.add(offset, size, name, description, reader, writer);
+    }
+
     uint32_t integrated_circuit::address_space() const {
         return _address_space;
     }
 
     void integrated_circuit::on_address_space_changed() {
+    }
+
+    std::string integrated_circuit::component_name() const {
+        return _component_name;
     }
 
     void integrated_circuit::address_space(uint32_t value) {
@@ -98,6 +124,10 @@ namespace ryu::hardware {
 
     core::assembly_language_parser* integrated_circuit::assembler() {
         return nullptr;
+    }
+
+    void integrated_circuit::component_name(const std::string& name) {
+        _component_name = name;
     }
 
     const hardware::memory_map& integrated_circuit::memory_map() const {

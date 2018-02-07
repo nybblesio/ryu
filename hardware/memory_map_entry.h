@@ -25,6 +25,12 @@ namespace ryu::hardware {
                 uint32_t offset,
                 uint32_t size,
                 const std::string& name,
+                const std::string& description);
+
+        memory_map_entry(
+                uint32_t offset,
+                uint32_t size,
+                const std::string& name,
                 const std::string& description,
                 const read_callable& reader,
                 const write_callable& writer);

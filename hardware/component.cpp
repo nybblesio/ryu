@@ -40,6 +40,8 @@ namespace ryu::hardware {
 
     void component::name(const std::string& value) {
         _name = value;
+        if (_ic != nullptr)
+            _ic->component_name(_name);
     }
 
     hardware::integrated_circuit* component::ic() const {

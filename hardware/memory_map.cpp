@@ -17,6 +17,19 @@ namespace ryu::hardware {
             delete it.value;
     }
 
+    void memory_map::clear() {
+        _entries.clear();
+    }
+
+    void memory_map::add(
+            uint32_t offset,
+            uint32_t size,
+            const std::string& name,
+            const std::string& description) {
+        auto entry = new memory_map_entry(offset, size, name, description);
+        _entries.emplace_back(offset, offset + size, entry);
+    }
+
     void memory_map::add(
             uint32_t offset,
             uint32_t size,
@@ -26,6 +39,10 @@ namespace ryu::hardware {
             const memory_map_entry::write_callable& writer) {
         auto entry = new memory_map_entry(offset, size, name, description, reader, writer);
         _entries.emplace_back(offset, offset + size, entry);
+    }
+
+    const mm_entry_interval_list& memory_map::entries() const {
+        return _entries;
     }
 
     memory_map_entry* memory_map::entry_at_offset(uint32_t offset) const {

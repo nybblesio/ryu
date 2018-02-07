@@ -9,6 +9,7 @@
 
 #include <string>
 #include <rttr/registration>
+#include <core/core_types.h>
 #include <core/assembly_language_parser.h>
 #include "memory_map.h"
 #include "hardware_types.h"
@@ -53,12 +54,12 @@ namespace ryu::hardware {
                 uint32_t address,
                 integrated_circuit::endianness::types endianess) const;
 
-        virtual std::vector<uint8_t> write_word(
+        virtual ryu::core::byte_list write_word(
                 uint32_t address,
                 uint16_t value,
                 integrated_circuit::endianness::types endianess);
 
-        virtual std::vector<uint8_t> write_dword(
+        virtual ryu::core::byte_list write_dword(
                 uint32_t address,
                 uint32_t value,
                 integrated_circuit::endianness::types endianess);
@@ -69,11 +70,15 @@ namespace ryu::hardware {
 
         virtual void fill(uint8_t value);
 
+        std::string component_name() const;
+
         void address_space(uint32_t value);
 
         virtual endianness::types endianess() const;
 
         virtual access_type_flags access_type() const;
+
+        void component_name(const std::string& name);
 
         const hardware::memory_map& memory_map() const;
 
@@ -86,6 +91,22 @@ namespace ryu::hardware {
         RTTR_ENABLE()
 
     protected:
+        void clear_memory_map();
+
+        void add_memory_map_entry(
+                uint32_t offset,
+                uint32_t size,
+                const std::string& name,
+                const std::string& description);
+
+        void add_memory_map_entry(
+                uint32_t offset,
+                uint32_t size,
+                const std::string& name,
+                const std::string& description,
+                const memory_map_entry::read_callable& reader,
+                const memory_map_entry::write_callable& writer);
+
         virtual void on_address_space_changed();
 
     private:
@@ -93,6 +114,7 @@ namespace ryu::hardware {
         std::string _name;
         bool _write_latch {};
         uint32_t _address_space;
+        std::string _component_name;
         hardware::memory_map _memory_map;
     };
 

@@ -23,9 +23,6 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- implement core::environment::on_memory_map to dump
-  out the memory map of the active machine
-
 - when switching env, actually assemble file
 
 - encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
@@ -102,3 +99,5 @@ DONE
 - implement core::environment::on_write_memory_to_binary
 - implement core::environment::on_copy_memory
 - implement core::environment::on_search_memory
+- implement core::environment::on_memory_map to dump
+  out the memory map of the active machine
