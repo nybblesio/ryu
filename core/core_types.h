@@ -194,4 +194,5 @@ namespace ryu::core {
     typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
 
     typedef std::vector<uint8_t> byte_list;
+    typedef std::vector<uint32_t> address_list;
 };

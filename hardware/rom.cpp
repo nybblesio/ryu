@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <common/bytes.h>
 #include "rom.h"
 
 RTTR_REGISTRATION {

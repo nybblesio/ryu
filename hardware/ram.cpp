@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <common/bytes.h>
 #include "ram.h"
 
 RTTR_REGISTRATION {

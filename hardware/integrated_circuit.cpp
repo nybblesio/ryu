@@ -100,17 +100,6 @@ namespace ryu::hardware {
         return nullptr;
     }
 
-    uint16_t integrated_circuit::endian_swap_word(uint16_t value) const {
-        return (value >> 8) | (value << 8);
-    }
-
-    uint32_t integrated_circuit::endian_swap_dword(uint32_t value) const {
-        return ((value >> 24) & 0xff)
-               |  ((value << 8) & 0xff0000)
-               |  ((value >> 8) & 0xff00)
-               |  ((value << 24) & 0xff000000);
-    }
-
     const hardware::memory_map& integrated_circuit::memory_map() const {
         return _memory_map;
     }

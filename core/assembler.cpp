@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <hardware/component.h>
+#include <common/bytes.h>
 #include "project.h"
 #include "assembler.h"
 #include "symbol_table.h"
@@ -192,8 +193,13 @@ namespace ryu::core {
                         ->mapper()
                         ->read_word(_location_counter, _target->ic()->endianess());
                 auto byte_ptr = reinterpret_cast<uint8_t*>(&word);
-                data.push_back(*(byte_ptr + 1));
-                data.push_back(*byte_ptr);
+                if (is_platform_little_endian()) {
+                    data.push_back(*(byte_ptr + 1));
+                    data.push_back(*byte_ptr);
+                } else {
+                    data.push_back(*byte_ptr);
+                    data.push_back(*(byte_ptr + 1));
+                }
                 break;
             }
             case directive_t::dword: {
@@ -201,10 +207,17 @@ namespace ryu::core {
                         ->mapper()
                         ->read_dword(_location_counter, _target->ic()->endianess());
                 auto byte_ptr = reinterpret_cast<uint8_t*>(&dword);
-                data.push_back(*(byte_ptr + 3));
-                data.push_back(*(byte_ptr + 2));
-                data.push_back(*(byte_ptr + 1));
-                data.push_back(*byte_ptr);
+                if (is_platform_little_endian()) {
+                    data.push_back(*(byte_ptr + 3));
+                    data.push_back(*(byte_ptr + 2));
+                    data.push_back(*(byte_ptr + 1));
+                    data.push_back(*byte_ptr);
+                } else {
+                    data.push_back(*byte_ptr);
+                    data.push_back(*(byte_ptr + 1));
+                    data.push_back(*(byte_ptr + 2));
+                    data.push_back(*(byte_ptr + 3));
+                }
                 break;
             }
             default: {
@@ -254,7 +267,9 @@ namespace ryu::core {
                     break;
                 }
                 auto data_bytes = read_data(directive_t::data_sizes::byte);
-                file.write(reinterpret_cast<const char*>(data_bytes.data()), data_bytes.size());
+                file.write(
+                        reinterpret_cast<const char*>(data_bytes.data()),
+                        data_bytes.size());
                 ++_location_counter;
             }
             file.close();

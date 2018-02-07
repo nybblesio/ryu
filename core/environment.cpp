@@ -9,6 +9,7 @@
 //
 
 #include <fmt/format.h>
+#include <common/bytes.h>
 #include <core/evaluator.h>
 #include <core/core_types.h>
 #include <hardware/machine.h>
@@ -929,7 +930,17 @@ namespace ryu::core {
         if (!has_valid_project_machine_and_target(context.result))
             return false;
 
-        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+        auto dest_address = context.get_parameter<core::numeric_literal_t>("dest");
+        auto src_address = context.get_parameter<core::numeric_literal_t>("src");
+        auto count = context.get_parameter<core::numeric_literal_t>("count");
+        auto byte_count = command_t::size_to_byte_count(context.command.size);
+
+        for (size_t i = 0; i < count * byte_count; i++) {
+            _assembler->location_counter(src_address + i);
+            auto data_bytes = _assembler->read_data(directive_t::data_sizes::byte);
+            _assembler->location_counter(dest_address + i);
+            _assembler->write_data(directive_t::data_sizes::byte, data_bytes.front());
+        }
 
         return !context.result.is_failed();
     }
@@ -1011,7 +1022,97 @@ namespace ryu::core {
         if (!has_valid_project_machine_and_target(context.result))
             return false;
 
-        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr").value;
+        auto count = context.get_parameter<core::numeric_literal_t>("count");
+        auto byte_count = command_t::size_to_byte_count(context.command.size);
+        auto value = context.get_parameter<core::numeric_literal_t>("value").value;
+
+        address_list matched_addresses {};
+
+        for (size_t i = 0; i < count; i++) {
+            _assembler->location_counter(addr);
+            switch (context.command.size) {
+                case command_size_flags::none:
+                case command_size_flags::byte: {
+                    auto data_bytes = _assembler->read_data(directive_t::data_sizes::byte);
+                    if (value == data_bytes.front()) {
+                        matched_addresses.push_back(_assembler->location_counter());
+                    }
+                    break;
+                }
+                case command_size_flags::word: {
+                    auto data_bytes = _assembler->read_data(directive_t::data_sizes::word);
+                    auto endian_correct_value = static_cast<uint16_t>(value);
+                    if (is_platform_little_endian()) {
+                        endian_correct_value = endian_swap_word(endian_correct_value);
+                    }
+                    auto memory_word = *(reinterpret_cast<uint16_t*>(data_bytes.data()));
+                    if (memory_word == endian_correct_value)
+                        matched_addresses.push_back(_assembler->location_counter());
+                    break;
+                }
+                case command_size_flags::dword: {
+                    auto data_bytes = _assembler->read_data(directive_t::data_sizes::dword);
+                    auto endian_correct_value = value;
+                    if (is_platform_little_endian()) {
+                        endian_correct_value = endian_swap_dword(endian_correct_value);
+                    }
+                    auto memory_dword = *(reinterpret_cast<uint32_t*>(data_bytes.data()));
+                    if (memory_dword == endian_correct_value)
+                        matched_addresses.push_back(_assembler->location_counter());
+                    break;
+                }
+                default:
+                    break;
+            }
+            addr += byte_count;
+        }
+
+        data_table_t table {};
+        table.headers.push_back({"Address", 8, 8});
+        for (auto i = 0; i < 8; i++)
+            table.headers.push_back({fmt::format("{:02x}", i), 2, 2});
+        for (auto i = 0; i < 8; i++) {
+            table.headers.push_back({
+                    "",
+                    1,
+                    1,
+                    core::alignment::horizontal::types::left,
+                    0
+            });
+        }
+        table.footers.push_back({"Locations Found Count", 20, 20});
+
+        for (auto matched_address : matched_addresses) {
+            data_table_row_t row {};
+
+            row.columns.push_back(fmt::format("{:08x}", matched_address));
+
+            byte_list data_bytes {};
+            for (auto i = 0; i < 8; i++) {
+                _assembler->location_counter(matched_address + i);
+                data_bytes.push_back(_assembler->read_data(directive_t::data_sizes::byte).front());
+            }
+
+            for (auto i = 0; i < 8; i++) {
+                row.columns.push_back(fmt::format("{:02x}", data_bytes[i]));
+            }
+
+            for (auto i = 0; i < 8; i++) {
+                row.columns.push_back(fmt::format(
+                        "{}",
+                        (char) (isprint(data_bytes[i]) ? data_bytes[i] : '.')));
+            }
+
+            table.rows.push_back(row);
+        }
+
+        table.rows.push_back({{fmt::format(
+                "{} locations matched",
+                matched_addresses.size())}});
+
+        context.result.add_data("command_result", {{"data", table}});
+
         return !context.result.is_failed();
     }
 
@@ -1081,7 +1182,19 @@ namespace ryu::core {
         if (!has_valid_project_machine_and_target(context.result))
             return false;
 
-        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+        auto path = context.get_parameter<core::string_literal_t>("path");
+        auto start = context.get_parameter<core::numeric_literal_t>("start");
+        auto end = context.get_parameter<core::numeric_literal_t>("end");
+
+        _assembler->location_counter(start);
+        _assembler->read_location_counter_to_binary(
+                context.result,
+                path,
+                end);
+
+        context.result.add_message(
+                "M001",
+                fmt::format("{} bytes written to {}", _assembler->location_counter() - start, path));
 
         return !context.result.is_failed();
     }

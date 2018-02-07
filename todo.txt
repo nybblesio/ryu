@@ -23,12 +23,6 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- HALF: implement core::environment::on_write_memory_to_binary
-
-- implement core::environment::on_copy_memory
-
-- implement core::environment::on_search_memory
-
 - implement core::environment::on_memory_map to dump
   out the memory map of the active machine
 
@@ -105,3 +99,6 @@ DONE
 - OFF STREAM      : updated to latest Hack font TTF files
 - OFF STREAM|FIXED: parser wasn't setting _token to nullptr in reset.
 - OFF STREAM      : implement dip_switch subclass for integrated_circuit
+- implement core::environment::on_write_memory_to_binary
+- implement core::environment::on_copy_memory
+- implement core::environment::on_search_memory
