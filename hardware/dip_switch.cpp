@@ -32,8 +32,8 @@ namespace ryu::hardware {
     }
 
     void dip_switch::fill(uint8_t value) {
-        for (size_t i = 0; i < address_space(); i++)
-            _switches.set(i, value == 1);
+        for (uint32_t i = 0; i < address_space(); i++)
+            write_byte(i, value);
     }
 
     void dip_switch::on_address_space_changed() {

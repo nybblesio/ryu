@@ -250,6 +250,7 @@ namespace ryu::core {
 
             for (const auto& chunk : chunks) {
                 font_style(chunk.attr.style);
+
                 auto face = font_face();
                 if (face->line_height > max_line_height)
                     max_line_height = face->line_height;

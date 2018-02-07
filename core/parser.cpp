@@ -804,6 +804,9 @@ namespace ryu::core {
 
     ast_node_shared_ptr parser::parse_string_literal() {
         auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+
         std::stringstream stream;
         if (*token == '\"') {
             while (true) {

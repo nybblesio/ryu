@@ -23,6 +23,8 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
+- HALF: implement core::environment::on_write_memory_to_binary
+
 - implement core::environment::on_copy_memory
 
 - implement core::environment::on_search_memory
@@ -32,16 +34,11 @@ IDE UI & related tasks
 
 - when switching env, actually assemble file
 
-- HALF: implement core::environment::on_write_memory_to_binary
-
 - encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
     - need to explicitly filter out non-ASCII characters during input
     - implement mouse events for context tabs
-    - look for good tab-like bitmaps instead of poly draws
 
-- bug: console header, project and machine fields not properly resizing
-
-- core::document changes: (FEB 6 STREAM GOAL)
+- core::document changes:
     - refactor core::document to implement "piece table" model which should get us undo/redo/cut/copy/paste in a much
       nicer model and api.
     - implement marks in document and surface in console & text_editor for quick navigation
@@ -53,6 +50,10 @@ IDE UI & related tasks
     -------------------
     - refactoring/consolidating the attr_chunk_t/attr_chunks & text_formatter::formatted_text_t/formatted_text_span_t
       to one interface so all UI elements using document work the same way.
+
+- implement ability to redirect to new or appended text file in core::console
+
+- bug: console header, project and machine fields not properly resizing
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
@@ -70,6 +71,8 @@ IDE UI & related tasks
 - implement tile/sprite editor
 
 - implement preferences UI
+
+- look for good tab-like bitmaps instead of poly draws
 
 Emulator & related tasks
 ------------------------
@@ -91,14 +94,14 @@ DONE
 - implement a target command so that assembly isn't necessarily required
 - implement help [cmd] detail variant
 - implement core::environment::on_read_binary_to_memory
-- fmt::format should recognize our custom types because we have a std::ostream operator<< override.
-  however, it isn't working the way I'd expect, so need to research.
-    SOLUTION: was missing #include <fmt/ostream.h>
-- OFFSTREAM|FIXED: core::console now formats styled text correctly!
-- OFFSTREAM      : more behavior in console is now optional and activated by using the @| operator
-- OFFSTREAM      : added @> and @>> redirection operators to console commands
-- OFFSTREAM|FIXED: font_family::add_style now uses space to get a proper width measurement
-- OFFSTREAM|FIXED: core::console and core::text_editor now measure the chunks to get the most accurate width
-- OFFSTREAM      : updated to latest Hack font TTF files
-- OFFSTREAM|FIXED: parser wasn't setting _token to nullptr in reset.
-- OFFSTREAM      : implement dip_switch subclass for integrated_circuit
+- OFF STREAM|FIXED: fmt::format should recognize our custom types because we have a std::ostream operator<< override.
+                    however, it isn't working the way I'd expect, so need to research.
+                    SOLUTION: was missing #include <fmt/ostream.h>
+- OFF STREAM|FIXED: core::console now formats styled text correctly!
+- OFF STREAM      : more behavior in console is now optional and activated by using the @| operator
+- OFF STREAM      : added @> and @>> redirection operators to console commands
+- OFF STREAM|FIXED: font_family::add_style now uses space to get a proper width measurement
+- OFF STREAM|FIXED: core::console and core::text_editor now measure the chunks to get the most accurate width
+- OFF STREAM      : updated to latest Hack font TTF files
+- OFF STREAM|FIXED: parser wasn't setting _token to nullptr in reset.
+- OFF STREAM      : implement dip_switch subclass for integrated_circuit
