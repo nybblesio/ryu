@@ -8,10 +8,6 @@ Project & Admin tasks
 
 - Create website for Ryu project
 
-- Add Ryu & other project information to Twitch profile & banner bitmap
-
-- configure weechat to limit width of handles to prevent column scrunching
-
 Thoughts & Questions
 ----------------------
 
@@ -120,3 +116,5 @@ DONE
 - OFF STREAM|FIXED: % command working again for source editor and environments
 - implement remaining memory commands in core::environment
 - add . a/k/a "source" command that calls apply_environment again on the currently active environment
+- Add Ryu & other project information to Twitch profile & banner bitmap
+- configure weechat to limit width of handles to prevent column scrunching
