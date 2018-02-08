@@ -15,6 +15,10 @@ Project & Admin tasks
 Thoughts & Questions
 ----------------------
 
+- should we add a "clear symbols" command?
+
+- should we clear the symbol table during close project?
+
 - should ROM even be write protected during "development"?
     * should we issue errors when trying to write unlatched ROM
     * maybe the write latch should be disabled only during emulation/distribution
@@ -22,10 +26,6 @@ Thoughts & Questions
 
 IDE UI & related tasks
 ----------------------
-
-- encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
-    - need to explicitly filter out non-ASCII characters during input
-    - implement mouse events for context tabs
 
 - core::document changes:
     - refactor core::document to implement "piece table" model which should get us undo/redo/cut/copy/paste in a much
@@ -49,7 +49,9 @@ IDE UI & related tasks
 - implement the memory_editor controller & view.  need a listener interface on memory_mapper that notifies registered
   listeners that memory has changed.
 
-- implement remaining memory commands in core::environment
+- encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
+    - need to explicitly filter out non-ASCII characters during input
+    - implement mouse events for context tabs
 
 - implement full & correct machine editor interface
 
@@ -62,6 +64,16 @@ IDE UI & related tasks
 - implement preferences UI
 
 - look for good tab-like bitmaps instead of poly draws
+
+Lower Priority Clean-up tasks
+-----------------------------
+
+- refactor once_column_t struct to live with his table buddies and make more generic
+
+- add helper to table to generate empty row
+
+- add serialize interface for use by ast_node_t and apply to value structs
+
 
 Emulator & related tasks
 ------------------------
@@ -106,3 +118,5 @@ DONE
 - OFF STREAM      : when switching env, actually assemble file
 - OFF STREAM      : implement edenv command
 - OFF STREAM|FIXED: % command working again for source editor and environments
+- implement remaining memory commands in core::environment
+- add . a/k/a "source" command that calls apply_environment again on the currently active environment

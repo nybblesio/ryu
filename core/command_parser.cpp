@@ -816,6 +816,19 @@ namespace ryu::core {
             }
         },
 
+        {
+            "applyenv",
+            {
+                command::types::apply_environment,
+                command_size_flags::none,
+                {
+                },
+                "Apply currently active project environment.",
+                "environment",
+                5
+            }
+        },
+
         // -------------------------------------------
         // symbol table commands
         // -------------------------------------------

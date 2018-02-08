@@ -98,6 +98,9 @@ namespace ryu::core {
         bool on_go_to_address(
                 const command_handler_context_t& context);
 
+        bool on_apply_environment(
+                const command_handler_context_t& context);
+
         bool on_new_environment(
                 const command_handler_context_t& context);
 

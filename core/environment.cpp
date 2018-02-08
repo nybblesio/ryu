@@ -50,6 +50,10 @@ namespace ryu::core {
             std::bind(&environment::on_edit_environment, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::apply_environment,
+            std::bind(&environment::on_apply_environment, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::remove_symbol,
             std::bind(&environment::on_remove_symbol, std::placeholders::_1, std::placeholders::_2)
         },
@@ -1915,6 +1919,15 @@ namespace ryu::core {
         core::project::instance()->save(context.result);
 
         return !context.result.is_failed();
+    }
+
+    bool environment::on_apply_environment(
+            const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
+        return apply_environment(
+                context.result,
+                core::project::instance()->active_environment());
     }
 
     bool environment::on_list_environments(
