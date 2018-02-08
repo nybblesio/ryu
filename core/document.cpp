@@ -14,6 +14,19 @@
 
 namespace ryu::core {
 
+    //////////////////////////////////////////////////////////////////
+
+    void piece_t::copy_elements(attr_span_list& line) {
+        std::stringstream stream {};
+        for (size_t i = 0; i < length; i++) {
+            auto& element = buffer->elements[start + i];
+            element.safe_value(stream);
+        }
+        line.push_back(attr_span_t{attr, stream.str()});
+    }
+
+    //////////////////////////////////////////////////////////////////
+
     void document::home() {
         _column = 0;
         raise_document_changed();
@@ -206,8 +219,13 @@ namespace ryu::core {
     }
 
     void document::put(const element_t& value) {
-        auto offset = ((_row + _caret->row()) * _columns) + (_column + _caret->column());
-        _piece_table.insert(value, static_cast<uint32_t>(offset));
+        _piece_table.insert(
+                value,
+                document_position_t{
+                        static_cast<uint16_t>(_row + _caret->row()),
+                        static_cast<uint8_t>(_column + _caret->column()),
+                        _rows,
+                        _columns});
     }
 
     void document::shift_right(uint16_t times) {
@@ -217,7 +235,7 @@ namespace ryu::core {
         _path = value;
     }
 
-    attr_chunks document::line_at(uint32_t row) {
+    attr_span_list document::line_at(uint32_t row) {
         return {};
     }
 

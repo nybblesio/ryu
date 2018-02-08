@@ -68,6 +68,16 @@ namespace ryu::core {
     // - what do the buffers really look like?
     //
 
+    struct document_position_t {
+        uint16_t row {};
+        uint8_t column {};
+        uint32_t row_count {};
+        uint16_t column_count {};
+        uint32_t offset() const {
+            return (row_count * column_count) + column;
+        }
+    };
+
     struct attr_t {
         uint8_t color = 0;
         uint8_t style = 0;
@@ -80,12 +90,12 @@ namespace ryu::core {
         }
     };
 
-    struct attr_chunk_t {
+    struct attr_span_t {
         attr_t attr;
         std::string text {};
     };
 
-    typedef std::vector<attr_chunk_t> attr_chunks;
+    typedef std::vector<attr_span_t> attr_span_list;
 
     struct element_t {
         attr_t attr {};
@@ -123,15 +133,82 @@ namespace ryu::core {
 
     struct piece_table_buffer_t;
 
-    // piece_t needs to coalesced by adjacency & attributes
     struct piece_t {
         attr_t attr {};
         uint32_t start {};
         size_t length {};
+        piece_table_buffer_t* buffer = nullptr;
+
         inline size_t end() const {
             return start + length;
         }
-        piece_table_buffer_t* buffer = nullptr;
+
+        void copy_elements(attr_span_list& line);
+    };
+
+    struct piece_find_result_t {
+        enum types {
+            none,
+            first,
+            final,
+            medial
+        };
+        bool at_back = false;
+        piece_t* data = nullptr;
+        types type = types::none;
+        std::list<piece_t>::iterator index;
+    };
+
+    struct piece_list_t {
+        void clear() {
+            data.clear();
+        }
+
+        size_t total_length() const {
+            size_t length = 0;
+            for (auto& piece : data)
+                length += piece.length;
+            return length;
+        }
+
+        piece_find_result_t find_for_offset(uint32_t offset) {
+            piece_find_result_t result {};
+            if (data.empty()) {
+                return result;
+            }
+
+            if (offset == 0) {
+                result.data = &data.front();
+                result.type = piece_find_result_t::types::first;
+            } else if (offset == total_length()) {
+                result.data = &data.back();
+                result.type = piece_find_result_t::types::final;
+            } else {
+                auto piece_it = data.begin();
+                while (piece_it != data.end()) {
+                    auto& current_piece = *piece_it;
+                    if (offset >= current_piece.start
+                    &&  offset <= current_piece.end()) {
+                        break;
+                    }
+                    ++piece_it;
+                }
+
+                if (piece_it != data.end()) {
+                    result.data = &(*piece_it);
+                    result.type = piece_find_result_t::types::medial;
+
+                    ++piece_it;
+
+                    result.index = piece_it;
+                    result.at_back = piece_it == data.end();
+                }
+            }
+
+            return result;
+        }
+
+        std::list<piece_t> data {};
     };
 
     struct piece_table_buffer_t {
@@ -140,130 +217,105 @@ namespace ryu::core {
         void clear() {
             elements.clear();
         }
-
-        bool copy_piece(const piece_t& piece, attr_chunks& line) {
-            auto new_line = false;
-            std::stringstream stream {};
-            for (size_t i = 0; i < piece.length; i++) {
-                auto& element = piece.buffer->elements[piece.start + i];
-                if (element.safe_value(stream))
-                    new_line = true;
-            }
-            line.push_back(attr_chunk_t{piece.attr, stream.str()});
-            return new_line;
-        }
     };
-
-    typedef std::list<piece_t> piece_list;
-    typedef std::vector<attr_chunks> line_list;
 
     struct piece_table_t {
         void clear() {
-            lines.clear();
             pieces.clear();
             changes.clear();
             original.clear();
             default_attr = {};
         }
 
-        void cache_lines() {
-            attr_chunks line {};
-            for (auto& piece : pieces) {
-                if (piece.buffer->copy_piece(piece, line)) {
-                    lines.push_back(line);
-                    line = {};
-                }
-            }
+        void delete_at(
+                const document_position_t& position,
+                size_t length) {
+            if (length == 0)
+                return;
         }
 
-        size_t pieces_length() const {
-            size_t length = 0;
-            for (auto& piece : pieces)
-                length += piece.length;
-            return length;
-        }
-
+        //
+        //
+        // original: the brown fox
+        //
+        // change 1:               jumped
+        // change 2:     sly[ ]
+        // change 3:                      over the fence.
+        // change 4: [ ]test:[ ]
+        // change 5:       oooo
+        //
         void insert(
                 const element_t& element,
-                uint32_t offset) {
+                const document_position_t& position) {
             changes.elements.push_back(element);
 
-            //
-            //
-            // original: the brown fox
-            //
-            // change 1:               jumped
-            // change 2:     sly[ ]
-            // change 3:                      over the fence.
-            // change 4: [ ]test:[ ]
-            // change 5:       oooo
-            //
-
-            if (offset == 0) {
-                auto& first_piece = pieces.front();
-                if (first_piece.buffer == &changes
-                &&  first_piece.end() + 1 == offset) {
-                    first_piece.length++;
-                } else {
-                    pieces.push_back(piece_t {element.attr, offset, 1, &changes});
+            auto offset = position.offset();
+            auto find_result = pieces.find_for_offset(offset);
+            auto is_change_piece = find_result.data != nullptr ?
+                                   find_result.data->buffer == &changes :
+                                   false;
+            switch (find_result.type) {
+                case piece_find_result_t::first: {
+                    if (is_change_piece && find_result.data->end() + 1 == offset) {
+                        find_result.data->length++;
+                    } else {
+                        pieces.data.push_back(piece_t {element.attr, offset, 1, &changes});
+                    }
+                    break;
                 }
-            } else if (offset >= pieces_length()) {
-                auto& last_piece = pieces.back();
-                if (last_piece.buffer == &changes) {
-                    last_piece.length++;
-                } else {
-                    pieces.push_back(piece_t {element.attr, offset, 1, &changes});
+                case piece_find_result_t::final: {
+                    if (is_change_piece) {
+                        find_result.data->length++;
+                    } else {
+                        pieces.data.push_back(piece_t {element.attr, offset, 1, &changes});
+                    }
+                    break;
                 }
-            } else {
-                auto piece_it = pieces.begin();
+                case piece_find_result_t::medial: {
+                    //
+                    //
+                    // piece: 0................10
+                    //           ^
+                    //           3 index zero based
+                    //   left: 0..2
+                    //    new: 3
+                    //  right: 4..95
 
-                while (piece_it != pieces.end()) {
-                    auto& current_piece = *piece_it;
-                    if (offset >= current_piece.start && offset <= current_piece.end())
-                        break;
-                    ++piece_it;
+                    auto new_piece = piece_t {element.attr, offset, 1, &changes};
+
+                    auto& left_piece = find_result.data;
+                    auto original_left_length = left_piece->length;
+
+                    left_piece->length = offset - 1;
+
+                    auto right_piece = piece_t {
+                            left_piece->attr,
+                            static_cast<uint32_t>(new_piece.end()),
+                            original_left_length - (new_piece.length + left_piece->length),
+                            left_piece->buffer
+                    };
+
+                    if (find_result.at_back) {
+                        pieces.data.push_back(new_piece);
+                        pieces.data.push_back(right_piece);
+                    } else {
+                        pieces.data.insert(find_result.index, right_piece);
+                        pieces.data.insert(find_result.index, new_piece);
+                    }
+                    break;
                 }
-
-                //
-                //
-                // piece: 0................10
-                //           ^
-                //           3 index zero based
-                //   left: 0..2
-                //    new: 3
-                //  right: 4..95
-
-                auto new_piece = piece_t {element.attr, offset, 1, &changes};
-
-                auto& left_piece = *piece_it;
-                auto original_left_length = left_piece.length;
-
-                left_piece.length = offset - 1;
-
-                auto right_piece = piece_t {
-                        left_piece.attr,
-                        static_cast<uint32_t>(new_piece.end()),
-                        original_left_length - (new_piece.length + left_piece.length),
-                        left_piece.buffer
-                };
-
-                ++piece_it;
-                if (piece_it == pieces.end()) {
-                    pieces.push_back(new_piece);
-                    pieces.push_back(right_piece);
-                } else {
-                    pieces.insert(piece_it, right_piece);
-                    pieces.insert(piece_it, new_piece);
-                }
+                default:
+                    // XXX: should never happen
+                    break;
             }
         }
 
-        inline size_t line_count() const {
-            return lines.size();
-        }
-
-        attr_chunks line_at(uint32_t index) {
-            return index < lines.size() ? lines[index] : attr_chunks {};
+        attr_span_list sequence() {
+            attr_span_list spans {};
+            for (auto& piece : pieces.data) {
+                piece.copy_elements(spans);
+            }
+            return spans;
         }
 
         void load(const piece_table_buffer_t& buffer) {
@@ -271,11 +323,10 @@ namespace ryu::core {
             original = buffer;
 
             // XXX: how do we restore the original styles
-            pieces.push_back({default_attr, 0, original.elements.size(), &original});
+            pieces.data.push_back({default_attr, 0, original.elements.size(), &original});
         }
 
-        line_list lines {};
-        piece_list pieces {};
+        piece_list_t pieces {};
         attr_t default_attr {};
         piece_table_buffer_t changes {};
         piece_table_buffer_t original {};
@@ -355,11 +406,7 @@ namespace ryu::core {
 
         void put(const element_t& value);
 
-        attr_chunks line_at(uint32_t row);
-
-        inline size_t line_count() const {
-            return _piece_table.line_count();
-        }
+        attr_span_list line_at(uint32_t row);
 
         void shift_left(uint16_t times = 1);
 
