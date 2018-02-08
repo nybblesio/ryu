@@ -22,7 +22,7 @@ namespace ryu::core {
     void document::clear() {
         _row = 0;
         _column = 0;
-        _lines.clear();
+        _piece_table.load({});
         raise_document_changed();
     }
 
@@ -33,9 +33,21 @@ namespace ryu::core {
     }
 
     void document::shift_up() {
-        if (_lines.empty())
-            return;
-        _lines.erase(_lines.begin());
+    }
+
+    void document::split_line() {
+        if (_caret->mode() == caret::mode::types::insert) {
+
+        }
+    }
+
+    void document::first_page() {
+        _row = 0;
+        raise_document_changed();
+    }
+
+    element_t* document::get() {
+        return nullptr;
     }
 
     void document::page_down() {
@@ -72,9 +84,10 @@ namespace ryu::core {
         return false;
     }
 
-    void document::first_page() {
-        _row = 0;
-        raise_document_changed();
+    void document::insert_line() {
+    }
+
+    void document::delete_line() {
     }
 
     bool document::scroll_left() {
@@ -102,6 +115,33 @@ namespace ryu::core {
         return _row;
     }
 
+    bool document::clamp_column() {
+        if (_column < 0) {
+            _column = 0;
+            return true;
+        }
+
+        auto right = _columns - _page_width;
+        if (_column > right) {
+            _column = right;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool document::is_line_empty() {
+        return true;
+    }
+
+    core::caret* document::caret() {
+        return _caret;
+    }
+
+    fs::path document::path() const {
+        return _path;
+    }
+
     uint32_t document::rows() const {
         return _rows;
     }
@@ -117,6 +157,10 @@ namespace ryu::core {
         return _column;
     }
 
+    uint16_t document::find_line_end() {
+        return 0;
+    }
+
     uint16_t document::columns() const {
         return _columns;
     }
@@ -126,12 +170,12 @@ namespace ryu::core {
         raise_document_changed();
     }
 
-    fs::path document::path() const {
-        return _path;
-    }
-
     uint8_t document::page_width() const {
         return _page_width;
+    }
+
+    attr_t document::default_attr() const {
+        return _piece_table.default_attr;
     }
 
     uint8_t document::page_height() const {
@@ -145,46 +189,65 @@ namespace ryu::core {
         return clamped;
     }
 
-    line_t* document::line_at(uint32_t row) {
-        if (_lines.empty())
-            return nullptr;
-        if (row < _lines.size())
-            return &_lines[row];
-        return nullptr;
-    }
-
-    void document::delete_line(uint32_t row) {
-        if (row < _lines.size())
-            _lines.erase(_lines.begin() + row);
-    }
-
-    attr_t document::default_attr() const {
-        return _default_attr;
-    }
-
-    line_t* document::insert_line(uint32_t row) {
-        if (row < _lines.size()) {
-            _lines.insert(_lines.begin() + row, line_t(_default_attr));
-            return &_lines[row];
-        }
-
-        auto missing_count = (row - _lines.size()) + 1;
-        for (size_t i = 0; i < missing_count; i++)
-            _lines.push_back(line_t(_default_attr));
-        return &_lines[row];
-    }
-
     void document::raise_document_changed() {
         if (_document_changed_callback != nullptr)
             _document_changed_callback();
     }
 
     void document::default_attr(attr_t value) {
-        _default_attr = value;
+        _piece_table.default_attr = value;
+    }
+
+    void document::caret(core::caret* value) {
+        _caret = value;
+    }
+
+    void document::shift_left(uint16_t times) {
+    }
+
+    void document::put(const element_t& value) {
+        auto offset = ((_row + _caret->row()) * _columns) + (_column + _caret->column());
+        _piece_table.insert(value, static_cast<uint32_t>(offset));
+    }
+
+    void document::shift_right(uint16_t times) {
     }
 
     void document::path(const fs::path& value) {
         _path = value;
+    }
+
+    attr_chunks document::line_at(uint32_t row) {
+        return {};
+    }
+
+    void document::shift_line_left(uint16_t times) {
+    }
+
+    void document::shift_line_right(uint16_t times) {
+        if (_caret->mode() == caret::mode::types::insert) {
+
+        }
+    }
+
+    void document::page_size(uint8_t height, uint8_t width) {
+        _page_width = width;
+        _page_height = height;
+
+        _rows = std::min<uint8_t>(_page_height, static_cast<uint8_t>(_rows));
+        _columns = std::min<uint8_t>(_page_width, static_cast<uint8_t>(_columns));
+
+        if (_caret != nullptr) {
+            _caret->page_size(height, width);
+        }
+
+        raise_document_changed();
+    }
+
+    void document::document_size(uint32_t rows, uint16_t columns) {
+        _rows = rows;
+        _columns = columns;
+        raise_document_changed();
     }
 
     bool document::load(core::result& result, const fs::path& path) {
@@ -215,31 +278,12 @@ namespace ryu::core {
 
     bool document::load(core::result& result, std::istream& stream) {
         clear();
-        uint32_t row = 0;
-        std::string line;
-        while (std::getline(stream, line)) {
-            uint16_t col = 0;
-            for (auto c : line) {
-                auto value = static_cast<unsigned char>(c);
-                if (value == 9) {
-                    col += (4 - (col % 4));
-                    continue;
-                }
-                put(row, col, element_t {value, _default_attr});
-                ++col;
-            }
-            ++row;
-        }
+
         raise_document_changed();
         return true;
     }
 
     bool document::save(core::result& result, std::ostream& stream) {
-        for (uint32_t row = 0; row < _lines.size(); row++) {
-            std::stringstream line;
-            write_line(line, row, 0, _columns);
-            stream << ryu::rtrimmed(line.str()) << "\n";
-        }
         raise_document_changed();
         return true;
     }
@@ -265,191 +309,8 @@ namespace ryu::core {
         return !result.is_failed();
     }
 
-    uint16_t document::find_line_end(uint32_t row) {
-        auto line = line_at(row);
-        if (line == nullptr || line->elements.empty())
-            return 0;
-        for (size_t col = line->elements.size() - 1; col != 0; col--) {
-            auto element = line->get(col);
-            if (element->value != 0)
-                return static_cast<uint16_t>(col + 1);
-        }
-        return 0;
-    }
-
-    bool document::is_line_empty(uint32_t row) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return true;
-        auto empty = true;
-        for (const auto& element : line->elements) {
-            if (element.value != 0) {
-                empty = false;
-                break;
-            }
-        }
-        return empty;
-    }
-
-    bool document::clamp_column() {
-        if (_column < 0) {
-            _column = 0;
-            return true;
-        }
-
-        auto right = _columns - _page_width;
-        if (_column > right) {
-            _column = right;
-            return true;
-        }
-
-        return false;
-    }
-
-    element_t* document::get(uint32_t row, uint16_t column) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return nullptr;
-        return line->get(column);
-    }
-
-    void document::split_line(uint32_t row, uint16_t column) {
-        insert_line(row + 1);
-        auto old_line = line_at(row);
-        if (old_line == nullptr)
-            return;
-        uint16_t col = 0;
-        for (; column < _columns; column++) {
-            auto old_element = get(row, column);
-            put(row + 1, col++, old_element != nullptr ? *old_element : element_t {0, _default_attr});
-            put(row, column, element_t { 0, _default_attr });
-        }
-    }
-
-    void document::page_size(uint8_t height, uint8_t width) {
-        _page_width = width;
-        if (_columns < _page_width)
-            _columns = _page_width;
-
-        _page_height = height;
-        if (_rows < _page_height)
-            _rows = _page_height;
-
-        raise_document_changed();
-    }
-
-    void document::document_size(uint32_t rows, uint16_t columns) {
-        _rows = rows;
-        _columns = columns;
-        raise_document_changed();
-    }
-
-    void document::shift_left(uint32_t row, uint16_t column, uint16_t times) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return;
-        for (size_t i = 0; i < times && column < line->elements.size(); i++) {
-            if (line->elements.empty())
-                break;
-            line->elements.erase(line->elements.begin() + column);
-            line->elements.push_back(element_t{0, _default_attr});
-        }
-    }
-
-    void document::shift_right(uint32_t row, uint16_t column, uint16_t times) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return;
-        for (size_t i = 0; i < times; i++, column++) {
-            line->elements.insert(line->elements.begin() + column, element_t {0, _default_attr});
-        }
-    }
-
-    void document::shift_line_left(uint32_t row, uint16_t column, uint16_t times) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return;
-        for (size_t i = 0; i < times && column < line->elements.size(); i++, column--) {
-            line->elements.erase(line->elements.begin() + column);
-        }
-    }
-
-    void document::put(uint32_t row, uint16_t column, const element_t& value) {
-        auto line = line_at(row);
-        if (line == nullptr) {
-            line = insert_line(row);
-        }
-        line->put(column, value);
-    }
-
-    void document::shift_line_right(uint32_t row, uint16_t column, uint16_t times) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return;
-        for (size_t i = 0; i < times && column < _columns && column < line->elements.size(); i++, column++) {
-            line->elements.insert(line->elements.begin() + column, element_t {0, _default_attr});
-        }
-    }
-
     void document::on_document_changed(const document::document_changed_callable& callable) {
         _document_changed_callback = callable;
-    }
-
-    attr_chunks document::get_line_chunks(uint32_t row, uint16_t column, uint16_t end_column) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return {};
-
-        uint16_t col = column;
-        attr_chunks chunks;
-        std::stringstream stream;
-        auto element = line->get(col);
-        if (element == nullptr)
-            return {};
-
-        auto last_attr = element->attr;
-        while (col < end_column && col < line->elements.size()) {
-            element = line->get(col);
-            if (element == nullptr)
-                break;
-            if (last_attr != element->attr) {
-                auto text = stream.str();
-                if (!text.empty()) {
-                    chunks.push_back(attr_chunk_t{last_attr, text});
-                    stream.str(std::string());
-                    stream.clear();
-                }
-                last_attr = element->attr;
-            }
-            if (element->value == 0)
-                stream << " ";
-            else if (element->value == 37)
-                stream << "%%";
-            else
-                stream << element->value;
-            ++col;
-        }
-
-        chunks.push_back(attr_chunk_t{last_attr, stream.str()});
-
-        return chunks;
-    }
-
-    void document::write_line(std::ostream& stream, uint32_t row, uint16_t column, uint16_t end_column) {
-        auto line = line_at(row);
-        if (line == nullptr)
-            return;
-        for (uint16_t col = column; col < end_column && col < line->elements.size(); col++) {
-            auto element = line->get(col);
-            if (element == nullptr)
-                break;
-            if (element->value == 0)
-                stream << " ";
-            else if (element->value == 37)
-                stream << "%%";
-            else
-                stream << element->value;
-        }
     }
 
 }

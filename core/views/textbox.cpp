@@ -33,7 +33,7 @@ namespace ryu::core {
     }
 
     void textbox::caret_end() {
-        auto line_end = _document.find_line_end(0);
+        auto line_end = _document.find_line_end();
         for (auto i = 0; i < line_end; i++)
             caret_right();
     }
@@ -45,7 +45,7 @@ namespace ryu::core {
 
     std::string textbox::value() {
         std::stringstream stream;
-        _document.write_line(stream, 0, 0, _document.columns());
+//        _document.write_line(stream, 0, 0, _document.columns());
         return stream.str();
     }
 
@@ -125,7 +125,7 @@ namespace ryu::core {
         surface.set_font_color(font_face(), fg);
 
         std::stringstream stream;
-        _document.write_line(stream, 0, _document.column(), _document.columns());
+//        _document.write_line(stream, 0, _document.column(), _document.columns());
 
         surface.draw_text_aligned(
             font_face(),
@@ -158,10 +158,7 @@ namespace ryu::core {
                     }
                 }
 
-                _document.put(
-                        0,
-                        _document.column() + _caret.column(),
-                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
+                _document.put(core::element_t {{}, static_cast<uint8_t>(*c)});
 
                 if (caret_right())
                     break;
@@ -191,16 +188,16 @@ namespace ryu::core {
                     break;
                 }
                 case SDLK_DELETE: {
-                    _document.shift_left(0, _document.column() + _caret.column());
+                    _document.shift_left();
                     processed = true;
                     break;
                 }
                 case SDLK_BACKSPACE: {
                     if (_caret.column() == 0) {
-                        _document.delete_line(0);
+                        _document.delete_line();
                     } else {
                         caret_left();
-                        _document.shift_left(0, _document.column() + _caret.column());
+                        _document.shift_left();
                     }
                     processed = true;
                     break;

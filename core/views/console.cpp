@@ -54,39 +54,42 @@ namespace ryu::core {
 
     void console::page_up() {
         _document.page_up();
-        update_virtual_position();
     }
 
     void console::page_down() {
         _document.page_down();
-        update_virtual_position();
     }
 
     void console::last_page() {
         _document.last_page();
-        update_virtual_position();
     }
 
     void console::first_page() {
         _document.first_page();
-        update_virtual_position();
     }
 
     void console::caret_end() {
         _caret.column(_metrics.page_width);
         _document.end(_metrics.page_width);
-        update_virtual_position();
     }
 
     void console::caret_home() {
         _caret.column(0);
         _document.home();
-        update_virtual_position();
     }
 
     void console::initialize() {
         _color = fg_color();
 
+        _caret.overwrite();
+        _caret.initialize(0, 0);
+        _caret.palette(palette());
+        _caret.font_family(font_family());
+        _caret.on_caret_changed([&]() {
+            raise_caret_changed();
+        });
+
+        _document.caret(&_caret);
         _document.default_attr(core::attr_t {
             _color,
             core::font::styles::normal,
@@ -97,14 +100,6 @@ namespace ryu::core {
             raise_caret_changed();
         });
         _document.clear();
-
-        _caret.overwrite();
-        _caret.initialize(0, 0);
-        _caret.palette(palette());
-        _caret.font_family(font_family());
-        _caret.on_caret_changed([&]() {
-            raise_caret_changed();
-        });
 
         add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
@@ -156,22 +151,12 @@ namespace ryu::core {
         if (_caret.up(rows)) {
             _document.scroll_up();
         }
-        update_virtual_position();
     }
 
     void console::caret_down(uint8_t rows) {
         if (_caret.down(rows)) {
             _document.scroll_down();
         }
-        update_virtual_position();
-    }
-
-    void console::update_virtual_position() {
-        _vrow = static_cast<uint32_t>(_document.row() + _caret.row());
-        _vcol = static_cast<uint16_t>(_document.column() + _caret.column());
-
-        if (_caret.mode() != core::caret::mode::select)
-            _selection.clear();
     }
 
     void console::calculate_page_metrics() {
@@ -195,7 +180,6 @@ namespace ryu::core {
             }
             overflow = true;
         }
-        update_virtual_position();
         return overflow;
     }
 
@@ -208,7 +192,6 @@ namespace ryu::core {
             }
             overflow = true;
         }
-        update_virtual_position();
         return overflow;
     }
 
@@ -233,10 +216,8 @@ namespace ryu::core {
             uint16_t col_start = static_cast<uint16_t>(_document.column());
             uint16_t col_end = col_start + _metrics.page_width;
 
-            auto chunks = _document.get_line_chunks(
-                    static_cast<uint32_t>(row_index++),
-                    col_start,
-                    col_end);
+            // XXX: handle the column range in the loop below
+            auto chunks = _document.line_at(static_cast<uint32_t>(row_index++));
 
             auto x = bounds.left();
             auto max_line_height = font_face()->line_height;
@@ -273,7 +254,7 @@ namespace ryu::core {
             caret_left();
             if (_caret.row() == 0 && _caret.column() == 0)
                 break;
-            auto element = _document.get(_vrow, _vcol);
+            auto element = _document.get();
             if (element == nullptr || element->value == 0)
                 break;
         }
@@ -282,7 +263,7 @@ namespace ryu::core {
         //caret_right();
         while (true) {
             caret_right();
-            auto element = _document.get(_vrow, _vcol);
+            auto element = _document.get();
             if (element == nullptr || element->value == 0)
                 break;
             cmd << element->value;
@@ -575,14 +556,13 @@ namespace ryu::core {
 
         if (e->type == SDL_TEXTINPUT) {
             if (mode == core::caret::mode::insert) {
-                _document.shift_right(_vrow, _vcol);
+                _document.shift_right();
             }
             const char* c = &e->text.text[0];
             while (*c != '\0') {
-                _document.put(
-                        _vrow,
-                        _vcol,
-                        core::element_t {static_cast<uint8_t>(*c), core::attr_t{_color}});
+                _document.put(core::element_t {
+                        core::attr_t{_color},
+                        static_cast<uint8_t>(*c)});
                 caret_right();
                 c++;
             }
@@ -710,16 +690,16 @@ namespace ryu::core {
                 }
                 case SDLK_DELETE:
                     if (ctrl_pressed) {
-                        _document.shift_left(_vrow, _vcol, _metrics.page_width);
+                        _document.shift_left(_metrics.page_width);
                     } else {
-                        _document.shift_left(_vrow, _vcol);
+                        _document.shift_left();
                     }
                     return true;
 
                 case SDLK_BACKSPACE: {
                     if (caret_left())
                         caret_left();
-                    _document.shift_left(_vrow, _vcol);
+                    _document.shift_left();
                     return true;
                 }
                 case SDLK_UP:
@@ -768,7 +748,7 @@ namespace ryu::core {
 
                 case SDLK_INSERT:
                     if (ctrl_pressed) {
-                        _document.shift_right(_vrow, _vcol);
+                        _document.shift_right();
                     } else {
                         if (mode == core::caret::mode::insert)
                             _caret.overwrite();
@@ -818,10 +798,7 @@ namespace ryu::core {
             }
 
             for (size_t i = 0; i < span.text.length(); i++) {
-                _document.put(
-                        _vrow,
-                        _vcol,
-                        core::element_t {static_cast<uint8_t>(span.text[i]), attr});
+                _document.put(core::element_t {attr, static_cast<uint8_t>(span.text[i])});
                 caret_right();
             }
         }

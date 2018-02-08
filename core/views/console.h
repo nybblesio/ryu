@@ -112,8 +112,6 @@ namespace ryu::core {
             const int right_padding = 10;
         };
 
-        void update_virtual_position();
-
         void on_draw(core::renderer& surface) override;
 
         bool on_process_event(const SDL_Event* e) override;
@@ -160,8 +158,6 @@ namespace ryu::core {
         bool _more {};
         caret _caret;
         uint8_t _color;
-        uint16_t _vcol;
-        uint32_t _vrow;
         metrics_t _metrics;
         document _document;
         selection _selection;

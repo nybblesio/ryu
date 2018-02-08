@@ -23,77 +23,63 @@ namespace ryu::core {
         first_page();
         _caret.row(0);
         _caret.column(0);
-        update_virtual_position();
     }
 
     void text_editor::page_up() {
         _document.page_up();
-        update_virtual_position();
     }
 
     void text_editor::page_down() {
         _document.page_down();
-        update_virtual_position();
     }
 
     void text_editor::scroll_up() {
         _document.scroll_up();
-        update_virtual_position();
     }
 
     void text_editor::caret_end() {
-        auto end_column = _document.find_line_end(_vrow);
+        auto end_column = _document.find_line_end();
         caret_home();
         for (auto i = 0; i < end_column; i++)
             caret_right();
-        update_virtual_position();
     }
 
     void text_editor::last_page() {
         _document.last_page();
-        update_virtual_position();
     }
 
     void text_editor::first_page() {
         _document.first_page();
-        update_virtual_position();
     }
 
     void text_editor::caret_home() {
         _caret.column(0);
         _document.home();
-        update_virtual_position();
     }
 
     void text_editor::scroll_down() {
         _document.scroll_down();
-        update_virtual_position();
     }
 
     void text_editor::scroll_left() {
         _document.scroll_left();
-        update_virtual_position();
     }
 
     bool text_editor::scroll_right() {
         bool clamped = _document.scroll_right();
-        update_virtual_position();
         return clamped;
     }
 
     void text_editor::end_selection() {
+        // reimplement this
+
         if (_caret.mode() != core::caret::mode::select)
             return;
 
         _caret.insert();
 
-        for_each_selection_char([&](uint32_t row, uint16_t col) {
-            auto element = _document.get(row, col);
-            if (element != nullptr)
-                element->attr.flags &= ~core::font::flags::reverse;
-        });
 
-        _selection.end(_vrow, _vcol);
+        _selection.end();
     }
 
     void text_editor::on_focus_changed() {
@@ -108,7 +94,6 @@ namespace ryu::core {
     void text_editor::caret_up(uint8_t rows) {
         if (_caret.up(rows))
             scroll_up();
-        update_virtual_position();
     }
 
     void text_editor::goto_line(uint32_t row) {
@@ -117,21 +102,11 @@ namespace ryu::core {
         else if (row > _document.rows())
             row = _document.rows();
         _document.row(row - 1);
-        update_virtual_position();
     }
 
     void text_editor::caret_down(uint8_t rows) {
         if (_caret.down(rows))
             scroll_down();
-        update_virtual_position();
-    }
-
-    void text_editor::update_virtual_position() {
-        _vrow = static_cast<uint32_t>(_document.row() + _caret.row());
-        _vcol = static_cast<uint16_t>(_document.column() + _caret.column());
-
-        if (_caret.mode() != core::caret::mode::select)
-            _selection.clear();
     }
 
     void text_editor::caret_color(uint8_t value) {
@@ -141,7 +116,6 @@ namespace ryu::core {
     void text_editor::caret_left(uint8_t columns) {
         if (_caret.left(columns))
             scroll_left();
-        update_virtual_position();
     }
 
     bool text_editor::caret_right(uint8_t columns) {
@@ -153,7 +127,6 @@ namespace ryu::core {
                 caret_home();
             }
         }
-        update_virtual_position();
         return clamped;
     }
 
@@ -169,16 +142,7 @@ namespace ryu::core {
     }
 
     void text_editor::update_selection(uint16_t line_end) {
-        if (_caret.mode() == core::caret::mode::select) {
-            if (_vrow < _selection.start().row && line_end < _selection.start().column)
-                _selection.start(_vrow, line_end);
-            else
-                _selection.end(_vrow, line_end);
-        } else {
-            _caret.select();
-            _selection.start(_vrow, 0);
-            _selection.end(_vrow, line_end);
-        }
+        // defer down to document
     }
 
     void text_editor::on_draw(core::renderer& surface) {
@@ -198,13 +162,11 @@ namespace ryu::core {
                     fmt::format("{0:04}", row + 1),
                     info_text_color);
 
-            uint16_t col_start = static_cast<uint16_t>(_document.column());
-            uint16_t col_end = col_start + _metrics.page_width;
+//            uint16_t col_start = static_cast<uint16_t>(_document.column());
+//            uint16_t col_end = col_start + _metrics.page_width;
 
-            auto chunks = _document.get_line_chunks(
-                    static_cast<uint32_t>(row),
-                    col_start,
-                    col_end);
+            // XXX: need to index into the column range in the loop below
+            auto chunks = _document.line_at(static_cast<uint32_t>(row));
 
             auto max_line_height = font_face()->line_height;
             auto x = bounds.left() + _caret.padding().left();
@@ -240,28 +202,11 @@ namespace ryu::core {
     void text_editor::delete_selection() {
         _selection.normalize();
 
-        auto row = _selection.start().row;
-        auto last_row = _selection.end().row;
+//        auto row = _selection.start().row;
+//        auto last_row = _selection.end().row;
 
-        if (row == last_row) {
-            auto line_end = _document.find_line_end(row);
-            if (_selection.start().column == 0 && _selection.end().column == line_end) {
-                _document.delete_line(row);
-            } else {
-                for (uint16_t col = _selection.start().column; col < _selection.end().column; col++)
-                    _document.put(row, col, core::element_t {0, _document.default_attr()});
-            }
-        } else {
-            _document.delete_line(row);
-            for (auto i = row; i < last_row; i++)
-                _document.delete_line(row);
-            for (uint16_t col = 0; col < _selection.end().column; col++)
-                _document.put(row, col, core::element_t {0, _document.default_attr()});
-        }
+        // XXX: reimplement this
 
-        _caret.row(static_cast<uint8_t>(_selection.start().row));
-        _caret.column(static_cast<uint8_t>(_selection.start().column));
-        update_virtual_position();
         end_selection();
     }
 
@@ -280,17 +225,12 @@ namespace ryu::core {
                 break;
 
             if (*c == '\n') {
-                if (_caret.mode() == core::caret::mode::insert)
-                    _document.split_line(_vrow, _vcol);
+                _document.split_line();
                 caret_down();
                 caret_home();
             } else {
-                if (_caret.mode() == core::caret::mode::insert)
-                    _document.shift_line_right(_vrow, _vcol);
-                _document.put(
-                        _vrow,
-                        _vcol,
-                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
+                _document.shift_line_right();
+                _document.put(core::element_t {{}, static_cast<uint8_t>(*c)});
                 caret_right();
             }
 
@@ -332,7 +272,7 @@ namespace ryu::core {
                 }
                 case SDLK_RETURN: {
                     if (_caret.mode() == core::caret::mode::insert)
-                        _document.split_line(_vrow, _vcol);
+                        _document.split_line();
                     caret_down();
                     caret_home();
                     return true;
@@ -341,15 +281,15 @@ namespace ryu::core {
                     if (shift_pressed) {
                         if (_caret.column() == 0)
                             return true;
-                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
-                        caret_left(spaces);
-                        _document.shift_line_left(_vrow, _vcol, spaces);
+//                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
+//                        caret_left(spaces);
+//                        _document.shift_line_left();
                     } else {
-                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
-                        _document.shift_line_right(_vrow, _vcol, spaces);
-                        for (auto col = _vcol; col < _vcol + spaces; col++)
-                            _document.put(_vrow, col, core::element_t {0, _document.default_attr()});
-                        caret_right(spaces);
+//                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
+//                        _document.shift_line_right();
+//                        for (auto col = _vcol; col < _vcol + spaces; col++)
+//                            _document.put(core::element_t {0});
+//                        caret_right(spaces);
                     }
                     return true;
                 }
@@ -357,35 +297,35 @@ namespace ryu::core {
                     if (_selection.valid()) {
                         delete_selection();
                     } else {
-                        if (_document.is_line_empty(_vrow)) {
-                            _document.delete_line(_vrow);
+                        if (_document.is_line_empty()) {
+                            _document.delete_line();
                         } else {
-                            _document.shift_line_left(_vrow, _vcol);
+                            _document.shift_line_left();
                         }
                     }
                     return true;
                 }
                 case SDLK_BACKSPACE: {
-                    if (_document.is_line_empty(_vrow)) {
-                        _document.delete_line(_vrow);
+                    if (_document.is_line_empty()) {
+                        _document.delete_line();
                     } else if (_caret.column() == 0) {
-                        _document.delete_line(_vrow);
+                        _document.delete_line();
                         caret_up();
                     } else {
                         caret_left();
-                        _document.shift_line_left(_vrow, _vcol);
+                        _document.shift_line_left();
                     }
                     return true;
                 }
                 case SDLK_UP: {
                     if (shift_pressed) {
-                        auto line_end = _document.find_line_end(_vrow);
+                        auto line_end = _document.find_line_end();
                         update_selection(line_end);
-                        for (auto col = _vcol; col < line_end; col++) {
-                            auto element = _document.get(_vrow, col);
-                            if (element != nullptr)
-                                element->attr.flags |= core::font::flags::reverse;
-                        }
+//                        for (auto col = _vcol; col < line_end; col++) {
+//                            auto element = _document.get();
+//                            if (element != nullptr)
+//                                element->attr.flags |= core::font::flags::reverse;
+//                        }
                     } else {
                         end_selection();
                     }
@@ -396,13 +336,14 @@ namespace ryu::core {
                 }
                 case SDLK_DOWN: {
                     if (shift_pressed) {
-                        auto line_end = _document.find_line_end(_vrow);
+                        auto line_end = _document.find_line_end();
                         update_selection(line_end);
-                        for (auto col = _vcol; col < line_end; col++) {
-                            auto element = _document.get(_vrow, col);
-                            if (element != nullptr)
-                                element->attr.flags |= core::font::flags::reverse;
-                        }
+//                        for (auto col = _vcol; col < line_end; col++) {
+//                            // here caret would need to move right
+//                            auto element = _document.get();
+//                            if (element != nullptr)
+//                                element->attr.flags |= core::font::flags::reverse;
+//                        }
                     } else {
                         end_selection();
                     }
@@ -413,10 +354,10 @@ namespace ryu::core {
                 }
                 case SDLK_LEFT: {
                     if (shift_pressed) {
-                        update_selection(_vcol);
-                        auto element = _document.get(_vrow, _vcol);
-                        if (element != nullptr)
-                            element->attr.flags |= core::font::flags::reverse;
+//                        update_selection(_vcol);
+//                        auto element = _document.get();
+//                        if (element != nullptr)
+//                            element->attr.flags |= core::font::flags::reverse;
                     } else {
                         end_selection();
                     }
@@ -425,10 +366,10 @@ namespace ryu::core {
                 }
                 case SDLK_RIGHT: {
                     if (shift_pressed) {
-                        update_selection(_vcol);
-                        auto element = _document.get(_vrow, _vcol);
-                        if (element != nullptr)
-                            element->attr.flags |= core::font::flags::reverse;
+//                        update_selection(_vcol);
+//                        auto element = _document.get();
+//                        if (element != nullptr)
+//                            element->attr.flags |= core::font::flags::reverse;
                     } else {
                         end_selection();
                     }
@@ -437,12 +378,12 @@ namespace ryu::core {
                 }
                 case SDLK_HOME: {
                     if (shift_pressed) {
-                        update_selection(_vcol);
-                        for (auto col = _vcol; col >= 0; col--) {
-                            auto element = _document.get(_vrow, col);
-                            if (element != nullptr)
-                                element->attr.flags |= core::font::flags::reverse;
-                        }
+//                        update_selection(_vcol);
+//                        for (auto col = _vcol; col >= 0; col--) {
+//                            auto element = _document.get();
+//                            if (element != nullptr)
+//                                element->attr.flags |= core::font::flags::reverse;
+//                        }
                     } else {
                         end_selection();
                     }
@@ -454,13 +395,14 @@ namespace ryu::core {
                 }
                 case SDLK_END: {
                     if (shift_pressed) {
-                        auto line_end = _document.find_line_end(_vrow);
+                        auto line_end = _document.find_line_end();
                         update_selection(line_end);
-                        for (auto col = _vcol; col < line_end; col++) {
-                            auto element = _document.get(_vrow, col);
-                            if (element != nullptr)
-                                element->attr.flags |= core::font::flags::reverse;
-                        }
+                        // here caret would need to move right
+//                        for (auto col = _vcol; col < line_end; col++) {
+//                            auto element = _document.get();
+//                            if (element != nullptr)
+//                                element->attr.flags |= core::font::flags::reverse;
+//                        }
                     } else {
                         end_selection();
                     }
@@ -500,15 +442,10 @@ namespace ryu::core {
 
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
-
-        update_virtual_position();
     }
 
     void text_editor::initialize(uint32_t rows, uint16_t columns) {
         _metrics.line_number_width = font_face()->measure_chars(5) + 2;
-
-        _vcol = 0;
-        _vrow = 0;
 
         _caret.palette(palette());
         _caret.on_caret_changed([&]() {
@@ -518,6 +455,7 @@ namespace ryu::core {
         _caret.padding().left(_metrics.line_number_width);
         _caret.initialize(0, 0);
 
+        _document.caret(&_caret);
         _document.on_document_changed([&]() {
             raise_caret_changed();
         });
@@ -531,28 +469,10 @@ namespace ryu::core {
 
     void text_editor::get_selected_text(std::stringstream& stream) {
         _selection.normalize();
-        auto row = _selection.start().row;
-        auto last_row = _selection.end().row;
+//        auto row = _selection.start().row;
+//        auto last_row = _selection.end().row;
 
-        if (row == last_row) {
-            _document.write_line(stream, row, _selection.start().column, _selection.end().column);
-            stream << "\n";
-        } else {
-            _document.write_line(stream, row, _selection.start().column, _document.columns());
-            stream << "\n";
-            ++row;
-            if (row == last_row) {
-                _document.write_line(stream, last_row, 0, _selection.end().column);
-                stream << "\n";
-            } else {
-                for (; row < last_row; ++row) {
-                    _document.write_line(stream, row, 0, _document.columns());
-                    stream << "\n";
-                }
-                _document.write_line(stream, last_row, 0, _selection.end().column);
-                stream << "\n";
-            }
-        }
+        // XXX: rewrite this
     }
 
     bool text_editor::load(core::result& result, const fs::path& path) {
@@ -565,25 +485,6 @@ namespace ryu::core {
 
     void text_editor::on_caret_changed(const caret_changed_callable& callable) {
         _caret_changed_callback = callable;
-    }
-
-    void text_editor::for_each_selection_char(const text_editor::char_action_callable& action) {
-        _selection.normalize();
-        auto row = _selection.start().row;
-        auto col = _selection.start().column;
-        auto line_end = _document.find_line_end(row);
-        while (true) {
-            action(row, col);
-            col++;
-            if (col >= line_end
-            || (_selection.end().column > 0 && col > _selection.end().column && row == _selection.end().row)) {
-                col = 0;
-                row++;
-                if (row > _selection.end().row)
-                    break;
-                line_end = _document.find_line_end(row);
-            }
-        }
     }
 
 }

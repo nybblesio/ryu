@@ -23,7 +23,6 @@ namespace ryu::core {
     class text_editor : public core::view {
     public:
         using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
-        using char_action_callable = std::function<void (uint32_t, uint16_t)>;
 
         explicit text_editor(const std::string& name);
 
@@ -107,8 +106,6 @@ namespace ryu::core {
 
         void calculate_page_metrics();
 
-        void update_virtual_position();
-
         void caret_up(uint8_t rows = 1);
 
         void on_focus_changed() override;
@@ -125,11 +122,7 @@ namespace ryu::core {
 
         void get_selected_text(std::stringstream& stream);
 
-        void for_each_selection_char(const char_action_callable& action);
-
     private:
-        uint16_t _vcol;
-        uint32_t _vrow;
         core::caret _caret;
         metrics_t _metrics;
         core::document _document;
