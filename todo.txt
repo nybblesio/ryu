@@ -118,3 +118,4 @@ DONE
 - add . a/k/a "source" command that calls apply_environment again on the currently active environment
 - Add Ryu & other project information to Twitch profile & banner bitmap
 - configure weechat to limit width of handles to prevent column scrunching
+- unit tests!?  whaaaaaa you SAY?  OMG!  NOOOOOO!

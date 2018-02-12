@@ -1,3 +1,5 @@
+add_subdirectory(unit-tests)
+
 add_library(
         core
         result.h
