@@ -85,6 +85,30 @@ namespace ryu::core {
             size_t length) {
         if (length == 0)
             return;
+
+        auto offset = position.offset();
+        auto initial_piece_find_result = pieces.find_for_offset(offset);
+        size_t initial_linear_offset = 0;
+        if (initial_piece_find_result.type != piece_find_result_t::none) {
+            initial_linear_offset = pieces.linear_offset(*initial_piece_find_result.data);
+        }
+
+        auto final_piece_find_result = pieces.find_for_offset(static_cast<uint32_t>(offset + length));
+        size_t final_linear_offset = 0;
+        if (final_piece_find_result.type != piece_find_result_t::none) {
+            final_linear_offset = pieces.linear_offset(*final_piece_find_result.data);
+        }
+
+        if (initial_piece_find_result.data == final_piece_find_result.data) {
+            if (initial_linear_offset - initial_piece_find_result.data->length == offset) {
+                initial_piece_find_result.data->start += length;
+                initial_piece_find_result.data->length -= length;
+                return;
+            } else if (final_linear_offset == offset) {
+                initial_piece_find_result.data->length -= length;
+                return;
+            }
+        }
     }
 
     void piece_table_t::insert(
@@ -98,6 +122,11 @@ namespace ryu::core {
                                find_result.data->buffer->type == piece_table_buffer_t::changes :
                                false;
         switch (find_result.type) {
+            case piece_find_result_t::none: {
+                piece_t new_piece {offset, 1, &changes};
+                pieces.data.push_back(new_piece);
+                break;
+            }
             case piece_find_result_t::first: {
                 if (is_change_piece && find_result.data->end() + 1 == offset) {
                     find_result.data->length++;
@@ -175,8 +204,10 @@ namespace ryu::core {
         clear();
         original = buffer;
 
-        piece_t first_piece {0, original.elements.size(), &original};
-        pieces.data.push_back(first_piece);
+        if (!buffer.empty()) {
+            piece_t first_piece{0, original.elements.size(), &original};
+            pieces.data.push_back(first_piece);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -197,7 +228,7 @@ namespace ryu::core {
         if (offset == 0) {
             result.data = &data.front();
             result.type = piece_find_result_t::types::first;
-        } else if (offset == total_length()) {
+        } else if (offset >= total_length()) {
             result.data = &data.back();
             result.type = piece_find_result_t::types::final;
         } else {

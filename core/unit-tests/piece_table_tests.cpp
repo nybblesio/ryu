@@ -33,13 +33,64 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original.empty());
         REQUIRE(piece_table.changes.size() == expected_text.length());
-        REQUIRE(piece_table.pieces.size() == 2);
+        REQUIRE(piece_table.pieces.size() == 1);
 
         auto original_lines = piece_table.sequence();
         REQUIRE(original_lines.size() == 1);
         auto& first_line = original_lines[0];
         REQUIRE(first_line.size() == 1);
         REQUIRE(first_line[0].text == expected_text);
+    }
+
+    TEST_CASE("piece_table_with_empty_original_with_deletes", "[piece-table]") {
+        piece_table_t piece_table;
+
+        piece_table_buffer_t original {};
+        piece_table.load(original);
+
+        attr_t default_attr {1};
+        std::string expected_text = "A quick brown fox jumps over the fence.";
+
+        uint16_t row = 0;
+        uint8_t column = 0;
+
+        for (auto c : expected_text) {
+            piece_table.insert(
+                    element_t{default_attr, (uint8_t) c},
+                    document_position_t{row, column++, 25, 80});
+        }
+
+        REQUIRE(piece_table.original.empty());
+        REQUIRE(piece_table.changes.size() == expected_text.length());
+        REQUIRE(piece_table.pieces.size() == 1);
+
+        auto original_lines = piece_table.sequence();
+        REQUIRE(original_lines.size() == 1);
+        auto& first_line = original_lines[0];
+        REQUIRE(first_line.size() == 1);
+        REQUIRE(first_line[0].text == expected_text);
+
+        piece_table.delete_at(document_position_t{0, 39, 25, 80}, 2);
+        REQUIRE(piece_table.original.empty());
+        REQUIRE(piece_table.changes.size() == expected_text.length());
+        REQUIRE(piece_table.pieces.size() == 1);
+
+        auto deleted_lines1 = piece_table.sequence();
+        REQUIRE(deleted_lines1.size() == 1);
+        auto& first_deleted_line = deleted_lines1[0];
+        REQUIRE(first_deleted_line.size() == 1);
+        REQUIRE(first_deleted_line[0].text == "A quick brown fox jumps over the fenc");
+
+        piece_table.delete_at(document_position_t{0, 0, 25, 80}, 2);
+        REQUIRE(piece_table.original.empty());
+        REQUIRE(piece_table.changes.size() == expected_text.length());
+        REQUIRE(piece_table.pieces.size() == 1);
+
+        auto deleted_lines2 = piece_table.sequence();
+        REQUIRE(deleted_lines2.size() == 1);
+        auto& second_deleted_line = deleted_lines2[0];
+        REQUIRE(second_deleted_line.size() == 1);
+        REQUIRE(second_deleted_line[0].text == "quick brown fox jumps over the fenc");
     }
 
     TEST_CASE("piece_table_with_empty_original_with_edits", "[piece-table]") {
@@ -62,7 +113,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original.empty());
         REQUIRE(piece_table.changes.size() == expected_text.length());
-        REQUIRE(piece_table.pieces.size() == 2);
+        REQUIRE(piece_table.pieces.size() == 1);
 
         auto original_lines = piece_table.sequence();
         REQUIRE(original_lines.size() == 1);
@@ -80,7 +131,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original.empty());
         REQUIRE(piece_table.changes.size() == expected_text.length() + expected_edit1_text.length());
-        REQUIRE(piece_table.pieces.size() == 4);
+        REQUIRE(piece_table.pieces.size() == 3);
 
         auto edited_lines1 = piece_table.sequence();
         REQUIRE(edited_lines1.size() == 1);
@@ -100,7 +151,7 @@ namespace ryu::core::unit_tests {
         REQUIRE(piece_table.changes.size() == expected_text.length()
                                               + expected_edit1_text.length()
                                               + expected_edit2_text.length());
-        REQUIRE(piece_table.pieces.size() == 6);
+        REQUIRE(piece_table.pieces.size() == 5);
 
         auto edited_lines2 = piece_table.sequence();
         REQUIRE(edited_lines2.size() == 1);
@@ -134,7 +185,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original.empty());
         REQUIRE(piece_table.changes.size() == expected_text.length());
-        REQUIRE(piece_table.pieces.size() == 2);
+        REQUIRE(piece_table.pieces.size() == 1);
 
         auto original_lines = piece_table.sequence();
         REQUIRE(original_lines.size() == 1);
@@ -154,7 +205,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original.empty());
         REQUIRE(piece_table.changes.size() == expected_text.length() + expected_edit1_text.length());
-        REQUIRE(piece_table.pieces.size() == 4);
+        REQUIRE(piece_table.pieces.size() == 3);
 
         auto edited_lines1 = piece_table.sequence();
         REQUIRE(edited_lines1.size() == 1);
@@ -176,7 +227,7 @@ namespace ryu::core::unit_tests {
         REQUIRE(piece_table.changes.size() == expected_text.length()
                                               + expected_edit1_text.length()
                                               + expected_edit2_text.length());
-        REQUIRE(piece_table.pieces.size() == 6);
+        REQUIRE(piece_table.pieces.size() == 5);
 
         auto edited_lines2 = piece_table.sequence();
         REQUIRE(edited_lines2.size() == 1);
