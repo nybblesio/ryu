@@ -207,12 +207,8 @@ namespace ryu::core {
 
     void document::put(const element_t& value) {
         _piece_table.insert(
-                value,
-                document_position_t{
-                        static_cast<uint16_t>(_row + _caret->row()),
-                        static_cast<uint8_t>(_column + _caret->column()),
-                        _rows,
-                        _columns});
+                static_cast<uint32_t>(((_row + _caret->row()) * _columns) + (_column + _caret->column())),
+                value);
     }
 
     void document::shift_right(uint16_t times) {

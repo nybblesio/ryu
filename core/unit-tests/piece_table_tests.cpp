@@ -22,13 +22,9 @@ namespace ryu::core::unit_tests {
         attr_t default_attr {1};
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
-        uint16_t row = 0;
-        uint8_t column = 0;
-
+        uint32_t offset = 0;
         for (auto c : expected_text) {
-            piece_table.insert(
-                    element_t{default_attr, (uint8_t) c},
-                    document_position_t{row, column++, 25, 80});
+            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         REQUIRE(piece_table.original.empty());
@@ -53,13 +49,9 @@ namespace ryu::core::unit_tests {
         attr_t default_attr {1};
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
-        uint16_t row = 0;
-        uint8_t column = 0;
-
+        uint32_t offset = 0;
         for (auto c : expected_text) {
-            piece_table.insert(
-                    element_t{default_attr, (uint8_t) c},
-                    document_position_t{row, column++, 25, 80});
+            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         REQUIRE(piece_table.original.empty());
@@ -75,7 +67,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table shrinks piece when deleting at end of it") {
-            piece_table.delete_at(document_position_t{0, 39, 25, 80}, 2);
+            piece_table.delete_at(39, 2);
             REQUIRE(piece_table.original.empty());
             REQUIRE(piece_table.changes.size() == expected_text.length());
             REQUIRE(piece_table.pieces.size() == 1);
@@ -88,7 +80,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table shrinks piece when deleting at start of it") {
-            piece_table.delete_at(document_position_t{0, 0, 25, 80}, 2);
+            piece_table.delete_at(0, 2);
             REQUIRE(piece_table.original.empty());
             REQUIRE(piece_table.changes.size() == expected_text.length());
             REQUIRE(piece_table.pieces.size() == 1);
@@ -101,7 +93,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table splits a piece when deleting within it") {
-            piece_table.delete_at(document_position_t{0, 13, 25, 80}, 4);
+            piece_table.delete_at(13, 4);
             REQUIRE(piece_table.original.empty());
             REQUIRE(piece_table.changes.size() == expected_text.length());
             REQUIRE(piece_table.pieces.size() == 2);
@@ -123,13 +115,9 @@ namespace ryu::core::unit_tests {
         attr_t default_attr {1};
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
-        uint16_t row = 0;
-        uint8_t column = 0;
-
+        uint32_t offset = 0;
         for (auto c : expected_text) {
-            piece_table.insert(
-                    element_t{default_attr, (uint8_t) c},
-                    document_position_t{row, column++, 25, 80});
+            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         REQUIRE(piece_table.original.empty());
@@ -145,12 +133,10 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table inserts text within piece") {
-            column = 32;
+            offset = 32;
             std::string inserted_text = " white ";
             for (auto c : inserted_text) {
-                piece_table.insert(
-                        element_t{default_attr, (uint8_t) c},
-                        document_position_t{row, column++, 25, 80});
+                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());
@@ -165,20 +151,16 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table inserts text at the beginning of a piece") {
-            column = 32;
+            offset = 32;
             std::string inserted_medial_text = " white ";
             for (auto c : inserted_medial_text) {
-                piece_table.insert(
-                        element_t{default_attr, (uint8_t) c},
-                        document_position_t{row, column++, 25, 80});
+                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
             }
 
-            column = 1;
+            offset = 1;
             std::string inserted_initial_text = "n extremely ";
             for (auto c : inserted_initial_text) {
-                piece_table.insert(
-                        element_t{default_attr, (uint8_t) c},
-                        document_position_t{row, column++, 25, 80});
+                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());
@@ -204,18 +186,15 @@ namespace ryu::core::unit_tests {
         attr_t default_attr {1};
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
-        uint16_t row = 0;
-        uint8_t column = 0;
+        uint8_t offset = 0;
 
         for (auto c : expected_text) {
-            if (column >= 2 && column < 7) {
+            if (offset >= 2 && offset < 7) {
                 default_attr.color = 4;
             } else {
                 default_attr.color = 1;
             }
-            piece_table.insert(
-                    element_t{default_attr, (uint8_t) c},
-                    document_position_t{row, column++, 25, 80});
+            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         SECTION("piece table returns attributed spans matching setup") {
@@ -233,12 +212,10 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table returns attribute sections with medial insert") {
-            column = 32;
+            offset = 32;
             std::string inserted_text = " white ";
             for (auto c : inserted_text) {
-                piece_table.insert(
-                        element_t{default_attr, (uint8_t) c},
-                        document_position_t{row, column++, 25, 80});
+                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());
@@ -255,12 +232,10 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table returns attributed spans with initial insert") {
-            column = 1;
+            offset = 1;
             std::string inserted_text = "n extremely ";
             for (auto c : inserted_text) {
-                piece_table.insert(
-                        element_t{default_attr, (uint8_t) c},
-                        document_position_t{row, column++, 25, 80});
+                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());

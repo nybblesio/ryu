@@ -12,69 +12,12 @@
 
 #include <set>
 #include <list>
+#include <stack>
 #include <string>
 #include <vector>
 #include <cstdint>
 
 namespace ryu::core {
-
-    // Assumptions
-    //
-    // 1. We're building a text editor for Ryu, not anything else
-    // 2. We're 99% editing assembly source code - or - source-like text
-    // 3. We want to support colors, font styles, reverse video, and *maybe* links
-    // 4. Documents in Ryu should rarely exceed 256kb
-    // 5. Support document level marks
-    //
-    // 1. Buffers
-    //
-    //   read-only                          append-only
-    // original buffer                  add/change buffer
-    // ---------------                  ----------------
-    // I <bold>love<> kittens.          <italic>furry<>
-    //
-    //
-    // 2. Piece Table
-    //
-    // - Owns the buffers or reference/pointer to buffers
-    // - Owns doubly-linked node-list (a/k/a piece)
-    //
-    // What a piece?
-    //
-    // struct piece_t {
-    //      piece_t* prev;
-    //      piece_t* next;
-    //      buffer_t* buffer;
-    //      uint32_t start;
-    //      uint32_t length;
-    // }
-    //
-    // When we start, the piece table has one entry:
-    //
-    // {nullptr, nullptr, original_ptr, 0, 15}
-    //
-    // User edits the document:  inserts "furry" after "love"
-    //
-    // piece_1_ptr {nullptr,     piece_2_ptr, original_ptr, 0, 6}
-    // piece_2_ptr {piece_1_ptr, piece_3_ptr, append_ptr,   0, 5}
-    // piece_3_ptr {piece_2_ptr, nullptr,     original_ptr, 6, 9}
-    //
-    //
-    // Questions:
-    //
-    // - how do we render just one line?
-    // - what do the buffers really look like?
-    //
-
-    struct document_position_t {
-        uint16_t row {};
-        uint8_t column {};
-        uint32_t row_count {};
-        uint16_t column_count {};
-        uint32_t offset() const {
-            return (row * column_count) + column;
-        }
-    };
 
     struct attr_t {
         uint8_t color = 0;
@@ -212,23 +155,9 @@ namespace ryu::core {
     struct piece_table_t {
         void clear();
 
-        void delete_at(
-                const document_position_t& position,
-                size_t length);
+        void delete_at(uint32_t offset, uint32_t length);
 
-        //
-        //
-        // original: the brown fox
-        //
-        // change 1:               jumped
-        // change 2:     sly[ ]
-        // change 3:                      over the fence.
-        // change 4: [ ]test:[ ]
-        // change 5:       oooo
-        //
-        void insert(
-                const element_t& element,
-                const document_position_t& position);
+        void insert(uint32_t offset, const element_t& element);
 
         const attr_line_list& sequence();
 
@@ -238,6 +167,8 @@ namespace ryu::core {
         attr_t default_attr {};
         attr_line_list lines {};
         piece_table_buffer_t original {};
+        std::stack<piece_t*> undo_stack {};
+        std::stack<piece_t*> redo_stack {};
         piece_table_buffer_t changes {piece_table_buffer_t::types::changes};
     };
 

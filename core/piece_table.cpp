@@ -80,15 +80,12 @@ namespace ryu::core {
         default_attr = {};
     }
 
-    void piece_table_t::delete_at(
-            const document_position_t& position,
-            size_t length) {
+    void piece_table_t::delete_at(uint32_t offset, uint32_t length) {
         if (length == 0)
             return;
 
         lines.clear();
 
-        auto offset = position.offset();
         auto initial_piece_find_result = pieces.find_for_offset(offset);
         size_t initial_linear_offset = 0;
         if (initial_piece_find_result.type != piece_find_result_t::none) {
@@ -112,7 +109,7 @@ namespace ryu::core {
                                  + (offset - initial_piece_find_result.data->start)
                                  + length);
                 auto new_piece = piece_t {
-                        static_cast<uint32_t>(new_start),
+                        new_start,
                         initial_piece_find_result.data->length - new_start,
                         &changes};
                 initial_piece_find_result.data->length = offset;
@@ -123,13 +120,10 @@ namespace ryu::core {
         }
     }
 
-    void piece_table_t::insert(
-            const element_t& element,
-            const document_position_t& position) {
+    void piece_table_t::insert(uint32_t offset, const element_t& element) {
         lines.clear();
         changes.elements.push_back(element);
 
-        auto offset = position.offset();
         auto find_result = pieces.find_for_offset(offset);
         auto is_change_piece = find_result.data != nullptr ?
                                find_result.data->buffer->type == piece_table_buffer_t::changes :
