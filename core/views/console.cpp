@@ -213,8 +213,8 @@ namespace ryu::core {
         auto y = bounds.top();
         auto row_index = _document.row();
         for (uint32_t row = 0; row < _metrics.page_height; row++) {
-            uint16_t col_start = static_cast<uint16_t>(_document.column());
-            uint16_t col_end = col_start + _metrics.page_width;
+//            uint16_t col_start = static_cast<uint16_t>(_document.column());
+//            uint16_t col_end = col_start + _metrics.page_width;
 
             // XXX: handle the column range in the loop below
             auto chunks = _document.line_at(static_cast<uint32_t>(row_index++));

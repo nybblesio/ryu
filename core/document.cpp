@@ -14,19 +14,6 @@
 
 namespace ryu::core {
 
-    //////////////////////////////////////////////////////////////////
-
-    void piece_t::copy_elements(attr_span_list& line) {
-        std::stringstream stream {};
-        for (size_t i = 0; i < length; i++) {
-            auto& element = buffer->elements[start + i];
-            element.safe_value(stream);
-        }
-        line.push_back(attr_span_t{attr, stream.str()});
-    }
-
-    //////////////////////////////////////////////////////////////////
-
     void document::home() {
         _column = 0;
         raise_document_changed();

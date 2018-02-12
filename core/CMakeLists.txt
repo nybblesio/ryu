@@ -30,6 +30,7 @@ add_library(
         font_family.cpp font_family.h
         views/panel.cpp views/panel.h
         preferences.cpp preferences.h
+        piece_table.cpp piece_table.h
         parser_types.cpp parser_types.h
         project_file.cpp project_file.h
         symbol_table.cpp symbol_table.h
