@@ -160,7 +160,6 @@ namespace ryu::core {
             final,
             medial
         };
-        bool at_back = false;
         piece_t* data = nullptr;
         types type = types::none;
         std::list<piece_t>::iterator index {};
@@ -231,12 +230,13 @@ namespace ryu::core {
                 const element_t& element,
                 const document_position_t& position);
 
-        attr_line_list sequence();
+        const attr_line_list& sequence();
 
         void load(const piece_table_buffer_t& buffer);
 
         piece_list_t pieces {};
         attr_t default_attr {};
+        attr_line_list lines {};
         piece_table_buffer_t original {};
         piece_table_buffer_t changes {piece_table_buffer_t::types::changes};
     };

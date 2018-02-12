@@ -86,6 +86,8 @@ namespace ryu::core {
         if (length == 0)
             return;
 
+        lines.clear();
+
         auto offset = position.offset();
         auto initial_piece_find_result = pieces.find_for_offset(offset);
         size_t initial_linear_offset = 0;
@@ -103,17 +105,28 @@ namespace ryu::core {
             if (initial_linear_offset - initial_piece_find_result.data->length == offset) {
                 initial_piece_find_result.data->start += length;
                 initial_piece_find_result.data->length -= length;
-                return;
             } else if (final_linear_offset == offset) {
                 initial_piece_find_result.data->length -= length;
-                return;
+            } else {
+                auto new_start = (initial_piece_find_result.data->start
+                                 + (offset - initial_piece_find_result.data->start)
+                                 + length);
+                auto new_piece = piece_t {
+                        static_cast<uint32_t>(new_start),
+                        initial_piece_find_result.data->length - new_start,
+                        &changes};
+                initial_piece_find_result.data->length = offset;
+                pieces.data.insert(initial_piece_find_result.index, new_piece);
             }
+        } else {
+
         }
     }
 
     void piece_table_t::insert(
             const element_t& element,
             const document_position_t& position) {
+        lines.clear();
         changes.elements.push_back(element);
 
         auto offset = position.offset();
@@ -177,13 +190,8 @@ namespace ryu::core {
 
                 left_piece->length = offset;
 
-                if (find_result.at_back) {
-                    pieces.data.push_back(new_piece);
-                    pieces.data.push_back(right_piece);
-                } else {
-                    pieces.data.insert(find_result.index, new_piece);
-                    pieces.data.insert(find_result.index, right_piece);
-                }
+                pieces.data.insert(find_result.index, new_piece);
+                pieces.data.insert(find_result.index, right_piece);
                 break;
             }
             default:
@@ -192,8 +200,9 @@ namespace ryu::core {
         }
     }
 
-    attr_line_list piece_table_t::sequence() {
-        attr_line_list lines {};
+    const attr_line_list& piece_table_t::sequence() {
+        if (!lines.empty())
+            return lines;
         for (auto& piece : pieces.data) {
             piece.copy_elements(lines);
         }
@@ -203,6 +212,7 @@ namespace ryu::core {
     void piece_table_t::load(const piece_table_buffer_t& buffer) {
         clear();
         original = buffer;
+        lines.clear();
 
         if (!buffer.empty()) {
             piece_t first_piece{0, original.elements.size(), &original};
@@ -247,11 +257,7 @@ namespace ryu::core {
             if (piece_it != data.end()) {
                 result.data = &(*piece_it);
                 result.type = piece_find_result_t::types::medial;
-
-                ++piece_it;
-
-                result.index = piece_it;
-                result.at_back = piece_it == data.end();
+                result.index = ++piece_it;
             }
         }
 
