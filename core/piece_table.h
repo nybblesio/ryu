@@ -10,10 +10,11 @@
 
 #pragma once
 
-#include <cstdint>
+#include <set>
+#include <list>
 #include <string>
 #include <vector>
-#include <list>
+#include <cstdint>
 
 namespace ryu::core {
 
@@ -88,11 +89,12 @@ namespace ryu::core {
     };
 
     struct attr_span_t {
-        attr_t attr;
+        attr_t attr {};
         std::string text {};
     };
 
     typedef std::vector<attr_span_t> attr_span_list;
+    typedef std::vector<attr_span_list> attr_line_list;
 
     struct element_t {
         attr_t attr {};
@@ -120,7 +122,6 @@ namespace ryu::core {
     struct piece_table_buffer_t;
 
     struct piece_t {
-        attr_t attr {};
         uint32_t start {};
         size_t length {};
         piece_table_buffer_t* buffer = nullptr;
@@ -129,11 +130,10 @@ namespace ryu::core {
             return start + length;
         }
 
-        void copy_elements(attr_span_list& line);
+        void copy_elements(attr_line_list& lines);
 
         bool operator== (const piece_t& other) {
-            return attr == other.attr
-                   && start == other.start
+            return start == other.start
                    && length == other.length
                    && buffer == other.buffer;
         }
@@ -143,8 +143,7 @@ namespace ryu::core {
         }
 
         bool operator== (const piece_t& other) const {
-            return attr == other.attr
-                   && start == other.start
+            return start == other.start
                    && length == other.length
                    && buffer == other.buffer;
         }
@@ -232,7 +231,7 @@ namespace ryu::core {
                 const element_t& element,
                 const document_position_t& position);
 
-        attr_span_list sequence();
+        attr_line_list sequence();
 
         void load(const piece_table_buffer_t& buffer);
 

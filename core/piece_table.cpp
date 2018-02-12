@@ -20,7 +20,7 @@ namespace ryu::core {
         if (is_newline())
             newline = true;
         else if (is_tab())
-            stream << "    ";           // XXX; this is hard coded
+            stream << "    ";           // XXX: this is hard coded
         else if (is_percent())
             stream << "%%";
         else if (is_space())
@@ -32,16 +32,43 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    void piece_t::copy_elements(attr_span_list& line) {
+    void piece_t::copy_elements(attr_line_list& lines) {
         if (length == 0)
             return;
+
+        attr_span_list* current_line = nullptr;
+        attr_span_t* current_span = nullptr;
+        if (!lines.empty()) {
+            current_line = &lines.back();
+            if (!current_line->empty())
+                current_span = &current_line->back();
+        } else {
+            lines.push_back({});
+            current_line = &lines.back();
+        }
 
         std::stringstream stream {};
         for (size_t i = 0; i < length; i++) {
             auto& element = buffer->elements[start + i];
-            element.safe_value(stream);
+            if (current_span != nullptr) {
+                if (current_span->attr != element.attr) {
+                    current_span->text += stream.str();
+                    stream.str("");
+                    current_line->push_back({element.attr});
+                    current_span = &current_line->back();
+                }
+            } else {
+                current_line->push_back({element.attr});
+                current_span = &current_line->back();
+            }
+            if (element.safe_value(stream)) {
+                lines.push_back({});
+                current_line = &lines.back();
+            }
         }
-        line.push_back(attr_span_t{attr, stream.str()});
+
+        if (current_span != nullptr)
+            current_span->text += stream.str();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -75,7 +102,8 @@ namespace ryu::core {
                 if (is_change_piece && find_result.data->end() + 1 == offset) {
                     find_result.data->length++;
                 } else {
-                    pieces.data.push_back(piece_t {element.attr, offset, 1, &changes});
+                    piece_t new_piece {offset, 1, &changes};
+                    pieces.data.push_back(new_piece);
                 }
                 break;
             }
@@ -83,7 +111,8 @@ namespace ryu::core {
                 if (is_change_piece) {
                     find_result.data->length++;
                 } else {
-                    pieces.data.push_back(piece_t {element.attr, offset, 1, &changes});
+                    piece_t new_piece {offset, 1, &changes};
+                    pieces.data.push_back(new_piece);
                 }
                 break;
             }
@@ -106,14 +135,12 @@ namespace ryu::core {
                 }
 
                 auto new_piece = piece_t {
-                        element.attr,
                         static_cast<uint32_t>(new_change_offset),
                         1,
                         &changes};
 
                 auto left_piece = find_result.data;
                 auto right_piece = piece_t {
-                        left_piece->attr,
                         offset + 1,
                         left_piece->length - (offset + 1),
                         left_piece->buffer
@@ -136,20 +163,20 @@ namespace ryu::core {
         }
     }
 
-    attr_span_list piece_table_t::sequence() {
-        attr_span_list spans {};
+    attr_line_list piece_table_t::sequence() {
+        attr_line_list lines {};
         for (auto& piece : pieces.data) {
-            piece.copy_elements(spans);
+            piece.copy_elements(lines);
         }
-        return spans;
+        return lines;
     }
 
     void piece_table_t::load(const piece_table_buffer_t& buffer) {
         clear();
         original = buffer;
 
-        // XXX: how do we restore the original styles
-        pieces.data.push_back({default_attr, 0, original.elements.size(), &original});
+        piece_t first_piece {0, original.elements.size(), &original};
+        pieces.data.push_back(first_piece);
     }
 
     ///////////////////////////////////////////////////////////////////////////
