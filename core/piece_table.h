@@ -36,8 +36,8 @@ namespace ryu::core {
         std::string text {};
     };
 
-    typedef std::vector<attr_span_t> attr_span_list;
-    typedef std::vector<attr_span_list> attr_line_list;
+    using attr_span_list = std::vector<attr_span_t>;
+    using attr_line_list = std::vector<attr_span_list>;
 
     struct element_t {
         attr_t attr {};
@@ -62,9 +62,11 @@ namespace ryu::core {
         bool safe_value(std::stringstream& stream) const;
     };
 
+    using element_list = std::vector<element_t>;
+
     struct piece_node_t;
 
-    typedef std::shared_ptr<piece_node_t> piece_shared_ptr;
+    using piece_shared_ptr = std::shared_ptr<piece_node_t>;
 
     struct piece_table_buffer_t;
 
@@ -139,12 +141,16 @@ namespace ryu::core {
     // c->next == d_left
     // e->prev == d_right
     //
+
+    using piece_node_stack = std::stack<piece_node_t*>;
+    using piece_shared_ptr_set = std::set<piece_shared_ptr>;
+
     struct piece_list_t {
         piece_node_t* head = nullptr;
         piece_node_t* tail = nullptr;
-        std::stack<piece_node_t*> undo_stack {};
-        std::stack<piece_node_t*> redo_stack {};
-        std::set<piece_shared_ptr> owned_pieces {};
+        piece_node_stack undo_stack {};
+        piece_node_stack redo_stack {};
+        piece_shared_ptr_set owned_pieces {};
 
         inline void clear() {
             head = nullptr;
@@ -154,9 +160,17 @@ namespace ryu::core {
             return head == nullptr;
         }
 
+        void undo();
+
+        void redo();
+
         size_t size() const;
 
         size_t total_length() const;
+
+        void swap_node(
+                piece_node_t* node,
+                piece_node_stack& target_stack);
 
         void add_tail(const piece_shared_ptr& piece);
 
@@ -180,7 +194,7 @@ namespace ryu::core {
         };
 
         types type = types::original;
-        std::vector<element_t> elements {};
+        element_list elements {};
 
         void clear() {
             elements.clear();
@@ -197,6 +211,10 @@ namespace ryu::core {
 
     struct piece_table_t {
         void clear();
+
+        void undo();
+
+        void redo();
 
         const attr_line_list& sequence();
 

@@ -73,6 +73,14 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
+    void piece_table_t::undo() {
+        pieces.undo();
+    }
+
+    void piece_table_t::redo() {
+        pieces.redo();
+    }
+
     void piece_table_t::clear() {
         pieces.clear();
         changes.clear();
@@ -222,6 +230,40 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
+    void piece_list_t::undo() {
+        if (undo_stack.empty())
+            return;
+
+        auto node = undo_stack.top();
+        if (node == nullptr) {
+            head = nullptr;
+            tail = nullptr;
+            undo_stack.pop();
+            return;
+        }
+
+        swap_node(node, redo_stack);
+
+        undo_stack.pop();
+    }
+
+    void piece_list_t::redo() {
+        if (redo_stack.empty())
+            return;
+
+        auto node = redo_stack.top();
+        if (node == nullptr) {
+            head = nullptr;
+            tail = nullptr;
+            redo_stack.pop();
+            return;
+        }
+
+        swap_node(node, undo_stack);
+
+        redo_stack.pop();
+    }
+
     size_t piece_list_t::size() const {
         size_t count = 0;
         auto current_node = head;
@@ -240,6 +282,36 @@ namespace ryu::core {
             current_node = current_node->next;
         }
         return length;
+    }
+
+    void piece_list_t::swap_node(
+            piece_node_t* node,
+            piece_node_stack& target_stack) {
+        if (node->prev == nullptr) {
+            auto current_head = head;
+            target_stack.push(current_head);
+            head = node;
+            if (current_head == tail) {
+                tail = head;
+            }
+        } else if (node->next == nullptr) {
+            auto current_tail = tail;
+            target_stack.push(current_tail);
+            tail = node;
+            if (current_tail == head) {
+                head = tail;
+            }
+        }
+
+        if (node->prev != nullptr) {
+            auto prev_node = node->prev;
+            prev_node->next = node;
+        }
+
+        if (node->next != nullptr) {
+            auto next_node = node->next;
+            next_node->prev = node;
+        }
     }
 
     void piece_list_t::add_tail(const piece_shared_ptr& piece) {

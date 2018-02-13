@@ -39,6 +39,25 @@ namespace ryu::core::unit_tests {
             REQUIRE(first_line.size() == 1);
             REQUIRE(first_line[0].text == expected_text);
         }
+
+        SECTION("piece table undo reverts each edit") {
+            piece_table.undo();
+            piece_table.undo();
+            piece_table.undo();
+            piece_table.undo();
+            piece_table.undo();
+            piece_table.undo();
+            piece_table.undo();
+
+            REQUIRE(piece_table.pieces.undo_stack.size() == expected_text.length() - 7);
+            REQUIRE(piece_table.pieces.redo_stack.size() == 7);
+
+            auto original_lines = piece_table.sequence();
+            REQUIRE(original_lines.size() == 1);
+            auto first_line = original_lines[0];
+            REQUIRE(first_line.size() == 1);
+            REQUIRE(first_line[0].text == "A quick brown fox jumps over the");
+        }
     }
 
     TEST_CASE("piece_table_with_empty_original_with_deletes", "[piece-table]") {
