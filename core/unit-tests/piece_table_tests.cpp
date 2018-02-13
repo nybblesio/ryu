@@ -30,6 +30,7 @@ namespace ryu::core::unit_tests {
         REQUIRE(piece_table.original.empty());
         REQUIRE(piece_table.changes.size() == expected_text.length());
         REQUIRE(piece_table.pieces.size() == 1);
+        REQUIRE(piece_table.pieces.undo_stack.size() == expected_text.length());
 
         SECTION("piece table returns valid sequence") {
             auto original_lines = piece_table.sequence();

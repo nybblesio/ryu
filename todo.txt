@@ -8,6 +8,8 @@ Project & Admin tasks
 
 - Create website for Ryu project
 
+- turn off irc events in weechat
+
 Thoughts & Questions
 ----------------------
 
@@ -25,7 +27,6 @@ IDE UI & related tasks
 
 - core::piece_table_t: undo/redo
     * finish delete_at
-    * reworking insert & delete_at to make copies and swap chains
 
 - core::piece_table_t: marks
 
@@ -127,5 +128,6 @@ DONE
 - OFF STREAM      : implement most of delete_at.  one case remaining where delete crosses pieces.
 - core::piece_table_t: undo/redo
     * rename insert to insert_at for consistency
+    * reworking insert & delete_at to make copies and swap chains
     * remove std::list<> and use std::shared_ptr<core::piece_node_t> instead for doubly-linked list
 

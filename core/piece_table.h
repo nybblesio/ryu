@@ -86,26 +86,6 @@ namespace ryu::core {
         }
 
         void copy_elements(attr_line_list& lines);
-
-        bool operator== (const piece_node_t& other) {
-            return start == other.start
-                   && length == other.length
-                   && buffer == other.buffer;
-        }
-
-        bool operator!= (const piece_node_t& other) {
-            return !(*this == other);
-        }
-
-        bool operator== (const piece_node_t& other) const {
-            return start == other.start
-                   && length == other.length
-                   && buffer == other.buffer;
-        }
-
-        bool operator!= (const piece_node_t& other) const {
-            return !(*this == other);
-        }
     };
 
     struct piece_find_result_t {
@@ -140,15 +120,30 @@ namespace ryu::core {
     //
     //
     // 0 <-> a <-> b <-> c <-> d <-> e <-> f <-> g -> 0
+    //                         ^
+    //                         |---> stash this pointer on undo stack
     //
-    // 3. insert into middle of "d"
+    // d->prev still == c
+    // c->next DOES NOT == d
     //
-    // 0 <-> a <-> b <-> c1 <-> dl1 <-> h <-> dr1 <-> e1 <-> f <-> g -> 0
+    // d->next still == e
+    // e->prev DOES NOT == d
     //
+    //
+    // next
+    //
+    // 0 <-> a <-> b <-> c <-> d_left <-> new <-> d_right <-> e <-> f <-> g -> 0
+    //
+    // now
+    //
+    // c->next == d_left
+    // e->prev == d_right
     //
     struct piece_list_t {
         piece_node_t* head = nullptr;
         piece_node_t* tail = nullptr;
+        std::stack<piece_node_t*> undo_stack {};
+        std::stack<piece_node_t*> redo_stack {};
         std::set<piece_shared_ptr> owned_pieces {};
 
         inline void clear() {
@@ -166,6 +161,8 @@ namespace ryu::core {
         void add_tail(const piece_shared_ptr& piece);
 
         void insert_head(const piece_shared_ptr& piece);
+
+        piece_node_t* clone_and_swap(piece_node_t* node);
 
         piece_find_result_t find_for_offset(uint32_t offset);
 
@@ -213,8 +210,6 @@ namespace ryu::core {
         attr_t default_attr {};
         attr_line_list lines {};
         piece_table_buffer_t original {};
-        std::stack<piece_node_t*> undo_stack {};
-        std::stack<piece_node_t*> redo_stack {};
         piece_table_buffer_t changes {piece_table_buffer_t::types::changes};
     };
 
