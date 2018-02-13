@@ -459,7 +459,7 @@ namespace ryu::core {
         _document.on_document_changed([&]() {
             raise_caret_changed();
         });
-        _document.default_attr(core::attr_t {fg_color(), core::font::styles::normal});
+//        _document.default_attr(core::attr_t {fg_color(), core::font::styles::normal});
         _document.document_size(rows, columns);
         _document.clear();
 

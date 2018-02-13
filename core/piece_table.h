@@ -209,6 +209,31 @@ namespace ryu::core {
         }
     };
 
+    struct selection_t {
+        enum types {
+            clipboard,
+            mark,
+            custom
+        };
+        std::string name {};
+        uint32_t start = 0;
+        uint32_t length = 0;
+        types type = types::clipboard;
+
+        bool operator== (const selection_t& other) {
+            return type == other.type
+                    && name == other.name
+                    && start == other.start
+                    && length == other.length;
+        }
+
+        bool operator!= (const selection_t& other) {
+            return !(*this == other);
+        }
+    };
+
+    using selection_list = std::vector<selection_t>;
+
     struct piece_table_t {
         void clear();
 
@@ -218,15 +243,31 @@ namespace ryu::core {
 
         const attr_line_list& sequence();
 
+        const selection_t& add_selection(
+                selection_t::types type,
+                uint32_t start,
+                uint32_t length,
+                const std::string& name = "");
+
         void load(const piece_table_buffer_t& buffer);
+
+        element_list cut(const selection_t& selection);
+
+        element_list copy(const selection_t& selection);
 
         void delete_at(uint32_t offset, uint32_t length);
 
+        void delete_selection(const selection_t& selection);
+
+        void remove_selection(const selection_t& selection);
+
         void insert_at(uint32_t offset, const element_t& element);
 
+        void paste(const selection_t& selection, const element_list& elements);
+
         piece_list_t pieces {};
-        attr_t default_attr {};
         attr_line_list lines {};
+        selection_list selections {};
         piece_table_buffer_t original {};
         piece_table_buffer_t changes {piece_table_buffer_t::types::changes};
     };

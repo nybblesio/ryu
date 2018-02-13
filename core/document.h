@@ -81,15 +81,11 @@ namespace ryu::core {
 
         uint8_t page_width() const;
 
-        attr_t default_attr() const;
-
         uint8_t page_height() const;
 
         bool column(uint16_t column);
 
         void caret(core::caret* value);
-
-        void default_attr(attr_t value);
 
         void path(const fs::path& value);
 

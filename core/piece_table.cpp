@@ -9,6 +9,7 @@
 //
 
 #include <sstream>
+#include <algorithm>
 #include "piece_table.h"
 
 namespace ryu::core {
@@ -85,7 +86,6 @@ namespace ryu::core {
         pieces.clear();
         changes.clear();
         original.clear();
-        default_attr = {};
     }
 
     const attr_line_list& piece_table_t::sequence() {
@@ -97,6 +97,15 @@ namespace ryu::core {
             current_node = current_node->next;
         }
         return lines;
+    }
+
+    const selection_t& piece_table_t::add_selection(
+            selection_t::types type,
+            uint32_t start,
+            uint32_t length,
+            const std::string& name) {
+        selections.push_back(selection_t{name, start, length, type});
+        return selections.back();
     }
 
     void piece_table_t::load(const piece_table_buffer_t& buffer) {
@@ -142,18 +151,61 @@ namespace ryu::core {
                 auto new_start = (initial_piece_find_result.data->start
                                  + (offset - initial_piece_find_result.data->start)
                                  + length);
+
                 auto new_piece = std::make_shared<piece_node_t>(
                         new_start,
                         initial_piece_find_result.data->length - new_start,
                         &changes);
+
                 auto cloned_piece = pieces.clone_and_swap(initial_piece_find_result.data);
                 cloned_piece->length = offset;
 
                 pieces.insert_after(cloned_piece, new_piece);
             }
         } else {
+            //
+            //  piece1 <-> piece2 ... piece30 <-> piece31
+            //
+            //     ^-----------------------------------^
+            //                  delete
+            //
+            // 1. merge linked list nodes
+            //      piece1 <-> piece31
+            //
+            // 2. adjust piece1 & piece31 start/length for internal delete
+            //
 
+            auto cloned_initial_node = pieces.clone_and_swap(initial_piece_find_result.data);
+            auto cloned_final_node = pieces.clone_and_swap(final_piece_find_result.data);
+
+            if (cloned_initial_node->next != cloned_final_node->prev) {
+                cloned_initial_node->next = cloned_final_node;
+                cloned_final_node->prev = cloned_initial_node;
+            }
+
+            // XXX: clamp to 0
+            auto initial_offset = (cloned_initial_node->start
+                              + (offset - cloned_initial_node->start)
+                              + length);
+            cloned_initial_node->length -= initial_offset;
+            if (cloned_initial_node->length == 0) {
+                // cut out node?
+            }
+
+            // XXX: clamp to 0
+            auto final_offset = (cloned_final_node->start
+                                   + ((offset + length) - cloned_final_node->start)
+                                   + length);
+            cloned_final_node->start += final_offset;
+            cloned_final_node->length -= final_offset;
+            if (cloned_final_node->length == 0) {
+                // cut out node?
+            }
         }
+    }
+
+    void piece_table_t::remove_selection(const selection_t& selection) {
+        std::remove(selections.begin(), selections.end(), selection);
     }
 
     void piece_table_t::insert_at(uint32_t offset, const element_t& element) {
@@ -226,6 +278,29 @@ namespace ryu::core {
                 // XXX: should never happen
                 break;
         }
+    }
+
+    element_list piece_table_t::cut(const selection_t& selection) {
+        auto elements = copy(selection);
+        delete_selection(selection);
+        return elements;
+    }
+
+    element_list piece_table_t::copy(const selection_t& selection) {
+        element_list elements {};
+        auto formatted_lines = sequence();
+        return elements;
+    }
+
+    void piece_table_t::delete_selection(const selection_t& selection) {
+        delete_at(selection.start, selection.length);
+    }
+
+    void piece_table_t::paste(const selection_t& selection, const element_list& elements) {
+        delete_at(selection.start, selection.length);
+        auto offset = 0;
+        for (const auto& element : elements)
+            insert_at(selection.start + offset++, element);
     }
 
     ///////////////////////////////////////////////////////////////////////////

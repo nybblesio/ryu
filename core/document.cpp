@@ -174,10 +174,6 @@ namespace ryu::core {
         return _page_width;
     }
 
-    attr_t document::default_attr() const {
-        return _piece_table.default_attr;
-    }
-
     uint8_t document::page_height() const {
         return _page_height;
     }
@@ -192,10 +188,6 @@ namespace ryu::core {
     void document::raise_document_changed() {
         if (_document_changed_callback != nullptr)
             _document_changed_callback();
-    }
-
-    void document::default_attr(attr_t value) {
-        _piece_table.default_attr = value;
     }
 
     void document::caret(core::caret* value) {

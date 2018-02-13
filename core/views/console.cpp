@@ -90,11 +90,11 @@ namespace ryu::core {
         });
 
         _document.caret(&_caret);
-        _document.default_attr(core::attr_t {
-            _color,
-            core::font::styles::normal,
-            core::font::flags::none
-        });
+//        _document.default_attr(core::attr_t {
+//            _color,
+//            core::font::styles::normal,
+//            core::font::flags::none
+//        });
         _document.document_size(4096, 128);
         _document.on_document_changed([&]() {
             raise_caret_changed();
