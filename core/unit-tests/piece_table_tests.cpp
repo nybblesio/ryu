@@ -195,6 +195,36 @@ namespace ryu::core::unit_tests {
             REQUIRE(first_line.size() == 1);
             REQUIRE(first_line[0].text == "An extremely quick brown fox jumps over the white fence.");
         }
+
+        SECTION("piece table deletes across pieces") {
+            offset = 32;
+            std::string inserted_text = " white ";
+            for (auto c : inserted_text) {
+                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
+            }
+
+            REQUIRE(piece_table.original.empty());
+            REQUIRE(piece_table.changes.size() == expected_text.length() + inserted_text.length());
+            REQUIRE(piece_table.pieces.size() == 3);
+
+            auto lines = piece_table.sequence();
+            REQUIRE(lines.size() == 1);
+            auto first_line = lines[0];
+            REQUIRE(first_line.size() == 1);
+            REQUIRE(first_line[0].text == "A quick brown fox jumps over the white fence.");
+
+            piece_table.delete_at(29, 10);
+
+            REQUIRE(piece_table.original.empty());
+            REQUIRE(piece_table.changes.size() == expected_text.length() + inserted_text.length());
+            REQUIRE(piece_table.pieces.size() == 2);
+
+            auto updated_lines = piece_table.sequence();
+            REQUIRE(updated_lines.size() == 1);
+            auto updated_first_line = lines[0];
+            REQUIRE(updated_first_line.size() == 1);
+            REQUIRE(updated_first_line[0].text == "A quick brown fox jumps over fence.");
+        }
     }
 
     TEST_CASE("piece_table_with_empty_original_with_different_attrs", "[piece-table]") {

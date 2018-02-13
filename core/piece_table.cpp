@@ -9,7 +9,6 @@
 //
 
 #include <sstream>
-#include <algorithm>
 #include "piece_table.h"
 
 namespace ryu::core {
@@ -88,6 +87,15 @@ namespace ryu::core {
         original.clear();
     }
 
+    const selection_t& piece_table_t::add_selection(
+            selection_t::types type,
+            uint32_t start,
+            uint32_t length,
+            const std::string& name) {
+        selections.push_back(selection_t{name, start, length, type});
+        return selections.back();
+    }
+
     const attr_line_list& piece_table_t::sequence() {
         if (!lines.empty())
             return lines;
@@ -97,15 +105,6 @@ namespace ryu::core {
             current_node = current_node->next;
         }
         return lines;
-    }
-
-    const selection_t& piece_table_t::add_selection(
-            selection_t::types type,
-            uint32_t start,
-            uint32_t length,
-            const std::string& name) {
-        selections.push_back(selection_t{name, start, length, type});
-        return selections.back();
     }
 
     void piece_table_t::load(const piece_table_buffer_t& buffer) {
@@ -240,15 +239,6 @@ namespace ryu::core {
                 break;
             }
             case piece_find_result_t::medial: {
-                //
-                //
-                // piece: 0................10
-                //           ^
-                //           3 index zero based
-                //   left: 0..2
-                //    new: 3
-                //  right: 4..95
-
                 auto new_change_offset = changes.size() - 1;
                 auto linear_offset = pieces.linear_offset(const_cast<piece_node_t*>(find_result.data));
 
@@ -420,7 +410,10 @@ namespace ryu::core {
     }
 
     piece_node_t* piece_list_t::clone_and_swap(piece_node_t* node) {
-        auto clone_node = std::make_shared<piece_node_t>(node->start, node->length, node->buffer);
+        auto clone_node = std::make_shared<piece_node_t>(
+                node->start,
+                node->length,
+                node->buffer);
         owned_pieces.insert(clone_node);
         auto clone_raw_ptr = clone_node.get();
         if (node->prev != nullptr) {
