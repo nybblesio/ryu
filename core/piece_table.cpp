@@ -32,7 +32,7 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    void piece_t::copy_elements(attr_line_list& lines) {
+    void piece_node_t::copy_elements(attr_line_list& lines) {
         if (length == 0)
             return;
 
@@ -80,6 +80,30 @@ namespace ryu::core {
         default_attr = {};
     }
 
+    const attr_line_list& piece_table_t::sequence() {
+        if (!lines.empty())
+            return lines;
+        auto current_node = pieces.head;
+        while (current_node != nullptr) {
+            current_node->copy_elements(lines);
+            current_node = current_node->next;
+        }
+        return lines;
+    }
+
+    void piece_table_t::load(const piece_table_buffer_t& buffer) {
+        clear();
+        original = buffer;
+        lines.clear();
+
+        if (!buffer.empty()) {
+            pieces.add_tail(std::make_shared<piece_node_t>(
+                    0,
+                    original.elements.size(),
+                    &original));
+        }
+    }
+
     void piece_table_t::delete_at(uint32_t offset, uint32_t length) {
         if (length == 0)
             return;
@@ -89,13 +113,13 @@ namespace ryu::core {
         auto initial_piece_find_result = pieces.find_for_offset(offset);
         size_t initial_linear_offset = 0;
         if (initial_piece_find_result.type != piece_find_result_t::none) {
-            initial_linear_offset = pieces.linear_offset(*initial_piece_find_result.data);
+            initial_linear_offset = pieces.linear_offset(const_cast<piece_node_t*>(initial_piece_find_result.data));
         }
 
         auto final_piece_find_result = pieces.find_for_offset(static_cast<uint32_t>(offset + length));
         size_t final_linear_offset = 0;
         if (final_piece_find_result.type != piece_find_result_t::none) {
-            final_linear_offset = pieces.linear_offset(*final_piece_find_result.data);
+            final_linear_offset = pieces.linear_offset(const_cast<piece_node_t*>(initial_piece_find_result.data));
         }
 
         if (initial_piece_find_result.data == final_piece_find_result.data) {
@@ -108,19 +132,20 @@ namespace ryu::core {
                 auto new_start = (initial_piece_find_result.data->start
                                  + (offset - initial_piece_find_result.data->start)
                                  + length);
-                auto new_piece = piece_t {
+                auto new_piece = std::make_shared<piece_node_t>(
                         new_start,
                         initial_piece_find_result.data->length - new_start,
-                        &changes};
+                        &changes);
                 initial_piece_find_result.data->length = offset;
-                pieces.data.insert(initial_piece_find_result.index, new_piece);
+
+                pieces.insert_after(initial_piece_find_result.data, new_piece);
             }
         } else {
 
         }
     }
 
-    void piece_table_t::insert(uint32_t offset, const element_t& element) {
+    void piece_table_t::insert_at(uint32_t offset, const element_t& element) {
         lines.clear();
         changes.elements.push_back(element);
 
@@ -130,16 +155,14 @@ namespace ryu::core {
                                false;
         switch (find_result.type) {
             case piece_find_result_t::none: {
-                piece_t new_piece {offset, 1, &changes};
-                pieces.data.push_back(new_piece);
+                pieces.add_tail(std::make_shared<piece_node_t>(offset, 1, &changes));
                 break;
             }
             case piece_find_result_t::first: {
                 if (is_change_piece && find_result.data->end() + 1 == offset) {
                     find_result.data->length++;
                 } else {
-                    piece_t new_piece {offset, 1, &changes};
-                    pieces.data.push_back(new_piece);
+                    pieces.add_tail(std::make_shared<piece_node_t>(offset, 1, &changes));
                 }
                 break;
             }
@@ -147,8 +170,7 @@ namespace ryu::core {
                 if (is_change_piece) {
                     find_result.data->length++;
                 } else {
-                    piece_t new_piece {offset, 1, &changes};
-                    pieces.data.push_back(new_piece);
+                    pieces.add_tail(std::make_shared<piece_node_t>(offset, 1, &changes));
                 }
                 break;
             }
@@ -163,29 +185,29 @@ namespace ryu::core {
                 //  right: 4..95
 
                 auto new_change_offset = changes.size() - 1;
-                auto linear_offset = pieces.linear_offset(*find_result.data);
+                auto linear_offset = pieces.linear_offset(const_cast<piece_node_t*>(find_result.data));
 
                 if (linear_offset == offset) {
                     find_result.data->length++;
                     break;
                 }
 
-                auto new_piece = piece_t {
+                auto new_piece = std::make_shared<piece_node_t>(
                         static_cast<uint32_t>(new_change_offset),
                         1,
-                        &changes};
+                        &changes);
 
                 auto left_piece = find_result.data;
-                auto right_piece = piece_t {
+                auto right_piece = std::make_shared<piece_node_t>(
                         offset + 1,
                         left_piece->length - (offset + 1),
                         left_piece->buffer
-                };
+                );
 
                 left_piece->length = offset;
 
-                pieces.data.insert(find_result.index, new_piece);
-                pieces.data.insert(find_result.index, right_piece);
+                pieces.insert_after(find_result.data, new_piece);
+                pieces.insert_after(new_piece.get(), right_piece);
                 break;
             }
             default:
@@ -194,83 +216,124 @@ namespace ryu::core {
         }
     }
 
-    const attr_line_list& piece_table_t::sequence() {
-        if (!lines.empty())
-            return lines;
-        for (auto& piece : pieces.data) {
-            piece.copy_elements(lines);
-        }
-        return lines;
-    }
-
-    void piece_table_t::load(const piece_table_buffer_t& buffer) {
-        clear();
-        original = buffer;
-        lines.clear();
-
-        if (!buffer.empty()) {
-            piece_t first_piece{0, original.elements.size(), &original};
-            pieces.data.push_back(first_piece);
-        }
-    }
-
     ///////////////////////////////////////////////////////////////////////////
+
+    size_t piece_list_t::size() const {
+        size_t count = 0;
+        auto current_node = head;
+        while (current_node != nullptr) {
+            ++count;
+            current_node = current_node->next;
+        }
+        return count;
+    }
 
     size_t piece_list_t::total_length() const {
         size_t length = 0;
-        for (auto& piece : data)
-            length += piece.length;
+        auto current_node = head;
+        while (current_node != nullptr) {
+            length += current_node->length;
+            current_node = current_node->next;
+        }
         return length;
+    }
+
+    void piece_list_t::add_tail(const piece_shared_ptr& piece) {
+        auto raw_ptr = piece.get();
+        owned_pieces.insert(piece);
+        if (head == nullptr) {
+            head = raw_ptr;
+            tail = raw_ptr;
+        } else {
+            raw_ptr->prev = tail;
+            tail->next = raw_ptr;
+            tail = raw_ptr;
+        }
+    }
+
+    void piece_list_t::insert_head(const piece_shared_ptr& piece) {
+        auto raw_ptr = piece.get();
+        owned_pieces.insert(piece);
+        if (head == nullptr) {
+            head = raw_ptr;
+            tail = raw_ptr;
+        } else {
+            raw_ptr->next = head;
+            head->prev = raw_ptr;
+            head = raw_ptr;
+        }
     }
 
     piece_find_result_t piece_list_t::find_for_offset(uint32_t offset) {
         piece_find_result_t result {};
-        if (data.empty()) {
+        if (empty()) {
             return result;
         }
 
         if (offset == 0) {
-            result.data = &data.front();
+            result.data = head;
             result.type = piece_find_result_t::types::first;
         } else if (offset >= total_length()) {
-            result.data = &data.back();
+            result.data = tail;
             result.type = piece_find_result_t::types::final;
         } else {
             auto piece_offset = 0;
-            auto piece_it = data.begin();
-            while (piece_it != data.end()) {
-                auto& current_piece = *piece_it;
+            auto current_node = head;
+            while (current_node != nullptr) {
                 if (offset >= piece_offset
-                &&  offset <= piece_offset + current_piece.length) {
+                &&  offset <= piece_offset + current_node->length) {
                     break;
                 }
-                piece_offset += current_piece.length;
-                ++piece_it;
+                piece_offset += current_node->length;
+                current_node = current_node->next;
             }
-
-            if (piece_it != data.end()) {
-                result.data = &(*piece_it);
-                result.type = piece_find_result_t::types::medial;
-                result.index = ++piece_it;
-            }
+            result.data = current_node;
+            result.type = piece_find_result_t::types::medial;
         }
 
         return result;
     }
 
-    size_t piece_list_t::linear_offset(const piece_t& piece) const {
+    size_t piece_list_t::linear_offset(const piece_node_t* start_node) const {
         size_t offset = 0;
-        auto it = data.cbegin();
-        if (it == data.cend())
-            return 0;
-        while (it != data.cend()) {
-            auto& current_piece = *it;
-            offset += current_piece.length;
-            if (current_piece == piece)
-                break;
-            ++it;
+        auto current_node = start_node;
+        while (current_node != nullptr) {
+            offset += current_node->length;
+            current_node = current_node->prev;
         }
         return offset;
+    }
+
+    void piece_list_t::insert_after(piece_node_t* node, const piece_shared_ptr& piece) {
+        owned_pieces.insert(piece);
+
+        const auto piece_raw_ptr = piece.get();
+        auto node_next = node->next;
+
+        piece_raw_ptr->next = node_next;
+        piece_raw_ptr->prev = node;
+        if (node_next != nullptr)
+            node_next->prev = piece_raw_ptr;
+        else
+            tail = piece_raw_ptr;
+
+        node->next = piece_raw_ptr;
+    }
+
+    void piece_list_t::insert_before(piece_node_t* node, const piece_shared_ptr& piece) {
+        owned_pieces.insert(piece);
+
+        const auto piece_raw_ptr = piece.get();
+        auto node_prev = node->prev;
+
+        piece_raw_ptr->next = node;
+        piece_raw_ptr->prev = node_prev;
+        if (node_prev != nullptr)
+            node_prev->next = piece_raw_ptr;
+        else
+            head = piece_raw_ptr;
+
+        node->prev = piece_raw_ptr;
     }
 
 };

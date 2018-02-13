@@ -206,7 +206,7 @@ namespace ryu::core {
     }
 
     void document::put(const element_t& value) {
-        _piece_table.insert(
+        _piece_table.insert_at(
                 static_cast<uint32_t>(((_row + _caret->row()) * _columns) + (_column + _caret->column())),
                 value);
     }

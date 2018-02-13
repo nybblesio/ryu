@@ -24,7 +24,7 @@ namespace ryu::core::unit_tests {
 
         uint32_t offset = 0;
         for (auto c : expected_text) {
-            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         REQUIRE(piece_table.original.empty());
@@ -51,7 +51,7 @@ namespace ryu::core::unit_tests {
 
         uint32_t offset = 0;
         for (auto c : expected_text) {
-            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         REQUIRE(piece_table.original.empty());
@@ -117,7 +117,7 @@ namespace ryu::core::unit_tests {
 
         uint32_t offset = 0;
         for (auto c : expected_text) {
-            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         REQUIRE(piece_table.original.empty());
@@ -136,7 +136,7 @@ namespace ryu::core::unit_tests {
             offset = 32;
             std::string inserted_text = " white ";
             for (auto c : inserted_text) {
-                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());
@@ -154,13 +154,13 @@ namespace ryu::core::unit_tests {
             offset = 32;
             std::string inserted_medial_text = " white ";
             for (auto c : inserted_medial_text) {
-                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             offset = 1;
             std::string inserted_initial_text = "n extremely ";
             for (auto c : inserted_initial_text) {
-                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());
@@ -194,7 +194,7 @@ namespace ryu::core::unit_tests {
             } else {
                 default_attr.color = 1;
             }
-            piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
         }
 
         SECTION("piece table returns attributed spans matching setup") {
@@ -215,7 +215,7 @@ namespace ryu::core::unit_tests {
             offset = 32;
             std::string inserted_text = " white ";
             for (auto c : inserted_text) {
-                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());
@@ -235,7 +235,7 @@ namespace ryu::core::unit_tests {
             offset = 1;
             std::string inserted_text = "n extremely ";
             for (auto c : inserted_text) {
-                piece_table.insert(offset++, element_t{default_attr, (uint8_t) c});
+                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
             }
 
             REQUIRE(piece_table.original.empty());

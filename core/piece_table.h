@@ -62,11 +62,23 @@ namespace ryu::core {
         bool safe_value(std::stringstream& stream) const;
     };
 
+    struct piece_node_t;
+
+    typedef std::shared_ptr<piece_node_t> piece_shared_ptr;
+
     struct piece_table_buffer_t;
 
-    struct piece_t {
+    struct piece_node_t {
+        piece_node_t(uint32_t start, uint32_t length, piece_table_buffer_t* buffer) {
+            this->start = start;
+            this->length = length;
+            this->buffer = buffer;
+        }
+
         uint32_t start {};
-        size_t length {};
+        uint32_t length {};
+        piece_node_t* prev = nullptr;
+        piece_node_t* next = nullptr;
         piece_table_buffer_t* buffer = nullptr;
 
         inline size_t end() const {
@@ -75,23 +87,23 @@ namespace ryu::core {
 
         void copy_elements(attr_line_list& lines);
 
-        bool operator== (const piece_t& other) {
+        bool operator== (const piece_node_t& other) {
             return start == other.start
                    && length == other.length
                    && buffer == other.buffer;
         }
 
-        bool operator!= (const piece_t& other) {
+        bool operator!= (const piece_node_t& other) {
             return !(*this == other);
         }
 
-        bool operator== (const piece_t& other) const {
+        bool operator== (const piece_node_t& other) const {
             return start == other.start
                    && length == other.length
                    && buffer == other.buffer;
         }
 
-        bool operator!= (const piece_t& other) const {
+        bool operator!= (const piece_node_t& other) const {
             return !(*this == other);
         }
     };
@@ -103,31 +115,65 @@ namespace ryu::core {
             final,
             medial
         };
-        piece_t* data = nullptr;
         types type = types::none;
-        std::list<piece_t>::iterator index {};
+        piece_node_t* data = nullptr;
     };
 
+    //
+    //       +---------+
+    //       |  piece  |
+    //  <--  |         | -->   ...  ...  ...
+    //  prev +---------+ next
+    //
+    // (chain 1) (current) nullptr <- piece1 <-> piece2 <-> piece3 -> nullptr
+    //
+    // 1. insert at beginning of piece2
+    //
+    // (chain 2) (current) nullptr <- piece1.1 <-> piece2.1 <-> piece3.1 -> nullptr
+    // push (chain 1) (undo stack)
+    //
+    // chain or span is
+    //
+    // 2. insert into middle of piece2.1
+    //
+    // (chain 3) (current) nullptr <- piece1.1 <-> piece4(left of 2.1) <-> piece5 <-> piece6(right of 2.1) <-> piece3 -> nullptr
+    //
+    //
+    // 0 <-> a <-> b <-> c <-> d <-> e <-> f <-> g -> 0
+    //
+    // 3. insert into middle of "d"
+    //
+    // 0 <-> a <-> b <-> c1 <-> dl1 <-> h <-> dr1 <-> e1 <-> f <-> g -> 0
+    //
+    //
     struct piece_list_t {
-        void clear() {
-            data.clear();
+        piece_node_t* head = nullptr;
+        piece_node_t* tail = nullptr;
+        std::set<piece_shared_ptr> owned_pieces {};
+
+        inline void clear() {
+            head = nullptr;
         }
 
         inline bool empty() const {
-            return data.empty();
+            return head == nullptr;
         }
 
-        inline size_t size() const {
-            return data.size();
-        }
+        size_t size() const;
 
         size_t total_length() const;
 
-        size_t linear_offset(const piece_t& piece) const;
+        void add_tail(const piece_shared_ptr& piece);
+
+        void insert_head(const piece_shared_ptr& piece);
 
         piece_find_result_t find_for_offset(uint32_t offset);
 
-        std::list<piece_t> data {};
+        size_t linear_offset(const piece_node_t* start_node) const;
+
+        void insert_after(piece_node_t* node, const piece_shared_ptr& piece);
+
+        void insert_before(piece_node_t* node, const piece_shared_ptr& piece);
     };
 
     struct piece_table_buffer_t {
@@ -155,20 +201,20 @@ namespace ryu::core {
     struct piece_table_t {
         void clear();
 
-        void delete_at(uint32_t offset, uint32_t length);
-
-        void insert(uint32_t offset, const element_t& element);
-
         const attr_line_list& sequence();
 
         void load(const piece_table_buffer_t& buffer);
+
+        void delete_at(uint32_t offset, uint32_t length);
+
+        void insert_at(uint32_t offset, const element_t& element);
 
         piece_list_t pieces {};
         attr_t default_attr {};
         attr_line_list lines {};
         piece_table_buffer_t original {};
-        std::stack<piece_t*> undo_stack {};
-        std::stack<piece_t*> redo_stack {};
+        std::stack<piece_node_t*> undo_stack {};
+        std::stack<piece_node_t*> redo_stack {};
         piece_table_buffer_t changes {piece_table_buffer_t::types::changes};
     };
 
