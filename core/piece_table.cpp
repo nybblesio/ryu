@@ -13,25 +13,6 @@
 
 namespace ryu::core {
 
-    ///////////////////////////////////////////////////////////////////////////
-
-    bool element_t::safe_value(std::stringstream& stream) const {
-        auto newline = false;
-        if (is_newline())
-            newline = true;
-        else if (is_tab())
-            stream << "    ";           // XXX: this is hard coded
-        else if (is_percent())
-            stream << "%%";
-        else if (is_space())
-            stream << " ";
-        else
-            stream << value;
-        return newline;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-
     void piece_node_t::copy_elements(
             attr_line_list& lines,
             uint32_t begin,

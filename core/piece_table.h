@@ -16,97 +16,9 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include "core_types.h"
 
 namespace ryu::core {
-
-    struct attr_t {
-        uint8_t color = 0;
-        uint8_t style = 0;
-        uint8_t flags = 0;
-        bool operator== (const attr_t& rhs) const {
-            return color == rhs.color && style == rhs.style && flags == rhs.flags;
-        }
-        bool operator!= (const attr_t& rhs) const {
-            return color != rhs.color || style != rhs.style || flags != rhs.flags;
-        }
-    };
-
-    struct attr_span_t {
-        attr_t attr {};
-        std::string text {};
-    };
-
-    using attr_span_list = std::vector<attr_span_t>;
-
-    struct element_t {
-        attr_t attr {};
-        uint8_t value = 0;
-
-        inline bool is_tab() const {
-            return value == '\t';
-        }
-
-        inline bool is_space() const {
-            return isspace(value);
-        }
-
-        inline bool is_newline() const {
-            return value == '\n';
-        }
-
-        inline bool is_percent() const {
-            return value == 37;
-        }
-
-        bool safe_value(std::stringstream& stream) const;
-    };
-
-    using element_list = std::vector<element_t>;
-
-    struct attr_span_list_t {
-        attr_span_t& back() {
-            return spans.back();
-        }
-
-        inline bool empty() const {
-            return spans.empty();
-        }
-
-        inline size_t size() const {
-            return spans.size();
-        }
-
-        const element_list& sequence() {
-            if (elements.empty()) {
-                for (const auto& span : spans) {
-                    for (auto c : span.text)
-                        elements.push_back(element_t{span.attr, static_cast<uint8_t>(c)});
-                }
-            }
-            return elements;
-        }
-
-        const attr_span_t& back() const {
-            return spans.back();
-        }
-
-        attr_span_t& operator[](size_t index) {
-            return spans[index];
-        }
-
-        inline void push_back(const attr_span_t& attr) {
-            spans.push_back(attr);
-        }
-
-        const attr_span_t& operator[](size_t index) const {
-            return spans[index];
-        }
-
-        attr_span_list spans {};
-        element_list elements {};
-    };
-
-    using attr_line_list = std::vector<attr_span_list_t>;
 
     struct piece_node_t;
 
