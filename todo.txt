@@ -8,8 +8,6 @@ Project & Admin tasks
 
 - Create website for Ryu project
 
-- turn off irc events in weechat
-
 Thoughts & Questions
 ----------------------
 
@@ -26,8 +24,6 @@ IDE UI & related tasks
 ----------------------
 
 - piece_table_t::copy requires custom version of sequence/copy_elements
-
-- finish delete_at span multiple pieces scenario
 
 - core::document: re-implement API surface with new core::piece_table_t
     * unit tests to verify document is working
@@ -129,3 +125,5 @@ DONE
     * remove std::list<> and use std::shared_ptr<core::piece_node_t> instead for doubly-linked list
 - core::piece_table_t: undo/redo
 - core::piece_table_t: selection (includes marks)/cut/copy/paste
+- turn off irc events in weechat
+- finish delete_at span multiple pieces scenario

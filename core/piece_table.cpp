@@ -174,31 +174,66 @@ namespace ryu::core {
             // 2. adjust piece1 & piece31 start/length for internal delete
             //
 
-            auto cloned_initial_node = pieces.clone_and_swap(initial_piece_find_result.data);
-            auto cloned_final_node = pieces.clone_and_swap(final_piece_find_result.data);
+            //
+            //
+            //  +---------------------------------+--------------+----------------------+
+            //  | 0-32                            | 33-39        | 40-46                |
+            //  |                                 | (39,7)       |                      |
+            //  +---------------------------------+--------------+----------------------+
+            //                                    ^              ^
+            //                                    |--------------|
+            //
 
-            if (cloned_initial_node->next != cloned_final_node->prev) {
-                cloned_initial_node->next = cloned_final_node;
-                cloned_final_node->prev = cloned_initial_node;
-            }
+            uint32_t node_start_offset = 0;
+            uint32_t delete_offset_start = offset;
+            uint32_t delete_offset_end = offset + length;
+            auto current_node = pieces.head;
+            while (current_node != nullptr
+                && delete_offset_start < delete_offset_end) {
+                auto node_end_offset = node_start_offset + current_node->length;
+                if (delete_offset_start >= node_start_offset
+                &&  delete_offset_start <= node_end_offset) {
+                    if (delete_offset_end < node_end_offset) {
+                        auto element_removed_count = delete_offset_end - node_start_offset;
+                        auto cloned_node = pieces.clone_and_swap(current_node);
+                        cloned_node->start += element_removed_count;
+                        cloned_node->length -= element_removed_count;
+                    } else {
+                        auto elements_remaining = delete_offset_start - node_start_offset;
+                        if (elements_remaining == 0) {
+                            pieces.undo_stack.push(current_node);
 
-            // XXX: clamp to 0
-            auto initial_offset = (cloned_initial_node->start
-                              + (offset - cloned_initial_node->start)
-                              + length);
-            cloned_initial_node->length -= initial_offset;
-            if (cloned_initial_node->length == 0) {
-                // cut out node?
-            }
+                            if (current_node->prev == nullptr) {
+                                auto current_head = pieces.head;
+                                pieces.head = current_node;
+                                if (current_head == pieces.tail) {
+                                    pieces.tail = pieces.head;
+                                }
+                            } else if (current_node->next == nullptr) {
+                                auto current_tail = pieces.tail;
+                                pieces.tail = current_node;
+                                if (current_tail == pieces.head) {
+                                    pieces.head = pieces.tail;
+                                }
+                            }
 
-            // XXX: clamp to 0
-            auto final_offset = (cloned_final_node->start
-                                   + ((offset + length) - cloned_final_node->start)
-                                   + length);
-            cloned_final_node->start += final_offset;
-            cloned_final_node->length -= final_offset;
-            if (cloned_final_node->length == 0) {
-                // cut out node?
+                            auto current_node_prev = current_node->prev;
+                            if (current_node->prev != nullptr) {
+                                current_node->prev->next = current_node->next;
+                            }
+                            if (current_node->next != nullptr) {
+                                current_node->next->prev = current_node_prev;
+                            }
+                        } else {
+                            auto cloned_node = pieces.clone_and_swap(current_node);
+                            cloned_node->length -= cloned_node->length - elements_remaining;
+                        }
+                    }
+                }
+
+                node_start_offset += current_node->length;
+                delete_offset_start = node_start_offset;
+                current_node = current_node->next;
             }
         }
     }

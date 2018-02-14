@@ -213,17 +213,33 @@ namespace ryu::core::unit_tests {
             REQUIRE(first_line.size() == 1);
             REQUIRE(first_line[0].text == "A quick brown fox jumps over the white fence.");
 
-            piece_table.delete_at(29, 10);
+            SECTION("deleting across two pieces, where second is completely removed") {
+                piece_table.delete_at(29, 10);
 
-            REQUIRE(piece_table.original.empty());
-            REQUIRE(piece_table.changes.size() == expected_text.length() + inserted_text.length());
-            REQUIRE(piece_table.pieces.size() == 2);
+                REQUIRE(piece_table.original.empty());
+                REQUIRE(piece_table.changes.size() == expected_text.length() + inserted_text.length());
+                REQUIRE(piece_table.pieces.size() == 2);
 
-            auto updated_lines = piece_table.sequence();
-            REQUIRE(updated_lines.size() == 1);
-            auto updated_first_line = lines[0];
-            REQUIRE(updated_first_line.size() == 1);
-            REQUIRE(updated_first_line[0].text == "A quick brown fox jumps over fence.");
+                auto updated_lines = piece_table.sequence();
+                REQUIRE(updated_lines.size() == 1);
+                auto updated_first_line = updated_lines[0];
+                REQUIRE(updated_first_line.size() == 1);
+                REQUIRE(updated_first_line[0].text == "A quick brown fox jumps over fence.");
+            }
+
+            SECTION("deleting across three pieces, where second is completely removed, and third is adjusted") {
+                piece_table.delete_at(29, 12);
+
+                REQUIRE(piece_table.original.empty());
+                REQUIRE(piece_table.changes.size() == expected_text.length() + inserted_text.length());
+                REQUIRE(piece_table.pieces.size() == 2);
+
+                auto updated_lines = piece_table.sequence();
+                REQUIRE(updated_lines.size() == 1);
+                auto updated_first_line = updated_lines[0];
+                REQUIRE(updated_first_line.size() == 1);
+                REQUIRE(updated_first_line[0].text == "A quick brown fox jumps over nce.");
+            }
         }
     }
 
