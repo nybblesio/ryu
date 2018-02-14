@@ -50,7 +50,7 @@ include_directories(
         ${SDL2_INCLUDE_DIR}
         ${SDL2_IMAGE_INCLUDE_DIRS}
         ${SDL2_TTF_INCLUDE_DIRS}
-        ${RTTR_INCLUDE_DIR}
+        RTTR::Core
 )
 
 # project libraries
