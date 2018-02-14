@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <rttr/type>
 #include <hardware/integrated_circuit.h>
 #include "opcode.h"
 #include "assembly_language_parser.h"

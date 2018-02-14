@@ -248,6 +248,7 @@
 ----------------------------------------------------------------
 */
 
+#include <rttr/registration>
 #include "cpu.h"
 
 RTTR_REGISTRATION {

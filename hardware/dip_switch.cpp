@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <rttr/registration>
 #include "dip_switch.h"
 
 RTTR_REGISTRATION {

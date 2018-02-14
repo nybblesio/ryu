@@ -9,6 +9,7 @@
 //
 
 #include <common/bytes.h>
+#include <rttr/registration>
 #include "ram.h"
 
 RTTR_REGISTRATION {

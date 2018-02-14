@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <rttr/registration>
 #include "memory_mapper.h"
 
 RTTR_REGISTRATION {

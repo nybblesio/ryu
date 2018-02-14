@@ -8,7 +8,7 @@
 #pragma once
 
 #include <string>
-#include <rttr/registration>
+#include <rttr/type>
 #include <core/core_types.h>
 #include <core/assembly_language_parser.h>
 #include "memory_map.h"

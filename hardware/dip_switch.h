@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cstdint>
+#include <rttr/type>
 #include "integrated_circuit.h"
 
 namespace ryu::hardware {

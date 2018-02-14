@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <rttr/type>
 #include <common/IntervalTree.h>
 #include "integrated_circuit.h"
 

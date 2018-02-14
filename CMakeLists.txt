@@ -71,6 +71,12 @@ add_custom_command(
         COMMAND ctest -C $<CONFIGURATION> --output-on-failure
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
+# rpath setup
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH "/usr/local/lib")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # target & linkage
 add_executable(
         ryu
@@ -92,6 +98,7 @@ add_executable(
         ryu.properties
         ryu_config.in.h
         application.cpp application.h)
+
 target_link_libraries(
         ryu
         ide
@@ -106,7 +113,7 @@ target_link_libraries(
         ${SDL2_TTF_LIBRARIES}
         ${SDL2_IMAGE_LIBRARIES}
         fmt::fmt
-        RTTR::Core
+         RTTR::Core
 )
 
 add_custom_target(ryu-configured DEPENDS dummy-target ryu)
