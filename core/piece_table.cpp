@@ -32,10 +32,10 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    void piece_node_t::copy_elements(attr_line_list& lines) {
-        if (length == 0)
-            return;
-
+    void piece_node_t::copy_elements(
+            attr_line_list& lines,
+            uint32_t begin,
+            uint32_t end) {
         attr_span_list* current_line = nullptr;
         attr_span_t* current_span = nullptr;
         if (!lines.empty()) {
@@ -48,7 +48,7 @@ namespace ryu::core {
         }
 
         std::stringstream stream {};
-        for (size_t i = 0; i < length; i++) {
+        for (size_t i = begin; i < end; i++) {
             auto& element = buffer->elements[start + i];
             if (current_span != nullptr) {
                 if (current_span->attr != element.attr) {
@@ -69,6 +69,10 @@ namespace ryu::core {
 
         if (current_span != nullptr)
             current_span->text += stream.str();
+    }
+
+    void piece_node_t::copy_elements(attr_line_list& lines) {
+        copy_elements(lines, 0, length);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -105,6 +109,33 @@ namespace ryu::core {
             current_node = current_node->next;
         }
         return lines;
+    }
+
+    // TODO: can we consolidate this into piece_list_t?
+    void piece_table_t::swap_deleted_node(piece_node_t* node) {
+        pieces.undo_stack.push(node);
+
+        if (node->prev == nullptr) {
+            auto current_head = pieces.head;
+            pieces.head = node;
+            if (current_head == pieces.tail) {
+                pieces.tail = pieces.head;
+            }
+        } else if (node->next == nullptr) {
+            auto current_tail = pieces.tail;
+            pieces.tail = node;
+            if (current_tail == pieces.head) {
+                pieces.head = pieces.tail;
+            }
+        }
+
+        auto current_node_prev = node->prev;
+        if (node->prev != nullptr) {
+            node->prev->next = node->next;
+        }
+        if (node->next != nullptr) {
+            node->next->prev = current_node_prev;
+        }
     }
 
     void piece_table_t::load(const piece_table_buffer_t& buffer) {
@@ -162,75 +193,37 @@ namespace ryu::core {
                 pieces.insert_after(cloned_piece, new_piece);
             }
         } else {
-            //
-            //  piece1 <-> piece2 ... piece30 <-> piece31
-            //
-            //     ^-----------------------------------^
-            //                  delete
-            //
-            // 1. merge linked list nodes
-            //      piece1 <-> piece31
-            //
-            // 2. adjust piece1 & piece31 start/length for internal delete
-            //
-
-            //
-            //
-            //  +---------------------------------+--------------+----------------------+
-            //  | 0-32                            | 33-39        | 40-46                |
-            //  |                                 | (39,7)       |                      |
-            //  +---------------------------------+--------------+----------------------+
-            //                                    ^              ^
-            //                                    |--------------|
-            //
-
             uint32_t node_start_offset = 0;
             uint32_t delete_offset_start = offset;
             uint32_t delete_offset_end = offset + length;
             auto current_node = pieces.head;
             while (current_node != nullptr
                 && delete_offset_start < delete_offset_end) {
+
                 auto node_end_offset = node_start_offset + current_node->length;
-                if (delete_offset_start >= node_start_offset
-                &&  delete_offset_start <= node_end_offset) {
-                    if (delete_offset_end < node_end_offset) {
-                        auto element_removed_count = delete_offset_end - node_start_offset;
-                        auto cloned_node = pieces.clone_and_swap(current_node);
-                        cloned_node->start += element_removed_count;
-                        cloned_node->length -= element_removed_count;
-                    } else {
-                        auto elements_remaining = delete_offset_start - node_start_offset;
-                        if (elements_remaining == 0) {
-                            pieces.undo_stack.push(current_node);
+                auto elements_remaining = delete_offset_start - node_start_offset;
 
-                            if (current_node->prev == nullptr) {
-                                auto current_head = pieces.head;
-                                pieces.head = current_node;
-                                if (current_head == pieces.tail) {
-                                    pieces.tail = pieces.head;
-                                }
-                            } else if (current_node->next == nullptr) {
-                                auto current_tail = pieces.tail;
-                                pieces.tail = current_node;
-                                if (current_tail == pieces.head) {
-                                    pieces.head = pieces.tail;
-                                }
-                            }
-
-                            auto current_node_prev = current_node->prev;
-                            if (current_node->prev != nullptr) {
-                                current_node->prev->next = current_node->next;
-                            }
-                            if (current_node->next != nullptr) {
-                                current_node->next->prev = current_node_prev;
-                            }
-                        } else {
-                            auto cloned_node = pieces.clone_and_swap(current_node);
-                            cloned_node->length -= cloned_node->length - elements_remaining;
-                        }
-                    }
+                if (!(delete_offset_start >= node_start_offset
+                   && delete_offset_start <= node_end_offset)) {
+                    goto next_node;
                 }
 
+                if (delete_offset_end < node_end_offset) {
+                    auto element_removed_count = delete_offset_end - node_start_offset;
+                    auto cloned_node = pieces.clone_and_swap(current_node);
+                    cloned_node->start += element_removed_count;
+                    cloned_node->length -= element_removed_count;
+                    goto next_node;
+                }
+
+                if (elements_remaining == 0) {
+                    swap_deleted_node(current_node);
+                } else {
+                    auto cloned_node = pieces.clone_and_swap(current_node);
+                    cloned_node->length -= cloned_node->length - elements_remaining;
+                }
+
+            next_node:
                 node_start_offset += current_node->length;
                 delete_offset_start = node_start_offset;
                 current_node = current_node->next;
@@ -305,20 +298,46 @@ namespace ryu::core {
         }
     }
 
-    element_list piece_table_t::cut(const selection_t& selection) {
-        auto elements = copy(selection);
+    attr_line_list piece_table_t::cut(const selection_t& selection) {
+        auto lines = copy(selection);
         delete_selection(selection);
-        return elements;
+        return lines;
     }
 
-    element_list piece_table_t::copy(const selection_t& selection) {
-        element_list elements {};
-        auto formatted_lines = sequence();
-        return elements;
+    attr_line_list piece_table_t::copy(const selection_t& selection) {
+        return sub_sequence(selection.start, selection.start + selection.length);
     }
 
     void piece_table_t::delete_selection(const selection_t& selection) {
         delete_at(selection.start, selection.length);
+    }
+
+    attr_line_list piece_table_t::sub_sequence(uint32_t start, uint32_t end) {
+        attr_line_list lines {};
+        uint32_t node_start_offset = 0;
+        auto current_node = pieces.head;
+        while (current_node != nullptr) {
+            auto node_end_offset = node_start_offset + current_node->length;
+            if (node_start_offset < start && node_end_offset < start) goto next_node;
+            if (node_start_offset > end) break;
+
+            if (end <= node_end_offset) {
+                if (start >= node_start_offset && start <= node_end_offset) {
+                    current_node->copy_elements(lines, start, end - node_start_offset);
+                } else {
+                    current_node->copy_elements(lines, 0, end - node_start_offset);
+                }
+            } else if (start <= node_start_offset) {
+                current_node->copy_elements(lines);
+            } else {
+                auto start_offset = start - current_node->start;
+                current_node->copy_elements(lines, start_offset, current_node->start + current_node->length);
+            }
+        next_node:
+            node_start_offset += current_node->length;
+            current_node = current_node->next;
+        }
+        return lines;
     }
 
     void piece_table_t::paste(const selection_t& selection, const element_list& elements) {

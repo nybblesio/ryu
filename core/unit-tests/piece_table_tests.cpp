@@ -240,6 +240,26 @@ namespace ryu::core::unit_tests {
                 REQUIRE(updated_first_line.size() == 1);
                 REQUIRE(updated_first_line[0].text == "A quick brown fox jumps over nce.");
             }
+
+            SECTION("copy returns a sub-sequence of the piece table where the copy is within a single piece") {
+                auto selection = piece_table.add_selection(selection_t::types::clipboard, 2, 11);
+                REQUIRE(piece_table.selections.size() == 1);
+                auto copied_lines = piece_table.copy(selection);
+                REQUIRE(copied_lines.size() == 1);
+                auto copied_first_line = copied_lines[0];
+                REQUIRE(copied_first_line.size() == 1);
+                REQUIRE(copied_first_line[0].text == "quick brown");
+            }
+
+            SECTION("copy returns a sub-sequence of the piece table where the copy spans multiple pieces") {
+                auto selection = piece_table.add_selection(selection_t::types::clipboard, 23, 20);
+                REQUIRE(piece_table.selections.size() == 1);
+                auto copied_lines = piece_table.copy(selection);
+                REQUIRE(copied_lines.size() == 1);
+                auto copied_first_line = copied_lines[0];
+                REQUIRE(copied_first_line.size() == 1);
+                REQUIRE(copied_first_line[0].text == " over the white fenc");
+            }
         }
     }
 

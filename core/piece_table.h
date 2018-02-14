@@ -87,6 +87,11 @@ namespace ryu::core {
             return start + length;
         }
 
+        void copy_elements(
+                attr_line_list& lines,
+                uint32_t begin,
+                uint32_t end);
+
         void copy_elements(attr_line_list& lines);
     };
 
@@ -249,17 +254,21 @@ namespace ryu::core {
                 uint32_t length,
                 const std::string& name = "");
 
+        void swap_deleted_node(piece_node_t* node);
+
         void load(const piece_table_buffer_t& buffer);
 
-        element_list cut(const selection_t& selection);
-
-        element_list copy(const selection_t& selection);
+        attr_line_list cut(const selection_t& selection);
 
         void delete_at(uint32_t offset, uint32_t length);
+
+        attr_line_list copy(const selection_t& selection);
 
         void delete_selection(const selection_t& selection);
 
         void remove_selection(const selection_t& selection);
+
+        attr_line_list sub_sequence(uint32_t start, uint32_t end);
 
         void insert_at(uint32_t offset, const element_t& element);
 
