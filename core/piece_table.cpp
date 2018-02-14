@@ -9,6 +9,7 @@
 //
 
 #include <sstream>
+#include <algorithm>
 #include "piece_table.h"
 
 namespace ryu::core {
@@ -70,6 +71,10 @@ namespace ryu::core {
         pieces.clear();
         changes.clear();
         original.clear();
+    }
+
+    void piece_table_t::checkpoint() {
+        pieces.checkpoint();
     }
 
     const selection_t& piece_table_t::add_selection(
@@ -213,7 +218,7 @@ namespace ryu::core {
     }
 
     void piece_table_t::remove_selection(const selection_t& selection) {
-        std::remove(selections.begin(), selections.end(), selection);
+        selections.erase(std::remove(selections.begin(), selections.end(), selection));
     }
 
     void piece_table_t::insert_at(uint32_t offset, const element_t& element) {
@@ -251,8 +256,10 @@ namespace ryu::core {
                 auto new_change_offset = changes.size() - 1;
                 auto linear_offset = pieces.linear_offset(const_cast<piece_node_t*>(find_result.data));
 
-                if (linear_offset == offset) {
-                    find_result.data->length++;
+                if (new_change_offset == find_result.data->end()
+                &&  linear_offset == offset) {
+                    auto cloned_node = pieces.clone_and_swap(find_result.data);
+                    cloned_node->length++;
                     break;
                 }
 
@@ -262,9 +269,11 @@ namespace ryu::core {
                         &changes);
 
                 auto left_piece = pieces.clone_and_swap(find_result.data);
+
+                int32_t right_piece_length = std::max<int32_t>(left_piece->length - (offset + 1), 0);
                 auto right_piece = std::make_shared<piece_node_t>(
                         offset + 1,
-                        left_piece->length - (offset + 1),
+                        right_piece_length,
                         left_piece->buffer
                 );
                 left_piece->length = offset;
@@ -364,6 +373,11 @@ namespace ryu::core {
         redo_stack.pop();
     }
 
+    void piece_list_t::checkpoint() {
+        clear_stack(undo_stack);
+        clear_stack(redo_stack);
+    }
+
     size_t piece_list_t::size() const {
         size_t count = 0;
         auto current_node = head;
@@ -414,7 +428,21 @@ namespace ryu::core {
         }
     }
 
-    void piece_list_t::add_tail(const piece_shared_ptr& piece) {
+    void piece_list_t::clear_stack(piece_node_stack& stack) {
+        while (!stack.empty()) {
+            auto top = stack.top();
+            auto it = owned_pieces.begin();
+            for (; it != owned_pieces.end(); ++it) {
+                if ((*it).get() == top) {
+                    owned_pieces.erase(it);
+                    break;
+                }
+            }
+            stack.pop();
+        }
+    }
+
+    void piece_list_t::add_tail(const piece_node_shared_ptr& piece) {
         auto raw_ptr = piece.get();
         owned_pieces.insert(piece);
         if (head == nullptr) {
@@ -429,7 +457,7 @@ namespace ryu::core {
         }
     }
 
-    void piece_list_t::insert_head(const piece_shared_ptr& piece) {
+    void piece_list_t::insert_head(const piece_node_shared_ptr& piece) {
         auto raw_ptr = piece.get();
         owned_pieces.insert(piece);
         if (head == nullptr) {
@@ -507,7 +535,7 @@ namespace ryu::core {
         return offset;
     }
 
-    void piece_list_t::insert_after(piece_node_t* node, const piece_shared_ptr& piece) {
+    void piece_list_t::insert_after(piece_node_t* node, const piece_node_shared_ptr& piece) {
         owned_pieces.insert(piece);
 
         const auto piece_raw_ptr = piece.get();
@@ -523,7 +551,7 @@ namespace ryu::core {
         node->next = piece_raw_ptr;
     }
 
-    void piece_list_t::insert_before(piece_node_t* node, const piece_shared_ptr& piece) {
+    void piece_list_t::insert_before(piece_node_t* node, const piece_node_shared_ptr& piece) {
         owned_pieces.insert(piece);
 
         const auto piece_raw_ptr = piece.get();

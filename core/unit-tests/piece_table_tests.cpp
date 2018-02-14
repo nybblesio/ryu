@@ -260,6 +260,40 @@ namespace ryu::core::unit_tests {
                 REQUIRE(copied_first_line.size() == 1);
                 REQUIRE(copied_first_line[0].text == " over the white fenc");
             }
+
+            SECTION("cut returns a sub-sequence of the piece table and deletes the range") {
+                auto selection = piece_table.add_selection(selection_t::types::clipboard, 23, 20);
+                REQUIRE(piece_table.selections.size() == 1);
+                auto copied_lines = piece_table.cut(selection);
+                REQUIRE(copied_lines.size() == 1);
+                auto copied_first_line = copied_lines[0];
+                REQUIRE(copied_first_line.size() == 1);
+                REQUIRE(copied_first_line[0].text == " over the white fenc");
+
+                auto updated_lines = piece_table.sequence();
+                REQUIRE(updated_lines.size() == 1);
+                auto updated_first_line = updated_lines[0];
+                REQUIRE(updated_first_line.size() == 1);
+                REQUIRE(updated_first_line[0].text == "A quick brown fox jumpse.");
+            }
+
+            SECTION("paste into a range replaces the range of characters with the element_list") {
+                auto selection = piece_table.add_selection(selection_t::types::clipboard, 23, 20);
+                REQUIRE(piece_table.selections.size() == 1);
+
+                std::string to_paste = " fancy";
+                element_list elements {};
+                for (char c : to_paste)
+                    elements.push_back(element_t{default_attr, static_cast<uint8_t>(c)});
+
+                piece_table.paste(selection, elements);
+
+                auto updated_lines = piece_table.sequence();
+                REQUIRE(updated_lines.size() == 1);
+                auto updated_first_line = updated_lines[0];
+                REQUIRE(updated_first_line.size() == 1);
+                REQUIRE(updated_first_line[0].text == "A quick brown fox jumps fancye.");
+            }
         }
     }
 

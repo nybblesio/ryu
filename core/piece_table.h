@@ -22,7 +22,7 @@ namespace ryu::core {
 
     struct piece_node_t;
 
-    using piece_shared_ptr = std::shared_ptr<piece_node_t>;
+    using piece_node_shared_ptr = std::shared_ptr<piece_node_t>;
 
     struct piece_table_buffer_t;
 
@@ -104,14 +104,14 @@ namespace ryu::core {
     //
 
     using piece_node_stack = std::stack<piece_node_t*>;
-    using piece_shared_ptr_set = std::set<piece_shared_ptr>;
+    using piece_node_shared_ptr_set = std::set<piece_node_shared_ptr>;
 
     struct piece_list_t {
         piece_node_t* head = nullptr;
         piece_node_t* tail = nullptr;
         piece_node_stack undo_stack {};
         piece_node_stack redo_stack {};
-        piece_shared_ptr_set owned_pieces {};
+        piece_node_shared_ptr_set owned_pieces {};
 
         inline void clear() {
             head = nullptr;
@@ -125,6 +125,8 @@ namespace ryu::core {
 
         void redo();
 
+        void checkpoint();
+
         size_t size() const;
 
         size_t total_length() const;
@@ -133,19 +135,21 @@ namespace ryu::core {
                 piece_node_t* node,
                 piece_node_stack& target_stack);
 
-        void add_tail(const piece_shared_ptr& piece);
-
-        void insert_head(const piece_shared_ptr& piece);
+        void clear_stack(piece_node_stack& stack);
 
         piece_node_t* clone_and_swap(piece_node_t* node);
+
+        void add_tail(const piece_node_shared_ptr& piece);
+
+        void insert_head(const piece_node_shared_ptr& piece);
 
         piece_find_result_t find_for_offset(uint32_t offset);
 
         size_t linear_offset(const piece_node_t* start_node) const;
 
-        void insert_after(piece_node_t* node, const piece_shared_ptr& piece);
+        void insert_after(piece_node_t* node, const piece_node_shared_ptr& piece);
 
-        void insert_before(piece_node_t* node, const piece_shared_ptr& piece);
+        void insert_before(piece_node_t* node, const piece_node_shared_ptr& piece);
     };
 
     struct piece_table_buffer_t {
@@ -201,6 +205,8 @@ namespace ryu::core {
         void undo();
 
         void redo();
+
+        void checkpoint();
 
         const attr_line_list& sequence();
 
