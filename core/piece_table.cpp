@@ -36,7 +36,7 @@ namespace ryu::core {
             attr_line_list& lines,
             uint32_t begin,
             uint32_t end) {
-        attr_span_list* current_line = nullptr;
+        attr_span_list_t* current_line = nullptr;
         attr_span_t* current_span = nullptr;
         if (!lines.empty()) {
             current_line = &lines.back();

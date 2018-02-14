@@ -37,7 +37,6 @@ namespace ryu::core {
     };
 
     using attr_span_list = std::vector<attr_span_t>;
-    using attr_line_list = std::vector<attr_span_list>;
 
     struct element_t {
         attr_t attr {};
@@ -63,6 +62,51 @@ namespace ryu::core {
     };
 
     using element_list = std::vector<element_t>;
+
+    struct attr_span_list_t {
+        attr_span_t& back() {
+            return spans.back();
+        }
+
+        inline bool empty() const {
+            return spans.empty();
+        }
+
+        inline size_t size() const {
+            return spans.size();
+        }
+
+        const element_list& sequence() {
+            if (elements.empty()) {
+                for (const auto& span : spans) {
+                    for (auto c : span.text)
+                        elements.push_back(element_t{span.attr, static_cast<uint8_t>(c)});
+                }
+            }
+            return elements;
+        }
+
+        const attr_span_t& back() const {
+            return spans.back();
+        }
+
+        attr_span_t& operator[](size_t index) {
+            return spans[index];
+        }
+
+        inline void push_back(const attr_span_t& attr) {
+            spans.push_back(attr);
+        }
+
+        const attr_span_t& operator[](size_t index) const {
+            return spans[index];
+        }
+
+        attr_span_list spans {};
+        element_list elements {};
+    };
+
+    using attr_line_list = std::vector<attr_span_list_t>;
 
     struct piece_node_t;
 

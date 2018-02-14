@@ -171,7 +171,7 @@ namespace ryu::core {
             auto max_line_height = font_face()->line_height;
             auto x = bounds.left() + _caret.padding().left();
 
-            for (const auto& chunk : chunks) {
+            for (const auto& chunk : chunks.spans) {
                 font_style(chunk.attr.style);
 
                 auto face = font_face();
@@ -225,14 +225,12 @@ namespace ryu::core {
                 break;
 
             if (*c == '\n') {
-                _document.split_line();
                 caret_down();
                 caret_home();
-            } else {
-                _document.shift_line_right();
-                _document.put(core::element_t {{}, static_cast<uint8_t>(*c)});
-                caret_right();
             }
+
+            _document.put(core::element_t {{}, static_cast<uint8_t>(*c)});
+            caret_right();
 
             c++;
         }
@@ -271,8 +269,6 @@ namespace ryu::core {
                     break;
                 }
                 case SDLK_RETURN: {
-                    if (_caret.mode() == core::caret::mode::insert)
-                        _document.split_line();
                     caret_down();
                     caret_home();
                     return true;
@@ -281,15 +277,7 @@ namespace ryu::core {
                     if (shift_pressed) {
                         if (_caret.column() == 0)
                             return true;
-//                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
-//                        caret_left(spaces);
-//                        _document.shift_line_left();
                     } else {
-//                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
-//                        _document.shift_line_right();
-//                        for (auto col = _vcol; col < _vcol + spaces; col++)
-//                            _document.put(core::element_t {0});
-//                        caret_right(spaces);
                     }
                     return true;
                 }
@@ -297,35 +285,16 @@ namespace ryu::core {
                     if (_selection.valid()) {
                         delete_selection();
                     } else {
-                        if (_document.is_line_empty()) {
-                            _document.delete_line();
-                        } else {
-                            _document.shift_line_left();
-                        }
                     }
                     return true;
                 }
                 case SDLK_BACKSPACE: {
-                    if (_document.is_line_empty()) {
-                        _document.delete_line();
-                    } else if (_caret.column() == 0) {
-                        _document.delete_line();
-                        caret_up();
-                    } else {
-                        caret_left();
-                        _document.shift_line_left();
-                    }
                     return true;
                 }
                 case SDLK_UP: {
                     if (shift_pressed) {
                         auto line_end = _document.find_line_end();
                         update_selection(line_end);
-//                        for (auto col = _vcol; col < line_end; col++) {
-//                            auto element = _document.get();
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
                     } else {
                         end_selection();
                     }
@@ -338,12 +307,6 @@ namespace ryu::core {
                     if (shift_pressed) {
                         auto line_end = _document.find_line_end();
                         update_selection(line_end);
-//                        for (auto col = _vcol; col < line_end; col++) {
-//                            // here caret would need to move right
-//                            auto element = _document.get();
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
                     } else {
                         end_selection();
                     }
@@ -354,10 +317,6 @@ namespace ryu::core {
                 }
                 case SDLK_LEFT: {
                     if (shift_pressed) {
-//                        update_selection(_vcol);
-//                        auto element = _document.get();
-//                        if (element != nullptr)
-//                            element->attr.flags |= core::font::flags::reverse;
                     } else {
                         end_selection();
                     }
@@ -365,11 +324,7 @@ namespace ryu::core {
                     return true;
                 }
                 case SDLK_RIGHT: {
-                    if (shift_pressed) {
-//                        update_selection(_vcol);
-//                        auto element = _document.get();
-//                        if (element != nullptr)
-//                            element->attr.flags |= core::font::flags::reverse;
+                if (shift_pressed) {
                     } else {
                         end_selection();
                     }
@@ -378,12 +333,6 @@ namespace ryu::core {
                 }
                 case SDLK_HOME: {
                     if (shift_pressed) {
-//                        update_selection(_vcol);
-//                        for (auto col = _vcol; col >= 0; col--) {
-//                            auto element = _document.get();
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
                     } else {
                         end_selection();
                     }
@@ -397,12 +346,6 @@ namespace ryu::core {
                     if (shift_pressed) {
                         auto line_end = _document.find_line_end();
                         update_selection(line_end);
-                        // here caret would need to move right
-//                        for (auto col = _vcol; col < line_end; col++) {
-//                            auto element = _document.get();
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
                     } else {
                         end_selection();
                     }

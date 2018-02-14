@@ -23,6 +23,12 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
+- add unit tests for cut
+
+- add unit tests for paste selection
+
+- add unit tests for delete selection
+
 - core::document: re-implement API surface with new core::piece_table_t
     * unit tests to verify document is working
     * columnar mode by setting span start/end and caret operates within this boundary

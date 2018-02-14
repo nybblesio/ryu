@@ -193,12 +193,6 @@ namespace ryu::core {
                     break;
                 }
                 case SDLK_BACKSPACE: {
-                    if (_caret.column() == 0) {
-                        _document.delete_line();
-                    } else {
-                        caret_left();
-                        _document.shift_left();
-                    }
                     processed = true;
                     break;
                 }

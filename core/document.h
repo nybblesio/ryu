@@ -35,8 +35,6 @@ namespace ryu::core {
 
         void page_up();
 
-        void shift_up();
-
         bool scroll_up();
 
         void page_down();
@@ -47,15 +45,9 @@ namespace ryu::core {
 
         void first_page();
 
-        void split_line();
-
         bool scroll_down();
 
         bool scroll_left();
-
-        void delete_line();
-
-        void insert_line();
 
         bool scroll_right();
 
@@ -91,15 +83,9 @@ namespace ryu::core {
 
         void put(const element_t& value);
 
-        attr_span_list line_at(uint32_t row);
-
         void shift_left(uint16_t times = 1);
 
-        void shift_right(uint16_t times = 1);
-
-        void shift_line_left(uint16_t times = 1);
-
-        void shift_line_right(uint16_t times = 1);
+        attr_span_list_t line_at(uint32_t row);
 
         void page_size(uint8_t height, uint8_t width);
 
@@ -111,6 +97,8 @@ namespace ryu::core {
 
         bool save(core::result& result, std::ostream& stream);
 
+        void shift_right(const attr_t& attr, uint16_t times = 1);
+
         bool save(core::result& result, const fs::path& path = "");
 
         void on_document_changed(const document_changed_callable& callable);
@@ -119,6 +107,8 @@ namespace ryu::core {
         bool clamp_row();
 
         bool clamp_column();
+
+        uint32_t offset() const;
 
         void raise_document_changed();
 

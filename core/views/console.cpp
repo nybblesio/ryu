@@ -222,7 +222,7 @@ namespace ryu::core {
             auto x = bounds.left();
             auto max_line_height = font_face()->line_height;
 
-            for (const auto& chunk : chunks) {
+            for (const auto& chunk : chunks.spans) {
                 font_style(chunk.attr.style);
 
                 auto face = font_face();
@@ -555,9 +555,6 @@ namespace ryu::core {
         }
 
         if (e->type == SDL_TEXTINPUT) {
-            if (mode == core::caret::mode::insert) {
-                _document.shift_right();
-            }
             const char* c = &e->text.text[0];
             while (*c != '\0') {
                 _document.put(core::element_t {
@@ -747,16 +744,11 @@ namespace ryu::core {
                     return true;
 
                 case SDLK_INSERT:
-                    if (ctrl_pressed) {
-                        _document.shift_right();
-                    } else {
-                        if (mode == core::caret::mode::insert)
-                            _caret.overwrite();
-                        else
-                            _caret.insert();
-                        return true;
-                    }
-                    break;
+                    if (mode == core::caret::mode::insert)
+                        _caret.overwrite();
+                    else
+                        _caret.insert();
+                    return true;
 
                 default:
                     break;

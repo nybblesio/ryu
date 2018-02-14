@@ -32,21 +32,21 @@ namespace ryu::core {
         raise_document_changed();
     }
 
-    void document::shift_up() {
-    }
-
-    void document::split_line() {
-        if (_caret->mode() == caret::mode::types::insert) {
-
-        }
-    }
-
     void document::first_page() {
         _row = 0;
         raise_document_changed();
     }
 
     element_t* document::get() {
+        auto lines = _piece_table.sequence();
+        auto virtual_row = _row + _caret->row();
+        auto virtual_column = _column + _caret->column();
+        if (virtual_row < lines.size()) {
+            auto line = lines[_row + _caret->row()];
+            auto elements = line.sequence();
+            if (virtual_column < elements.size())
+                return &elements[_column + _caret->column()];
+        }
         return nullptr;
     }
 
@@ -82,12 +82,6 @@ namespace ryu::core {
         }
 
         return false;
-    }
-
-    void document::insert_line() {
-    }
-
-    void document::delete_line() {
     }
 
     bool document::scroll_left() {
@@ -131,7 +125,9 @@ namespace ryu::core {
     }
 
     bool document::is_line_empty() {
-        return true;
+        auto lines = _piece_table.sequence();
+        auto line = lines[_row + _caret->row()];
+        return line.empty();
     }
 
     core::caret* document::caret() {
@@ -157,8 +153,17 @@ namespace ryu::core {
         return _column;
     }
 
+    uint32_t document::offset() const {
+        auto virtual_row = _row + _caret->row();
+        auto virtual_column = _column + _caret->column();
+        return static_cast<uint32_t>((virtual_row * _columns) + virtual_column);
+    }
+
     uint16_t document::find_line_end() {
-        return 0;
+        auto lines = _piece_table.sequence();
+        auto line = lines[_row + _caret->row()];
+        auto elements = line.sequence();
+        return static_cast<uint16_t>(elements.size());
     }
 
     uint16_t document::columns() const {
@@ -195,32 +200,20 @@ namespace ryu::core {
     }
 
     void document::shift_left(uint16_t times) {
+        _piece_table.delete_at(offset(), times);
     }
 
     void document::put(const element_t& value) {
-        _piece_table.insert_at(
-                static_cast<uint32_t>(((_row + _caret->row()) * _columns) + (_column + _caret->column())),
-                value);
-    }
-
-    void document::shift_right(uint16_t times) {
+        _piece_table.insert_at(offset(), value);
     }
 
     void document::path(const fs::path& value) {
         _path = value;
     }
 
-    attr_span_list document::line_at(uint32_t row) {
-        return {};
-    }
-
-    void document::shift_line_left(uint16_t times) {
-    }
-
-    void document::shift_line_right(uint16_t times) {
-        if (_caret->mode() == caret::mode::types::insert) {
-
-        }
+    attr_span_list_t document::line_at(uint32_t row) {
+        auto lines = _piece_table.sequence();
+        return row < lines.size() ? lines[row] : attr_span_list_t {};
     }
 
     void document::page_size(uint8_t height, uint8_t width) {
@@ -243,6 +236,11 @@ namespace ryu::core {
         raise_document_changed();
     }
 
+    void document::shift_right(const attr_t& attr, uint16_t times) {
+        for (uint16_t i = 0; i < times; i++)
+            _piece_table.insert_at(offset(), element_t {attr, ' '});
+    }
+
     bool document::load(core::result& result, const fs::path& path) {
         _path = path;
 
@@ -255,10 +253,11 @@ namespace ryu::core {
         }
 
         try {
-            std::fstream file;
-            file.open(_path.string());
-            load(result, file);
-            file.close();
+            std::ifstream file(_path.string());
+            if (file.is_open()) {
+                load(result, file);
+                file.close();
+            }
         } catch (std::exception& e) {
             result.add_message(
                     "D001",
@@ -271,7 +270,6 @@ namespace ryu::core {
 
     bool document::load(core::result& result, std::istream& stream) {
         clear();
-
         raise_document_changed();
         return true;
     }
