@@ -27,6 +27,8 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
+- BUG: how to handle gap piece between end of piece table and far new offset
+
 - core::document: re-implement API surface with new core::piece_table_t
     * unit tests to verify document is working
     * document_formatter

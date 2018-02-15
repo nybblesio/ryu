@@ -29,8 +29,8 @@ namespace ryu::core::unit_tests {
             doc.put(element_t{default_attr, static_cast<uint8_t>(c)});
         }
 
-        auto spans = doc.line_at(0);
-        REQUIRE(!spans.empty());
+        auto lines = doc.lines_from(0);
+        REQUIRE(!lines.empty());
     }
 
 }

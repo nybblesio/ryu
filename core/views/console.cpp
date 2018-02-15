@@ -206,38 +206,40 @@ namespace ryu::core {
         auto pal = *palette();
 
         auto y = bounds.top();
-        auto row_index = _document.row();
-        for (uint32_t row = 0; row < _metrics.page_height; row++) {
-//            uint16_t col_start = static_cast<uint16_t>(_document.column());
-//            uint16_t col_end = col_start + _metrics.page_width;
+        auto x = bounds.left();
+        auto row = _document.row();
+        auto max_line_height = font_face()->line_height;
 
-            // XXX: handle the column range in the loop below
-            auto chunks = _document.line_at(static_cast<uint32_t>(row_index++));
+        uint16_t col_start = static_cast<uint16_t>(_document.column());
+        uint16_t col_end = col_start + _metrics.page_width;
 
-            auto x = bounds.left();
-            auto max_line_height = font_face()->line_height;
+        auto lines = _document.lines_from(static_cast<uint32_t>(row));
 
-            for (const auto& chunk : chunks._spans) {
-                font_style(chunk.attr.style);
+        for (const auto& line : lines) {
+            for (const auto& span : line) {
+                font_style(span.attr.style);
 
                 auto face = font_face();
                 if (face->line_height > max_line_height)
                     max_line_height = face->line_height;
 
-                auto width = face->measure_text(chunk.text);
-                auto color = pal[chunk.attr.color];
+                auto width = face->measure_text(span.text);
+                auto color = pal[span.attr.color];
 
-                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
+                if ((span.attr.flags & core::font::flags::reverse) != 0) {
                     surface.set_color(color);
                     color = pal[bg_color()];
                     surface.fill_rect(core::rect{x, y, width, face->line_height});
                 }
 
-                surface.draw_text(face, x, y, chunk.text, color);
+                surface.draw_text(face, x, y, span.text, color);
                 x += width;
             }
-
+            x = bounds.left();
             y += max_line_height;
+            ++row;
+            if (row - _document.row() >= _metrics.page_height)
+                break;
         }
     }
 
@@ -284,7 +286,7 @@ namespace ryu::core {
             if (more()) {
                 caret_down();
                 caret_home();
-                write_message("<rev><bold> MORE (SPACE to continue) <>", false);
+                write_message("<rev><bold> MORE (SPACE to continue) <>");
                 _state = states::wait;
             } else {
                 _state = states::resume_processing;
@@ -755,9 +757,7 @@ namespace ryu::core {
         return false;
     }
 
-    uint32_t console::write_message(
-            core::formatted_text_t& formatted_text,
-            bool last_newline) {
+    uint32_t console::write_message(core::formatted_text_t& formatted_text) {
         uint32_t line_count = 0;
 
         caret_home();
@@ -766,22 +766,22 @@ namespace ryu::core {
         for (const auto& element : elements) {
             _document.put(element);
             caret_right();
-        }
-
-        if (last_newline) {
-            caret_down();
-            caret_home();
-            line_count++;
+            if (element.value == '\n') {
+                caret_down();
+                caret_home();
+                ++line_count;
+            }
         }
 
         return line_count;
     }
 
-    uint32_t console::write_message(
-            const std::string& message,
-            bool last_newline) {
-        auto formatted_text = core::text_formatter::format_text(_code_mapper, _attr, message);
-        return write_message(formatted_text, last_newline);
+    uint32_t console::write_message(const std::string& message) {
+        auto formatted_text = core::text_formatter::format_text(
+                _code_mapper,
+                _attr,
+                message);
+        return write_message(formatted_text);
     }
 
     void console::on_execute_command(const execute_command_callable& callable) {

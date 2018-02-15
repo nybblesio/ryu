@@ -68,14 +68,6 @@ namespace ryu::core {
 
         void initialize();
 
-        uint32_t write_message(
-                const std::string& message,
-                bool last_newline = true);
-
-        uint32_t write_message(
-                formatted_text_t& formatted_text,
-                bool last_newline = true);
-
         bool more() const;
 
         void more(bool flag);
@@ -93,6 +85,10 @@ namespace ryu::core {
         bool caret_right(uint8_t columns = 1);
 
         void code_mapper(const code_to_attr_dict& value);
+
+        uint32_t write_message(const std::string& message);
+
+        uint32_t write_message(formatted_text_t& formatted_text);
 
         void on_caret_changed(const caret_changed_callable& callable);
 

@@ -25,7 +25,7 @@ namespace ryu::core {
             if (!current_line->empty())
                 current_span = &current_line->back();
         } else {
-            lines.push_back({});
+            lines.push_back(attr_span_list_t {});
             current_line = &lines.back();
         }
 
@@ -36,16 +36,19 @@ namespace ryu::core {
                 if (current_span->attr != element.attr) {
                     current_span->text += stream.str();
                     stream.str("");
-                    current_line->push_back({element.attr});
+                    current_line->push_back(attr_span_t {element.attr});
                     current_span = &current_line->back();
                 }
             } else {
-                current_line->push_back({element.attr});
+                current_line->push_back(attr_span_t {element.attr});
                 current_span = &current_line->back();
             }
             if (element.safe_value(stream)) {
-                lines.push_back({});
+                current_span->text += stream.str();
+                stream.str("");
+                lines.push_back(attr_span_list_t {});
                 current_line = &lines.back();
+                current_span = nullptr;
             }
         }
 
@@ -220,13 +223,14 @@ namespace ryu::core {
         _lines.clear();
         _changes.elements.push_back(element);
 
+        auto new_change_offset = _changes.size() - 1;
         auto find_result = _pieces.find_for_offset(offset);
         auto is_change_piece = find_result.data != nullptr ?
                                find_result.data->buffer->type == piece_table_buffer_t::changes :
                                false;
         switch (find_result.type) {
             case piece_find_result_t::none: {
-                _pieces.add_tail(std::make_shared<piece_node_t>(offset, 1, &_changes));
+                _pieces.add_tail(std::make_shared<piece_node_t>(new_change_offset, 1, &_changes));
                 break;
             }
             case piece_find_result_t::first: {
@@ -234,7 +238,7 @@ namespace ryu::core {
                     auto cloned_node = _pieces.clone_and_swap(find_result.data);
                     cloned_node->length++;
                 } else {
-                    _pieces.add_tail(std::make_shared<piece_node_t>(offset, 1, &_changes));
+                    _pieces.add_tail(std::make_shared<piece_node_t>(new_change_offset, 1, &_changes));
                 }
                 break;
             }
@@ -243,13 +247,11 @@ namespace ryu::core {
                     auto cloned_node = _pieces.clone_and_swap(find_result.data);
                     cloned_node->length++;
                 } else {
-                    _pieces.add_tail(std::make_shared<piece_node_t>(offset, 1, &_changes));
+                    _pieces.add_tail(std::make_shared<piece_node_t>(new_change_offset, 1, &_changes));
                 }
                 break;
             }
             case piece_find_result_t::medial: {
-                auto new_change_offset = _changes.size() - 1;
-
                 if (new_change_offset == find_result.data->end()
                 &&  find_result.linear_offset == offset) {
                     auto cloned_node = _pieces.clone_and_swap(find_result.data);
@@ -297,7 +299,7 @@ namespace ryu::core {
     }
 
     attr_line_list piece_table_t::sub_sequence(uint32_t start, uint32_t end) {
-        attr_line_list lines {};
+        attr_line_list lines;
         uint32_t node_start_offset = 0;
         auto current_node = _pieces.head;
         while (current_node != nullptr) {
@@ -307,15 +309,24 @@ namespace ryu::core {
 
             if (end <= node_end_offset) {
                 if (start >= node_start_offset && start <= node_end_offset) {
-                    current_node->copy_elements(lines, start, end - node_start_offset);
+                    current_node->copy_elements(
+                            lines,
+                            start,
+                            end - node_start_offset);
                 } else {
-                    current_node->copy_elements(lines, 0, end - node_start_offset);
+                    current_node->copy_elements(
+                            lines,
+                            0,
+                            end - node_start_offset);
                 }
             } else if (start <= node_start_offset) {
                 current_node->copy_elements(lines);
             } else {
                 auto start_offset = start - current_node->start;
-                current_node->copy_elements(lines, start_offset, current_node->start + current_node->length);
+                current_node->copy_elements(
+                        lines,
+                        start_offset,
+                        current_node->start + current_node->length);
             }
         next_node:
             node_start_offset += current_node->length;

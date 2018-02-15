@@ -211,9 +211,17 @@ namespace ryu::core {
         _path = value;
     }
 
-    attr_span_list_t document::line_at(uint32_t row) {
-        auto lines = _piece_table.sequence();
-        return row < lines.size() ? lines[row] : attr_span_list_t {};
+    attr_line_list document::lines_from(
+            uint32_t row,
+            uint16_t start,
+            uint16_t end) {
+        return _piece_table.sub_sequence(
+                static_cast<uint32_t>(row * _columns + start),
+                static_cast<uint32_t>(row * _columns + end));
+    }
+
+    attr_line_list document::lines_from(uint32_t row) {
+        return _piece_table.sequence();
     }
 
     void document::page_size(uint8_t height, uint8_t width) {

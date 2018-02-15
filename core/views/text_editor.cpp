@@ -150,36 +150,36 @@ namespace ryu::core {
 //            uint16_t col_end = col_start + _metrics.page_width;
 
             // XXX: need to index into the column range in the loop below
-            auto chunks = _document.line_at(static_cast<uint32_t>(row));
-
-            auto max_line_height = font_face()->line_height;
-            auto x = bounds.left() + _caret.padding().left();
-
-            for (const auto& chunk : chunks._spans) {
-                font_style(chunk.attr.style);
-
-                auto face = font_face();
-                if (face->line_height > max_line_height)
-                    max_line_height = face->line_height;
-
-                auto width = face->measure_text(chunk.text);
-                auto color = pal[chunk.attr.color];
-
-                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
-                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                    auto selection_color = pal[_selection_color];
-                    selection_color.alpha(0x7f);
-                    surface.set_color(selection_color);
-                    surface.fill_rect(core::rect{x, y, width, face->line_height});
-                    surface.pop_blend_mode();
-                }
-
-                surface.draw_text(face, x, y, chunk.text, color);
-
-                x += width;
-            }
-
-            y += max_line_height;
+//            auto chunks = _document.lines_from(static_cast<uint32_t>(row));
+//
+//            auto max_line_height = font_face()->line_height;
+//            auto x = bounds.left() + _caret.padding().left();
+//
+//            for (const auto& chunk : chunks._spans) {
+//                font_style(chunk.attr.style);
+//
+//                auto face = font_face();
+//                if (face->line_height > max_line_height)
+//                    max_line_height = face->line_height;
+//
+//                auto width = face->measure_text(chunk.text);
+//                auto color = pal[chunk.attr.color];
+//
+//                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
+//                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
+//                    auto selection_color = pal[_selection_color];
+//                    selection_color.alpha(0x7f);
+//                    surface.set_color(selection_color);
+//                    surface.fill_rect(core::rect{x, y, width, face->line_height});
+//                    surface.pop_blend_mode();
+//                }
+//
+//                surface.draw_text(face, x, y, chunk.text, color);
+//
+//                x += width;
+//            }
+//
+//            y += max_line_height;
         }
     }
 

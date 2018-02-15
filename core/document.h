@@ -71,6 +71,11 @@ namespace ryu::core {
 
         void end(uint16_t column);
 
+        attr_line_list lines_from(
+                uint32_t row,
+                uint16_t start,
+                uint16_t end);
+
         uint8_t page_width() const;
 
         uint8_t page_height() const;
@@ -85,7 +90,7 @@ namespace ryu::core {
 
         void shift_left(uint16_t times = 1);
 
-        attr_span_list_t line_at(uint32_t row);
+        attr_line_list lines_from(uint32_t row);
 
         void page_size(uint8_t height, uint8_t width);
 
