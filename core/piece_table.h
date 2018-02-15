@@ -20,6 +20,15 @@
 
 namespace ryu::core {
 
+    struct offset_t {
+        uint32_t start = 0;
+        uint32_t end = 0;
+
+        bool within(uint32_t value) const {
+            return value >= start && value <= end;
+        }
+    };
+
     struct piece_node_t;
 
     using piece_node_shared_ptr = std::shared_ptr<piece_node_t>;
@@ -35,6 +44,7 @@ namespace ryu::core {
 
         uint32_t start {};
         uint32_t length {};
+        offset_t offset {};
         piece_node_t* prev = nullptr;
         piece_node_t* next = nullptr;
         piece_table_buffer_t* buffer = nullptr;
@@ -60,81 +70,55 @@ namespace ryu::core {
         };
         types type = types::none;
         piece_node_t* data = nullptr;
-        uint32_t linear_offset = 0;
+        offset_t offset {};
     };
-
-    //
-    //       +---------+
-    //       |  piece  |
-    //  <--  |         | -->   ...  ...  ...
-    //  prev +---------+ next
-    //
-    // (chain 1) (current) nullptr <- piece1 <-> piece2 <-> piece3 -> nullptr
-    //
-    // 1. insert at beginning of piece2
-    //
-    // (chain 2) (current) nullptr <- piece1.1 <-> piece2.1 <-> piece3.1 -> nullptr
-    // push (chain 1) (undo stack)
-    //
-    // chain or span is
-    //
-    // 2. insert into middle of piece2.1
-    //
-    // (chain 3) (current) nullptr <- piece1.1 <-> piece4(left of 2.1) <-> piece5 <-> piece6(right of 2.1) <-> piece3 -> nullptr
-    //
-    //
-    // 0 <-> a <-> b <-> c <-> d <-> e <-> f <-> g -> 0
-    //                         ^
-    //                         |---> stash this pointer on undo stack
-    //
-    // d->prev still == c
-    // c->next DOES NOT == d
-    //
-    // d->next still == e
-    // e->prev DOES NOT == d
-    //
-    //
-    // next
-    //
-    // 0 <-> a <-> b <-> c <-> d_left <-> new <-> d_right <-> e <-> f <-> g -> 0
-    //
-    // now
-    //
-    // c->next == d_left
-    // e->prev == d_right
-    //
 
     using piece_node_stack = std::stack<piece_node_t*>;
     using piece_node_shared_ptr_set = std::set<piece_node_shared_ptr>;
 
-    struct piece_list_t {
-        piece_node_t* head = nullptr;
-        piece_node_t* tail = nullptr;
-        piece_node_stack undo_stack {};
-        piece_node_stack redo_stack {};
-        piece_node_shared_ptr_set owned_pieces {};
-
-        void clear();
-
+    class piece_list_t {
+    public:
         void undo();
 
         void redo();
+
+        void clear();
 
         void checkpoint();
 
         size_t size() const;
 
+        void update_offsets();
+
         inline bool empty() const {
-            return head == nullptr;
+            return _head == nullptr;
         }
 
-        uint32_t total_length() const;
+        size_t undo_depth() const {
+            return _undo_stack.size();
+        }
 
-        void swap_node(
-                piece_node_t* node,
-                piece_node_stack& target_stack);
+        size_t redo_depth() const {
+            return _redo_stack.size();
+        }
+
+        uint32_t total_length() const {
+            if (_tail != nullptr)
+                return _tail->offset.end;
+            return 0;
+        }
+
+        inline piece_node_t* head() const {
+            return _head;
+        }
+
+        inline piece_node_t* tail() const {
+            return _tail;
+        }
 
         void clear_stack(piece_node_stack& stack);
+
+        void swap_deleted_node(piece_node_t* node);
 
         piece_node_t* clone_and_swap(piece_node_t* node);
 
@@ -144,11 +128,21 @@ namespace ryu::core {
 
         piece_find_result_t find_for_offset(uint32_t offset);
 
-        uint32_t linear_offset(const piece_node_t* start_node) const;
-
         void insert_after(piece_node_t* node, const piece_node_shared_ptr& piece);
 
         void insert_before(piece_node_t* node, const piece_node_shared_ptr& piece);
+
+    protected:
+        void swap_node(
+                piece_node_t* node,
+                piece_node_stack& target_stack);
+
+    private:
+        piece_node_t* _head = nullptr;
+        piece_node_t* _tail = nullptr;
+        piece_node_stack _undo_stack {};
+        piece_node_stack _redo_stack {};
+        piece_node_shared_ptr_set _owned_pieces {};
     };
 
     struct piece_table_buffer_t {
@@ -199,14 +193,21 @@ namespace ryu::core {
 
     using selection_list = std::vector<selection_t>;
 
-    struct piece_table_t {
+    class piece_table_t {
+    public:
         void undo();
 
         void redo();
 
         void clear();
 
+        void rebuild();
+
         void checkpoint();
+
+        uint32_t total_length() const {
+            return _pieces.total_length();
+        }
 
         const attr_line_list& sequence();
 
@@ -216,11 +217,21 @@ namespace ryu::core {
                 uint32_t length,
                 const std::string& name = "");
 
+        const piece_list_t& pieces() const {
+            return _pieces;
+        }
+
         const selection_list& selections() const;
 
-        void swap_deleted_node(piece_node_t* node);
+        const piece_table_buffer_t& changes() const {
+            return _changes;
+        }
 
         void load(const piece_table_buffer_t& buffer);
+
+        const piece_table_buffer_t& original() const {
+            return _original;
+        }
 
         attr_line_list cut(const selection_t& selection);
 
@@ -234,10 +245,11 @@ namespace ryu::core {
 
         attr_line_list sub_sequence(uint32_t start, uint32_t end);
 
-        void insert_at(uint32_t offset, const element_t& element);
+        void insert_at(uint32_t offset, const element_list_t& elements);
 
-        void paste(const selection_t& selection, const element_list& elements);
+        void paste(const selection_t& selection, const element_list_t& elements);
 
+    private:
         piece_list_t _pieces {};
         attr_line_list _lines {};
         selection_list _selections {};

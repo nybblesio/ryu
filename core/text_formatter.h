@@ -22,7 +22,9 @@ namespace ryu::core {
         std::string stripped_text {};
         attr_span_list_t spans {};
 
-        void add_empty_span(const core::code_to_attr_dict& code_mapper);
+        void add_empty_span(
+                const core::code_to_attr_dict& code_mapper,
+                attr_t& attr);
     };
 
     typedef std::vector<formatted_text_t> formatted_text_list;
@@ -31,6 +33,7 @@ namespace ryu::core {
     public:
         static attr_span_t span_for_code(
                 const code_to_attr_dict& mapper,
+                attr_t& attr,
                 const std::string& code,
                 const std::string& text);
 

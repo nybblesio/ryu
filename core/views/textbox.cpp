@@ -150,6 +150,7 @@ namespace ryu::core {
 
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
+            _document.put(element_list_t::from_string({}, c));
             while (*c != '\0') {
                 if (_on_key_down != nullptr) {
                     if (!_on_key_down(*c)) {
@@ -157,14 +158,9 @@ namespace ryu::core {
                         continue;
                     }
                 }
-
-                _document.put(core::element_t {{}, static_cast<uint8_t>(*c)});
-
-                if (caret_right())
-                    break;
-
                 c++;
             }
+            return true;
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
                 case SDLK_HOME: {

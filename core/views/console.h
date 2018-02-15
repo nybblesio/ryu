@@ -28,7 +28,7 @@ namespace ryu::core {
     struct output_queue_entry_t {
         size_t msg_index = 0;
         size_t line_index = 0;
-        const core::result& result;
+        core::result result;
         core::formatted_text_list lines;
 
         explicit output_queue_entry_t(const core::result& value) : result(value) {
@@ -53,6 +53,8 @@ namespace ryu::core {
         };
 
         explicit console(const std::string& name);
+
+        void rebuild();
 
         void page_up();
 

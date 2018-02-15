@@ -192,21 +192,7 @@ namespace ryu::core {
     }
 
     void text_editor::insert_text(const char* text) {
-        const char* c = text;
-        while (true) {
-            if (*c == '\0')
-                break;
-
-            if (*c == '\n') {
-                caret_down();
-                caret_home();
-            }
-
-            _document.put(core::element_t {{}, static_cast<uint8_t>(*c)});
-            caret_right();
-
-            c++;
-        }
+        _document.put(element_list_t::from_string({}, text));
     }
 
     bool text_editor::on_process_event(const SDL_Event* e) {

@@ -16,24 +16,34 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    void formatted_text_t::add_empty_span(const code_to_attr_dict& code_mapper) {
-        spans.push_back(text_formatter::span_for_code(code_mapper, "", ""));
+    void formatted_text_t::add_empty_span(const code_to_attr_dict& code_mapper, attr_t& attr) {
+        spans.push_back(text_formatter::span_for_code(code_mapper, attr, "", " "));
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
     attr_span_t text_formatter::span_for_code(
             const code_to_attr_dict& mapper,
+            attr_t& attr,
             const std::string& code,
             const std::string& text) {
-        attr_t attr {};
         attr_span_t span {attr, text};
 
+        auto reset = true;
         if (!code.empty()) {
             auto it = mapper.find(code);
             if (it != mapper.end()) {
+                reset = false;
                 it->second(attr);
             }
+        } else {
+            reset = false;
+        }
+
+        if (reset) {
+            attr.color = attr.color;
+            attr.flags = core::font::flags::none;
+            attr.style = core::font::styles::normal;
         }
 
         return span;
@@ -74,16 +84,13 @@ namespace ryu::core {
                     formatted_text.spans.push_back(current_span);
                 }
 
-                auto reset = false;
+                auto reset = true;
                 if (!code.empty()) {
                     auto it = mapper.find(code);
                     if (it != mapper.end()) {
                         it->second(attr);
-                    } else {
-                        reset = true;
+                        reset = false;
                     }
-                } else {
-                    reset = true;
                 }
 
                 if (reset) {

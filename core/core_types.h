@@ -268,6 +268,61 @@ namespace ryu::core {
 
     using element_list = std::vector<element_t>;
 
+    struct element_list_t {
+    public:
+        static element_list_t from_string(
+                const attr_t& attr,
+                const std::string& value) {
+            element_list_t elements{};
+            for (const auto& c: value)
+                elements.push_back(element_t{attr, static_cast<uint8_t>(c)});
+            return elements;
+        }
+
+        inline bool empty() const {
+            return _elements.empty();
+        }
+
+        inline size_t size() const {
+            return _elements.size();
+        }
+
+        const element_t& back() const {
+            return _elements.back();
+        }
+
+        const element_t& front() const {
+            return _elements.front();
+        }
+
+        element_list::iterator end() {
+            return _elements.end();
+        }
+
+        element_list::iterator begin() {
+            return _elements.begin();
+        }
+
+        element_t& operator[](size_t index) {
+            return _elements[index];
+        }
+
+        void push_back(const element_t& value) {
+            _elements.push_back(value);
+        }
+
+        element_list::const_iterator end() const {
+            return _elements.cend();
+        }
+
+        element_list::const_iterator begin() const {
+            return _elements.cbegin();
+        }
+
+    private:
+        element_list _elements {};
+    };
+
     struct attr_span_list_t {
         attr_span_t& back() {
             return _spans.back();
@@ -285,12 +340,11 @@ namespace ryu::core {
             return _spans.end();
         }
 
-        const element_list& sequence() {
-            if (elements.empty()) {
-                for (const auto& span : _spans) {
-                    for (auto c : span.text)
-                        elements.push_back(element_t{span.attr, static_cast<uint8_t>(c)});
-                }
+        element_list_t sequence() {
+            element_list_t elements {};
+            for (const auto& span : _spans) {
+                for (auto c : span.text)
+                    elements.push_back(element_t{span.attr, static_cast<uint8_t>(c)});
             }
             return elements;
         }
@@ -328,7 +382,6 @@ namespace ryu::core {
         }
 
         attr_span_list _spans {};
-        element_list elements {};
     };
 
     using attr_line_list = std::vector<attr_span_list_t>;

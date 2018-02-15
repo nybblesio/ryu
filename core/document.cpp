@@ -32,22 +32,13 @@ namespace ryu::core {
         raise_document_changed();
     }
 
+    void document::rebuild() {
+        _piece_table.rebuild();
+    }
+
     void document::first_page() {
         _row = 0;
         raise_document_changed();
-    }
-
-    element_t* document::get() {
-        auto lines = _piece_table.sequence();
-        auto virtual_row = _row + _caret->row();
-        auto virtual_column = _column + _caret->column();
-        if (virtual_row < lines.size()) {
-            auto line = lines[_row + _caret->row()];
-            auto elements = line.sequence();
-            if (virtual_column < elements.size())
-                return &elements[_column + _caret->column()];
-        }
-        return nullptr;
     }
 
     void document::page_down() {
@@ -154,9 +145,16 @@ namespace ryu::core {
     }
 
     uint32_t document::offset() const {
-        auto virtual_row = _row + _caret->row();
-        auto virtual_column = _column + _caret->column();
-        return static_cast<uint32_t>((virtual_row * _columns) + virtual_column);
+        return static_cast<uint32_t>((virtual_row() * _columns) + virtual_column());
+    }
+
+    attr_line_list document::lines_from(
+            uint32_t row,
+            uint16_t start,
+            uint16_t end) {
+        return _piece_table.sub_sequence(
+                static_cast<uint32_t>(row * _columns + start),
+                static_cast<uint32_t>(row * _columns + end));
     }
 
     uint16_t document::find_line_end() {
@@ -183,6 +181,26 @@ namespace ryu::core {
         return _page_height;
     }
 
+    int32_t document::virtual_row() const {
+        return _row + _caret->row();
+    }
+
+    bool document::get(element_t& element) {
+        auto lines = _piece_table.sequence();
+        auto row = virtual_row();
+        auto column = virtual_column();
+        if (row < lines.size()) {
+            auto line = lines[row];
+            auto elements = line.sequence();
+            if (column < elements.size()) {
+                element.attr = elements[column].attr;
+                element.value = elements[column].value;
+                return true;
+            }
+        }
+        return false;
+    }
+
     bool document::column(uint16_t column) {
         _column = column;
         auto clamped = clamp_column();
@@ -195,6 +213,10 @@ namespace ryu::core {
             _document_changed_callback();
     }
 
+    int16_t document::virtual_column() const {
+        return _column + _caret->column();
+    }
+
     void document::caret(core::caret* value) {
         _caret = value;
     }
@@ -203,25 +225,16 @@ namespace ryu::core {
         _piece_table.delete_at(offset(), times);
     }
 
-    void document::put(const element_t& value) {
-        _piece_table.insert_at(offset(), value);
-    }
-
     void document::path(const fs::path& value) {
         _path = value;
     }
 
-    attr_line_list document::lines_from(
-            uint32_t row,
-            uint16_t start,
-            uint16_t end) {
-        return _piece_table.sub_sequence(
-                static_cast<uint32_t>(row * _columns + start),
-                static_cast<uint32_t>(row * _columns + end));
+    void document::put(const element_list_t& value) {
+        _piece_table.insert_at(offset(), value);
     }
 
     attr_line_list document::lines_from(uint32_t row) {
-        return _piece_table.sequence();
+        return _piece_table.sub_sequence(row * _columns, _piece_table.total_length());
     }
 
     void document::page_size(uint8_t height, uint8_t width) {
@@ -245,8 +258,9 @@ namespace ryu::core {
     }
 
     void document::shift_right(const attr_t& attr, uint16_t times) {
-        for (uint16_t i = 0; i < times; i++)
-            _piece_table.insert_at(offset(), element_t {attr, ' '});
+        _piece_table.insert_at(
+                offset(),
+                element_list_t::from_string(attr, std::string(times, ' ')));
     }
 
     bool document::load(core::result& result, const fs::path& path) {

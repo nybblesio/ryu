@@ -24,10 +24,8 @@ namespace ryu::core::unit_tests {
         attr_t default_attr(1, 0, 0);
 
         std::string expected_text = "this is a test";
-
-        for (auto c : expected_text) {
-            doc.put(element_t{default_attr, static_cast<uint8_t>(c)});
-        }
+        doc.put(element_list_t::from_string(default_attr, expected_text));
+        doc.rebuild();
 
         auto lines = doc.lines_from(0);
         REQUIRE(!lines.empty());

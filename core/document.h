@@ -35,13 +35,13 @@ namespace ryu::core {
 
         void page_up();
 
+        void rebuild();
+
         bool scroll_up();
 
         void page_down();
 
         void last_page();
-
-        element_t* get();
 
         void first_page();
 
@@ -82,13 +82,15 @@ namespace ryu::core {
 
         bool column(uint16_t column);
 
+        bool get(element_t& element);
+
         void caret(core::caret* value);
 
         void path(const fs::path& value);
 
-        void put(const element_t& value);
-
         void shift_left(uint16_t times = 1);
+
+        void put(const element_list_t& value);
 
         attr_line_list lines_from(uint32_t row);
 
@@ -115,7 +117,11 @@ namespace ryu::core {
 
         uint32_t offset() const;
 
+        int32_t virtual_row() const;
+
         void raise_document_changed();
+
+        int16_t virtual_column() const;
 
     private:
         fs::path _path;

@@ -21,18 +21,15 @@ namespace ryu::core::unit_tests {
 
         attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
+        piece_table.insert_at(0, element_list_t::from_string(default_attr, expected_text));
 
-        uint32_t offset = 0;
-        for (auto c : expected_text) {
-            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-        }
-
-        REQUIRE(piece_table._original.empty());
-        REQUIRE(piece_table._changes.size() == expected_text.length());
-        REQUIRE(piece_table._pieces.size() == 1);
-        REQUIRE(piece_table._pieces.undo_stack.size() == expected_text.length());
+        REQUIRE(piece_table.original().empty());
+        REQUIRE(piece_table.changes().size() == expected_text.length());
+        REQUIRE(piece_table.pieces().size() == 1);
+        REQUIRE(piece_table.pieces().undo_depth() == 1);
 
         SECTION("piece table returns valid sequence") {
+            piece_table.rebuild();
             auto original_lines = piece_table.sequence();
             REQUIRE(original_lines.size() == 1);
             auto first_line = original_lines[0];
@@ -42,21 +39,12 @@ namespace ryu::core::unit_tests {
 
         SECTION("piece table undo reverts each edit") {
             piece_table.undo();
-            piece_table.undo();
-            piece_table.undo();
-            piece_table.undo();
-            piece_table.undo();
-            piece_table.undo();
-            piece_table.undo();
 
-            REQUIRE(piece_table._pieces.undo_stack.size() == expected_text.length() - 7);
-            REQUIRE(piece_table._pieces.redo_stack.size() == 7);
+            REQUIRE(piece_table.pieces().undo_depth() == 0);
+            piece_table.rebuild();
 
-            auto original_lines = piece_table.sequence();
-            REQUIRE(original_lines.size() == 1);
-            auto first_line = original_lines[0];
-            REQUIRE(first_line.size() == 1);
-            REQUIRE(first_line[0].text == "A quick brown fox jumps over the");
+            auto lines = piece_table.sequence();
+            REQUIRE(lines.size() == 0);
         }
     }
 
@@ -68,17 +56,14 @@ namespace ryu::core::unit_tests {
 
         attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
+        piece_table.insert_at(0, element_list_t::from_string(default_attr, expected_text));
 
-        uint32_t offset = 0;
-        for (auto c : expected_text) {
-            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-        }
-
-        REQUIRE(piece_table._original.empty());
-        REQUIRE(piece_table._changes.size() == expected_text.length());
-        REQUIRE(piece_table._pieces.size() == 1);
+        REQUIRE(piece_table.original().empty());
+        REQUIRE(piece_table.changes().size() == expected_text.length());
+        REQUIRE(piece_table.pieces().size() == 1);
 
         SECTION("sequence matches set up") {
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -88,10 +73,11 @@ namespace ryu::core::unit_tests {
 
         SECTION("piece table shrinks piece when deleting at end of it") {
             piece_table.delete_at(39, 2);
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length());
-            REQUIRE(piece_table._pieces.size() == 1);
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length());
+            REQUIRE(piece_table.pieces().size() == 1);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -101,10 +87,11 @@ namespace ryu::core::unit_tests {
 
         SECTION("piece table shrinks piece when deleting at start of it") {
             piece_table.delete_at(0, 2);
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length());
-            REQUIRE(piece_table._pieces.size() == 1);
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length());
+            REQUIRE(piece_table.pieces().size() == 1);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -114,10 +101,11 @@ namespace ryu::core::unit_tests {
 
         SECTION("piece table splits a piece when deleting within it") {
             piece_table.delete_at(13, 4);
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length());
-            REQUIRE(piece_table._pieces.size() == 2);
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length());
+            REQUIRE(piece_table.pieces().size() == 2);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -134,17 +122,14 @@ namespace ryu::core::unit_tests {
 
         attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
+        piece_table.insert_at(0, element_list_t::from_string(default_attr, expected_text));
 
-        uint32_t offset = 0;
-        for (auto c : expected_text) {
-            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-        }
-
-        REQUIRE(piece_table._original.empty());
-        REQUIRE(piece_table._changes.size() == expected_text.length());
-        REQUIRE(piece_table._pieces.size() == 1);
+        REQUIRE(piece_table.original().empty());
+        REQUIRE(piece_table.changes().size() == expected_text.length());
+        REQUIRE(piece_table.pieces().size() == 1);
 
         SECTION("piece table sequence matches setup") {
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -153,16 +138,14 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table inserts text within piece") {
-            offset = 32;
             std::string inserted_text = " white ";
-            for (auto c : inserted_text) {
-                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-            }
+            piece_table.insert_at(32, element_list_t::from_string(default_attr, inserted_text));
 
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length() + inserted_text.length());
-            REQUIRE(piece_table._pieces.size() == 3);
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
+            REQUIRE(piece_table.pieces().size() == 3);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -171,24 +154,19 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table inserts text at the beginning of a piece") {
-            offset = 32;
             std::string inserted_medial_text = " white ";
-            for (auto c : inserted_medial_text) {
-                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-            }
+            piece_table.insert_at(32, element_list_t::from_string(default_attr, inserted_medial_text));
 
-            offset = 1;
             std::string inserted_initial_text = "n extremely ";
-            for (auto c : inserted_initial_text) {
-                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-            }
+            piece_table.insert_at(1, element_list_t::from_string(default_attr, inserted_initial_text));
 
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length() +
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length() +
                                                           inserted_initial_text.length() +
                                                           inserted_medial_text.length());
-            REQUIRE(piece_table._pieces.size() == 5);
+            REQUIRE(piece_table.pieces().size() == 5);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -197,16 +175,14 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table deletes across pieces") {
-            offset = 32;
             std::string inserted_text = " white ";
-            for (auto c : inserted_text) {
-                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-            }
+            piece_table.insert_at(32, element_list_t::from_string(default_attr, inserted_text));
 
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length() + inserted_text.length());
-            REQUIRE(piece_table._pieces.size() == 3);
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
+            REQUIRE(piece_table.pieces().size() == 3);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -216,10 +192,11 @@ namespace ryu::core::unit_tests {
             SECTION("deleting across two pieces, where second is completely removed") {
                 piece_table.delete_at(29, 10);
 
-                REQUIRE(piece_table._original.empty());
-                REQUIRE(piece_table._changes.size() == expected_text.length() + inserted_text.length());
-                REQUIRE(piece_table._pieces.size() == 2);
+                REQUIRE(piece_table.original().empty());
+                REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
+                REQUIRE(piece_table.pieces().size() == 2);
 
+                piece_table.rebuild();
                 auto updated_lines = piece_table.sequence();
                 REQUIRE(updated_lines.size() == 1);
                 auto updated_first_line = updated_lines[0];
@@ -230,10 +207,11 @@ namespace ryu::core::unit_tests {
             SECTION("deleting across three pieces, where second is completely removed, and third is adjusted") {
                 piece_table.delete_at(29, 12);
 
-                REQUIRE(piece_table._original.empty());
-                REQUIRE(piece_table._changes.size() == expected_text.length() + inserted_text.length());
-                REQUIRE(piece_table._pieces.size() == 2);
+                REQUIRE(piece_table.original().empty());
+                REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
+                REQUIRE(piece_table.pieces().size() == 2);
 
+                piece_table.rebuild();
                 auto updated_lines = piece_table.sequence();
                 REQUIRE(updated_lines.size() == 1);
                 auto updated_first_line = updated_lines[0];
@@ -270,6 +248,7 @@ namespace ryu::core::unit_tests {
                 REQUIRE(copied_first_line.size() == 1);
                 REQUIRE(copied_first_line[0].text == " over the white fenc");
 
+                piece_table.rebuild();
                 auto updated_lines = piece_table.sequence();
                 REQUIRE(updated_lines.size() == 1);
                 auto updated_first_line = updated_lines[0];
@@ -282,11 +261,10 @@ namespace ryu::core::unit_tests {
                 REQUIRE(piece_table.selections().size() == 1);
 
                 std::string to_paste = " fancy";
-                element_list elements {};
-                for (char c : to_paste)
-                    elements.push_back(element_t{default_attr, static_cast<uint8_t>(c)});
+                auto elements = element_list_t::from_string(default_attr, to_paste);
 
                 piece_table.paste(selection, elements);
+                piece_table.rebuild();
 
                 auto updated_lines = piece_table.sequence();
                 REQUIRE(updated_lines.size() == 1);
@@ -305,22 +283,25 @@ namespace ryu::core::unit_tests {
 
         attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
+        auto elements = element_list_t::from_string(default_attr, expected_text);
 
         uint8_t offset = 0;
-
-        for (auto c : expected_text) {
+        for (auto& e : elements) {
             if (offset >= 2 && offset < 7) {
-                default_attr.color = 4;
+                e.attr.color = 4;
             } else {
-                default_attr.color = 1;
+                e.attr.color = 1;
             }
-            piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
+            offset++;
         }
 
+        piece_table.insert_at(0, elements);
+
         SECTION("piece table returns attributed spans matching setup") {
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length());
-            REQUIRE(piece_table._pieces.size() == 1);
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length());
+            REQUIRE(piece_table.pieces().size() == 1);
+            piece_table.rebuild();
 
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
@@ -332,16 +313,14 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table returns attribute sections with medial insert") {
-            offset = 32;
             std::string inserted_text = " white ";
-            for (auto c : inserted_text) {
-                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-            }
+            piece_table.insert_at(32, element_list_t::from_string(default_attr, inserted_text));
 
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length() + inserted_text.length());
-            REQUIRE(piece_table._pieces.size() == 3);
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
+            REQUIRE(piece_table.pieces().size() == 3);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             auto first_line = lines[0];
@@ -354,15 +333,14 @@ namespace ryu::core::unit_tests {
         SECTION("piece table returns attributed spans with initial insert") {
             offset = 1;
             std::string inserted_text = "n extremely ";
-            for (auto c : inserted_text) {
-                piece_table.insert_at(offset++, element_t{default_attr, (uint8_t) c});
-            }
+            piece_table.insert_at(1, element_list_t::from_string(default_attr, inserted_text));
 
-            REQUIRE(piece_table._original.empty());
-            REQUIRE(piece_table._changes.size() == expected_text.length()
+            REQUIRE(piece_table.original().empty());
+            REQUIRE(piece_table.changes().size() == expected_text.length()
                                                   + inserted_text.length());
-            REQUIRE(piece_table._pieces.size() == 3);
+            REQUIRE(piece_table.pieces().size() == 3);
 
+            piece_table.rebuild();
             auto lines = piece_table.sequence();
             REQUIRE(lines.size() == 1);
             REQUIRE(lines.size() == 1);
