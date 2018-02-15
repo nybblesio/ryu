@@ -97,6 +97,7 @@ add_executable(
         ryu_types.h
         ryu.properties
         ryu_config.in.h
+        taking_break.txt
         application.cpp application.h)
 
 target_link_libraries(

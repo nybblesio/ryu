@@ -17,7 +17,6 @@ add_library(
         padding.cpp padding.h
         document.cpp document.h
         renderer.cpp renderer.h
-        selection.cpp selection.h
         evaluator.cpp evaluator.h
         font_book.cpp font_book.h
         assembler.cpp assembler.h

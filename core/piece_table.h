@@ -60,6 +60,7 @@ namespace ryu::core {
         };
         types type = types::none;
         piece_node_t* data = nullptr;
+        uint32_t linear_offset = 0;
     };
 
     //
@@ -113,13 +114,7 @@ namespace ryu::core {
         piece_node_stack redo_stack {};
         piece_node_shared_ptr_set owned_pieces {};
 
-        inline void clear() {
-            head = nullptr;
-        }
-
-        inline bool empty() const {
-            return head == nullptr;
-        }
+        void clear();
 
         void undo();
 
@@ -129,7 +124,11 @@ namespace ryu::core {
 
         size_t size() const;
 
-        size_t total_length() const;
+        inline bool empty() const {
+            return head == nullptr;
+        }
+
+        uint32_t total_length() const;
 
         void swap_node(
                 piece_node_t* node,
@@ -145,7 +144,7 @@ namespace ryu::core {
 
         piece_find_result_t find_for_offset(uint32_t offset);
 
-        size_t linear_offset(const piece_node_t* start_node) const;
+        uint32_t linear_offset(const piece_node_t* start_node) const;
 
         void insert_after(piece_node_t* node, const piece_node_shared_ptr& piece);
 
@@ -180,6 +179,7 @@ namespace ryu::core {
             mark,
             custom
         };
+
         std::string name {};
         uint32_t start = 0;
         uint32_t length = 0;
@@ -200,11 +200,11 @@ namespace ryu::core {
     using selection_list = std::vector<selection_t>;
 
     struct piece_table_t {
-        void clear();
-
         void undo();
 
         void redo();
+
+        void clear();
 
         void checkpoint();
 
@@ -215,6 +215,8 @@ namespace ryu::core {
                 uint32_t start,
                 uint32_t length,
                 const std::string& name = "");
+
+        const selection_list& selections() const;
 
         void swap_deleted_node(piece_node_t* node);
 
@@ -236,11 +238,11 @@ namespace ryu::core {
 
         void paste(const selection_t& selection, const element_list& elements);
 
-        piece_list_t pieces {};
-        attr_line_list lines {};
-        selection_list selections {};
-        piece_table_buffer_t original {};
-        piece_table_buffer_t changes {piece_table_buffer_t::types::changes};
+        piece_list_t _pieces {};
+        attr_line_list _lines {};
+        selection_list _selections {};
+        piece_table_buffer_t _original {};
+        piece_table_buffer_t _changes {piece_table_buffer_t::types::changes};
     };
 
 };

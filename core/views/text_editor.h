@@ -13,7 +13,6 @@
 #include <core/view.h>
 #include <core/project.h>
 #include <core/document.h>
-#include <core/selection.h>
 #include "caret.h"
 
 namespace ryu::core {
@@ -100,10 +99,6 @@ namespace ryu::core {
 
         bool scroll_right();
 
-        void end_selection();
-
-        void delete_selection();
-
         void calculate_page_metrics();
 
         void caret_up(uint8_t rows = 1);
@@ -118,17 +113,12 @@ namespace ryu::core {
 
         bool caret_right(uint8_t columns = 1);
 
-        void update_selection(uint16_t line_end);
-
-        void get_selected_text(std::stringstream& stream);
-
     private:
         core::caret _caret;
         metrics_t _metrics;
         core::document _document;
         uint8_t _selection_color;
         uint8_t _line_number_color;
-        core::selection _selection;
         caret_changed_callable _caret_changed_callback;
     };
 

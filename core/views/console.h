@@ -13,7 +13,6 @@
 #include <utility>
 #include <core/view.h>
 #include <core/document.h>
-#include <core/selection.h>
 #include <core/text_formatter.h>
 #include "caret.h"
 
@@ -160,7 +159,6 @@ namespace ryu::core {
         uint8_t _color;
         metrics_t _metrics;
         document _document;
-        selection _selection;
         int16_t _remaining_lines = 0;
         states _state = states::input;
         code_to_attr_dict _code_mapper;

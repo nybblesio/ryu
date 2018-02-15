@@ -70,18 +70,6 @@ namespace ryu::core {
         return clamped;
     }
 
-    void text_editor::end_selection() {
-        // reimplement this
-
-        if (_caret.mode() != core::caret::mode::select)
-            return;
-
-        _caret.insert();
-
-
-        _selection.end();
-    }
-
     void text_editor::on_focus_changed() {
         _caret.enabled(focused());
     }
@@ -141,10 +129,6 @@ namespace ryu::core {
         _line_number_color = value;
     }
 
-    void text_editor::update_selection(uint16_t line_end) {
-        // defer down to document
-    }
-
     void text_editor::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
         auto pal = *palette();
@@ -199,17 +183,6 @@ namespace ryu::core {
         }
     }
 
-    void text_editor::delete_selection() {
-        _selection.normalize();
-
-//        auto row = _selection.start().row;
-//        auto last_row = _selection.end().row;
-
-        // XXX: reimplement this
-
-        end_selection();
-    }
-
     void text_editor::calculate_page_metrics() {
         auto rect = bounds();
         if (rect.empty())
@@ -247,7 +220,6 @@ namespace ryu::core {
                 case SDLK_c: {
                     if (ctrl_pressed) {
                         std::stringstream stream;
-                        get_selected_text(stream);
                         SDL_SetClipboardText(stream.str().c_str());
                     }
                     break;
@@ -262,9 +234,7 @@ namespace ryu::core {
                 case SDLK_x: {
                     if (ctrl_pressed) {
                         std::stringstream stream;
-                        get_selected_text(stream);
                         SDL_SetClipboardText(stream.str().c_str());
-                        delete_selection();
                     }
                     break;
                 }
@@ -282,10 +252,6 @@ namespace ryu::core {
                     return true;
                 }
                 case SDLK_DELETE: {
-                    if (_selection.valid()) {
-                        delete_selection();
-                    } else {
-                    }
                     return true;
                 }
                 case SDLK_BACKSPACE: {
@@ -293,10 +259,7 @@ namespace ryu::core {
                 }
                 case SDLK_UP: {
                     if (shift_pressed) {
-                        auto line_end = _document.find_line_end();
-                        update_selection(line_end);
                     } else {
-                        end_selection();
                     }
                     caret_up();
                     if (shift_pressed)
@@ -305,10 +268,7 @@ namespace ryu::core {
                 }
                 case SDLK_DOWN: {
                     if (shift_pressed) {
-                        auto line_end = _document.find_line_end();
-                        update_selection(line_end);
                     } else {
-                        end_selection();
                     }
                     caret_down();
                     if (shift_pressed)
@@ -318,7 +278,6 @@ namespace ryu::core {
                 case SDLK_LEFT: {
                     if (shift_pressed) {
                     } else {
-                        end_selection();
                     }
                     caret_left();
                     return true;
@@ -326,7 +285,6 @@ namespace ryu::core {
                 case SDLK_RIGHT: {
                 if (shift_pressed) {
                     } else {
-                        end_selection();
                     }
                     caret_right();
                     return true;
@@ -334,7 +292,6 @@ namespace ryu::core {
                 case SDLK_HOME: {
                     if (shift_pressed) {
                     } else {
-                        end_selection();
                     }
                     if (ctrl_pressed)
                         first_page();
@@ -344,10 +301,7 @@ namespace ryu::core {
                 }
                 case SDLK_END: {
                     if (shift_pressed) {
-                        auto line_end = _document.find_line_end();
-                        update_selection(line_end);
                     } else {
-                        end_selection();
                     }
                     if (ctrl_pressed)
                         last_page();
@@ -402,20 +356,11 @@ namespace ryu::core {
         _document.on_document_changed([&]() {
             raise_caret_changed();
         });
-//        _document.default_attr(core::attr_t {fg_color(), core::font::styles::normal});
         _document.document_size(rows, columns);
         _document.clear();
 
         add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-    }
-
-    void text_editor::get_selected_text(std::stringstream& stream) {
-        _selection.normalize();
-//        auto row = _selection.start().row;
-//        auto last_row = _selection.end().row;
-
-        // XXX: rewrite this
     }
 
     bool text_editor::load(core::result& result, const fs::path& path) {
