@@ -155,7 +155,7 @@ namespace ryu::core {
             auto max_line_height = font_face()->line_height;
             auto x = bounds.left() + _caret.padding().left();
 
-            for (const auto& chunk : chunks.spans) {
+            for (const auto& chunk : chunks._spans) {
                 font_style(chunk.attr.style);
 
                 auto face = font_face();

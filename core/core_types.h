@@ -165,6 +165,10 @@ namespace ryu::core {
 
     struct data_table_row_t {
         std::vector<std::string> columns {};
+
+        void add_empty_column() {
+            columns.emplace_back("");
+        }
     };
 
     struct data_table_t {
@@ -172,6 +176,13 @@ namespace ryu::core {
         std::vector<data_table_column_t> footers {};
         std::vector<data_table_row_t> rows {};
         uint8_t line_spacing = 0;
+
+        void add_empty_line() {
+            data_table_row_t row {};
+            for (auto i = 0; i < headers.size(); i++)
+                row.columns.emplace_back("");
+            rows.push_back(row);
+        }
     };
 
     // --------------------
@@ -202,6 +213,18 @@ namespace ryu::core {
     // --------------------
 
     struct attr_t {
+        attr_t() = default;
+
+        attr_t(uint8_t color, uint8_t style, uint8_t flags) : color(color),
+                                                              style(style),
+                                                              flags(flags) {
+        }
+
+        attr_t(const attr_t& other) : color(other.color),
+                                      style(other.style),
+                                      flags(other.flags) {
+        }
+
         uint8_t color = 0;
         uint8_t style = 0;
         uint8_t flags = 0;
@@ -214,14 +237,14 @@ namespace ryu::core {
     };
 
     struct attr_span_t {
-        attr_t attr {};
+        attr_t attr;
         std::string text {};
     };
 
     using attr_span_list = std::vector<attr_span_t>;
 
     struct element_t {
-        attr_t attr {};
+        attr_t attr;
         uint8_t value = 0;
 
         inline bool is_tab() const {
@@ -247,20 +270,24 @@ namespace ryu::core {
 
     struct attr_span_list_t {
         attr_span_t& back() {
-            return spans.back();
+            return _spans.back();
         }
 
         inline bool empty() const {
-            return spans.empty();
+            return _spans.empty();
         }
 
         inline size_t size() const {
-            return spans.size();
+            return _spans.size();
+        }
+
+        attr_span_list::iterator end() {
+            return _spans.end();
         }
 
         const element_list& sequence() {
             if (elements.empty()) {
-                for (const auto& span : spans) {
+                for (const auto& span : _spans) {
                     for (auto c : span.text)
                         elements.push_back(element_t{span.attr, static_cast<uint8_t>(c)});
                 }
@@ -269,25 +296,44 @@ namespace ryu::core {
         }
 
         const attr_span_t& back() const {
-            return spans.back();
+            return _spans.back();
+        }
+
+        attr_span_list::iterator begin() {
+            return _spans.begin();
         }
 
         attr_span_t& operator[](size_t index) {
-            return spans[index];
+            return _spans[index];
         }
 
-        inline void push_back(const attr_span_t& attr) {
-            spans.push_back(attr);
+        attr_span_list::const_iterator end() const {
+            return _spans.cend();
+        }
+
+        attr_span_list::const_iterator begin() const {
+            return _spans.cbegin();
+        }
+
+        inline void push_back(const attr_span_t& span) {
+            _spans.push_back(span);
         }
 
         const attr_span_t& operator[](size_t index) const {
-            return spans[index];
+            return _spans[index];
         }
 
-        attr_span_list spans {};
+        inline void insert(const attr_span_list::iterator& it, const attr_span_t& span) {
+            _spans.insert(it, span);
+        }
+
+        attr_span_list _spans {};
         element_list elements {};
     };
 
     using attr_line_list = std::vector<attr_span_list_t>;
+
+    using code_to_attr_callable = std::function<void (attr_t&)>;
+    using code_to_attr_dict = std::map<std::string, code_to_attr_callable>;
 
 };

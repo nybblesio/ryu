@@ -21,7 +21,7 @@ namespace ryu::core::unit_tests {
         doc.caret(&cursor);
         doc.page_size(25, 80);
 
-        attr_t default_attr {1};
+        attr_t default_attr(1, 0, 0);
 
         std::string expected_text = "this is a test";
 

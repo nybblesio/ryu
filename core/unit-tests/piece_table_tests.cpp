@@ -19,7 +19,7 @@ namespace ryu::core::unit_tests {
         piece_table_buffer_t original {};
         piece_table.load(original);
 
-        attr_t default_attr {1};
+        attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
         uint32_t offset = 0;
@@ -66,7 +66,7 @@ namespace ryu::core::unit_tests {
         piece_table_buffer_t original {};
         piece_table.load(original);
 
-        attr_t default_attr {1};
+        attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
         uint32_t offset = 0;
@@ -132,7 +132,7 @@ namespace ryu::core::unit_tests {
         piece_table_buffer_t original {};
         piece_table.load(original);
 
-        attr_t default_attr {1};
+        attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
         uint32_t offset = 0;
@@ -303,7 +303,7 @@ namespace ryu::core::unit_tests {
         piece_table_buffer_t original {};
         piece_table.load(original);
 
-        attr_t default_attr {1};
+        attr_t default_attr(1, 0, 0);
         std::string expected_text = "A quick brown fox jumps over the fence.";
 
         uint8_t offset = 0;

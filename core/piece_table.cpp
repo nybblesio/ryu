@@ -144,7 +144,7 @@ namespace ryu::core {
         _lines.clear();
 
         auto initial_piece_find_result = _pieces.find_for_offset(offset);
-        auto final_piece_find_result = _pieces.find_for_offset(static_cast<uint32_t>(offset + length));
+        auto final_piece_find_result = _pieces.find_for_offset(offset + length);
 
         if (initial_piece_find_result.data == final_piece_find_result.data) {
             if (initial_piece_find_result.linear_offset - initial_piece_find_result.data->length == offset) {

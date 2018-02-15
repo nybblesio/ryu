@@ -18,9 +18,6 @@
 
 namespace ryu::core {
 
-    using code_to_attr_callable = std::function<void (attr_t&)>;
-    typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
-
     class console;
 
     struct output_process_result_t {
@@ -31,10 +28,10 @@ namespace ryu::core {
     struct output_queue_entry_t {
         size_t msg_index = 0;
         size_t line_index = 0;
-        core::result result;
+        const core::result& result;
         core::formatted_text_list lines;
 
-        explicit output_queue_entry_t(core::result value) : result(std::move(value)) {
+        explicit output_queue_entry_t(const core::result& value) : result(value) {
         }
 
         output_process_result_t process(console* c);
@@ -76,7 +73,7 @@ namespace ryu::core {
                 bool last_newline = true);
 
         uint32_t write_message(
-                const formatted_text_t& formatted_text,
+                formatted_text_t& formatted_text,
                 bool last_newline = true);
 
         bool more() const;
@@ -154,9 +151,9 @@ namespace ryu::core {
     private:
         static command_action_dict _handlers;
 
-        bool _more {};
         caret _caret;
-        uint8_t _color;
+        attr_t _attr;
+        bool _more {};
         metrics_t _metrics;
         document _document;
         int16_t _remaining_lines = 0;

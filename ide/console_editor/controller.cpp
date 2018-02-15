@@ -229,11 +229,11 @@ namespace ryu::ide::console_editor {
         if (!_show_banner)
             return;
 
-        _console.write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>");
-        _console.write_message(" Copyright (C) 2017 Jeff Panici");
-        _console.write_message(" See details in <underline><bold>LICENSE<> file");
+        _console.write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>\n");
+        _console.write_message(" Copyright (C) 2017 Jeff Panici \n");
+        _console.write_message(" See details in <underline><bold>LICENSE<> file \n");
         _console.caret_down();
-        _console.write_message("Ready.");
+        _console.write_message("Ready.\n");
         _show_banner = false;
     }
 }

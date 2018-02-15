@@ -11,6 +11,10 @@ Project & Admin tasks
 Thoughts & Questions
 ----------------------
 
+- should we create our own meta-layer instead of using rttr?
+    * some kind of pre-processor
+    * should the meta-code live inside C++ source?  painful, if so
+
 - should we add a "clear symbols" command?
 
 - should we clear the symbol table during close project?
@@ -26,11 +30,6 @@ IDE UI & related tasks
 - core::document: re-implement API surface with new core::piece_table_t
     * unit tests to verify document is working
     * document_formatter
-        * core::formatted_text_t vs core::attr_span_t
-            * refactor text_formatter to accept a const code_to_attr_dict& and do the lookups during the formatting
-                - change formatted_text_t to house a attr_span_list_t instead of formatted_text_span_list
-                - remove formatted_span_t and formatted_text_span_list
-            * refactor console's write_message to remove "code" lookup
     * columnar mode by setting span start/end and caret operates within this boundary
 
 - core::console: re-implement integration with core::document
@@ -135,3 +134,5 @@ DONE
 - OFF STREAM      : add unit tests for cut
 - OFF STREAM      : add unit tests for paste selection
 - OFF STREAM      : add unit tests for delete selection
+- core::formatted_text_t vs core::attr_span_t
+- refactor console's write_message to remove "code" lookup

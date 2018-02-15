@@ -79,7 +79,7 @@ namespace ryu::core {
     }
 
     void console::initialize() {
-        _color = fg_color();
+        _attr.color = fg_color();
 
         _caret.overwrite();
         _caret.initialize(0, 0);
@@ -90,11 +90,6 @@ namespace ryu::core {
         });
 
         _document.caret(&_caret);
-//        _document.default_attr(core::attr_t {
-//            _color,
-//            core::font::styles::normal,
-//            core::font::flags::none
-//        });
         _document.document_size(4096, 128);
         _document.on_document_changed([&]() {
             raise_caret_changed();
@@ -222,7 +217,7 @@ namespace ryu::core {
             auto x = bounds.left();
             auto max_line_height = font_face()->line_height;
 
-            for (const auto& chunk : chunks.spans) {
+            for (const auto& chunk : chunks._spans) {
                 font_style(chunk.attr.style);
 
                 auto face = font_face();
@@ -355,29 +350,29 @@ namespace ryu::core {
         scale_columns(table.footers);
 
         core::formatted_text_t header_line {};
-        header_line.spans.push_back({"rev", " "});
-        header_line.spans.push_back({"bold", ""});
+        header_line.spans.push_back(text_formatter::span_for_code(_code_mapper, "rev", " "));
+        header_line.spans.push_back(text_formatter::span_for_code(_code_mapper, "bold", ""));
         for (size_t i = 0; i < table.headers.size(); i++) {
             auto& col = table.headers[i];
             auto column_pad = i < table.headers.size() - 1 ?
                               col.padding : 0;
 
-            header_line.spans.push_back({
-                "",
-                fmt::format(
-                        get_alignment_format(col.alignment),
-                        col.text.substr(0, col.width),
-                        col.width + column_pad)
-            });
+            header_line.spans.push_back(text_formatter::span_for_code(
+                    _code_mapper,
+                    "",
+                    fmt::format(
+                            get_alignment_format(col.alignment),
+                            col.text.substr(0, col.width),
+                            col.width + column_pad)));
         }
-        header_line.spans.push_back({"", " "});
+        header_line.add_empty_span(_code_mapper);
         list.push_back(header_line);
 
         // XXX: need to implement truncation for styled_text
         for (size_t i = 0; i < table.rows.size() - 1; i++) {
             const auto& row = table.rows[i];
             core::formatted_text_t row_line{};
-            row_line.spans.push_back({"", " "});
+            row_line.add_empty_span(_code_mapper);
 
             size_t total_width = 0;
             for (size_t j = 0; j < row.columns.size(); j++) {
@@ -406,13 +401,17 @@ namespace ryu::core {
                         case alignment::horizontal::none:
                         case alignment::horizontal::left:
                             formatted_text = text_formatter::format_text_left_padded(
-                                styled_text,
-                                header.width);
+                                    _code_mapper,
+                                    _attr,
+                                    styled_text,
+                                    header.width);
                             break;
                         case alignment::horizontal::right:
                             formatted_text = text_formatter::format_text_right_padded(
-                                styled_text,
-                                header.width);
+                                    _code_mapper,
+                                    _attr,
+                                    styled_text,
+                                    header.width);
                             break;
                         case alignment::horizontal::center:
                             break;
@@ -420,19 +419,19 @@ namespace ryu::core {
                     for (const auto& span : formatted_text.spans)
                         row_line.spans.push_back(span);
                     if (column_pad > 0) {
-                        row_line.spans.push_back({
-                            "",
-                            std::string(column_pad, ' ')
-                        });
+                        row_line.spans.push_back(text_formatter::span_for_code(
+                                _code_mapper,
+                                "",
+                                std::string(column_pad, ' ')));
                     }
                 } else {
-                    row_line.spans.push_back({
-                         "",
-                         fmt::format(
-                                 get_alignment_format(header.alignment),
-                                 col.substr(0, header.width),
-                                 header.width + column_pad)
-                    });
+                    row_line.spans.push_back(text_formatter::span_for_code(
+                            _code_mapper,
+                            "",
+                            fmt::format(
+                                    get_alignment_format(header.alignment),
+                                    col.substr(0, header.width),
+                                    header.width + column_pad)));
                 }
 
                 total_width += header.width + column_pad;
@@ -445,7 +444,7 @@ namespace ryu::core {
         }
 
         core::formatted_text_t footer_line {};
-        footer_line.spans.push_back({"bold", " "});
+        footer_line.spans.push_back(text_formatter::span_for_code(_code_mapper, "bold", " "));
         const auto& footer_data_row = table.rows[table.rows.size() - 1];
         for (size_t i = 0; i < footer_data_row.columns.size(); i++) {
             auto& footer = table.footers[i];
@@ -453,18 +452,17 @@ namespace ryu::core {
             auto column_pad = i < footer_data_row.columns.size() - 1 ?
                               footer.padding : 0;
 
-            footer_line.spans.push_back({
-                "",
-                fmt::format(
-                        get_alignment_format(footer.alignment),
-                        col.substr(0, footer.width),
-                        footer.width + column_pad)
-            });
+            footer_line.spans.push_back(text_formatter::span_for_code(
+                    _code_mapper,
+                    "",
+                    fmt::format(
+                            get_alignment_format(footer.alignment),
+                            col.substr(0, footer.width),
+                            footer.width + column_pad)));
         }
         list.push_back(footer_line);
     }
 
-    // XXX: right aligned columns seem to ignore padding?
     void console::format_command_result(
             const parameter_variant_t& param,
             formatted_text_list& lines) {
@@ -477,21 +475,21 @@ namespace ryu::core {
             case parameter_dict_types::string: {
                 auto value = boost::get<std::string>(param);
                 core::formatted_text_t line {};
-                line.spans.push_back({"", value});
+                line.spans.push_back(text_formatter::span_for_code(_code_mapper, "",  value));
                 lines.push_back(line);
                 break;
             }
             case parameter_dict_types::integer32: {
                 auto value = boost::get<uint32_t>(param);
                 core::formatted_text_t line {};
-                line.spans.push_back({"", std::to_string(value)});
+                line.spans.push_back(text_formatter::span_for_code(_code_mapper, "", std::to_string(value)));
                 lines.push_back(line);
                 break;
             }
             case parameter_dict_types::boolean: {
                 auto value = boost::get<bool>(param);
                 core::formatted_text_t line {};
-                line.spans.push_back({"", std::to_string(value)});
+                line.spans.push_back(text_formatter::span_for_code(_code_mapper, "", std::to_string(value)));
                 lines.push_back(line);
                 break;
             }
@@ -558,7 +556,7 @@ namespace ryu::core {
             const char* c = &e->text.text[0];
             while (*c != '\0') {
                 _document.put(core::element_t {
-                        core::attr_t{_color},
+                        _attr,
                         static_cast<uint8_t>(*c)});
                 caret_right();
                 c++;
@@ -572,7 +570,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("black");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -584,7 +582,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("white");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -596,7 +594,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("red");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -608,7 +606,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("cyan");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -620,7 +618,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("purple");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -632,7 +630,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("green");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -644,7 +642,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("blue");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -656,7 +654,7 @@ namespace ryu::core {
                         auto it = _code_mapper.find("yellow");
                         if (it != _code_mapper.end()) {
                             it->second(a);
-                            _color = a.color;
+                            _attr.color = a.color;
                             return true;
                         }
                     }
@@ -758,41 +756,16 @@ namespace ryu::core {
     }
 
     uint32_t console::write_message(
-            const core::formatted_text_t& formatted_text,
+            core::formatted_text_t& formatted_text,
             bool last_newline) {
         uint32_t line_count = 0;
 
-        core::attr_t attr {
-            _color,
-            core::font::styles::normal,
-            core::font::flags::none
-        };
-
         caret_home();
 
-        for (const auto& span : formatted_text.spans) {
-            if (span.attr_code == "newline") {
-                caret_down();
-                caret_home();
-                ++line_count;
-                continue;
-            }
-
-            if (!span.attr_code.empty()) {
-                auto it = _code_mapper.find(span.attr_code);
-                if (it == _code_mapper.end()) {
-                    attr.color = _color;
-                    attr.flags = core::font::flags::none;
-                    attr.style = core::font::styles::normal;
-                } else {
-                    it->second(attr);
-                }
-            }
-
-            for (size_t i = 0; i < span.text.length(); i++) {
-                _document.put(core::element_t {attr, static_cast<uint8_t>(span.text[i])});
-                caret_right();
-            }
+        auto elements = formatted_text.spans.sequence();
+        for (const auto& element : elements) {
+            _document.put(element);
+            caret_right();
         }
 
         if (last_newline) {
@@ -807,9 +780,8 @@ namespace ryu::core {
     uint32_t console::write_message(
             const std::string& message,
             bool last_newline) {
-        return write_message(
-                core::text_formatter::format_text(message),
-                last_newline);
+        auto formatted_text = core::text_formatter::format_text(_code_mapper, _attr, message);
+        return write_message(formatted_text, last_newline);
     }
 
     void console::on_execute_command(const execute_command_callable& callable) {
@@ -846,7 +818,10 @@ namespace ryu::core {
                         c->format_command_result(it->second, lines);
                         if (!lines.empty() && count < params.size() - 1) {
                             auto& last_line = lines[lines.size() - 1];
-                            last_line.spans.push_back({"newline", ""});
+                            last_line.spans.push_back(text_formatter::span_for_code(
+                                    c->_code_mapper,
+                                    "",
+                                    "\n"));
                         }
                         ++count;
                     }
@@ -860,7 +835,7 @@ namespace ryu::core {
             }
         } else {
             if (line_index < lines.size()) {
-                const auto& line = lines[line_index++];
+                auto& line = lines[line_index++];
                 output_result.line_count = c->write_message(line);
             }
         }
