@@ -14,7 +14,10 @@
 namespace ryu::core::unit_tests {
 
     TEST_CASE("piece_table_with_empty_original_no_edits", "[piece-table]") {
-        piece_table_t piece_table;
+        piece_table_undo_manager undo_manager;
+
+        piece_table piece_table;
+        piece_table.undo_manager(&undo_manager);
 
         piece_table_buffer_t original {};
         piece_table.load(original);
@@ -26,7 +29,7 @@ namespace ryu::core::unit_tests {
         REQUIRE(piece_table.original().empty());
         REQUIRE(piece_table.changes().size() == expected_text.length());
         REQUIRE(piece_table.pieces().size() == 1);
-        REQUIRE(piece_table.pieces().undo_depth() == 1);
+        REQUIRE(undo_manager.undo_depth() == 1);
 
         SECTION("piece table returns valid sequence") {
             piece_table.rebuild();
@@ -40,7 +43,7 @@ namespace ryu::core::unit_tests {
         SECTION("piece table undo reverts each edit") {
             piece_table.undo();
 
-            REQUIRE(piece_table.pieces().undo_depth() == 0);
+            REQUIRE(undo_manager.undo_depth() == 0);
             piece_table.rebuild();
 
             auto lines = piece_table.sequence();
@@ -49,7 +52,10 @@ namespace ryu::core::unit_tests {
     }
 
     TEST_CASE("piece_table_with_empty_original_with_deletes", "[piece-table]") {
-        piece_table_t piece_table;
+        piece_table_undo_manager undo_manager;
+
+        piece_table piece_table;
+        piece_table.undo_manager(&undo_manager);
 
         piece_table_buffer_t original {};
         piece_table.load(original);
@@ -115,7 +121,10 @@ namespace ryu::core::unit_tests {
     }
 
     TEST_CASE("piece_table_with_empty_original_with_edits", "[piece-table]") {
-        piece_table_t piece_table;
+        piece_table_undo_manager undo_manager;
+
+        piece_table piece_table;
+        piece_table.undo_manager(&undo_manager);
 
         piece_table_buffer_t original {};
         piece_table.load(original);
@@ -276,7 +285,10 @@ namespace ryu::core::unit_tests {
     }
 
     TEST_CASE("piece_table_with_empty_original_with_different_attrs", "[piece-table]") {
-        piece_table_t piece_table;
+        piece_table_undo_manager undo_manager;
+
+        piece_table piece_table;
+        piece_table.undo_manager(&undo_manager);
 
         piece_table_buffer_t original {};
         piece_table.load(original);
@@ -331,7 +343,6 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table returns attributed spans with initial insert") {
-            offset = 1;
             std::string inserted_text = "n extremely ";
             piece_table.insert_at(1, element_list_t::from_string(default_attr, inserted_text));
 

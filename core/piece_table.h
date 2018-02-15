@@ -73,18 +73,13 @@ namespace ryu::core {
         offset_t offset {};
     };
 
-    using piece_node_stack = std::stack<piece_node_t*>;
+    class piece_table_undo_manager;
+
     using piece_node_shared_ptr_set = std::set<piece_node_shared_ptr>;
 
-    class piece_list_t {
+    class piece_list {
     public:
-        void undo();
-
-        void redo();
-
         void clear();
-
-        void checkpoint();
 
         size_t size() const;
 
@@ -92,14 +87,6 @@ namespace ryu::core {
 
         inline bool empty() const {
             return _head == nullptr;
-        }
-
-        size_t undo_depth() const {
-            return _undo_stack.size();
-        }
-
-        size_t redo_depth() const {
-            return _redo_stack.size();
         }
 
         uint32_t total_length() const {
@@ -116,13 +103,13 @@ namespace ryu::core {
             return _tail;
         }
 
-        void clear_stack(piece_node_stack& stack);
-
-        void swap_deleted_node(piece_node_t* node);
+        piece_table_undo_manager* undo_manager();
 
         piece_node_t* clone_and_swap(piece_node_t* node);
 
         void add_tail(const piece_node_shared_ptr& piece);
+
+        void undo_manager(piece_table_undo_manager* value);
 
         void insert_head(const piece_node_shared_ptr& piece);
 
@@ -132,17 +119,13 @@ namespace ryu::core {
 
         void insert_before(piece_node_t* node, const piece_node_shared_ptr& piece);
 
-    protected:
-        void swap_node(
-                piece_node_t* node,
-                piece_node_stack& target_stack);
-
     private:
+        friend class piece_table_undo_manager;
+
         piece_node_t* _head = nullptr;
         piece_node_t* _tail = nullptr;
-        piece_node_stack _undo_stack {};
-        piece_node_stack _redo_stack {};
         piece_node_shared_ptr_set _owned_pieces {};
+        piece_table_undo_manager* _undo_manager = nullptr;
     };
 
     struct piece_table_buffer_t {
@@ -193,7 +176,7 @@ namespace ryu::core {
 
     using selection_list = std::vector<selection_t>;
 
-    class piece_table_t {
+    class piece_table {
     public:
         void undo();
 
@@ -217,9 +200,11 @@ namespace ryu::core {
                 uint32_t length,
                 const std::string& name = "");
 
-        const piece_list_t& pieces() const {
+        const piece_list& pieces() const {
             return _pieces;
         }
+
+        piece_table_undo_manager* undo_manager();
 
         const selection_list& selections() const;
 
@@ -239,6 +224,8 @@ namespace ryu::core {
 
         attr_line_list copy(const selection_t& selection);
 
+        void undo_manager(piece_table_undo_manager* value);
+
         void delete_selection(const selection_t& selection);
 
         void remove_selection(const selection_t& selection);
@@ -250,11 +237,53 @@ namespace ryu::core {
         void paste(const selection_t& selection, const element_list_t& elements);
 
     private:
-        piece_list_t _pieces {};
+        friend class piece_table_undo_manager;
+
+        piece_list _pieces;
         attr_line_list _lines {};
         selection_list _selections {};
         piece_table_buffer_t _original {};
+        piece_table_undo_manager* _undo_manager = nullptr;
         piece_table_buffer_t _changes {piece_table_buffer_t::types::changes};
+    };
+
+    using piece_node_stack = std::stack<piece_node_t*>;
+
+    class piece_table_undo_manager {
+    public:
+        void undo();
+
+        void redo();
+
+        void clear();
+
+        piece_table* table();
+
+        size_t undo_depth() const {
+            return _undo.size();
+        }
+
+        size_t redo_depth() const {
+            return _redo.size();
+        }
+
+        void table(piece_table* value);
+
+        void push_undo(piece_node_t* node);
+
+        void push_redo(piece_node_t* node);
+
+        void swap_deleted_node(piece_node_t* node);
+
+    protected:
+        void clear_stack(piece_node_stack& stack);
+
+        void swap_node(piece_node_t* node, piece_node_stack& target_stack);
+
+    private:
+        piece_node_stack _undo {};
+        piece_node_stack _redo {};
+        piece_table* _table = nullptr;
     };
 
 };

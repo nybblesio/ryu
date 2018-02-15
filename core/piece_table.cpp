@@ -9,7 +9,6 @@
 //
 
 #include <sstream>
-#include <algorithm>
 #include "piece_table.h"
 
 namespace ryu::core {
@@ -62,21 +61,25 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    void piece_table_t::undo() {
-        _pieces.undo();
+    void piece_table::undo() {
+        if (_undo_manager != nullptr)
+            _undo_manager->undo();
     }
 
-    void piece_table_t::redo() {
-        _pieces.redo();
+    void piece_table::redo() {
+        if (_undo_manager != nullptr)
+            _undo_manager->redo();
     }
 
-    void piece_table_t::clear() {
+    void piece_table::clear() {
         _pieces.clear();
         _changes.clear();
         _original.clear();
+        if (_undo_manager != nullptr)
+            _undo_manager->clear();
     }
 
-    void piece_table_t::rebuild() {
+    void piece_table::rebuild() {
         _lines.clear();
         auto current_node = _pieces.head();
         while (current_node != nullptr) {
@@ -85,11 +88,12 @@ namespace ryu::core {
         }
     }
 
-    void piece_table_t::checkpoint() {
-        _pieces.checkpoint();
+    void piece_table::checkpoint() {
+        if (_undo_manager != nullptr)
+            _undo_manager->clear();
     }
 
-    const selection_t& piece_table_t::add_selection(
+    const selection_t& piece_table::add_selection(
             selection_t::types type,
             uint32_t start,
             uint32_t length,
@@ -98,15 +102,19 @@ namespace ryu::core {
         return _selections.back();
     }
 
-    const attr_line_list& piece_table_t::sequence() {
+    const attr_line_list& piece_table::sequence() {
         return _lines;
     }
 
-    const selection_list& piece_table_t::selections() const {
+    const selection_list& piece_table::selections() const {
         return _selections;
     }
 
-    void piece_table_t::load(const piece_table_buffer_t& buffer) {
+    piece_table_undo_manager* piece_table::undo_manager() {
+        return _undo_manager;
+    }
+
+    void piece_table::load(const piece_table_buffer_t& buffer) {
         clear();
         _original = buffer;
         _lines.clear();
@@ -119,7 +127,7 @@ namespace ryu::core {
         }
     }
 
-    void piece_table_t::delete_at(uint32_t offset, uint32_t length) {
+    void piece_table::delete_at(uint32_t offset, uint32_t length) {
         if (length == 0)
             return;
 
@@ -174,7 +182,8 @@ namespace ryu::core {
                 }
 
                 if (elements_remaining == 0) {
-                    _pieces.swap_deleted_node(current_node);
+                    if (_undo_manager != nullptr)
+                        _undo_manager->swap_deleted_node(current_node);
                 } else {
                     auto cloned_node = _pieces.clone_and_swap(current_node);
                     cloned_node->length -= cloned_node->length - elements_remaining;
@@ -190,7 +199,14 @@ namespace ryu::core {
         _pieces.update_offsets();
     }
 
-    void piece_table_t::remove_selection(const selection_t& selection) {
+    void piece_table::undo_manager(piece_table_undo_manager* value) {
+        _undo_manager = value;
+        _pieces.undo_manager(value);
+        if (value != nullptr)
+            value->table(this);
+    }
+
+    void piece_table::remove_selection(const selection_t& selection) {
         _selections.erase(std::remove(
                 _selections.begin(),
                 _selections.end(),
@@ -198,7 +214,7 @@ namespace ryu::core {
             _selections.end());
     }
 
-    void piece_table_t::insert_at(uint32_t offset, const element_list_t& elements) {
+    void piece_table::insert_at(uint32_t offset, const element_list_t& elements) {
         if (elements.empty())
             return;
 
@@ -288,21 +304,21 @@ namespace ryu::core {
         _pieces.update_offsets();
     }
 
-    attr_line_list piece_table_t::cut(const selection_t& selection) {
+    attr_line_list piece_table::cut(const selection_t& selection) {
         auto lines = copy(selection);
         delete_selection(selection);
         return lines;
     }
 
-    attr_line_list piece_table_t::copy(const selection_t& selection) {
+    attr_line_list piece_table::copy(const selection_t& selection) {
         return sub_sequence(selection.start, selection.start + selection.length);
     }
 
-    void piece_table_t::delete_selection(const selection_t& selection) {
+    void piece_table::delete_selection(const selection_t& selection) {
         delete_at(selection.start, selection.length);
     }
 
-    attr_line_list piece_table_t::sub_sequence(uint32_t start, uint32_t end) {
+    attr_line_list piece_table::sub_sequence(uint32_t start, uint32_t end) {
         attr_line_list lines;
         uint32_t node_start_offset = 0;
         auto current_node = _pieces.head();
@@ -339,63 +355,20 @@ namespace ryu::core {
         return lines;
     }
 
-    void piece_table_t::paste(const selection_t& selection, const element_list_t& elements) {
+    void piece_table::paste(const selection_t& selection, const element_list_t& elements) {
         delete_at(selection.start, selection.length);
         insert_at(selection.start, elements);
     }
 
     ///////////////////////////////////////////////////////////////////////////
 
-    void piece_list_t::undo() {
-        if (_undo_stack.empty())
-            return;
-
-        auto node = _undo_stack.top();
-        if (node == nullptr) {
-            _head = nullptr;
-            _tail = nullptr;
-            _undo_stack.pop();
-            return;
-        }
-
-        swap_node(node, _redo_stack);
-
-        _undo_stack.pop();
-    }
-
-    void piece_list_t::redo() {
-        if (_redo_stack.empty())
-            return;
-
-        auto node = _redo_stack.top();
-        if (node == nullptr) {
-            _head = nullptr;
-            _tail = nullptr;
-            _redo_stack.pop();
-            return;
-        }
-
-        swap_node(node, _undo_stack);
-
-        _redo_stack.pop();
-    }
-
-    void piece_list_t::clear() {
+    void piece_list::clear() {
         _head = nullptr;
         _tail = nullptr;
-        while (!_undo_stack.empty())
-            _undo_stack.pop();
-        while (!_redo_stack.empty())
-            _redo_stack.pop();
         _owned_pieces.clear();
     }
 
-    void piece_list_t::checkpoint() {
-        clear_stack(_undo_stack);
-        clear_stack(_redo_stack);
-    }
-
-    size_t piece_list_t::size() const {
+    size_t piece_list::size() const {
         size_t count = 0;
         auto current_node = _head;
         while (current_node != nullptr) {
@@ -405,37 +378,7 @@ namespace ryu::core {
         return count;
     }
 
-    void piece_list_t::swap_node(
-            piece_node_t* node,
-            piece_node_stack& target_stack) {
-        if (node->prev == nullptr) {
-            auto current_head = _head;
-            target_stack.push(current_head);
-            _head = node;
-            if (current_head == _tail) {
-                _tail = _head;
-            }
-        } else if (node->next == nullptr) {
-            auto current_tail = _tail;
-            target_stack.push(current_tail);
-            _tail = node;
-            if (current_tail == _head) {
-                _head = _tail;
-            }
-        }
-
-        if (node->prev != nullptr) {
-            auto prev_node = node->prev;
-            prev_node->next = node;
-        }
-
-        if (node->next != nullptr) {
-            auto next_node = node->next;
-            next_node->prev = node;
-        }
-    }
-
-    void piece_list_t::update_offsets() {
+    void piece_list::update_offsets() {
         uint32_t offset = 0;
         auto current_node = _head;
         while (current_node != nullptr) {
@@ -445,83 +388,53 @@ namespace ryu::core {
         }
     }
 
-    void piece_list_t::swap_deleted_node(piece_node_t* node) {
-        _undo_stack.push(node);
-
-        if (node->prev == nullptr) {
-            auto current_head = _head;
-            _head = node;
-            if (current_head == _tail) {
-                _tail = _head;
-            }
-        } else if (node->next == nullptr) {
-            auto current_tail = _tail;
-            _tail = node;
-            if (current_tail == _head) {
-                _head = _tail;
-            }
-        }
-
-        auto current_node_prev = node->prev;
-        if (node->prev != nullptr) {
-            node->prev->next = node->next;
-        }
-        if (node->next != nullptr) {
-            node->next->prev = current_node_prev;
-        }
+    piece_table_undo_manager* piece_list::undo_manager() {
+        return _undo_manager;
     }
 
-    void piece_list_t::clear_stack(piece_node_stack& stack) {
-        while (!stack.empty()) {
-            auto top = stack.top();
-            auto it = _owned_pieces.begin();
-            for (; it != _owned_pieces.end(); ++it) {
-                if ((*it).get() == top) {
-                    _owned_pieces.erase(it);
-                    break;
-                }
-            }
-            stack.pop();
-        }
-    }
-
-    void piece_list_t::add_tail(const piece_node_shared_ptr& piece) {
+    void piece_list::add_tail(const piece_node_shared_ptr& piece) {
         auto raw_ptr = piece.get();
         _owned_pieces.insert(piece);
         if (_head == nullptr) {
-            _undo_stack.push(nullptr);
+            if (_undo_manager != nullptr)
+                _undo_manager->push_undo(nullptr);
             _head = raw_ptr;
             _tail = raw_ptr;
         } else {
-            _undo_stack.push(_tail);
+            if (_undo_manager != nullptr)
+                _undo_manager->push_undo(_tail);
             raw_ptr->prev = _tail;
             _tail->next = raw_ptr;
             _tail = raw_ptr;
         }
     }
 
-    void piece_list_t::insert_head(const piece_node_shared_ptr& piece) {
+    void piece_list::insert_head(const piece_node_shared_ptr& piece) {
         auto raw_ptr = piece.get();
         _owned_pieces.insert(piece);
         if (_head == nullptr) {
-            _undo_stack.push(nullptr);
+            if (_undo_manager != nullptr)
+                _undo_manager->push_undo(nullptr);
             _head = raw_ptr;
             _tail = raw_ptr;
         } else {
-            _undo_stack.push(_head);
+            if (_undo_manager != nullptr)
+                _undo_manager->push_undo(_tail);
             raw_ptr->next = _head;
             _head->prev = raw_ptr;
             _head = raw_ptr;
         }
     }
 
-    piece_node_t* piece_list_t::clone_and_swap(piece_node_t* node) {
+    piece_node_t* piece_list::clone_and_swap(piece_node_t* node) {
         auto clone_node = std::make_shared<piece_node_t>(
                 node->start,
                 node->length,
                 node->buffer);
         clone_node->offset = node->offset;
+
         _owned_pieces.insert(clone_node);
+
         auto clone_raw_ptr = clone_node.get();
         if (node->prev != nullptr) {
             node->prev->next = clone_raw_ptr;
@@ -535,11 +448,18 @@ namespace ryu::core {
         } else {
             _tail = clone_raw_ptr;
         }
-        _undo_stack.push(node);
+
+        if (_undo_manager != nullptr)
+            _undo_manager->push_undo(node);
+
         return clone_raw_ptr;
     }
 
-    piece_find_result_t piece_list_t::find_for_offset(uint32_t offset) {
+    void piece_list::undo_manager(piece_table_undo_manager* value) {
+        _undo_manager = value;
+    }
+
+    piece_find_result_t piece_list::find_for_offset(uint32_t offset) {
         piece_find_result_t result {};
         if (empty()) {
             return result;
@@ -572,7 +492,7 @@ namespace ryu::core {
         return result;
     }
 
-    void piece_list_t::insert_after(piece_node_t* node, const piece_node_shared_ptr& piece) {
+    void piece_list::insert_after(piece_node_t* node, const piece_node_shared_ptr& piece) {
         _owned_pieces.insert(piece);
 
         const auto piece_raw_ptr = piece.get();
@@ -588,7 +508,7 @@ namespace ryu::core {
         node->next = piece_raw_ptr;
     }
 
-    void piece_list_t::insert_before(piece_node_t* node, const piece_node_shared_ptr& piece) {
+    void piece_list::insert_before(piece_node_t* node, const piece_node_shared_ptr& piece) {
         _owned_pieces.insert(piece);
 
         const auto piece_raw_ptr = piece.get();
@@ -602,6 +522,128 @@ namespace ryu::core {
             _head = piece_raw_ptr;
 
         node->prev = piece_raw_ptr;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    void piece_table_undo_manager::undo() {
+        if (_undo.empty())
+            return;
+
+        auto pieces = &_table->_pieces;
+        auto node = _undo.top();
+        if (node == nullptr) {
+            pieces->_head = nullptr;
+            pieces->_tail = nullptr;
+            _undo.pop();
+            return;
+        }
+
+        swap_node(node, _redo);
+
+        _undo.pop();
+    }
+
+    void piece_table_undo_manager::redo() {
+        if (_redo.empty())
+            return;
+
+        auto pieces = &_table->_pieces;
+        auto node = _redo.top();
+        if (node == nullptr) {
+            pieces->_head = nullptr;
+            pieces->_tail = nullptr;
+            _redo.pop();
+            return;
+        }
+
+        swap_node(node, _undo);
+
+        _redo.pop();
+    }
+
+    void piece_table_undo_manager::clear() {
+        clear_stack(_undo);
+        clear_stack(_redo);
+    }
+
+    void piece_table_undo_manager::swap_node(
+            piece_node_t* node,
+            piece_node_stack& target_stack) {
+        auto pieces = &_table->_pieces;
+        if (node->prev == nullptr) {
+            auto current_head = pieces->_head;
+            target_stack.push(current_head);
+            pieces->_head = node;
+            if (current_head == pieces->_tail) {
+                pieces->_tail = pieces->_head;
+            }
+        } else if (node->next == nullptr) {
+            auto current_tail = pieces->_tail;
+            target_stack.push(current_tail);
+            pieces->_tail = node;
+            if (current_tail == pieces->_head) {
+                pieces->_head = pieces->_tail;
+            }
+        }
+
+        if (node->prev != nullptr) {
+            auto prev_node = node->prev;
+            prev_node->next = node;
+        }
+
+        if (node->next != nullptr) {
+            auto next_node = node->next;
+            next_node->prev = node;
+        }
+    }
+
+    piece_table* piece_table_undo_manager::table() {
+        return _table;
+    }
+
+    void piece_table_undo_manager::table(piece_table* value) {
+        _table = value;
+    }
+
+    void piece_table_undo_manager::push_undo(piece_node_t* node) {
+        _undo.push(node);
+    }
+
+    void piece_table_undo_manager::push_redo(piece_node_t* node) {
+        _redo.push(node);
+    }
+
+    void piece_table_undo_manager::swap_deleted_node(piece_node_t* node) {
+        _undo.push(node);
+
+        auto pieces = &_table->_pieces;
+        if (node->prev == nullptr) {
+            auto current_head = pieces->_head;
+            pieces->_head = node;
+            if (current_head == pieces->_tail) {
+                pieces->_tail = pieces->_head;
+            }
+        } else if (node->next == nullptr) {
+            auto current_tail = pieces->_tail;
+            pieces->_tail = node;
+            if (current_tail == pieces->_head) {
+                pieces->_head = pieces->_tail;
+            }
+        }
+
+        auto current_node_prev = node->prev;
+        if (node->prev != nullptr) {
+            node->prev->next = node->next;
+        }
+        if (node->next != nullptr) {
+            node->next->prev = current_node_prev;
+        }
+    }
+
+    void piece_table_undo_manager::clear_stack(piece_node_stack& stack) {
+        while (!stack.empty())
+            stack.pop();
     }
 
 };

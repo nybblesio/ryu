@@ -21,6 +21,15 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
+    struct line_node_t;
+
+    struct line_node_t {
+        uint32_t number = 0;
+        line_node_t* prev = nullptr;
+        line_node_t* next = nullptr;
+        piece_table piece_table {};
+    };
+
     class document {
     public:
         using document_changed_callable = std::function<void ()>;
@@ -131,7 +140,7 @@ namespace ryu::core {
         uint16_t _columns = 80;
         uint8_t _page_width = 0;
         uint8_t _page_height = 0;
-        piece_table_t _piece_table {};
+        piece_table _piece_table {};
         core::caret* _caret = nullptr;
         document_changed_callable _document_changed_callback;
     };
