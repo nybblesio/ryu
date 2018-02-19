@@ -13,10 +13,9 @@
 
 namespace ryu::core {
 
-    bool element_t::safe_value(std::stringstream& stream) const {
-        auto newline = false;
+    void element_t::safe_value(std::stringstream& stream) const {
         if (is_newline())
-            newline = true;
+            stream << " ";
         else if (is_tab())
             stream << "    ";           // XXX: this is hard coded
         else if (is_percent())
@@ -25,7 +24,6 @@ namespace ryu::core {
             stream << " ";
         else
             stream << value;
-        return newline;
     }
 
 }

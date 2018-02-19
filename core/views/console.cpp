@@ -52,10 +52,6 @@ namespace ryu::core {
                                                 _caret("console-caret") {
     }
 
-    void console::rebuild() {
-        _document.rebuild();
-    }
-
     void console::page_up() {
         _document.page_up();
     }
@@ -141,6 +137,11 @@ namespace ryu::core {
         _more = flag;
     }
 
+    void console::caret_newline() {
+        caret_down();
+        caret_home();
+    }
+
     void console::raise_caret_changed() {
         if (_caret_changed_callback != nullptr)
             _caret_changed_callback(_caret, _document);
@@ -186,8 +187,7 @@ namespace ryu::core {
         auto overflow = false;
         if (_caret.right(columns)) {
             if (_document.scroll_right()) {
-                caret_down();
-                caret_home();
+                caret_newline();
             }
             overflow = true;
         }
@@ -213,12 +213,15 @@ namespace ryu::core {
         auto x = bounds.left();
         uint32_t row = static_cast<uint32_t>(_document.row());
         auto max_line_height = font_face()->line_height;
+        auto column_start = static_cast<uint32_t>(_document.column());
 
-        auto lines = _document.lines_from(row);
+        for (auto index = 0; index < _metrics.page_height; index++) {
+            auto spans = _document.line_at(
+                    row,
+                    column_start,
+                    column_start + _metrics.page_width);
 
-        for (auto index = 0; index < _metrics.page_height && index < lines.size(); index++) {
-            auto line = lines[index];
-            for (const auto& span : line) {
+            for (const auto& span : spans) {
                 font_style(span.attr.style);
 
                 auto face = font_face();
@@ -237,8 +240,11 @@ namespace ryu::core {
                 surface.draw_text(face, x, y, span.text, color);
                 x += width;
             }
+
             x = bounds.left();
             y += max_line_height;
+
+            ++row;
         }
     }
 
@@ -282,7 +288,8 @@ namespace ryu::core {
 
         if (more_to_process) {
             if (more()) {
-                write_message("\n<rev><bold> MORE (SPACE to continue) <>");
+                caret_newline();
+                write_message("<rev><bold> MORE (SPACE to continue) <>");
                 _state = states::wait;
             } else {
                 _state = states::resume_processing;
@@ -290,8 +297,6 @@ namespace ryu::core {
         } else {
             _state = states::post_processing;
         }
-
-        _document.rebuild();
     }
 
     std::string console::get_alignment_format(
@@ -541,8 +546,9 @@ namespace ryu::core {
             }
         }
 
-        write_message("\nReady.\n");
-        _document.rebuild();
+        caret_newline();
+        write_message("Ready.");
+        caret_newline();
 
         _output_queue.pop_front();
 
@@ -583,13 +589,11 @@ namespace ryu::core {
             _document.put(elements);
             for (const auto& element : elements) {
                 if (element.value == '\n') {
-                    caret_down();
-                    caret_home();
+                    caret_newline();
                 } else {
                     caret_right();
                 }
             }
-            _document.rebuild();
             return true;
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
@@ -706,7 +710,7 @@ namespace ryu::core {
                             _state = states::pre_processing;
                         }
                     }
-                    write_message("\n");
+                    caret_newline();
                     return true;
                 }
                 case SDLK_DELETE:
@@ -788,8 +792,7 @@ namespace ryu::core {
         _document.put(elements);
         for (const auto& element : elements) {
             if (element.value == '\n') {
-                caret_down();
-                caret_home();
+                caret_newline();
                 ++line_count;
             } else {
                 caret_right();

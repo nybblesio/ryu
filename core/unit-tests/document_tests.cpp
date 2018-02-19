@@ -25,9 +25,8 @@ namespace ryu::core::unit_tests {
 
         std::string expected_text = "this is a test";
         doc.put(element_list_t::from_string(default_attr, expected_text));
-        doc.rebuild();
 
-        auto lines = doc.lines_from(0);
+        auto lines = doc.line_at(0, 0, expected_text.length());
         REQUIRE(!lines.empty());
     }
 

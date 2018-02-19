@@ -35,8 +35,6 @@ namespace ryu::core {
 
         void page_up();
 
-        void rebuild();
-
         bool scroll_up();
 
         void page_down();
@@ -71,11 +69,6 @@ namespace ryu::core {
 
         void end(uint16_t column);
 
-        attr_line_list lines_from(
-                uint32_t row,
-                uint16_t start,
-                uint16_t end);
-
         uint8_t page_width() const;
 
         uint8_t page_height() const;
@@ -84,6 +77,10 @@ namespace ryu::core {
 
         bool get(element_t& element);
 
+        int32_t virtual_row() const;
+
+        int16_t virtual_column() const;
+
         void caret(core::caret* value);
 
         void path(const fs::path& value);
@@ -91,8 +88,6 @@ namespace ryu::core {
         void shift_left(uint16_t times = 1);
 
         void put(const element_list_t& value);
-
-        attr_line_list lines_from(uint32_t row);
 
         void page_size(uint8_t height, uint8_t width);
 
@@ -110,6 +105,8 @@ namespace ryu::core {
 
         void on_document_changed(const document_changed_callable& callable);
 
+        attr_span_list_t line_at(uint32_t row, uint32_t start, uint32_t end);
+
     protected:
         bool clamp_row();
 
@@ -117,11 +114,7 @@ namespace ryu::core {
 
         uint32_t offset() const;
 
-        int32_t virtual_row() const;
-
         void raise_document_changed();
-
-        int16_t virtual_column() const;
 
     private:
         fs::path _path;

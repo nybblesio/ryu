@@ -232,8 +232,9 @@ namespace ryu::ide::console_editor {
         _console.write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>\n");
         _console.write_message(" Copyright (C) 2017 Jeff Panici \n");
         _console.write_message(" See details in <underline><bold>LICENSE<> file \n");
-        _console.write_message("\nReady.\n");
-        _console.rebuild();
+        _console.caret_newline();
+        _console.write_message("Ready.");
+        _console.caret_newline();
 
         _show_banner = false;
     }

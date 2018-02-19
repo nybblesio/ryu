@@ -54,8 +54,6 @@ namespace ryu::core {
 
         explicit console(const std::string& name);
 
-        void rebuild();
-
         void page_up();
 
         void page_down();
@@ -73,6 +71,8 @@ namespace ryu::core {
         bool more() const;
 
         void more(bool flag);
+
+        void caret_newline();
 
         void update(uint32_t dt);
 

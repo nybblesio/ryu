@@ -36,29 +36,35 @@ namespace ryu::core {
     struct piece_table_buffer_t;
 
     struct piece_node_t {
-        piece_node_t(uint32_t start, uint32_t length, piece_table_buffer_t* buffer) {
-            this->start = start;
+        piece_node_t(
+                uint32_t line,
+                uint32_t buffer_start,
+                uint32_t length,
+                piece_table_buffer_t* buffer) {
+            this->buffer_start = buffer_start;
             this->length = length;
             this->buffer = buffer;
+            this->line = line;
         }
 
-        uint32_t start {};
+        uint32_t line {};
+        uint32_t buffer_start {};
         uint32_t length {};
         offset_t offset {};
         piece_node_t* prev = nullptr;
         piece_node_t* next = nullptr;
         piece_table_buffer_t* buffer = nullptr;
 
-        inline size_t end() const {
-            return start + length;
+        inline size_t buffer_end() const {
+            return buffer_start + length;
         }
 
         void copy_elements(
-                attr_line_list& lines,
+                attr_span_list_t& spans,
                 uint32_t begin,
                 uint32_t end);
 
-        void copy_elements(attr_line_list& lines);
+        void copy_elements(attr_span_list_t& spans);
     };
 
     struct piece_find_result_t {
@@ -76,6 +82,17 @@ namespace ryu::core {
     class piece_table_undo_manager;
 
     using piece_node_shared_ptr_set = std::set<piece_node_shared_ptr>;
+
+    struct piece_line_t {
+        piece_node_t* head = nullptr;
+        piece_node_t* tail = nullptr;
+
+        uint32_t total_length() const {
+            if (tail != nullptr)
+                return tail->offset.end;
+            return 0;
+        }
+    };
 
     class piece_list {
     public:
@@ -103,6 +120,8 @@ namespace ryu::core {
             return _tail;
         }
 
+        piece_line_t* get_line(uint32_t line);
+
         void add_tail(
                 const piece_node_shared_ptr& piece,
                 piece_table_undo_manager* undo_manager);
@@ -115,17 +134,21 @@ namespace ryu::core {
                 piece_node_t* node,
                 piece_table_undo_manager* undo_manager);
 
-        piece_find_result_t find_for_offset(uint32_t offset);
+        piece_find_result_t find_for_offset(uint32_t row, uint32_t column);
 
         void insert_after(piece_node_t* node, const piece_node_shared_ptr& piece);
 
         void insert_before(piece_node_t* node, const piece_node_shared_ptr& piece);
 
     private:
+        void adjust_lines_to_fit(uint32_t line);
+
+    private:
         friend class piece_table_undo_manager;
 
         piece_node_t* _head = nullptr;
         piece_node_t* _tail = nullptr;
+        std::vector<piece_line_t> _lines {};
         piece_node_shared_ptr_set _owned_pieces {};
     };
 
@@ -159,6 +182,7 @@ namespace ryu::core {
         };
 
         std::string name {};
+        uint32_t line = 0;
         uint32_t start = 0;
         uint32_t length = 0;
         types type = types::clipboard;
@@ -185,18 +209,15 @@ namespace ryu::core {
 
         void clear();
 
-        void rebuild();
-
         void checkpoint();
 
         uint32_t total_length() const {
             return _pieces.total_length();
         }
 
-        const attr_line_list& sequence();
-
         const selection_t& add_selection(
                 selection_t::types type,
+                uint32_t line,
                 uint32_t start,
                 uint32_t length,
                 const std::string& name = "");
@@ -204,6 +225,8 @@ namespace ryu::core {
         const piece_list& pieces() const {
             return _pieces;
         }
+
+        attr_span_list_t sequence(uint32_t row);
 
         piece_table_undo_manager* undo_manager();
 
@@ -219,11 +242,9 @@ namespace ryu::core {
             return _original;
         }
 
-        attr_line_list cut(const selection_t& selection);
+        attr_span_list_t cut(const selection_t& selection);
 
-        void delete_at(uint32_t offset, uint32_t length);
-
-        attr_line_list copy(const selection_t& selection);
+        attr_span_list_t copy(const selection_t& selection);
 
         void undo_manager(piece_table_undo_manager* value);
 
@@ -231,17 +252,18 @@ namespace ryu::core {
 
         void remove_selection(const selection_t& selection);
 
-        attr_line_list sub_sequence(uint32_t start, uint32_t end);
-
-        void insert_at(uint32_t offset, const element_list_t& elements);
+        void delete_at(uint32_t row, uint32_t column, uint32_t length);
 
         void paste(const selection_t& selection, const element_list_t& elements);
+
+        attr_span_list_t sub_sequence(uint32_t row, uint32_t start, uint32_t end);
+
+        void insert_at(uint32_t row, uint32_t column, const element_list_t& elements);
 
     private:
         friend class piece_table_undo_manager;
 
         piece_list _pieces;
-        attr_line_list _lines {};
         selection_list _selections {};
         piece_table_buffer_t _original {};
         piece_table_undo_manager* _undo_manager = nullptr;

@@ -263,7 +263,7 @@ namespace ryu::core {
             return value == 37;
         }
 
-        bool safe_value(std::stringstream& stream) const;
+        void safe_value(std::stringstream& stream) const;
     };
 
     using element_list = std::vector<element_t>;

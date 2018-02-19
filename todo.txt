@@ -27,7 +27,9 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- BUG: how to handle gap piece between end of piece table and far new offset
+- BUG: delete_at is indexing into oblivion for split scenarios
+
+- MISSING: swap_deleted_node needs to fix-up line head/tail pair
 
 - core::document: re-implement API surface with new core::piece_table_t
     * unit tests to verify document is working
@@ -138,3 +140,4 @@ DONE
 - OFF STREAM      : add unit tests for delete selection
 - core::formatted_text_t vs core::attr_span_t
 - refactor console's write_message to remove "code" lookup
+- BUG: how to handle gap piece between end of piece table and far new offset
