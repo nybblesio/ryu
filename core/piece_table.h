@@ -103,15 +103,17 @@ namespace ryu::core {
             return _tail;
         }
 
-        piece_table_undo_manager* undo_manager();
+        void add_tail(
+                const piece_node_shared_ptr& piece,
+                piece_table_undo_manager* undo_manager);
 
-        piece_node_t* clone_and_swap(piece_node_t* node);
+        void insert_head(
+                const piece_node_shared_ptr& piece,
+                piece_table_undo_manager* undo_manager);
 
-        void add_tail(const piece_node_shared_ptr& piece);
-
-        void undo_manager(piece_table_undo_manager* value);
-
-        void insert_head(const piece_node_shared_ptr& piece);
+        piece_node_t* clone_and_swap(
+                piece_node_t* node,
+                piece_table_undo_manager* undo_manager);
 
         piece_find_result_t find_for_offset(uint32_t offset);
 
@@ -125,7 +127,6 @@ namespace ryu::core {
         piece_node_t* _head = nullptr;
         piece_node_t* _tail = nullptr;
         piece_node_shared_ptr_set _owned_pieces {};
-        piece_table_undo_manager* _undo_manager = nullptr;
     };
 
     struct piece_table_buffer_t {
@@ -251,13 +252,7 @@ namespace ryu::core {
 
     class piece_table_undo_manager {
     public:
-        void undo();
-
-        void redo();
-
         void clear();
-
-        piece_table* table();
 
         size_t undo_depth() const {
             return _undo.size();
@@ -267,23 +262,27 @@ namespace ryu::core {
             return _redo.size();
         }
 
-        void table(piece_table* value);
+        void undo(piece_list& pieces);
+
+        void redo(piece_list& pieces);
 
         void push_undo(piece_node_t* node);
 
         void push_redo(piece_node_t* node);
 
-        void swap_deleted_node(piece_node_t* node);
+        void swap_deleted_node(piece_list& pieces, piece_node_t* node);
 
     protected:
-        void clear_stack(piece_node_stack& stack);
+        void swap_node(
+                piece_list& pieces,
+                piece_node_t* node,
+                piece_node_stack& target_stack);
 
-        void swap_node(piece_node_t* node, piece_node_stack& target_stack);
+        void clear_stack(piece_node_stack& stack);
 
     private:
         piece_node_stack _undo {};
         piece_node_stack _redo {};
-        piece_table* _table = nullptr;
     };
 
 };

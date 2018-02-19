@@ -151,15 +151,14 @@ namespace ryu::core {
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
             _document.put(element_list_t::from_string({}, c));
-            while (*c != '\0') {
-                if (_on_key_down != nullptr) {
-                    if (!_on_key_down(*c)) {
-                        c++;
-                        continue;
-                    }
-                }
-                c++;
-            }
+//            if (_on_key_down != nullptr) {
+//                while (*c != '\0') {
+//                    if (!_on_key_down(*c)) {
+//                        c++;
+//                        continue;
+//                    }
+//                }
+//            }
             return true;
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {

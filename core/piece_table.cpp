@@ -63,12 +63,12 @@ namespace ryu::core {
 
     void piece_table::undo() {
         if (_undo_manager != nullptr)
-            _undo_manager->undo();
+            _undo_manager->undo(_pieces);
     }
 
     void piece_table::redo() {
         if (_undo_manager != nullptr)
-            _undo_manager->redo();
+            _undo_manager->redo(_pieces);
     }
 
     void piece_table::clear() {
@@ -120,10 +120,11 @@ namespace ryu::core {
         _lines.clear();
 
         if (!buffer.empty()) {
-            _pieces.add_tail(std::make_shared<piece_node_t>(
+            auto new_piece = std::make_shared<piece_node_t>(
                     0,
                     _original.elements.size(),
-                    &_original));
+                    &_original);
+            _pieces.add_tail(new_piece, _undo_manager);
         }
     }
 
@@ -136,11 +137,15 @@ namespace ryu::core {
 
         if (initial_piece_find_result.data == final_piece_find_result.data) {
             if (initial_piece_find_result.offset.start == offset) {
-                auto cloned_node = _pieces.clone_and_swap(initial_piece_find_result.data);
+                auto cloned_node = _pieces.clone_and_swap(
+                        initial_piece_find_result.data,
+                        _undo_manager);
                 cloned_node->start += length;
                 cloned_node->length -= length;
             } else if (final_piece_find_result.offset.end == offset) {
-                auto cloned_node = _pieces.clone_and_swap(initial_piece_find_result.data);
+                auto cloned_node = _pieces.clone_and_swap(
+                        initial_piece_find_result.data,
+                        _undo_manager);
                 cloned_node->length -= length;
             } else {
                 auto new_start = (initial_piece_find_result.data->start
@@ -152,7 +157,9 @@ namespace ryu::core {
                         initial_piece_find_result.data->length - new_start,
                         &_changes);
 
-                auto cloned_piece = _pieces.clone_and_swap(initial_piece_find_result.data);
+                auto cloned_piece = _pieces.clone_and_swap(
+                        initial_piece_find_result.data,
+                        _undo_manager);
                 cloned_piece->length = offset;
 
                 _pieces.insert_after(cloned_piece, new_piece);
@@ -175,7 +182,7 @@ namespace ryu::core {
 
                 if (delete_offset_end < node_end_offset) {
                     auto element_removed_count = delete_offset_end - node_start_offset;
-                    auto cloned_node = _pieces.clone_and_swap(current_node);
+                    auto cloned_node = _pieces.clone_and_swap(current_node, _undo_manager);
                     cloned_node->start += element_removed_count;
                     cloned_node->length -= element_removed_count;
                     goto next_node;
@@ -183,9 +190,9 @@ namespace ryu::core {
 
                 if (elements_remaining == 0) {
                     if (_undo_manager != nullptr)
-                        _undo_manager->swap_deleted_node(current_node);
+                        _undo_manager->swap_deleted_node(_pieces, current_node);
                 } else {
-                    auto cloned_node = _pieces.clone_and_swap(current_node);
+                    auto cloned_node = _pieces.clone_and_swap(current_node, _undo_manager);
                     cloned_node->length -= cloned_node->length - elements_remaining;
                 }
 
@@ -201,9 +208,6 @@ namespace ryu::core {
 
     void piece_table::undo_manager(piece_table_undo_manager* value) {
         _undo_manager = value;
-        _pieces.undo_manager(value);
-        if (value != nullptr)
-            value->table(this);
     }
 
     void piece_table::remove_selection(const selection_t& selection) {
@@ -233,25 +237,25 @@ namespace ryu::core {
                         elements.size(),
                         &_changes);
                 node->offset = offset_t {offset, static_cast<uint32_t>(offset + elements.size())};
-                _pieces.add_tail(node);
+                _pieces.add_tail(node, _undo_manager);
                 break;
             }
             case piece_find_result_t::first: {
                 if (is_change_piece && find_result.data->end() + elements.size() == offset) {
-                    auto cloned_node = _pieces.clone_and_swap(find_result.data);
+                    auto cloned_node = _pieces.clone_and_swap(find_result.data, _undo_manager);
                     cloned_node->length++;
                 } else {
                     auto node = std::make_shared<piece_node_t>(
                             new_change_offset,
                             elements.size(), &_changes);
                     node->offset = offset_t {offset, static_cast<uint32_t>(offset + elements.size())};
-                    _pieces.add_tail(node);
+                    _pieces.add_tail(node, _undo_manager);
                 }
                 break;
             }
             case piece_find_result_t::final: {
                 if (is_change_piece && find_result.data->end() + elements.size() == offset) {
-                    auto cloned_node = _pieces.clone_and_swap(find_result.data);
+                    auto cloned_node = _pieces.clone_and_swap(find_result.data, _undo_manager);
                     cloned_node->length++;
                 } else {
                     auto node = std::make_shared<piece_node_t>(
@@ -259,14 +263,14 @@ namespace ryu::core {
                             elements.size(),
                             &_changes);
                     node->offset = offset_t {offset, static_cast<uint32_t>(offset + elements.size())};
-                    _pieces.add_tail(node);
+                    _pieces.add_tail(node, _undo_manager);
                 }
                 break;
             }
             case piece_find_result_t::medial: {
                 if (new_change_offset == find_result.data->end()
                 &&  find_result.offset.end == offset) {
-                    auto cloned_node = _pieces.clone_and_swap(find_result.data);
+                    auto cloned_node = _pieces.clone_and_swap(find_result.data, _undo_manager);
                     cloned_node->length++;
                     break;
                 }
@@ -276,7 +280,9 @@ namespace ryu::core {
                         elements.size(),
                         &_changes);
 
-                auto left_piece = _pieces.clone_and_swap(find_result.data);
+                auto left_piece = _pieces.clone_and_swap(
+                        find_result.data,
+                        _undo_manager);
 
                 int32_t right_piece_length = std::max<int32_t>(
                         static_cast<int32_t>(left_piece->offset.end - (offset + 1)),
@@ -388,45 +394,47 @@ namespace ryu::core {
         }
     }
 
-    piece_table_undo_manager* piece_list::undo_manager() {
-        return _undo_manager;
-    }
-
-    void piece_list::add_tail(const piece_node_shared_ptr& piece) {
+    void piece_list::add_tail(
+            const piece_node_shared_ptr& piece,
+            piece_table_undo_manager* undo_manager) {
         auto raw_ptr = piece.get();
         _owned_pieces.insert(piece);
         if (_head == nullptr) {
-            if (_undo_manager != nullptr)
-                _undo_manager->push_undo(nullptr);
+            if (undo_manager != nullptr)
+                undo_manager->push_undo(nullptr);
             _head = raw_ptr;
             _tail = raw_ptr;
         } else {
-            if (_undo_manager != nullptr)
-                _undo_manager->push_undo(_tail);
+            if (undo_manager != nullptr)
+                undo_manager->push_undo(_tail);
             raw_ptr->prev = _tail;
             _tail->next = raw_ptr;
             _tail = raw_ptr;
         }
     }
 
-    void piece_list::insert_head(const piece_node_shared_ptr& piece) {
+    void piece_list::insert_head(
+            const piece_node_shared_ptr& piece,
+            piece_table_undo_manager* undo_manager) {
         auto raw_ptr = piece.get();
         _owned_pieces.insert(piece);
         if (_head == nullptr) {
-            if (_undo_manager != nullptr)
-                _undo_manager->push_undo(nullptr);
+            if (undo_manager != nullptr)
+                undo_manager->push_undo(nullptr);
             _head = raw_ptr;
             _tail = raw_ptr;
         } else {
-            if (_undo_manager != nullptr)
-                _undo_manager->push_undo(_tail);
+            if (undo_manager != nullptr)
+                undo_manager->push_undo(_tail);
             raw_ptr->next = _head;
             _head->prev = raw_ptr;
             _head = raw_ptr;
         }
     }
 
-    piece_node_t* piece_list::clone_and_swap(piece_node_t* node) {
+    piece_node_t* piece_list::clone_and_swap(
+            piece_node_t* node,
+            piece_table_undo_manager* undo_manager) {
         auto clone_node = std::make_shared<piece_node_t>(
                 node->start,
                 node->length,
@@ -449,14 +457,10 @@ namespace ryu::core {
             _tail = clone_raw_ptr;
         }
 
-        if (_undo_manager != nullptr)
-            _undo_manager->push_undo(node);
+        if (undo_manager != nullptr)
+            undo_manager->push_undo(node);
 
         return clone_raw_ptr;
-    }
-
-    void piece_list::undo_manager(piece_table_undo_manager* value) {
-        _undo_manager = value;
     }
 
     piece_find_result_t piece_list::find_for_offset(uint32_t offset) {
@@ -526,64 +530,28 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    void piece_table_undo_manager::undo() {
-        if (_undo.empty())
-            return;
-
-        auto pieces = &_table->_pieces;
-        auto node = _undo.top();
-        if (node == nullptr) {
-            pieces->_head = nullptr;
-            pieces->_tail = nullptr;
-            _undo.pop();
-            return;
-        }
-
-        swap_node(node, _redo);
-
-        _undo.pop();
-    }
-
-    void piece_table_undo_manager::redo() {
-        if (_redo.empty())
-            return;
-
-        auto pieces = &_table->_pieces;
-        auto node = _redo.top();
-        if (node == nullptr) {
-            pieces->_head = nullptr;
-            pieces->_tail = nullptr;
-            _redo.pop();
-            return;
-        }
-
-        swap_node(node, _undo);
-
-        _redo.pop();
-    }
-
     void piece_table_undo_manager::clear() {
         clear_stack(_undo);
         clear_stack(_redo);
     }
 
     void piece_table_undo_manager::swap_node(
+            piece_list& pieces,
             piece_node_t* node,
             piece_node_stack& target_stack) {
-        auto pieces = &_table->_pieces;
         if (node->prev == nullptr) {
-            auto current_head = pieces->_head;
+            auto current_head = pieces._head;
             target_stack.push(current_head);
-            pieces->_head = node;
-            if (current_head == pieces->_tail) {
-                pieces->_tail = pieces->_head;
+            pieces._head = node;
+            if (current_head == pieces._tail) {
+                pieces._tail = pieces._head;
             }
         } else if (node->next == nullptr) {
-            auto current_tail = pieces->_tail;
+            auto current_tail = pieces._tail;
             target_stack.push(current_tail);
-            pieces->_tail = node;
-            if (current_tail == pieces->_head) {
-                pieces->_head = pieces->_tail;
+            pieces._tail = node;
+            if (current_tail == pieces._head) {
+                pieces._head = pieces._tail;
             }
         }
 
@@ -598,37 +566,22 @@ namespace ryu::core {
         }
     }
 
-    piece_table* piece_table_undo_manager::table() {
-        return _table;
-    }
-
-    void piece_table_undo_manager::table(piece_table* value) {
-        _table = value;
-    }
-
-    void piece_table_undo_manager::push_undo(piece_node_t* node) {
-        _undo.push(node);
-    }
-
-    void piece_table_undo_manager::push_redo(piece_node_t* node) {
-        _redo.push(node);
-    }
-
-    void piece_table_undo_manager::swap_deleted_node(piece_node_t* node) {
+    void piece_table_undo_manager::swap_deleted_node(
+            piece_list& pieces,
+            piece_node_t* node) {
         _undo.push(node);
 
-        auto pieces = &_table->_pieces;
         if (node->prev == nullptr) {
-            auto current_head = pieces->_head;
-            pieces->_head = node;
-            if (current_head == pieces->_tail) {
-                pieces->_tail = pieces->_head;
+            auto current_head = pieces._head;
+            pieces._head = node;
+            if (current_head == pieces._tail) {
+                pieces._tail = pieces._head;
             }
         } else if (node->next == nullptr) {
-            auto current_tail = pieces->_tail;
-            pieces->_tail = node;
-            if (current_tail == pieces->_head) {
-                pieces->_head = pieces->_tail;
+            auto current_tail = pieces._tail;
+            pieces._tail = node;
+            if (current_tail == pieces._head) {
+                pieces._head = pieces._tail;
             }
         }
 
@@ -639,6 +592,48 @@ namespace ryu::core {
         if (node->next != nullptr) {
             node->next->prev = current_node_prev;
         }
+    }
+
+    void piece_table_undo_manager::undo(piece_list& pieces) {
+        if (_undo.empty())
+            return;
+
+        auto node = _undo.top();
+        if (node == nullptr) {
+            pieces._head = nullptr;
+            pieces._tail = nullptr;
+            _undo.pop();
+            return;
+        }
+
+        swap_node(pieces, node, _redo);
+
+        _undo.pop();
+    }
+
+    void piece_table_undo_manager::redo(piece_list& pieces) {
+        if (_redo.empty())
+            return;
+
+        auto node = _redo.top();
+        if (node == nullptr) {
+            pieces._head = nullptr;
+            pieces._tail = nullptr;
+            _redo.pop();
+            return;
+        }
+
+        swap_node(pieces, node, _undo);
+
+        _redo.pop();
+    }
+
+    void piece_table_undo_manager::push_undo(piece_node_t* node) {
+        _undo.push(node);
+    }
+
+    void piece_table_undo_manager::push_redo(piece_node_t* node) {
+        _redo.push(node);
     }
 
     void piece_table_undo_manager::clear_stack(piece_node_stack& stack) {

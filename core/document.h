@@ -21,15 +21,6 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
-    struct line_node_t;
-
-    struct line_node_t {
-        uint32_t number = 0;
-        line_node_t* prev = nullptr;
-        line_node_t* next = nullptr;
-        piece_table piece_table {};
-    };
-
     class document {
     public:
         using document_changed_callable = std::function<void ()>;
