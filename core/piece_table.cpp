@@ -223,21 +223,21 @@ namespace ryu::core {
             return;
 
         auto element_count = 0;
+        auto new_change_offset = _changes.size();
+
         auto line = _pieces.get_line(row);
         auto line_total_length = line->total_length();
         if (column > line_total_length) {
             auto missing_element_count = column - line_total_length;
             for (auto i = 0; i < missing_element_count; i++)
-                _changes.elements.push_back({});
+                _changes.elements.push_back({attr_t {}, ' '});
             element_count += missing_element_count;
         }
 
         for (const auto& element : elements)
             _changes.elements.push_back(element);
-
         element_count += elements.size();
 
-        auto new_change_offset = _changes.size() - element_count;
         auto find_result = _pieces.find_for_offset(row, column);
         auto is_change_piece = find_result.data != nullptr ?
                                find_result.data->buffer->type == piece_table_buffer_t::changes :

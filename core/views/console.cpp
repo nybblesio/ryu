@@ -542,9 +542,9 @@ namespace ryu::core {
             }
         }
 
-        caret_newline();
+        if (_caret.row() > 0)
+            caret_newline();
         write_message("Ready.");
-        caret_newline();
 
         _output_queue.pop_front();
 
@@ -826,12 +826,9 @@ namespace ryu::core {
                     for (auto it = params.begin(); it != params.end(); ++it) {
                         c->format_command_result(it->second, lines);
                         if (!lines.empty() && count < params.size() - 1) {
-                            auto& last_line = lines[lines.size() - 1];
-                            last_line.spans.push_back(text_formatter::span_for_code(
-                                    c->_code_mapper,
-                                    c->_attr,
-                                    "",
-                                    ""));
+                            formatted_text_t text {};
+                            text.spans.push_back(attr_span_t {});
+                            lines.push_back(text);
                         }
                         ++count;
                     }

@@ -234,7 +234,6 @@ namespace ryu::ide::console_editor {
         _console.write_message(" See details in <underline><bold>LICENSE<> file ");
         _console.caret_newline();
         _console.write_message("Ready.");
-        _console.caret_newline();
 
         _show_banner = false;
     }

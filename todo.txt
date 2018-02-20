@@ -26,9 +26,7 @@ Thoughts & Questions
 
 IDE UI & related tasks
 ----------------------
-
-- BUG: insert gap issue within a line
-    * caret right on a line and then start typing and the piece_table isn't aligning to the column
+- BUG: need a way to align pieces to a start column.
 
 - BUG: parsing for a plausible command string doesn't work at bottom edge
 
