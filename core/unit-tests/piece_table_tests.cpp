@@ -71,7 +71,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table shrinks piece when deleting at end of it") {
-            piece_table.delete_at(0, 39, 2);
+            piece_table.delete_at(0, 37, 2);
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length());
             REQUIRE(piece_table.pieces().size() == 1);
@@ -199,7 +199,6 @@ namespace ryu::core::unit_tests {
                 REQUIRE(piece_table.selections().size() == 1);
                 auto copied_spans = piece_table.copy(selection);
                 REQUIRE(copied_spans.size() == 1);
-                REQUIRE(copied_spans.size() == 1);
                 REQUIRE(copied_spans[0].text == "quick brown");
             }
 
@@ -207,7 +206,6 @@ namespace ryu::core::unit_tests {
                 auto selection = piece_table.add_selection(selection_t::types::clipboard, 0, 23, 20);
                 REQUIRE(piece_table.selections().size() == 1);
                 auto copied_spans = piece_table.copy(selection);
-                REQUIRE(copied_spans.size() == 1);
                 REQUIRE(copied_spans.size() == 1);
                 REQUIRE(copied_spans[0].text == " over the white fenc");
             }

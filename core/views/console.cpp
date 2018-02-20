@@ -138,8 +138,8 @@ namespace ryu::core {
     }
 
     void console::caret_newline() {
-        caret_down();
         caret_home();
+        caret_down();
     }
 
     void console::raise_caret_changed() {
@@ -351,7 +351,7 @@ namespace ryu::core {
         scale_columns(table.footers);
 
         core::formatted_text_t header_line {};
-        header_line.spans.push_back(text_formatter::span_for_code(_code_mapper, _attr, "rev", " "));
+        header_line.spans.push_back(text_formatter::span_for_code(_code_mapper, _attr, "rev", ""));
         header_line.spans.push_back(text_formatter::span_for_code(_code_mapper, _attr, "bold", " "));
         for (size_t i = 0; i < table.headers.size(); i++) {
             auto& col = table.headers[i];
@@ -371,7 +371,7 @@ namespace ryu::core {
                 _code_mapper,
                 _attr,
                 "reset",
-                " \n"));
+                " "));
         list.push_back(header_line);
 
         // XXX: need to implement truncation for styled_text
@@ -449,7 +449,7 @@ namespace ryu::core {
                     _code_mapper,
                     _attr,
                     "reset",
-                    "\n"));
+                    ""));
 
             list.push_back(row_line);
 
@@ -459,7 +459,7 @@ namespace ryu::core {
                         _code_mapper,
                         _attr,
                         "reset",
-                        "\n"));
+                        ""));
                 list.push_back(spacing_line);
             }
         }
@@ -486,7 +486,7 @@ namespace ryu::core {
                 _code_mapper,
                 _attr,
                 "reset",
-                "\n"));
+                ""));
         list.push_back(footer_line);
     }
 
@@ -711,8 +711,7 @@ namespace ryu::core {
                     return true;
                 }
                 case SDLK_BACKSPACE: {
-                    if (caret_left())
-                        caret_left();
+                    caret_left();
                     _document.shift_left();
                     return true;
                 }
@@ -832,7 +831,7 @@ namespace ryu::core {
                                     c->_code_mapper,
                                     c->_attr,
                                     "",
-                                    "\n"));
+                                    ""));
                         }
                         ++count;
                     }

@@ -27,12 +27,10 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- BUG: sub_sequence isn't handling multiple pieces correctly with different start column
-
 - BUG: insert gap issue within a line
     * caret right on a line and then start typing and the piece_table isn't aligning to the column
 
-- BUG: delete_at where deleting at the end of a piece isn't working
+- BUG: parsing for a plausible command string doesn't work at bottom edge
 
 - implement a proper piece_table::load a/k/a document_formatter?
 
@@ -168,3 +166,7 @@ DONE
 - BUG: document rendering doesn't work with horizontal scrolling
 - BUG: inserting at the head of a line appears to be broken
 - BUG: inserting into the middle of a line is broken
+- BUG: table formatting for header appears to be one character off
+- BUG: vertical scrolling in console broken
+- BUG: sub_sequence isn't handling multiple pieces correctly with different start column
+- BUG: delete_at where deleting at the end of a piece isn't working

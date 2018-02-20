@@ -226,8 +226,8 @@ namespace ryu::core {
         _page_width = width;
         _page_height = height;
 
-        _rows = std::max<uint8_t>(_page_height, static_cast<uint8_t>(_rows));
-        _columns = std::max<uint8_t>(_page_width, static_cast<uint8_t>(_columns));
+        _rows = std::max<uint32_t>(_page_height, _rows);
+        _columns = std::max<uint8_t>(_page_width, _columns);
 
         if (_caret != nullptr) {
             _caret->page_size(height, width);

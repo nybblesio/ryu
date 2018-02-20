@@ -75,19 +75,29 @@ namespace ryu::core::unit_tests {
         auto expected_length1 = static_cast<uint32_t>(expected_text1.length());
         doc.insert(element_list_t::from_string(default_attr, expected_text1));
 
+        auto original_spans1 = doc.line_at(0, 0, expected_length1);
+        REQUIRE(!original_spans1.empty());
+        REQUIRE(original_spans1[0].text == expected_text1);
+
         cursor.row(1);
         cursor.column(0);
         std::string expected_text2 = "second lines are always much more special than the first.";
         auto expected_length2 = static_cast<uint32_t>(expected_text2.length());
         doc.insert(element_list_t::from_string(default_attr, expected_text2));
 
-        auto original_spans1 = doc.line_at(0, 0, expected_length1);
-        REQUIRE(!original_spans1.empty());
-        REQUIRE(original_spans1[0].text == expected_text1);
-
         auto original_spans2 = doc.line_at(1, 0, expected_length2);
         REQUIRE(!original_spans2.empty());
         REQUIRE(original_spans2[0].text == expected_text2);
+
+        cursor.row(2);
+        cursor.column(0);
+        std::string expected_text3 = "third is so short!";
+        auto expected_length3 = static_cast<uint32_t>(expected_text3.length());
+        doc.insert(element_list_t::from_string(default_attr, expected_text3));
+
+        auto original_spans3 = doc.line_at(2, 0, expected_length3);
+        REQUIRE(!original_spans3.empty());
+        REQUIRE(original_spans3[0].text == expected_text3);
 
         SECTION("insert text at head of line 0") {
             cursor.row(0);
@@ -113,6 +123,21 @@ namespace ryu::core::unit_tests {
             auto spans = doc.line_at(1, 0, expected_length2 + 5);
             REQUIRE(!spans.empty());
             REQUIRE(spans[0].text == "test " + expected_text2);
+        }
+
+        SECTION("insert text at head of line 2 and offset past first piece") {
+            cursor.row(2);
+            cursor.column(0);
+            std::string inserted_text = "test a longer insert than the existing piece here ";
+            auto inserted_text_length = static_cast<uint32_t>(inserted_text.length());
+            doc.insert(element_list_t::from_string(default_attr, inserted_text));
+
+            REQUIRE(cursor.row() == 2);
+            REQUIRE(cursor.column() == inserted_text.length());
+
+            auto spans = doc.line_at(2, 56, expected_length3 + inserted_text_length);
+            REQUIRE(!spans.empty());
+            REQUIRE(spans[0].text == "is so short!");
         }
     }
 
