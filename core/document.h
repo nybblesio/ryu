@@ -25,7 +25,7 @@ namespace ryu::core {
     public:
         using document_changed_callable = std::function<void ()>;
 
-        document() = default;
+        document();
 
         ~document() = default;
 
@@ -77,10 +77,6 @@ namespace ryu::core {
 
         bool get(element_t& element);
 
-        int32_t virtual_row() const;
-
-        int16_t virtual_column() const;
-
         void caret(core::caret* value);
 
         void path(const fs::path& value);
@@ -114,7 +110,11 @@ namespace ryu::core {
 
         uint32_t offset() const;
 
+        uint32_t virtual_row() const;
+
         void raise_document_changed();
+
+        uint32_t virtual_column() const;
 
     private:
         fs::path _path;
@@ -126,6 +126,7 @@ namespace ryu::core {
         uint8_t _page_height = 0;
         piece_table _piece_table {};
         core::caret* _caret = nullptr;
+        piece_table_undo_manager _undo_manager {};
         document_changed_callable _document_changed_callback;
     };
 

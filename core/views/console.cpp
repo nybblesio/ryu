@@ -211,15 +211,13 @@ namespace ryu::core {
 
         auto y = bounds.top();
         auto x = bounds.left();
-        uint32_t row = static_cast<uint32_t>(_document.row());
         auto max_line_height = font_face()->line_height;
-        auto column_start = static_cast<uint32_t>(_document.column());
+        uint32_t row = static_cast<uint32_t>(_document.row());
+        uint32_t column_start = static_cast<uint32_t>(_document.column());
+        uint32_t column_end = column_start + _metrics.page_width;
 
         for (auto index = 0; index < _metrics.page_height; index++) {
-            auto spans = _document.line_at(
-                    row,
-                    column_start,
-                    column_start + _metrics.page_width);
+            auto spans = _document.line_at(row, column_start, column_end);
 
             for (const auto& span : spans) {
                 font_style(span.attr.style);

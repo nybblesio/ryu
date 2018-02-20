@@ -217,7 +217,7 @@ namespace ryu::core {
 
         const selection_t& add_selection(
                 selection_t::types type,
-                uint32_t line,
+                uint32_t row,
                 uint32_t start,
                 uint32_t length,
                 const std::string& name = "");

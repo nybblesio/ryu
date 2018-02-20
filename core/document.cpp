@@ -14,6 +14,10 @@
 
 namespace ryu::core {
 
+    document::document() {
+        _piece_table.undo_manager(&_undo_manager);
+    }
+
     void document::home() {
         _column = 0;
         raise_document_changed();
@@ -113,7 +117,7 @@ namespace ryu::core {
 
     bool document::is_line_empty() {
         // XXX: there has to be a better way to do this
-        return _piece_table.sequence(static_cast<uint32_t>(virtual_row())).empty();
+        return _piece_table.sequence(virtual_row()).empty();
     }
 
     core::caret* document::caret() {
@@ -168,8 +172,8 @@ namespace ryu::core {
         return _page_height;
     }
 
-    int32_t document::virtual_row() const {
-        return _row + _caret->row();
+    uint32_t document::virtual_row() const {
+        return static_cast<uint32_t>(_row + _caret->row());
     }
 
     bool document::get(element_t& element) {
@@ -197,8 +201,8 @@ namespace ryu::core {
             _document_changed_callback();
     }
 
-    int16_t document::virtual_column() const {
-        return _column + _caret->column();
+    uint32_t document::virtual_column() const {
+        return static_cast<uint32_t>(_column + _caret->column());
     }
 
     void document::caret(core::caret* value) {
@@ -206,10 +210,7 @@ namespace ryu::core {
     }
 
     void document::shift_left(uint16_t times) {
-        _piece_table.delete_at(
-                static_cast<uint32_t>(virtual_row()),
-                static_cast<uint32_t>(virtual_column()),
-                times);
+        _piece_table.delete_at(virtual_row(), virtual_column(), times);
     }
 
     void document::path(const fs::path& value) {
@@ -217,10 +218,7 @@ namespace ryu::core {
     }
 
     void document::put(const element_list_t& value) {
-        _piece_table.insert_at(
-                static_cast<uint32_t>(virtual_row()),
-                static_cast<uint32_t>(virtual_column()),
-                value);
+        _piece_table.insert_at(virtual_row(), virtual_column(), value);
     }
 
     void document::page_size(uint8_t height, uint8_t width) {
@@ -245,8 +243,8 @@ namespace ryu::core {
 
     void document::shift_right(const attr_t& attr, uint16_t times) {
         _piece_table.insert_at(
-                static_cast<uint32_t>(virtual_row()),
-                static_cast<uint32_t>(virtual_column()),
+                virtual_row(),
+                virtual_column(),
                 element_list_t::from_string(attr, std::string(times, ' ')));
     }
 
