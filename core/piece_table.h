@@ -40,8 +40,10 @@ namespace ryu::core {
                 uint32_t line,
                 uint32_t buffer_start,
                 uint32_t length,
+                const offset_t& offset,
                 piece_table_buffer_t* buffer) {
             this->buffer_start = buffer_start;
+            this->offset = offset;
             this->length = length;
             this->buffer = buffer;
             this->line = line;

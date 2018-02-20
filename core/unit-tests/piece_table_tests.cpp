@@ -128,7 +128,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table inserts text within piece") {
-            std::string inserted_text = " white ";
+            std::string inserted_text = " white";
             piece_table.insert_at(0, 32, element_list_t::from_string(default_attr, inserted_text));
 
             REQUIRE(piece_table.original().empty());
@@ -141,10 +141,10 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table inserts text at the beginning of a piece") {
-            std::string inserted_medial_text = " white ";
+            std::string inserted_medial_text = " white";
             piece_table.insert_at(0, 32, element_list_t::from_string(default_attr, inserted_medial_text));
 
-            std::string inserted_initial_text = "n extremely ";
+            std::string inserted_initial_text = "n extremely";
             piece_table.insert_at(0, 1, element_list_t::from_string(default_attr, inserted_initial_text));
 
             REQUIRE(piece_table.original().empty());
@@ -159,7 +159,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table deletes across pieces") {
-            std::string inserted_text = " white ";
+            std::string inserted_text = " white";
             piece_table.insert_at(0, 32, element_list_t::from_string(default_attr, inserted_text));
 
             REQUIRE(piece_table.original().empty());
@@ -278,7 +278,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table returns attribute sections with medial insert") {
-            std::string inserted_text = " white ";
+            std::string inserted_text = " white";
             piece_table.insert_at(0, 32, element_list_t::from_string(default_attr, inserted_text));
 
             REQUIRE(piece_table.original().empty());
@@ -293,7 +293,7 @@ namespace ryu::core::unit_tests {
         }
 
         SECTION("piece table returns attributed spans with initial insert") {
-            std::string inserted_text = "n extremely ";
+            std::string inserted_text = "n extremely";
             piece_table.insert_at(0, 1, element_list_t::from_string(default_attr, inserted_text));
 
             REQUIRE(piece_table.original().empty());

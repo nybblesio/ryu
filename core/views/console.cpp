@@ -210,15 +210,15 @@ namespace ryu::core {
         auto pal = *palette();
 
         auto y = bounds.top();
-        auto x = bounds.left();
         auto max_line_height = font_face()->line_height;
         uint32_t row = static_cast<uint32_t>(_document.row());
         uint32_t column_start = static_cast<uint32_t>(_document.column());
         uint32_t column_end = column_start + _metrics.page_width;
 
-        for (auto index = 0; index < _metrics.page_height; index++) {
+        for (auto line = 0; line < _metrics.page_height; line++) {
             auto spans = _document.line_at(row, column_start, column_end);
 
+            auto x = bounds.left();
             for (const auto& span : spans) {
                 font_style(span.attr.style);
 
@@ -239,9 +239,7 @@ namespace ryu::core {
                 x += width;
             }
 
-            x = bounds.left();
             y += max_line_height;
-
             ++row;
         }
     }
@@ -584,14 +582,7 @@ namespace ryu::core {
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
             auto elements = element_list_t::from_string(_attr, c);
-            _document.put(elements);
-            for (const auto& element : elements) {
-                if (element.value == '\n') {
-                    caret_newline();
-                } else {
-                    caret_right();
-                }
-            }
+            _document.insert(elements);
             return true;
         } else if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
@@ -695,7 +686,7 @@ namespace ryu::core {
                     break;
                 }
                 case SDLK_ESCAPE: {
-                    return transition_to("source_editor", {});
+                    break;
                 }
                 case SDLK_RETURN: {
                     if (!shift_pressed) {
@@ -711,92 +702,78 @@ namespace ryu::core {
                     caret_newline();
                     return true;
                 }
-                case SDLK_DELETE:
+                case SDLK_DELETE: {
                     if (ctrl_pressed) {
                         _document.shift_left(_metrics.page_width);
                     } else {
                         _document.shift_left();
                     }
                     return true;
-
+                }
                 case SDLK_BACKSPACE: {
                     if (caret_left())
                         caret_left();
                     _document.shift_left();
                     return true;
                 }
-                case SDLK_UP:
+                case SDLK_UP: {
                     caret_up();
                     return true;
-
-                case SDLK_DOWN:
+                }
+                case SDLK_DOWN: {
                     caret_down();
                     return true;
-
-                case SDLK_LEFT:
+                }
+                case SDLK_LEFT: {
                     caret_left();
                     return true;
-
-                case SDLK_RIGHT:
+                }
+                case SDLK_RIGHT: {
                     caret_right();
                     return true;
-
-                case SDLK_PAGEUP:
+                }
+                case SDLK_PAGEUP: {
                     if (ctrl_pressed)
                         first_page();
                     else
                         page_up();
                     return true;
-
-                case SDLK_PAGEDOWN:
+                }
+                case SDLK_PAGEDOWN: {
                     if (ctrl_pressed)
                         last_page();
                     else
                         page_down();
                     return true;
-
-                case SDLK_HOME:
+                }
+                case SDLK_HOME: {
                     if (ctrl_pressed) {
                         _caret.row(0);
                     }
                     caret_home();
                     return true;
-
-                case SDLK_END:
+                }
+                case SDLK_END: {
                     if (ctrl_pressed) {
                         _caret.row(static_cast<uint8_t>(_metrics.page_height - 1));
                     }
                     caret_end();
                     return true;
-
-                case SDLK_INSERT:
+                }
+                case SDLK_INSERT: {
                     if (mode == core::caret::mode::insert)
                         _caret.overwrite();
                     else
                         _caret.insert();
                     return true;
-
-                default:
+                }
+                default: {
                     break;
+                }
             }
         }
-        return false;
-    }
 
-    uint32_t console::write_message(core::formatted_text_t& formatted_text) {
-        uint32_t line_count = 0;
-        caret_home();
-        auto elements = formatted_text.spans.sequence();
-        _document.put(elements);
-        for (const auto& element : elements) {
-            if (element.value == '\n') {
-                caret_newline();
-                ++line_count;
-            } else {
-                caret_right();
-            }
-        }
-        return line_count;
+        return false;
     }
 
     uint32_t console::write_message(const std::string& message) {
@@ -805,6 +782,14 @@ namespace ryu::core {
                 _attr,
                 message);
         return write_message(formatted_text);
+    }
+
+    uint32_t console::write_message(core::formatted_text_t& formatted_text) {
+        caret_home();
+        auto elements = formatted_text.spans.sequence();
+        _document.insert(elements);
+        caret_newline();
+        return 1;
     }
 
     void console::on_execute_command(const execute_command_callable& callable) {
@@ -826,6 +811,8 @@ namespace ryu::core {
         }
         return consumed;
     }
+
+    ///////////////////////////////////////////////////////////////////////////
 
     output_process_result_t output_queue_entry_t::process(console* c) {
         output_process_result_t output_result{};

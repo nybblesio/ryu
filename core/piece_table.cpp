@@ -9,6 +9,7 @@
 //
 
 #include <sstream>
+#include <iostream>
 #include "piece_table.h"
 
 namespace ryu::core {
@@ -104,6 +105,7 @@ namespace ryu::core {
                     0,
                     0,
                     _original.elements.size(),
+                    offset_t {},
                     &_original);
             _pieces.add_tail(new_piece, _undo_manager);
         }
@@ -139,6 +141,7 @@ namespace ryu::core {
                         row,
                         new_start,
                         initial_piece_find_result.data->length - new_start,
+                        offset_t {},
                         &_changes);
 
                 auto cloned_piece = _pieces.clone_and_swap(
@@ -217,14 +220,16 @@ namespace ryu::core {
                         row,
                         new_change_offset,
                         elements.size(),
+                        offset_t {column, static_cast<uint32_t>(column + elements.size())},
                         &_changes);
-                node->offset = offset_t {column, static_cast<uint32_t>(column + elements.size())};
                 _pieces.add_tail(node, _undo_manager);
                 break;
             }
             case piece_find_result_t::first: {
                 auto buffer_end = find_result.data->buffer_end();
-                if (is_change_piece && buffer_end == new_change_offset) {
+                if (is_change_piece
+                &&  buffer_end == new_change_offset
+                &&  find_result.offset.end == column) {
                     auto cloned_node = _pieces.clone_and_swap(find_result.data, _undo_manager);
                     cloned_node->length++;
                 } else {
@@ -232,15 +237,17 @@ namespace ryu::core {
                             row,
                             new_change_offset,
                             elements.size(),
+                            offset_t {column, static_cast<uint32_t>(column + elements.size())},
                             &_changes);
-                    node->offset = offset_t {column, static_cast<uint32_t>(column + elements.size())};
                     _pieces.insert_head(node, _undo_manager);
                 }
                 break;
             }
             case piece_find_result_t::final: {
                 auto buffer_end = find_result.data->buffer_end();
-                if (is_change_piece && buffer_end == new_change_offset) {
+                if (is_change_piece
+                &&  buffer_end == new_change_offset
+                &&  find_result.offset.end == column) {
                     auto cloned_node = _pieces.clone_and_swap(find_result.data, _undo_manager);
                     cloned_node->length++;
                 } else {
@@ -248,8 +255,8 @@ namespace ryu::core {
                             row,
                             new_change_offset,
                             elements.size(),
+                            offset_t {column, static_cast<uint32_t>(column + elements.size())},
                             &_changes);
-                    node->offset = offset_t {column, static_cast<uint32_t>(column + elements.size())};
                     _pieces.add_tail(node, _undo_manager);
                 }
                 break;
@@ -266,6 +273,7 @@ namespace ryu::core {
                         row,
                         static_cast<uint32_t>(new_change_offset),
                         elements.size(),
+                        offset_t {},
                         &_changes);
 
                 auto left_piece = _pieces.clone_and_swap(
@@ -273,12 +281,13 @@ namespace ryu::core {
                         _undo_manager);
 
                 int32_t right_piece_length = std::max<int32_t>(
-                        static_cast<int32_t>(left_piece->offset.end - (column + 1)),
+                        static_cast<int32_t>(left_piece->offset.end - column),
                         0);
                 auto right_piece = std::make_shared<piece_node_t>(
                         row,
-                        column + 1,
+                        left_piece->buffer_start + column,
                         right_piece_length,
+                        offset_t {},
                         left_piece->buffer
                 );
 
@@ -337,12 +346,8 @@ namespace ryu::core {
                 }
             } else if (start <= current_node->offset.start) {
                 current_node->copy_elements(spans);
-            } else {
-                auto start_offset = start - current_node->buffer_start;
-                current_node->copy_elements(
-                        spans,
-                        start_offset,
-                        current_node->buffer_start + current_node->length);
+            } else if (start <= current_node->offset.end) {
+                current_node->copy_elements(spans, start, current_node->offset.end);
             }
 
         next_node:
@@ -401,93 +406,95 @@ namespace ryu::core {
     void piece_list::add_tail(
             const piece_node_shared_ptr& piece,
             piece_table_undo_manager* undo_manager) {
-        auto raw_ptr = piece.get();
         _owned_pieces.insert(piece);
-        if (_head == nullptr) {
-            if (undo_manager != nullptr)
-                undo_manager->push_undo(nullptr);
-            _head = raw_ptr;
-            _tail = raw_ptr;
-        } else {
-            if (undo_manager != nullptr)
-                undo_manager->push_undo(_tail);
-            raw_ptr->prev = _tail;
-            _tail->next = raw_ptr;
-            _tail = raw_ptr;
-        }
 
-        auto line = get_line(piece->line);
+        auto raw_ptr = piece.get();
+        auto line = get_line(raw_ptr->line);
 
         if (line->head == nullptr) {
             line->head = raw_ptr;
             line->tail = raw_ptr;
         } else {
+            if (undo_manager != nullptr)
+                undo_manager->push_undo(line->tail);
+            raw_ptr->prev = line->tail;
+            line->tail->next = raw_ptr;
             line->tail = raw_ptr;
+        }
+
+        if (_head == nullptr) {
+            _head = raw_ptr;
+            _tail = raw_ptr;
+            if (undo_manager != nullptr)
+                undo_manager->push_undo(nullptr);
+        } else {
+            if (raw_ptr->line == _lines.size() - 1)
+                _tail = raw_ptr;
         }
     }
 
     void piece_list::insert_head(
             const piece_node_shared_ptr& piece,
             piece_table_undo_manager* undo_manager) {
-        auto raw_ptr = piece.get();
         _owned_pieces.insert(piece);
-        if (_head == nullptr) {
-            if (undo_manager != nullptr)
-                undo_manager->push_undo(nullptr);
-            _head = raw_ptr;
-            _tail = raw_ptr;
-        } else {
-            if (undo_manager != nullptr)
-                undo_manager->push_undo(_tail);
-            raw_ptr->next = _head;
-            _head->prev = raw_ptr;
-            _head = raw_ptr;
-        }
 
-        auto line = get_line(piece->line);
+        auto raw_ptr = piece.get();
+        auto line = get_line(raw_ptr->line);
 
         if (line->head == nullptr) {
             line->head = raw_ptr;
             line->tail = raw_ptr;
         } else {
+            raw_ptr->next = line->head;
+            line->head->prev = raw_ptr;
             line->head = raw_ptr;
+        }
+
+        if (_head == nullptr) {
+            _head = raw_ptr;
+            _tail = raw_ptr;
+            if (undo_manager != nullptr)
+                undo_manager->push_undo(line->tail);
+        } else {
+            if (raw_ptr->line == 0)
+                _head = raw_ptr;
         }
     }
 
     piece_node_t* piece_list::clone_and_swap(
             piece_node_t* node,
             piece_table_undo_manager* undo_manager) {
+        if (undo_manager != nullptr)
+            undo_manager->push_undo(node);
+
         auto clone_node = std::make_shared<piece_node_t>(
                 node->line,
                 node->buffer_start,
                 node->length,
+                node->offset,
                 node->buffer);
-        clone_node->offset = node->offset;
-
         _owned_pieces.insert(clone_node);
 
         auto clone_raw_ptr = clone_node.get();
+        auto line = get_line(clone_raw_ptr->line);
+
         if (node->prev != nullptr) {
             node->prev->next = clone_raw_ptr;
             clone_raw_ptr->prev = node->prev;
         } else {
-            _head = clone_raw_ptr;
+            line->head = clone_raw_ptr;
+            if (clone_raw_ptr->line == 0)
+                _head = clone_raw_ptr;
         }
+
         if (node->next != nullptr) {
             node->next->prev = clone_raw_ptr;
             clone_raw_ptr->next = node->next;
         } else {
-            _tail = clone_raw_ptr;
-        }
-
-        if (undo_manager != nullptr)
-            undo_manager->push_undo(node);
-
-        auto line = get_line(node->line);
-        if (line->head == node)
-            line->head = clone_raw_ptr;
-        if (line->tail == node)
             line->tail = clone_raw_ptr;
+            if (clone_raw_ptr->line == _lines.size() - 1)
+                _tail = clone_raw_ptr;
+        }
 
         return clone_raw_ptr;
     }

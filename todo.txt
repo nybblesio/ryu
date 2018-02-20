@@ -27,19 +27,42 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- BUG: delete_at is indexing into oblivion for split scenarios
+- BUG: sub_sequence isn't handling multiple pieces correctly with different start column
 
-- MISSING: swap_deleted_node needs to fix-up line head/tail pair
+- BUG: insert gap issue within a line
+    * caret right on a line and then start typing and the piece_table isn't aligning to the column
 
-- core::document: re-implement API surface with new core::piece_table_t
-    * unit tests to verify document is working
-    * document_formatter
-    * columnar mode by setting span start/end and caret operates within this boundary
+- BUG: delete_at where deleting at the end of a piece isn't working
 
-- core::console: re-implement integration with core::document
-    * wire up new events for select/cut/copy/paste
+- implement a proper piece_table::load a/k/a document_formatter?
 
-- core::text_editor: re-implement integration with core::document
+- implement columnar mode on document
+
+- BUG: console table formatting isn't quite right
+
+- BUG: how to handle cursor movements related to inserted elements
+
+- implement console::cut
+
+- implement console::copy
+
+- implement console::paste
+
+- implement console::select
+
+- rework text_editor::on_draw to use new document
+
+- implement text_editor::cut
+
+- implement text_editor::copy
+
+- implement text_editor::paste
+
+- implement text_editor::select
+
+- rework text_box::on_draw to use new document
+
+- fix text_box event handling
 
 - encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
     - need to explicitly filter out non-ASCII characters during input
@@ -141,3 +164,7 @@ DONE
 - core::formatted_text_t vs core::attr_span_t
 - refactor console's write_message to remove "code" lookup
 - BUG: how to handle gap piece between end of piece table and far new offset
+- OFF STREAM      : MISSING: swap_deleted_node needs to fix-up line head/tail pair
+- BUG: document rendering doesn't work with horizontal scrolling
+- BUG: inserting at the head of a line appears to be broken
+- BUG: inserting into the middle of a line is broken
