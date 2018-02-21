@@ -9,6 +9,7 @@ add_library(
         result_message.h
         state.cpp state.h
         timer.cpp timer.h
+        forth.cpp forth.h
         engine.cpp engine.h
         parser.cpp parser.h
         id_pool.cpp id_pool.h
