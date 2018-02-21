@@ -26,7 +26,6 @@ Thoughts & Questions
 
 IDE UI & related tasks
 ----------------------
-- BUG: need a way to align pieces to a start column.
 
 - BUG: parsing for a plausible command string doesn't work at bottom edge
 
@@ -168,3 +167,4 @@ DONE
 - BUG: vertical scrolling in console broken
 - BUG: sub_sequence isn't handling multiple pieces correctly with different start column
 - BUG: delete_at where deleting at the end of a piece isn't working
+- BUG: need a way to align pieces to a start column.

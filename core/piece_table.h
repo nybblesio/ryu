@@ -102,8 +102,6 @@ namespace ryu::core {
 
         size_t size() const;
 
-        void update_offsets();
-
         inline bool empty() const {
             return _head == nullptr;
         }
@@ -138,9 +136,15 @@ namespace ryu::core {
 
         piece_find_result_t find_for_offset(uint32_t row, uint32_t column);
 
-        void insert_after(piece_node_t* node, const piece_node_shared_ptr& piece);
+        void insert_after(
+            piece_node_t* node,
+            const piece_node_shared_ptr& piece,
+            piece_table_undo_manager* undo_manager);
 
-        void insert_before(piece_node_t* node, const piece_node_shared_ptr& piece);
+        void insert_before(
+            piece_node_t* node,
+            const piece_node_shared_ptr& piece,
+            piece_table_undo_manager* undo_manager);
 
     private:
         void adjust_lines_to_fit(uint32_t line);
@@ -261,6 +265,12 @@ namespace ryu::core {
         attr_span_list_t sub_sequence(uint32_t row, uint32_t start, uint32_t end);
 
         void insert_at(uint32_t row, uint32_t column, const element_list_t& elements);
+
+    private:
+        void update_descendant_offsets(
+            piece_line_t* line,
+            piece_node_t* head,
+            int32_t length);
 
     private:
         friend class piece_table_undo_manager;
