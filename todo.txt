@@ -27,6 +27,10 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
+- FIX: rework delete_at to consolidate cases into node traversal loop
+
+- FIX: piece_find_result_t::splice scenario
+
 - BUG: parsing for a plausible command string doesn't work at bottom edge
 
 - implement a proper piece_table::load a/k/a document_formatter?

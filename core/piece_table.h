@@ -72,10 +72,12 @@ namespace ryu::core {
     struct piece_find_result_t {
         enum types {
             none,
-            first,
-            final,
-            medial
+            split,
+            splice,
+            append
         };
+        bool is_first = false;
+        bool is_final = false;
         types type = types::none;
         piece_node_t* data = nullptr;
         offset_t offset {};
@@ -131,10 +133,12 @@ namespace ryu::core {
                 piece_table_undo_manager* undo_manager);
 
         piece_node_t* clone_and_swap(
-                piece_node_t* node,
-                piece_table_undo_manager* undo_manager);
+            piece_node_t* node,
+            piece_table_undo_manager* undo_manager);
 
-        piece_find_result_t find_for_offset(uint32_t row, uint32_t column);
+        piece_find_result_t find_for_offset(
+            uint32_t row,
+            uint32_t column);
 
         void insert_after(
             piece_node_t* node,
@@ -215,7 +219,26 @@ namespace ryu::core {
 
         void clear();
 
+        void paste(
+            const selection_t& selection,
+            const element_list_t& elements);
+
         void checkpoint();
+
+        void insert_at(
+            uint32_t row,
+            uint32_t column,
+            const element_list_t& elements);
+
+        void delete_at(
+            uint32_t row,
+            uint32_t column,
+            uint32_t length);
+
+        attr_span_list_t sub_sequence(
+            uint32_t row,
+            uint32_t start,
+            uint32_t end);
 
         uint32_t total_length() const {
             return _pieces.total_length();
@@ -248,23 +271,15 @@ namespace ryu::core {
             return _original;
         }
 
+        void undo_manager(piece_table_undo_manager* value);
+
         attr_span_list_t cut(const selection_t& selection);
 
         attr_span_list_t copy(const selection_t& selection);
 
-        void undo_manager(piece_table_undo_manager* value);
-
         void delete_selection(const selection_t& selection);
 
         void remove_selection(const selection_t& selection);
-
-        void delete_at(uint32_t row, uint32_t column, uint32_t length);
-
-        void paste(const selection_t& selection, const element_list_t& elements);
-
-        attr_span_list_t sub_sequence(uint32_t row, uint32_t start, uint32_t end);
-
-        void insert_at(uint32_t row, uint32_t column, const element_list_t& elements);
 
     private:
         void update_descendant_offsets(
