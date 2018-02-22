@@ -57,16 +57,6 @@ namespace ryu::core {
         insert_at(selection.line, selection.start, elements);
     }
 
-    void piece_table::undo() {
-        if (_undo_manager != nullptr)
-            _undo_manager->undo(_pieces);
-    }
-
-    void piece_table::redo() {
-        if (_undo_manager != nullptr)
-            _undo_manager->redo(_pieces);
-    }
-
     void piece_table::clear() {
         _pieces.clear();
         _changes.clear();
@@ -289,6 +279,18 @@ namespace ryu::core {
         if (start_piece != nullptr && !start_piece->offset.within(start)) {
             update_descendant_offsets(line, start_piece, -length);
         }
+    }
+
+    uint32_t piece_table::undo() {
+        if (_undo_manager != nullptr)
+            return _undo_manager->undo(_pieces);
+        return 0;
+    }
+
+    uint32_t piece_table::redo() {
+        if (_undo_manager != nullptr)
+            return _undo_manager->redo(_pieces);
+        return 0;
     }
 
     void piece_table::checkpoint() {
@@ -685,40 +687,41 @@ namespace ryu::core {
         clear_stack(_redo);
     }
 
-    void piece_table_undo_manager::swap_node(
+    uint32_t piece_table_undo_manager::swap_node(
             piece_list& pieces,
             piece_node_t* node,
             piece_node_stack& target_stack) {
-        if (node->prev == nullptr) {
-            auto current_head = pieces._head;
-            target_stack.push(current_head);
-            pieces._head = node;
-            if (current_head == pieces._tail) {
-                pieces._tail = pieces._head;
-            }
-        } else if (node->next == nullptr) {
-            auto current_tail = pieces._tail;
-            target_stack.push(current_tail);
-            pieces._tail = node;
-            if (current_tail == pieces._head) {
-                pieces._head = pieces._tail;
-            }
-        }
-
         auto line = pieces.get_line(node->line);
+        auto original_head = line->head;
+
+        uint32_t length = 0;
+
         if (node->prev != nullptr) {
             auto prev_node = node->prev;
-            if (prev_node->next == line->head)
-                line->head = node;
+            length = prev_node->next->length - node->length;
+            target_stack.push(prev_node);
             prev_node->next = node;
+        } else {
+            target_stack.push(line->head);
+            length = line->head->length - node->length;
+            line->head = node;
+            if (node->line == 0)
+                pieces._head = node;
         }
 
         if (node->next != nullptr) {
             auto next_node = node->next;
-            if (next_node->prev == line->tail)
-                line->tail = node;
+            target_stack.push(next_node);
             next_node->prev = node;
+        } else {
+            if (line->tail != original_head)
+                target_stack.push(line->tail);
+            line->tail = node;
+            if (node->line == pieces._lines.size() - 1)
+                pieces._tail = node;
         }
+
+        return length;
     }
 
     void piece_table_undo_manager::swap_deleted_node(
@@ -745,36 +748,40 @@ namespace ryu::core {
         }
     }
 
-    void piece_table_undo_manager::undo(piece_list& pieces) {
-        if (_undo.empty())
-            return;
-
-        auto node = _undo.top();
-        if (node == nullptr) {
-            pieces.clear();
-            _undo.pop();
-            return;
-        }
-
-        swap_node(pieces, node, _redo);
-
-        _undo.pop();
-    }
-
-    void piece_table_undo_manager::redo(piece_list& pieces) {
+    uint32_t piece_table_undo_manager::redo(piece_list& pieces) {
         if (_redo.empty())
-            return;
+            return 0;
 
         auto node = _redo.top();
         if (node == nullptr) {
             pieces.clear();
             _redo.pop();
-            return;
+            return 0;
         }
 
-        swap_node(pieces, node, _undo);
+        auto length = swap_node(pieces, node, _undo);
 
         _redo.pop();
+
+        return length;
+    }
+
+    uint32_t piece_table_undo_manager::undo(piece_list& pieces) {
+        if (_undo.empty())
+            return 0;
+
+        auto node = _undo.top();
+        if (node == nullptr) {
+            pieces.clear();
+            _undo.pop();
+            return 0;
+        }
+
+        auto length = swap_node(pieces, node, _redo);
+
+        _undo.pop();
+
+        return length;
     }
 
     void piece_table_undo_manager::push_undo(piece_node_t* node) {

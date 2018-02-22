@@ -214,15 +214,15 @@ namespace ryu::core {
 
     class piece_table {
     public:
-        void undo();
-
-        void redo();
-
-        void clear();
-
         void paste(
             const selection_t& selection,
             const element_list_t& elements);
+
+        void clear();
+
+        uint32_t undo();
+
+        uint32_t redo();
 
         void checkpoint();
 
@@ -312,9 +312,9 @@ namespace ryu::core {
             return _redo.size();
         }
 
-        void undo(piece_list& pieces);
+        uint32_t redo(piece_list& pieces);
 
-        void redo(piece_list& pieces);
+        uint32_t undo(piece_list& pieces);
 
         void push_undo(piece_node_t* node);
 
@@ -323,7 +323,7 @@ namespace ryu::core {
         void swap_deleted_node(piece_list& pieces, piece_node_t* node);
 
     protected:
-        void swap_node(
+        uint32_t swap_node(
                 piece_list& pieces,
                 piece_node_t* node,
                 piece_node_stack& target_stack);

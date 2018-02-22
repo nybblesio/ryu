@@ -35,6 +35,10 @@ namespace ryu::core {
 
         void page_up();
 
+        uint32_t redo();
+
+        uint32_t undo();
+
         bool scroll_up();
 
         void page_down();

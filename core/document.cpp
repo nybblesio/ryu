@@ -36,6 +36,14 @@ namespace ryu::core {
         raise_document_changed();
     }
 
+    uint32_t document::redo() {
+        return _piece_table.redo();
+    }
+
+    uint32_t document::undo() {
+        return _piece_table.undo();
+    }
+
     void document::first_page() {
         _row = 0;
         raise_document_changed();

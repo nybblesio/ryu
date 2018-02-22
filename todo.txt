@@ -27,19 +27,18 @@ Thoughts & Questions
 IDE UI & related tasks
 ----------------------
 
-- FIX: rework delete_at to consolidate cases into node traversal loop
+- BUG: redo is broken
 
-- FIX: piece_find_result_t::splice scenario
+- BUG: undo of "nullptr" sentinel works but we don't have any information
+       to pass back to the UI so we can adjust the caret
 
-- BUG: parsing for a plausible command string doesn't work at bottom edge
+- BUG: delete "empty" space between non-adjacent piece nodes
+
+- BUG: document should clamp inserts so they're within the specified width
 
 - implement a proper piece_table::load a/k/a document_formatter?
 
 - implement columnar mode on document
-
-- BUG: console table formatting isn't quite right
-
-- BUG: how to handle cursor movements related to inserted elements
 
 - implement console::cut
 
@@ -172,3 +171,6 @@ DONE
 - BUG: sub_sequence isn't handling multiple pieces correctly with different start column
 - BUG: delete_at where deleting at the end of a piece isn't working
 - BUG: need a way to align pieces to a start column.
+- OFF STREAM | BUG: parsing for a plausible command string doesn't work at bottom edge
+- BUG: console table formatting isn't quite right
+- BUG: how to handle cursor movements related to inserted elements

@@ -250,20 +250,42 @@ namespace ryu::core {
         // first, seek backwards to a null value
         while (true) {
             caret_left();
-            if (_caret.row() == 0 && _caret.column() == 0)
+
+            if (_caret.row() == 0
+            &&  _document.row() == 0
+            &&  _caret.column() == 0
+            &&  _document.column() == 0) {
                 break;
+            }
+
             element_t element {};
             if (!_document.get(element))
                 break;
         }
 
-        // second, scan forward to the next null value to build the command
-        while (true) {
+        // then, if we're not in the upper left of the
+        // document, move right by one
+        if (!(_caret.row() == 0
+        &&      _document.row() == 0
+        &&      _caret.column() == 0
+        &&      _document.column() == 0)) {
             caret_right();
+        }
+
+        // finally, scan forward to the next
+        // null value to build the command or end of the page
+        while (true) {
+            if (_caret.row() == _metrics.page_height
+            &&  _caret.column() == _metrics.page_width) {
+                break;
+            }
+
             element_t element {};
             if (!_document.get(element))
                 break;
             cmd << element.value;
+
+            caret_right();
         }
 
         // finally, if we got something, try to execute it
@@ -579,12 +601,7 @@ namespace ryu::core {
             return false;
         }
 
-        if (e->type == SDL_TEXTINPUT) {
-            const char* c = &e->text.text[0];
-            auto elements = element_list_t::from_string(_attr, c);
-            _document.insert(elements);
-            return true;
-        } else if (e->type == SDL_KEYDOWN) {
+        if (e->type == SDL_KEYDOWN) {
             switch (e->key.keysym.sym) {
                 case SDLK_1: {
                     if (ctrl_pressed) {
@@ -766,10 +783,31 @@ namespace ryu::core {
                         _caret.insert();
                     return true;
                 }
+                case SDLK_z: {
+                    if (ctrl_pressed) {
+                        auto length = _document.undo();
+                        for (auto i = 0; i < length; i++)
+                            caret_left();
+                        return true;
+                    }
+                }
+                case SDLK_y: {
+                    if (ctrl_pressed) {
+                        auto length = _document.redo();
+                        for (auto i = 0; i < length; i++)
+                            caret_right();
+                        return true;
+                    }
+                }
                 default: {
                     break;
                 }
             }
+        } else if (e->type == SDL_TEXTINPUT) {
+            const char* c = &e->text.text[0];
+            auto elements = element_list_t::from_string(_attr, c);
+            _document.insert(elements);
+            return true;
         }
 
         return false;
