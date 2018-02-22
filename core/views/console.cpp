@@ -219,12 +219,22 @@ namespace ryu::core {
             auto spans = _document.line_at(row, column_start, column_end);
 
             auto x = bounds.left();
+            auto last_column_end = 0;
             for (const auto& span : spans) {
                 font_style(span.attr.style);
 
                 auto face = font_face();
                 if (face->line_height > max_line_height)
                     max_line_height = face->line_height;
+
+                if (span.start_column > last_column_end) {
+                    auto shifted_start_column = std::max<int32_t>(0, span.start_column - column_start);
+                    auto padding = std::min<int32_t>(shifted_start_column - last_column_end, _metrics.page_width);
+                    if (padding > 0) {
+                        auto temp = std::string(static_cast<size_t>(padding), ' ');
+                        x += face->measure_text(temp);
+                    }
+                }
 
                 auto width = face->measure_text(span.text);
                 auto color = pal[span.attr.color];
@@ -236,7 +246,10 @@ namespace ryu::core {
                 }
 
                 surface.draw_text(face, x, y, span.text, color);
+
                 x += width;
+
+                last_column_end = column_start + span.end_column;
             }
 
             y += max_line_height;

@@ -13,6 +13,41 @@
 
 namespace ryu::core::unit_tests {
 
+    TEST_CASE("piece_table_with_first_non_adjacent_piece", "[piece-table]") {
+        piece_table_undo_manager undo_manager;
+
+        piece_table piece_table;
+        piece_table.undo_manager(&undo_manager);
+
+        piece_table_buffer_t original {};
+        piece_table.load(original);
+
+        attr_t default_attr(1, 0, 0);
+
+        std::string expected_text1 = "Stuff at beginning...";
+        piece_table.insert_at(0, 10, element_list_t::from_string(default_attr, expected_text1));
+
+        std::string expected_text2 = "in the middle";
+        piece_table.insert_at(0, 40, element_list_t::from_string(default_attr, expected_text2));
+
+        std::string expected_text3 = "at the end.";
+        piece_table.insert_at(0, 60, element_list_t::from_string(default_attr, expected_text3));
+
+        REQUIRE(piece_table.original().empty());
+        REQUIRE(piece_table.changes().size() == expected_text1.length() + expected_text2.length() + expected_text3.length());
+        REQUIRE(piece_table.pieces().size() == 3);
+        REQUIRE(undo_manager.undo_depth() == 3);
+
+        auto spans = piece_table.sequence(0);
+        REQUIRE(spans.size() == 3);
+        REQUIRE(spans[0].text == "Stuff at beginning...");
+        REQUIRE(spans[0].start_column == 10);
+        REQUIRE(spans[1].text == "in the middle");
+        REQUIRE(spans[1].start_column == 40);
+        REQUIRE(spans[2].text == "at the end.");
+        REQUIRE(spans[2].start_column == 60);
+    }
+
     TEST_CASE("piece_table_with_non_adjacent_pieces", "[piece-table]") {
         piece_table_undo_manager undo_manager;
 
@@ -39,12 +74,13 @@ namespace ryu::core::unit_tests {
         REQUIRE(undo_manager.undo_depth() == 3);
 
         auto spans = piece_table.sequence(0);
-        REQUIRE(spans.size() == 5);
+        REQUIRE(spans.size() == 3);
         REQUIRE(spans[0].text == "Stuff at beginning...");
-        REQUIRE(spans[1].text == "         ");
-        REQUIRE(spans[2].text == "in the middle");
-        REQUIRE(spans[3].text == "                                     ");
-        REQUIRE(spans[4].text == "at the end.");
+        REQUIRE(spans[0].start_column == 0);
+        REQUIRE(spans[1].text == "in the middle");
+        REQUIRE(spans[1].start_column == 30);
+        REQUIRE(spans[2].text == "at the end.");
+        REQUIRE(spans[2].start_column == 80);
     }
 
     TEST_CASE("piece_table_with_empty_original_no_edits", "[piece-table]") {
@@ -78,6 +114,57 @@ namespace ryu::core::unit_tests {
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.empty());
+        }
+
+        SECTION("piece table redo replaces each edit") {
+            piece_table.insert_at(0, 20, element_list_t::from_string(default_attr, "something silly"));
+            auto spans1 = piece_table.sequence(0);
+            REQUIRE(spans1.size() == 1);
+            REQUIRE(spans1[0].text == "A quick brown fox jusomething sillymps over the fence.");
+
+            piece_table.insert_at(0, 38, element_list_t::from_string(default_attr, " whoops!"));
+            auto spans2 = piece_table.sequence(0);
+            REQUIRE(spans2.size() == 1);
+            REQUIRE(spans2[0].text == "A quick brown fox jusomething sillymps whoops! over the fence.");
+
+            REQUIRE(undo_manager.undo_depth() == 3);
+            REQUIRE(undo_manager.redo_depth() == 0);
+
+            piece_table.undo();
+
+            REQUIRE(undo_manager.undo_depth() == 2);
+            REQUIRE(undo_manager.redo_depth() == 1);
+
+            auto spans = piece_table.sequence(0);
+            REQUIRE(spans.size() == 1);
+            REQUIRE(spans[0].text == "A quick brown fox jusomething sillymps over the fence.");
+
+            piece_table.undo();
+
+            REQUIRE(undo_manager.undo_depth() == 1);
+            REQUIRE(undo_manager.redo_depth() == 2);
+
+            spans = piece_table.sequence(0);
+            REQUIRE(spans.size() == 1);
+            REQUIRE(spans[0].text == "A quick brown fox jumps over the fence.");
+
+//            piece_table.redo();
+//
+//            REQUIRE(undo_manager.undo_depth() == 2);
+//            REQUIRE(undo_manager.redo_depth() == 1);
+//
+//            spans = piece_table.sequence(0);
+//            REQUIRE(spans.size() == 1);
+//            REQUIRE(spans[0].text == "A quick brown fox jusomething sillymps over the fence.");
+//
+//            piece_table.redo();
+//
+//            REQUIRE(undo_manager.undo_depth() == 3);
+//            REQUIRE(undo_manager.redo_depth() == 0);
+//
+//            spans = piece_table.sequence(0);
+//            REQUIRE(spans.size() == 1);
+//            REQUIRE(spans[0].text == "A quick brown fox jumps over the fence.");
         }
     }
 

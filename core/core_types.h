@@ -239,6 +239,9 @@ namespace ryu::core {
     struct attr_span_t {
         attr_t attr;
         std::string text {};
+        uint32_t start_column = 0;
+        uint32_t end_column = 0;
+        uint32_t column_offset_end = 0;
     };
 
     using attr_span_list = std::vector<attr_span_t>;
@@ -277,6 +280,10 @@ namespace ryu::core {
             for (const auto& c: value)
                 elements.push_back(element_t{attr, static_cast<uint8_t>(c)});
             return elements;
+        }
+
+        void truncate(size_t size) {
+            _elements.resize(size);
         }
 
         inline bool empty() const {

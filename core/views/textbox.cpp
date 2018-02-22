@@ -150,7 +150,8 @@ namespace ryu::core {
 
         if (e->type == SDL_TEXTINPUT) {
             const char* c = &e->text.text[0];
-            _document.insert(element_list_t::from_string({}, c));
+            auto elements = element_list_t::from_string({}, c);
+            _document.insert(elements);
 //            if (_on_key_down != nullptr) {
 //                while (*c != '\0') {
 //                    if (!_on_key_down(*c)) {

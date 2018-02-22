@@ -192,7 +192,8 @@ namespace ryu::core {
     }
 
     void text_editor::insert_text(const char* text) {
-        _document.insert(element_list_t::from_string({}, text));
+        auto elements = element_list_t::from_string({}, text);
+        _document.insert(elements);
     }
 
     bool text_editor::on_process_event(const SDL_Event* e) {

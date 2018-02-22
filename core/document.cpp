@@ -225,8 +225,12 @@ namespace ryu::core {
         _path = value;
     }
 
-    void document::insert(const element_list_t& value) {
-        _piece_table.insert_at(virtual_row(), virtual_column(), value);
+    void document::insert(element_list_t& value) {
+        auto column = virtual_column();
+        if (column + value.size() > _columns) {
+            value.truncate(_columns - column);
+        }
+        _piece_table.insert_at(virtual_row(), column, value);
         _caret->column(static_cast<uint8_t>(_caret->column() + value.size()));
     }
 

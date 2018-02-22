@@ -29,12 +29,15 @@ IDE UI & related tasks
 
 - BUG: redo is broken
 
-- BUG: undo of "nullptr" sentinel works but we don't have any information
-       to pass back to the UI so we can adjust the caret
+- BUG: console::on_draw needs to handle non-adjacent spans properly
 
 - BUG: delete "empty" space between non-adjacent piece nodes
 
-- BUG: document should clamp inserts so they're within the specified width
+- MISSING: undo/redo need to return # of lines/columns affected & is_delete?
+
+- MISSING: piece_table::overwrite_at
+
+- FINISH: document/piece_table checkpoint implementation
 
 - implement a proper piece_table::load a/k/a document_formatter?
 
@@ -174,3 +177,8 @@ DONE
 - OFF STREAM | BUG: parsing for a plausible command string doesn't work at bottom edge
 - BUG: console table formatting isn't quite right
 - BUG: how to handle cursor movements related to inserted elements
+- BUG: document should clamp inserts so they're within the specified width
+- BUG: sub_sequence not padding first non-adjacent piece
+- BUG: find_for_offset isn't handling first non-adjacent piece correctly
+- BUG: undo of "nullptr" sentinel works but we don't have any information
+       to pass back to the UI so we can adjust the caret

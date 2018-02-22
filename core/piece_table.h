@@ -133,6 +133,8 @@ namespace ryu::core {
                 const piece_node_shared_ptr& piece,
                 piece_table_undo_manager* undo_manager);
 
+        piece_node_t* clone(piece_node_t* node);
+
         piece_node_t* clone_and_swap(
             piece_node_t* node,
             piece_table_undo_manager* undo_manager);
@@ -143,13 +145,11 @@ namespace ryu::core {
 
         void insert_after(
             piece_node_t* node,
-            const piece_node_shared_ptr& piece,
-            piece_table_undo_manager* undo_manager);
+            const piece_node_shared_ptr& piece);
 
         void insert_before(
             piece_node_t* node,
-            const piece_node_shared_ptr& piece,
-            piece_table_undo_manager* undo_manager);
+            const piece_node_shared_ptr& piece);
 
     private:
         void adjust_lines_to_fit(uint32_t line);
@@ -323,10 +323,9 @@ namespace ryu::core {
         void swap_deleted_node(piece_list& pieces, piece_node_t* node);
 
     protected:
-        uint32_t swap_node(
+        std::pair<int32_t, piece_node_t*> swap_node(
                 piece_list& pieces,
-                piece_node_t* node,
-                piece_node_stack& target_stack);
+                piece_node_t* node);
 
         void clear_stack(piece_node_stack& stack);
 

@@ -85,9 +85,9 @@ namespace ryu::core {
 
         void path(const fs::path& value);
 
-        void shift_left(uint16_t times = 1);
+        void insert(element_list_t& value);
 
-        void insert(const element_list_t& value);
+        void shift_left(uint16_t times = 1);
 
         void page_size(uint8_t height, uint8_t width);
 
