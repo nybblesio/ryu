@@ -74,7 +74,8 @@ namespace ryu::core {
             none,
             split,
             splice,
-            append
+            append,
+            insert
         };
         bool is_first = false;
         bool is_final = false;
