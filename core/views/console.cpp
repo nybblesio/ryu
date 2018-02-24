@@ -798,17 +798,13 @@ namespace ryu::core {
                 }
                 case SDLK_z: {
                     if (ctrl_pressed) {
-                        auto length = _document.undo();
-                        for (auto i = 0; i < length; i++)
-                            caret_left();
+                        _document.undo();
                         return true;
                     }
                 }
                 case SDLK_y: {
                     if (ctrl_pressed) {
-                        auto length = _document.redo();
-                        for (auto i = 0; i < length; i++)
-                            caret_right();
+                        _document.redo();
                         return true;
                     }
                 }

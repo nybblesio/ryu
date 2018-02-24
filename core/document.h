@@ -35,10 +35,6 @@ namespace ryu::core {
 
         void page_up();
 
-        uint32_t redo();
-
-        uint32_t undo();
-
         bool scroll_up();
 
         void page_down();
@@ -46,6 +42,10 @@ namespace ryu::core {
         void last_page();
 
         void first_page();
+
+        position_t redo();
+
+        position_t undo();
 
         bool scroll_down();
 
@@ -88,6 +88,8 @@ namespace ryu::core {
         void insert(element_list_t& value);
 
         void shift_left(uint16_t times = 1);
+
+        void move_to(uint32_t row, uint16_t column);
 
         void page_size(uint8_t height, uint8_t width);
 

@@ -20,6 +20,15 @@
 
 namespace ryu::core {
 
+    struct position_t {
+        int32_t row = -1;
+        int32_t column = -1;
+
+        inline bool empty() const {
+            return row == -1 && column == -1;
+        }
+    };
+
     struct offset_t {
         uint32_t start = 0;
         uint32_t end = 0;
@@ -220,9 +229,9 @@ namespace ryu::core {
 
         void clear();
 
-        uint32_t undo();
+        position_t undo();
 
-        uint32_t redo();
+        position_t redo();
 
         void checkpoint();
 
@@ -293,9 +302,11 @@ namespace ryu::core {
 
         piece_list _pieces;
         selection_list _selections {};
+        piece_table_buffer_t _changes {
+            piece_table_buffer_t::types::changes
+        };
         piece_table_buffer_t _original {};
         piece_table_undo_manager* _undo_manager = nullptr;
-        piece_table_buffer_t _changes {piece_table_buffer_t::types::changes};
     };
 
     using piece_node_stack = std::stack<piece_node_t*>;
@@ -303,6 +314,10 @@ namespace ryu::core {
     class piece_table_undo_manager {
     public:
         void clear();
+
+        void swap_deleted_node(
+                piece_list& pieces,
+                piece_node_t* node);
 
         size_t undo_depth() const {
             return _undo.size();
@@ -312,18 +327,16 @@ namespace ryu::core {
             return _redo.size();
         }
 
-        uint32_t redo(piece_list& pieces);
-
-        uint32_t undo(piece_list& pieces);
-
         void push_undo(piece_node_t* node);
 
         void push_redo(piece_node_t* node);
 
-        void swap_deleted_node(piece_list& pieces, piece_node_t* node);
+        position_t redo(piece_list& pieces);
+
+        position_t undo(piece_list& pieces);
 
     protected:
-        std::pair<int32_t, piece_node_t*> swap_node(
+        piece_node_t* swap_node(
                 piece_list& pieces,
                 piece_node_t* node);
 

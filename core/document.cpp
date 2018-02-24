@@ -36,14 +36,6 @@ namespace ryu::core {
         raise_document_changed();
     }
 
-    uint32_t document::redo() {
-        return _piece_table.redo();
-    }
-
-    uint32_t document::undo() {
-        return _piece_table.undo();
-    }
-
     void document::first_page() {
         _row = 0;
         raise_document_changed();
@@ -83,11 +75,24 @@ namespace ryu::core {
         return false;
     }
 
-    bool document::scroll_left() {
-        --_column;
-        auto clamped = clamp_column();
-        raise_document_changed();
-        return clamped;
+    position_t document::redo() {
+        auto position = _piece_table.redo();
+        if (!position.empty()) {
+            move_to(
+                static_cast<uint32_t>(position.row),
+                static_cast<uint16_t>(position.column));
+        }
+        return position;
+    }
+
+    position_t document::undo() {
+        auto position = _piece_table.undo();
+        if (!position.empty()) {
+            move_to(
+                static_cast<uint32_t>(position.row),
+                static_cast<uint16_t>(position.column));
+        }
+        return position;
     }
 
     bool document::scroll_down() {
@@ -121,6 +126,13 @@ namespace ryu::core {
         }
 
         return false;
+    }
+
+    bool document::scroll_left() {
+        --_column;
+        auto clamped = clamp_column();
+        raise_document_changed();
+        return clamped;
     }
 
     bool document::is_line_empty() {
@@ -232,6 +244,14 @@ namespace ryu::core {
         }
         _piece_table.insert_at(virtual_row(), column, value);
         _caret->column(static_cast<uint8_t>(_caret->column() + value.size()));
+    }
+
+    void document::move_to(uint32_t row, uint16_t column) {
+        _row = (row / _page_height) * _page_height;
+        _column = (column / _page_width) * _page_width;
+        _caret->row(static_cast<uint8_t>(row - _row));
+        _caret->column(static_cast<uint8_t>(column - _column));
+        raise_document_changed();
     }
 
     void document::page_size(uint8_t height, uint8_t width) {

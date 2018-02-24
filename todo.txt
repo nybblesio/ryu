@@ -33,8 +33,6 @@ IDE UI & related tasks
 
 - BUG: delete "empty" space between non-adjacent piece nodes
 
-- MISSING: undo/redo need to return # of lines/columns affected & is_delete?
-
 - MISSING: piece_table::overwrite_at
 
 - FINISH: document/piece_table checkpoint implementation
@@ -182,3 +180,4 @@ DONE
 - BUG: find_for_offset isn't handling first non-adjacent piece correctly
 - BUG: undo of "nullptr" sentinel works but we don't have any information
        to pass back to the UI so we can adjust the caret
+- MISSING: undo/redo need to return # of lines/columns affected & is_delete?
