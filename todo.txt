@@ -177,7 +177,7 @@ DONE
 - BUG: how to handle cursor movements related to inserted elements
 - BUG: document should clamp inserts so they're within the specified width
 - BUG: sub_sequence not padding first non-adjacent piece
-- BUG: find_for_offset isn't handling first non-adjacent piece correctly
+- BUG: find_for_insert isn't handling first non-adjacent piece correctly
 - BUG: undo of "nullptr" sentinel works but we don't have any information
        to pass back to the UI so we can adjust the caret
 - MISSING: undo/redo need to return # of lines/columns affected & is_delete?

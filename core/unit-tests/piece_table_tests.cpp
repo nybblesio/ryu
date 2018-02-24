@@ -35,7 +35,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original().empty());
         REQUIRE(piece_table.changes().size() == expected_text1.length() + expected_text2.length() + expected_text3.length());
-        REQUIRE(piece_table.pieces().size() == 3);
+        REQUIRE(piece_table.pieces().size() == 7);
         REQUIRE(undo_manager.undo_depth() == 3);
 
         auto spans = piece_table.sequence(0);
@@ -70,7 +70,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original().empty());
         REQUIRE(piece_table.changes().size() == expected_text1.length() + expected_text2.length() + expected_text3.length());
-        REQUIRE(piece_table.pieces().size() == 3);
+        REQUIRE(piece_table.pieces().size() == 7);
         REQUIRE(undo_manager.undo_depth() == 3);
 
         auto spans = piece_table.sequence(0);
@@ -98,7 +98,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original().empty());
         REQUIRE(piece_table.changes().size() == expected_text.length());
-        REQUIRE(piece_table.pieces().size() == 1);
+        REQUIRE(piece_table.pieces().size() == 5);
         REQUIRE(undo_manager.undo_depth() == 1);
 
         SECTION("piece table returns valid sequence") {
@@ -183,7 +183,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original().empty());
         REQUIRE(piece_table.changes().size() == expected_text.length());
-        REQUIRE(piece_table.pieces().size() == 1);
+        REQUIRE(piece_table.pieces().size() == 5);
 
         SECTION("sequence matches set up") {
             auto spans = piece_table.sequence(0);
@@ -195,7 +195,7 @@ namespace ryu::core::unit_tests {
             piece_table.delete_at(0, 37, 2);
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length());
-            REQUIRE(piece_table.pieces().size() == 1);
+            REQUIRE(piece_table.pieces().size() == 4);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);
@@ -206,7 +206,7 @@ namespace ryu::core::unit_tests {
             piece_table.delete_at(0, 0, 2);
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length());
-            REQUIRE(piece_table.pieces().size() == 1);
+            REQUIRE(piece_table.pieces().size() == 4);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);
@@ -217,7 +217,7 @@ namespace ryu::core::unit_tests {
             piece_table.delete_at(0, 13, 4);
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length());
-            REQUIRE(piece_table.pieces().size() == 2);
+            REQUIRE(piece_table.pieces().size() == 6);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);
@@ -240,7 +240,7 @@ namespace ryu::core::unit_tests {
 
         REQUIRE(piece_table.original().empty());
         REQUIRE(piece_table.changes().size() == expected_text.length());
-        REQUIRE(piece_table.pieces().size() == 1);
+        REQUIRE(piece_table.pieces().size() == 5);
 
         SECTION("piece table sequence matches setup") {
             auto spans = piece_table.sequence(0);
@@ -254,7 +254,7 @@ namespace ryu::core::unit_tests {
 
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
-            REQUIRE(piece_table.pieces().size() == 3);
+            REQUIRE(piece_table.pieces().size() == 7);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);
@@ -272,7 +272,7 @@ namespace ryu::core::unit_tests {
             REQUIRE(piece_table.changes().size() == expected_text.length() +
                                                           inserted_initial_text.length() +
                                                           inserted_medial_text.length());
-            REQUIRE(piece_table.pieces().size() == 5);
+            REQUIRE(piece_table.pieces().size() == 9);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);
@@ -285,7 +285,7 @@ namespace ryu::core::unit_tests {
 
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
-            REQUIRE(piece_table.pieces().size() == 3);
+            REQUIRE(piece_table.pieces().size() == 7);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);
@@ -296,7 +296,7 @@ namespace ryu::core::unit_tests {
 
                 REQUIRE(piece_table.original().empty());
                 REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
-                REQUIRE(piece_table.pieces().size() == 2);
+                REQUIRE(piece_table.pieces().size() == 6);
 
                 auto updated_spans = piece_table.sequence(0);
                 REQUIRE(updated_spans.size() == 1);
@@ -308,7 +308,7 @@ namespace ryu::core::unit_tests {
 
                 REQUIRE(piece_table.original().empty());
                 REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
-                REQUIRE(piece_table.pieces().size() == 2);
+                REQUIRE(piece_table.pieces().size() == 6);
 
                 auto updated_spans = piece_table.sequence(0);
                 REQUIRE(updated_spans.size() == 1);
@@ -387,7 +387,7 @@ namespace ryu::core::unit_tests {
         SECTION("piece table returns attributed spans matching setup") {
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length());
-            REQUIRE(piece_table.pieces().size() == 1);
+            REQUIRE(piece_table.pieces().size() == 5);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 3);
@@ -402,7 +402,7 @@ namespace ryu::core::unit_tests {
 
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length() + inserted_text.length());
-            REQUIRE(piece_table.pieces().size() == 3);
+            REQUIRE(piece_table.pieces().size() == 7);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 3);
@@ -418,7 +418,7 @@ namespace ryu::core::unit_tests {
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length()
                                                   + inserted_text.length());
-            REQUIRE(piece_table.pieces().size() == 3);
+            REQUIRE(piece_table.pieces().size() == 7);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 3);

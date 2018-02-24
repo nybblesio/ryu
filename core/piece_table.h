@@ -45,26 +45,42 @@ namespace ryu::core {
     struct piece_table_buffer_t;
 
     struct piece_node_t {
+        enum types {
+            head_sentinel,
+            tail_sentinel,
+            line_head_sentinel,
+            line_tail_sentinel,
+            regular
+        };
+
         piece_node_t(
+                piece_node_t::types type,
                 uint32_t line,
                 uint32_t buffer_start,
                 uint32_t length,
                 const offset_t& offset,
                 piece_table_buffer_t* buffer) {
-            this->buffer_start = buffer_start;
+            this->type = type;
+            this->line = line;
             this->offset = offset;
             this->length = length;
             this->buffer = buffer;
-            this->line = line;
+            this->buffer_start = buffer_start;
         }
 
         uint32_t line {};
         uint32_t buffer_start {};
         uint32_t length {};
         offset_t offset {};
+        types type = types::regular;
         piece_node_t* prev = nullptr;
         piece_node_t* next = nullptr;
         piece_table_buffer_t* buffer = nullptr;
+
+        bool is_sentinel() const {
+            return  type == types::head_sentinel
+                 || type == types::tail_sentinel;
+        }
 
         inline size_t buffer_end() const {
             return buffer_start + length;
@@ -78,14 +94,44 @@ namespace ryu::core {
         void copy_elements(attr_span_list_t& spans);
     };
 
+    struct piece_line_t {
+        piece_node_t* head;
+        piece_node_t* tail;
+
+        inline bool empty() const {
+            return head->next == tail && tail->prev == head;
+        }
+
+        uint32_t total_length() const {
+            return tail->offset.end;
+        }
+    };
+
     struct piece_find_result_t {
         enum types {
             none,
             split,
+            shift,
             splice,
             append,
-            insert
+            insert,
+            shrink,
+            squeeze
         };
+
+        static piece_find_result_t create(
+                piece_line_t* line,
+                piece_node_t* node,
+                piece_find_result_t::types type = types::none) {
+            piece_find_result_t result {};
+            result.type = type;
+            result.data = node;
+            result.offset = node->offset;
+            result.is_first = node->prev == line->head;
+            result.is_final = node->next == line->tail;
+            return result;
+        }
+
         bool is_first = false;
         bool is_final = false;
         types type = types::none;
@@ -97,60 +143,11 @@ namespace ryu::core {
 
     using piece_node_shared_ptr_set = std::set<piece_node_shared_ptr>;
 
-    struct piece_line_t {
-        piece_node_t* head = nullptr;
-        piece_node_t* tail = nullptr;
-
-        uint32_t total_length() const {
-            if (tail != nullptr)
-                return tail->offset.end;
-            return 0;
-        }
-    };
-
     class piece_list {
     public:
+        piece_list();
+
         void clear();
-
-        size_t size() const;
-
-        inline bool empty() const {
-            return _head == nullptr;
-        }
-
-        uint32_t total_length() const {
-            if (_tail != nullptr)
-                return _tail->offset.end;
-            return 0;
-        }
-
-        inline piece_node_t* head() const {
-            return _head;
-        }
-
-        inline piece_node_t* tail() const {
-            return _tail;
-        }
-
-        piece_line_t* get_line(uint32_t line);
-
-        void add_tail(
-                const piece_node_shared_ptr& piece,
-                piece_table_undo_manager* undo_manager);
-
-        void insert_head(
-                const piece_node_shared_ptr& piece,
-                piece_table_undo_manager* undo_manager);
-
-        piece_node_t* clone(piece_node_t* node);
-
-        piece_node_t* clone_and_swap(
-            piece_node_t* node,
-            piece_table_undo_manager* undo_manager);
-
-        piece_find_result_t find_for_offset(
-            uint32_t row,
-            uint32_t column);
 
         void insert_after(
             piece_node_t* node,
@@ -160,14 +157,48 @@ namespace ryu::core {
             piece_node_t* node,
             const piece_node_shared_ptr& piece);
 
+        size_t size() const;
+
+        inline bool empty() const {
+            return _head->next == _tail && _tail->prev == _head;
+        }
+
+        uint32_t total_length() const {
+            return _tail->offset.end;
+        }
+
+        piece_node_t* clone_and_swap(
+            piece_node_t* node,
+            piece_table_undo_manager* undo_manager);
+
+        piece_find_result_t find_for_delete(
+            uint32_t row,
+            uint32_t column,
+            uint32_t length);
+
+        piece_find_result_t find_for_insert(
+            uint32_t row,
+            uint32_t column,
+            uint32_t length);
+
+        piece_line_t* get_line(uint32_t line);
+
+        piece_node_t* clone(piece_node_t* node);
+
+        void insert_head(const piece_node_shared_ptr& piece);
+
+        void insert_tail(const piece_node_shared_ptr& piece);
+
     private:
         void adjust_lines_to_fit(uint32_t line);
+
+        std::pair<piece_node_t*, piece_node_t*> make_sentinels();
 
     private:
         friend class piece_table_undo_manager;
 
-        piece_node_t* _head = nullptr;
-        piece_node_t* _tail = nullptr;
+        piece_node_t* _head;
+        piece_node_t* _tail;
         std::vector<piece_line_t> _lines {};
         piece_node_shared_ptr_set _owned_pieces {};
     };
@@ -292,8 +323,7 @@ namespace ryu::core {
         void remove_selection(const selection_t& selection);
 
     private:
-        void update_descendant_offsets(
-            piece_line_t* line,
+        void update_sibling_offsets(
             piece_node_t* head,
             int32_t length);
 
@@ -348,4 +378,3 @@ namespace ryu::core {
     };
 
 };
-
