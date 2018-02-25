@@ -28,7 +28,7 @@ namespace ryu::core {
             auto& element = buffer->elements[buffer_start + i];
             if (current_span != nullptr) {
                 if (current_span->attr != element.attr
-                ||  offset.start > current_span->column_offset_end) {
+                ||  offset.start > current_span->column_offset_end + 1) {
                     current_span->text += stream.str();
                     stream.str("");
                     spans.push_back(attr_span_t {
@@ -214,7 +214,7 @@ namespace ryu::core {
             switch(find_result.type) {
                 case piece_find_result_t::split: {
                     auto relative_start_offset = column - find_result.data->offset.start;
-                    auto relative_length = relative_start_offset + length;
+                    auto relative_length = relative_start_offset + remaining_length;
                     auto new_buffer_start = find_result.data->buffer_start + relative_length;
                     auto new_piece_length = find_result.data->length - relative_length;
                     auto new_piece = std::make_shared<piece_node_t>(
@@ -233,8 +233,8 @@ namespace ryu::core {
 
                     _pieces.insert_after(cloned_piece, new_piece);
 
-                    update_sibling_offsets(new_piece.get(), -length);
-                    remaining_length -= length;
+                    update_sibling_offsets(new_piece.get(), -remaining_length);
+                    remaining_length -= remaining_length;
                     column = new_piece->offset.end;
                     break;
                 }
@@ -258,24 +258,24 @@ namespace ryu::core {
                     auto clone_node = _pieces.clone_and_swap(
                         find_result.data,
                         _undo_manager);
-                    auto remove_length = (clone_node->length - column) + 1;
+                    auto remove_length = (clone_node->offset.end - column) + 1;
                     clone_node->length -= remove_length;
                     clone_node->offset.end -= remove_length;
                     remaining_length -= remove_length;
                     column = clone_node->next->offset.start;
-                    update_sibling_offsets(clone_node, -length);
+                    update_sibling_offsets(clone_node, -remove_length);
                     break;
                 }
                 case piece_find_result_t::squeeze: {
                     auto clone_node = _pieces.clone_and_swap(
                         find_result.data,
                         _undo_manager);
-                    clone_node->buffer_start += length;
-                    clone_node->length -= length;
-                    clone_node->offset.end -= length;
-                    remaining_length -= length;
-                    column += length;
-                    update_sibling_offsets(clone_node, -length);
+                    clone_node->buffer_start += remaining_length;
+                    clone_node->length -= remaining_length;
+                    clone_node->offset.end -= remaining_length;
+                    remaining_length -= remaining_length;
+                    column += remaining_length;
+                    update_sibling_offsets(clone_node, -remaining_length);
                     break;
                 }
                 default:
@@ -530,7 +530,8 @@ namespace ryu::core {
         auto end_column = column + length;
 
         while (current_node != line->tail) {
-            if (current_node->offset.same(column, end_column)) {
+            if (current_node->offset.same(column, end_column)
+            ||  (column == current_node->offset.start && end_column > current_node->offset.end)) {
                 return piece_find_result_t::create(
                     line,
                     current_node,
