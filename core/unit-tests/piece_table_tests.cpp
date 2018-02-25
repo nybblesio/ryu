@@ -195,7 +195,7 @@ namespace ryu::core::unit_tests {
             piece_table.delete_at(0, 37, 2);
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length());
-            REQUIRE(piece_table.pieces().size() == 4);
+            REQUIRE(piece_table.pieces().size() == 5);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);
@@ -206,7 +206,7 @@ namespace ryu::core::unit_tests {
             piece_table.delete_at(0, 0, 2);
             REQUIRE(piece_table.original().empty());
             REQUIRE(piece_table.changes().size() == expected_text.length());
-            REQUIRE(piece_table.pieces().size() == 4);
+            REQUIRE(piece_table.pieces().size() == 5);
 
             auto spans = piece_table.sequence(0);
             REQUIRE(spans.size() == 1);

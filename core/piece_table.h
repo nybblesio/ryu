@@ -36,6 +36,10 @@ namespace ryu::core {
         bool within(uint32_t value) const {
             return value >= start && value <= end;
         }
+
+        bool same(uint32_t start, uint32_t end) const {
+            return this->start == start && this->end == end;
+        }
     };
 
     struct piece_node_t;
@@ -79,7 +83,9 @@ namespace ryu::core {
 
         bool is_sentinel() const {
             return  type == types::head_sentinel
-                 || type == types::tail_sentinel;
+                || type == types::tail_sentinel
+                || type == types::line_head_sentinel
+                || type == types::line_tail_sentinel;
         }
 
         inline size_t buffer_end() const {
@@ -274,7 +280,7 @@ namespace ryu::core {
         void delete_at(
             uint32_t row,
             uint32_t column,
-            uint32_t length);
+            int32_t length);
 
         attr_span_list_t sub_sequence(
             uint32_t row,

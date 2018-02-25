@@ -193,7 +193,7 @@ namespace ryu::core {
     void piece_table::delete_at(
             uint32_t row,
             uint32_t column,
-            uint32_t length) {
+            int32_t length) {
         if (length == 0)
             return;
 
@@ -202,11 +202,12 @@ namespace ryu::core {
         if (column >= line_total_length)
             return;
 
-        while (true) {
+        auto remaining_length = length;
+        while (remaining_length > 0) {
             auto find_result = _pieces.find_for_delete(
                 row,
                 column,
-                length);
+                static_cast<uint32_t>(remaining_length));
             if (find_result.type == piece_find_result_t::none)
                 break;
 
@@ -228,25 +229,41 @@ namespace ryu::core {
                         find_result.data,
                         _undo_manager);
                     cloned_piece->length = relative_start_offset;
+                    cloned_piece->offset.end = cloned_piece->offset.start + relative_start_offset;
 
                     _pieces.insert_after(cloned_piece, new_piece);
 
-                    update_sibling_offsets(new_piece.get(), -new_piece_length);
+                    update_sibling_offsets(new_piece.get(), -length);
+                    remaining_length -= length;
+                    column = new_piece->offset.end;
                     break;
                 }
                 case piece_find_result_t::splice: {
-                    if (_undo_manager != nullptr) {
-                        _undo_manager->swap_deleted_node(
-                            _pieces,
-                            find_result.data);
-                    }
+                    if (_undo_manager == nullptr)
+                        break;
+
+                    auto prev_node = find_result.data->prev;
+                    auto next_node = find_result.data->next;
+                    _undo_manager->swap_deleted_node(
+                        _pieces,
+                        find_result.data);
+                    update_sibling_offsets(
+                        prev_node,
+                        -find_result.data->length);
+                    remaining_length -= find_result.data->length;
+                    column = next_node->offset.start;
                     break;
                 }
                 case piece_find_result_t::shrink: {
                     auto clone_node = _pieces.clone_and_swap(
                         find_result.data,
                         _undo_manager);
-                    clone_node->length -= length;
+                    auto remove_length = (clone_node->length - column) + 1;
+                    clone_node->length -= remove_length;
+                    clone_node->offset.end -= remove_length;
+                    remaining_length -= remove_length;
+                    column = clone_node->next->offset.start;
+                    update_sibling_offsets(clone_node, -length);
                     break;
                 }
                 case piece_find_result_t::squeeze: {
@@ -255,18 +272,15 @@ namespace ryu::core {
                         _undo_manager);
                     clone_node->buffer_start += length;
                     clone_node->length -= length;
+                    clone_node->offset.end -= length;
+                    remaining_length -= length;
+                    column += length;
+                    update_sibling_offsets(clone_node, -length);
                     break;
                 }
                 default:
                     break;
             }
-
-            update_sibling_offsets(
-                find_result.data,
-                -length);
-
-            column += find_result.data->length - length;
-            length -= find_result.data->length;
         }
     }
 
@@ -294,34 +308,23 @@ namespace ryu::core {
         attr_span_list_t spans;
 
         auto line = _pieces.get_line(row);
-        auto current_node = line->head;
+        auto current_node = line->head->next;
 
         while (current_node != line->tail) {
-            if (current_node->offset.start < start && current_node->offset.end < start) goto next_node;
-            if (current_node->offset.start > end) break;
-
-            if (end <= current_node->offset.end) {
-                if (current_node->offset.within(start)) {
-                    auto start_offset = start - current_node->offset.start;
-                    auto end_offset = std::min<uint32_t>(current_node->length, end);
-                    current_node->copy_elements(
-                        spans,
-                        start_offset,
-                        end_offset);
-                } else {
-                    current_node->copy_elements(
-                        spans,
-                        0,
-                        end - current_node->offset.start);
-                }
-            } else if (start <= current_node->offset.start) {
-                current_node->copy_elements(spans);
-            } else if (start <= current_node->offset.end) {
+            if (start > end) break;
+            if (start < current_node->offset.start)
+                start = current_node->offset.start;
+            if (current_node->offset.within(start)) {
                 auto start_offset = start - current_node->offset.start;
-                current_node->copy_elements(spans, start_offset, current_node->length);
+                auto end_offset = end > current_node->offset.end ?
+                                  current_node->length :
+                                  end - current_node->offset.start;
+                current_node->copy_elements(
+                    spans,
+                    start_offset,
+                    end_offset);
+                start = current_node->offset.end;
             }
-
-        next_node:
             current_node = current_node->next;
         }
 
@@ -329,14 +332,18 @@ namespace ryu::core {
     }
 
     void piece_table::update_sibling_offsets(
-        piece_node_t* head,
-        int32_t length) {
+            piece_node_t* head,
+            int32_t length) {
         if (head == nullptr)
             return;
         head = head->next;
         while (head != nullptr) {
-            head->offset.start += length;
-            head->offset.end = head->offset.start + head->length;
+            if (head->is_sentinel()) {
+                head->offset = head->prev->offset;
+            } else {
+                head->offset.start += length;
+                head->offset.end = head->offset.start + head->length;
+            }
             head = head->next;
         }
     }
@@ -517,30 +524,39 @@ namespace ryu::core {
             uint32_t row,
             uint32_t column,
             uint32_t length) {
+
         auto line = get_line(row);
         auto current_node = line->head->next;
+        auto end_column = column + length;
 
         while (current_node != line->tail) {
-            if (current_node->offset.within(column)) {
+            if (current_node->offset.same(column, end_column)) {
+                return piece_find_result_t::create(
+                    line,
+                    current_node,
+                    piece_find_result_t::splice);
+            } else if (current_node->offset.within(column)) {
                 auto result = piece_find_result_t::create(
                     line,
                     current_node);
-                if (column > current_node->offset.start)
+                if (column > current_node->offset.start) {
+                    if (end_column < current_node->offset.end)
+                        result.type = piece_find_result_t::split;
+                    else
+                        result.type = piece_find_result_t::shrink;
+                } else if (column == current_node->offset.start) {
                     result.type = piece_find_result_t::squeeze;
-                else if (column < current_node->offset.end)
-                    result.type = piece_find_result_t::shrink;
-                else
-                    result.type = piece_find_result_t::splice;
+                }
                 return result;
             } else {
-                auto prev_node = current_node->prev;
-                if (prev_node != nullptr
-                &&  column > prev_node->offset.end) {
-                    return piece_find_result_t::create(
-                        line,
-                        current_node,
-                        piece_find_result_t::shift);
-                }
+//                auto prev_node = current_node->prev;
+//                if (prev_node != nullptr
+//                &&  column > prev_node->offset.end) {
+//                    return piece_find_result_t::create(
+//                        line,
+//                        current_node,
+//                        piece_find_result_t::shift);
+//                }
             }
             current_node = current_node->next;
         }
@@ -596,14 +612,10 @@ namespace ryu::core {
             current_node = current_node->next;
         }
 
-        if (!line->empty()) {
-            return piece_find_result_t::create(
-                line,
-                line->tail,
-                piece_find_result_t::insert);
-        }
-
-        return {};
+        return piece_find_result_t::create(
+            line,
+            line->tail,
+            piece_find_result_t::insert);
     }
 
     piece_line_t* piece_list::get_line(uint32_t line) {
@@ -619,8 +631,10 @@ namespace ryu::core {
 
             piece_line_t new_line {};
             new_line.head = sentinels.first;
+            new_line.head->line = line + i;
             new_line.head->type = piece_node_t::types::line_head_sentinel;
             new_line.tail = sentinels.second;
+            new_line.tail->line = line + i;
             new_line.tail->type = piece_node_t::types::line_tail_sentinel;
 
             if (line == 0) {
@@ -631,6 +645,7 @@ namespace ryu::core {
             if (line + i == _lines.size()) {
                 new_line.tail->next = _tail;
                 _tail->prev = new_line.tail;
+                _tail->line = line + i;
             }
 
             _lines.push_back(new_line);
