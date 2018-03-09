@@ -38,7 +38,7 @@ find_package(Log4cpp REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
-find_package(RTTR REQUIRED Core)
+find_package(RTTR CONFIG REQUIRED Core)
 
 include_directories(
         ${PROJECT_BINARY_DIR}
@@ -114,7 +114,7 @@ target_link_libraries(
         ${SDL2_TTF_LIBRARIES}
         ${SDL2_IMAGE_LIBRARIES}
         fmt::fmt
-         RTTR::Core
+        RTTR::Core
 )
 
 add_custom_target(ryu-configured DEPENDS dummy-target ryu)

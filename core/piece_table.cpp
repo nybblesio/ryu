@@ -86,8 +86,8 @@ namespace ryu::core {
         if (elements.empty())
             return;
 
-        auto new_change_offset = _changes.size();
-        size_t element_count = elements.size();
+        auto new_change_offset = static_cast<uint32_t>(_changes.size());
+        auto element_count = static_cast<uint32_t>(elements.size());
         auto find_result = _pieces.find_for_insert(
             row,
             column,
@@ -112,7 +112,7 @@ namespace ryu::core {
             }
             case piece_find_result_t::none:
             case piece_find_result_t::insert: {
-                auto node = std::make_shared<piece_node_t>(
+                auto node = _pieces.create(
                     piece_node_t::types::regular,
                     row,
                     new_change_offset,
@@ -124,12 +124,12 @@ namespace ryu::core {
                     _undo_manager);
                 _pieces.insert_before(cloned_node, node);
                 update_sibling_offsets(
-                    node.get(),
+                    node,
                     static_cast<int32_t>(element_count));
                 break;
             }
             case piece_find_result_t::splice: {
-                auto node = std::make_shared<piece_node_t>(
+                auto node = _pieces.create(
                     piece_node_t::types::regular,
                     row,
                     new_change_offset,
@@ -141,12 +141,12 @@ namespace ryu::core {
                     _undo_manager);
                 _pieces.insert_before(cloned_node, node);
                 update_sibling_offsets(
-                    node.get(),
+                    node,
                     static_cast<int32_t>(element_count));
                 break;
             }
             case piece_find_result_t::split: {
-                auto new_piece = std::make_shared<piece_node_t>(
+                auto new_piece = _pieces.create(
                     piece_node_t::types::regular,
                     row,
                     static_cast<uint32_t>(new_change_offset),
@@ -161,11 +161,11 @@ namespace ryu::core {
                 int32_t right_piece_length = std::max<int32_t>(
                     static_cast<int32_t>(left_piece->offset.end - column),
                     0);
-                auto right_piece = std::make_shared<piece_node_t>(
+                auto right_piece = _pieces.create(
                     piece_node_t::types::regular,
                     row,
                     left_piece->buffer_start + (column - left_piece->offset.start),
-                    right_piece_length,
+                    static_cast<uint32_t>(right_piece_length),
                     offset_t {end_column, end_column + right_piece_length},
                     left_piece->buffer
                 );
@@ -177,10 +177,10 @@ namespace ryu::core {
                 left_piece->offset.end -= left_piece_length;
 
                 _pieces.insert_after(left_piece, new_piece);
-                _pieces.insert_after(new_piece.get(), right_piece);
+                _pieces.insert_after(new_piece, right_piece);
 
                 update_sibling_offsets(
-                    right_piece.get(),
+                    right_piece,
                     static_cast<int32_t>(element_count));
                 break;
             }
@@ -217,7 +217,7 @@ namespace ryu::core {
                     auto relative_length = relative_start_offset + remaining_length;
                     auto new_buffer_start = find_result.data->buffer_start + relative_length;
                     auto new_piece_length = find_result.data->length - relative_length;
-                    auto new_piece = std::make_shared<piece_node_t>(
+                    auto new_piece = _pieces.create(
                         piece_node_t::types::regular,
                         row,
                         new_buffer_start,
@@ -233,7 +233,7 @@ namespace ryu::core {
 
                     _pieces.insert_after(cloned_piece, new_piece);
 
-                    update_sibling_offsets(new_piece.get(), -remaining_length);
+                    update_sibling_offsets(new_piece, -remaining_length);
                     remaining_length -= remaining_length;
                     column = new_piece->offset.end;
                     break;
@@ -381,11 +381,11 @@ namespace ryu::core {
         _original = buffer;
 
         if (!buffer.empty()) {
-            auto new_piece = std::make_shared<piece_node_t>(
+            auto new_piece = _pieces.create(
                 piece_node_t::types::regular,
                 0,
                 0,
-                _original.elements.size(),
+                static_cast<uint32_t>(_original.elements.size()),
                 offset_t {},
                 &_original);
             _pieces.insert_head(new_piece);
@@ -426,7 +426,7 @@ namespace ryu::core {
 
     void piece_list::clear() {
         _lines.clear();
-        _owned_pieces.clear();
+        _pieces.clear();
         auto sentinels = make_sentinels();
         _head = sentinels.first;
         _tail = sentinels.second;
@@ -434,28 +434,22 @@ namespace ryu::core {
 
     void piece_list::insert_after(
             piece_node_t* node,
-            const piece_node_shared_ptr& piece) {
-        _owned_pieces.insert(piece);
-
-        const auto piece_raw_ptr = piece.get();
+            piece_node_t* piece) {
         auto node_next = node->next;
-        piece_raw_ptr->next = node_next;
-        piece_raw_ptr->prev = node;
-        node->next = piece_raw_ptr;
-        node_next->prev = piece_raw_ptr;
+        piece->next = node_next;
+        piece->prev = node;
+        node->next = piece;
+        node_next->prev = piece;
     }
 
     void piece_list::insert_before(
             piece_node_t* node,
-            const piece_node_shared_ptr& piece) {
-        _owned_pieces.insert(piece);
-
-        const auto piece_raw_ptr = piece.get();
+            piece_node_t* piece) {
         auto node_prev = node->prev;
-        piece_raw_ptr->next = node;
-        piece_raw_ptr->prev = node_prev;
-        node->prev = piece_raw_ptr;
-        node_prev->next = piece_raw_ptr;
+        piece->next = node;
+        piece->prev = node_prev;
+        node->prev = piece;
+        node_prev->next = piece;
     }
 
     size_t piece_list::size() const {
@@ -466,20 +460,6 @@ namespace ryu::core {
             current_node = current_node->next;
         }
         return count;
-    }
-
-    piece_node_t* piece_list::clone(piece_node_t* node) {
-        auto clone_node = std::make_shared<piece_node_t>(
-            node->type,
-            node->line,
-            node->buffer_start,
-            node->length,
-            node->offset,
-            node->buffer);
-        clone_node->next = node->next;
-        clone_node->prev = node->prev;
-        _owned_pieces.insert(clone_node);
-        return clone_node.get();
     }
 
     piece_node_t* piece_list::clone_and_swap(
@@ -495,7 +475,7 @@ namespace ryu::core {
             node->length,
             node->offset,
             node->buffer);
-        _owned_pieces.insert(clone_node);
+        _pieces.insert(clone_node);
 
         auto clone_raw_ptr = clone_node.get();
 
@@ -625,6 +605,19 @@ namespace ryu::core {
         return &_lines[line];
     }
 
+    piece_node_t* piece_list::clone(piece_node_t* node) {
+        auto clone_node = create(
+                node->type,
+                node->line,
+                node->buffer_start,
+                node->length,
+                node->offset,
+                node->buffer);
+        clone_node->next = node->next;
+        clone_node->prev = node->prev;
+        return clone_node;
+    }
+
     void piece_list::adjust_lines_to_fit(uint32_t line) {
         auto missing_line_count = std::max<size_t>(0, (line - _lines.size()) + 1);
         for (auto i = 0; i < missing_line_count; i++) {
@@ -653,38 +646,52 @@ namespace ryu::core {
         }
     }
 
-    void piece_list::insert_head(const piece_node_shared_ptr& piece) {
+    void piece_list::insert_head(piece_node_t* piece) {
         insert_after(_head, piece);
     }
 
-    void piece_list::insert_tail(const piece_node_shared_ptr& piece) {
+    void piece_list::insert_tail(piece_node_t* piece) {
         insert_before(_tail, piece);
     }
 
     std::pair<piece_node_t*, piece_node_t*> piece_list::make_sentinels() {
-        auto head_sentinel = std::make_shared<piece_node_t>(
+        auto head = create(
             piece_node_t::types::head_sentinel,
             0,
             0,
             0,
             offset_t {},
             nullptr);
-        auto tail_sentinel = std::make_shared<piece_node_t>(
+        auto tail = create(
             piece_node_t::types::tail_sentinel,
             0,
             0,
             0,
             offset_t {},
             nullptr);
-        _owned_pieces.insert(head_sentinel);
-        _owned_pieces.insert(tail_sentinel);
 
-        auto head = head_sentinel.get();
-        auto tail = tail_sentinel.get();
         head->next = tail;
         tail->prev = head;
 
         return std::make_pair(head, tail);
+    }
+
+    piece_node_t* piece_list::create(
+            piece_node_t::types type,
+            uint32_t line,
+            uint32_t buffer_start,
+            uint32_t length,
+            const offset_t& offset,
+            piece_table_buffer_t* buffer) {
+        auto node = std::make_shared<piece_node_t>(
+            type,
+            line,
+            buffer_start,
+            length,
+            offset,
+            buffer);
+        _pieces.insert(node);
+        return node.get();
     }
 
     ///////////////////////////////////////////////////////////////////////////

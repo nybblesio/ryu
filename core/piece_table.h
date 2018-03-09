@@ -49,7 +49,7 @@ namespace ryu::core {
     struct piece_table_buffer_t;
 
     struct piece_node_t {
-        enum types {
+        enum types : uint8_t {
             head_sentinel,
             tail_sentinel,
             line_head_sentinel,
@@ -155,13 +155,21 @@ namespace ryu::core {
 
         void clear();
 
+        piece_node_t* create(
+            piece_node_t::types type,
+            uint32_t line,
+            uint32_t buffer_start,
+            uint32_t length,
+            const offset_t& offset,
+            piece_table_buffer_t* buffer);
+
         void insert_after(
             piece_node_t* node,
-            const piece_node_shared_ptr& piece);
+            piece_node_t* piece);
 
         void insert_before(
             piece_node_t* node,
-            const piece_node_shared_ptr& piece);
+            piece_node_t* piece);
 
         size_t size() const;
 
@@ -191,9 +199,9 @@ namespace ryu::core {
 
         piece_node_t* clone(piece_node_t* node);
 
-        void insert_head(const piece_node_shared_ptr& piece);
+        void insert_head(piece_node_t* piece);
 
-        void insert_tail(const piece_node_shared_ptr& piece);
+        void insert_tail(piece_node_t* piece);
 
     private:
         void adjust_lines_to_fit(uint32_t line);
@@ -206,7 +214,7 @@ namespace ryu::core {
         piece_node_t* _head;
         piece_node_t* _tail;
         std::vector<piece_line_t> _lines {};
-        piece_node_shared_ptr_set _owned_pieces {};
+        piece_node_shared_ptr_set _pieces {};
     };
 
     struct piece_table_buffer_t {
