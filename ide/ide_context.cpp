@@ -9,6 +9,7 @@
 //
 
 #include <core/font_book.h>
+#include <core/input_action.h>
 #include <hardware/registry.h>
 #include <emulator/emulator_context.h>
 #include "ide_types.h"
@@ -171,6 +172,33 @@ namespace ryu::ide {
     bool ide_context::on_initialize(core::result& result) {
         configure_palette();
 
+        auto toggle_context = core::input_action::create(
+            action_toggle_context,
+            "toggle_ide_context",
+            "IDE",
+            "Collapse, expand, and split the IDE context window.");
+        toggle_context->register_handler(
+            core::action_sink::context,
+            core::action_sink::default_filter,
+            [this]() {
+                auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
+                switch (_size) {
+                    case core::context_window::split:
+                        size(core::context_window::expanded);
+                        emulator_context->size(core::context_window::collapsed);
+                        break;
+                    case core::context_window::expanded:
+                    case core::context_window::collapsed:
+                        size(core::context_window::split);
+                        emulator_context->size(core::context_window::split);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            });
+        toggle_context->bind_keys({core::mod_alt, core::key_f1});
+
         add_state(
                 &_console_state,
                 [&](const std::string& command, const core::parameter_dict& params) {
@@ -198,39 +226,6 @@ namespace ryu::ide {
 
     core::context_window::sizes ide_context::size() const {
         return _size;
-    }
-
-    bool ide_context::on_process_event(const SDL_Event* e) {
-        auto alt_pressed = (SDL_GetModState() & KMOD_ALT) != 0;
-
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_F1: {
-                    if (alt_pressed) {
-                        auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
-                        switch (_size) {
-                            case core::context_window::split:
-                                size(core::context_window::expanded);
-                                emulator_context->size(core::context_window::collapsed);
-                                break;
-                            case core::context_window::expanded:
-                            case core::context_window::collapsed:
-                                size(core::context_window::split);
-                                emulator_context->size(core::context_window::split);
-                                break;
-                            default:
-                                break;
-                        }
-                        return true;
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-
-        return false;
     }
 
     void ide_context::size(core::context_window::sizes value) {

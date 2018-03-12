@@ -14,6 +14,7 @@
 #include "font_book.h"
 #include "timer_pool.h"
 #include "preferences.h"
+#include "input_action.h"
 
 namespace ryu::core {
 
@@ -161,6 +162,8 @@ namespace ryu::core {
         short frame_count = 0;
         auto last_time = SDL_GetTicks();
         auto last_fps_time = last_time;
+
+        // XXX: is this the best place to call this?
         SDL_StartTextInput();
 
         core::renderer surface {_renderer};
@@ -186,6 +189,9 @@ namespace ryu::core {
                 SDL_Event e {};
                 if (!SDL_PollEvent(&e))
                     break;
+
+                for (const auto& action : input_action::catalog())
+                    action.process(&e);
 
                 switch (e.type) {
                     case SDL_WINDOWEVENT: {

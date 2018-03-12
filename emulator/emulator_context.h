@@ -17,6 +17,8 @@ namespace ryu::emulator {
 
     class emulator_context : public core::context {
     public:
+        const uint16_t action_toggle_context = 2;
+
         explicit emulator_context(const std::string& name);
 
         core::context_window::sizes size() const;
@@ -29,8 +31,6 @@ namespace ryu::emulator {
         void on_draw(core::renderer& surface) override;
 
         bool on_initialize(core::result& result) override;
-
-        bool on_process_event(const SDL_Event* e) override;
 
     private:
         void configure_palette();

@@ -28,6 +28,7 @@ add_library(
         font_family.cpp font_family.h
         views/panel.cpp views/panel.h
         preferences.cpp preferences.h
+        input_action.cpp input_action.h
         parser_types.cpp parser_types.h
         project_file.cpp project_file.h
         symbol_table.cpp symbol_table.h
@@ -36,6 +37,7 @@ add_library(
         views/textbox.cpp views/textbox.h
         palette_entry.cpp palette_entry.h
         hex_formatter.cpp hex_formatter.h
+        input_binding.cpp input_binding.h
         views/checkbox.cpp views/checkbox.h
         command_parser.cpp command_parser.h
         views/notebook.cpp views/notebook.h
