@@ -8,12 +8,12 @@ Project & Admin tasks
 
 - Create website for Ryu project
 
-- Add Ryu & other project information to Twitch profile & banner bitmap
-
-- configure weechat to limit width of handles to prevent column scrunching
-
 Thoughts & Questions
 ----------------------
+
+- should we create our own meta-layer instead of using rttr?
+    * some kind of pre-processor
+    * should the meta-code live inside C++ source?  painful, if so
 
 - should we add a "clear symbols" command?
 
@@ -24,34 +24,23 @@ Thoughts & Questions
     * maybe the write latch should be disabled only during emulation/distribution
     * OR maybe the write latch is controlled through the environment file
 
-IDE UI & related tasks
-----------------------
 
-- core::document changes:
-    - refactor core::document to implement "piece table" model which should get us undo/redo/cut/copy/paste in a much
-      nicer model and api.
-    - implement marks in document and surface in console & text_editor for quick navigation
-    - implement selection/cut/copy/paste in text_editor view and console view.
-    - core::console & core::text_editor
-        - columnar output should be based on column spans instead of spaces for formatting
+[feature/tools] IDE UI & related tasks
+--------------------------------------
 
-    MEAT COMPUTER STACK
-    -------------------
-    - refactoring/consolidating the attr_chunk_t/attr_chunks & text_formatter::formatted_text_t/formatted_text_span_t
-      to one interface so all UI elements using document work the same way.
-
-- implement ability to redirect to new or appended text file in core::console
+- preferences: key binding data structure and implementation
+    - encapsulate current SDL_Event data into our own data structure and update interface
+    - filter out non-ASCII characters during input
+    - mouse events
+    - joystick events
 
 - bug: console header, project and machine fields not properly resizing
 
+- bug: environment::on_evaluate isn't handling negative number properly
+
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
-- implement the memory_editor controller & view.  need a listener interface on memory_mapper that notifies registered
-  listeners that memory has changed.
-
-- encapsulate SDL_Event into core::event so we don't bleed SDL stuff everywhere
-    - need to explicitly filter out non-ASCII characters during input
-    - implement mouse events for context tabs
+- implement core::observable model so the UI can register to receive events from the underlying model
 
 - implement full & correct machine editor interface
 
@@ -65,15 +54,57 @@ IDE UI & related tasks
 
 - look for good tab-like bitmaps instead of poly draws
 
+
+[feature/piece-table] Document Data Structure
+----------------------------------------------
+
+- BUG: redo is broken
+
+- BUG: console::on_draw needs to handle non-adjacent spans properly
+
+- BUG: delete "empty" space between non-adjacent piece nodes
+
+- MISSING: piece_table::overwrite_at
+
+- FINISH: document/piece_table checkpoint implementation
+
+- implement a proper piece_table::load a/k/a document_formatter?
+
+- implement columnar mode on document
+
+- implement console::cut
+
+- implement console::copy
+
+- implement console::paste
+
+- implement console::select
+
+- rework text_editor::on_draw to use new document
+
+- implement text_editor::cut
+
+- implement text_editor::copy
+
+- implement text_editor::paste
+
+- implement text_editor::select
+
+- rework text_box::on_draw to use new document
+
+- fix text_box event handling
+
+
 Lower Priority Clean-up tasks
 -----------------------------
 
 - refactor once_column_t struct to live with his table buddies and make more generic
 
-- add helper to table to generate empty row
-
 - add serialize interface for use by ast_node_t and apply to value structs
 
+- implement ability to redirect to new or appended text file in core::console
+
+- implement pratt parsers for operators
 
 Emulator & related tasks
 ------------------------
@@ -120,3 +151,42 @@ DONE
 - OFF STREAM|FIXED: % command working again for source editor and environments
 - implement remaining memory commands in core::environment
 - add . a/k/a "source" command that calls apply_environment again on the currently active environment
+- Add Ryu & other project information to Twitch profile & banner bitmap
+- configure weechat to limit width of handles to prevent column scrunching
+- unit tests!?  whaaaaaa you SAY?  OMG!  NOOOOOO!
+- OFF STREAM      : cleaned up piece_table_t and related interfaces
+- OFF STREAM      : implement most of delete_at.  one case remaining where delete crosses pieces.
+- core::piece_table_t: undo/redo
+    * rename insert to insert_at for consistency
+    * reworking insert_at & delete_at to make copies and swap chains
+    * remove std::list<> and use std::shared_ptr<core::piece_node_t> instead for doubly-linked list
+- core::piece_table_t: undo/redo
+- core::piece_table_t: selection (includes marks)/cut/copy/paste
+- turn off irc events in weechat
+- finish delete_at span multiple pieces scenario
+- piece_table_t::copy requires custom version of sequence/copy_elements
+- move attr_t and related structs to core_types.h
+- OFF STREAM      : add unit tests for cut
+- OFF STREAM      : add unit tests for paste selection
+- OFF STREAM      : add unit tests for delete selection
+- core::formatted_text_t vs core::attr_span_t
+- refactor console's write_message to remove "code" lookup
+- BUG: how to handle gap piece between end of piece table and far new offset
+- OFF STREAM      : MISSING: swap_deleted_node needs to fix-up line head/tail pair
+- BUG: document rendering doesn't work with horizontal scrolling
+- BUG: inserting at the head of a line appears to be broken
+- BUG: inserting into the middle of a line is broken
+- BUG: table formatting for header appears to be one character off
+- BUG: vertical scrolling in console broken
+- BUG: sub_sequence isn't handling multiple pieces correctly with different start column
+- BUG: delete_at where deleting at the end of a piece isn't working
+- BUG: need a way to align pieces to a start column.
+- OFF STREAM | BUG: parsing for a plausible command string doesn't work at bottom edge
+- BUG: console table formatting isn't quite right
+- BUG: how to handle cursor movements related to inserted elements
+- BUG: document should clamp inserts so they're within the specified width
+- BUG: sub_sequence not padding first non-adjacent piece
+- BUG: find_for_insert isn't handling first non-adjacent piece correctly
+- BUG: undo of "nullptr" sentinel works but we don't have any information
+       to pass back to the UI so we can adjust the caret
+- MISSING: undo/redo need to return # of lines/columns affected & is_delete?

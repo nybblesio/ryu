@@ -12,6 +12,16 @@ configure_file (
     "${PROJECT_BINARY_DIR}/ryu_config.h"
 )
 
+enable_testing()
+
+# enhance unit test discovery
+set_property(GLOBAL PROPERTY UNIT_TEST_TARGETS "")
+
+macro(add_unit_test target test_name args)
+    set_property(GLOBAL PROPERTY UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} ${CMAKE_CURRENT_BINARY_DIR}/${target})
+    add_test(NAME ${test_name} COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${target} ${args})
+endmacro(add_unit_test)
+
 # project cmake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -28,11 +38,7 @@ find_package(Log4cpp REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_ttf REQUIRED)
-find_package(RTTR REQUIRED Core)
-
-# XXX: this doesn't seem correct but it works for now
-get_target_property(RTTR_INCLUDE_DIR RTTR::Core INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS ${RTTR_INCLUDE_DIR})
+find_package(RTTR CONFIG REQUIRED Core)
 
 include_directories(
         ${PROJECT_BINARY_DIR}
@@ -44,7 +50,7 @@ include_directories(
         ${SDL2_INCLUDE_DIR}
         ${SDL2_IMAGE_INCLUDE_DIRS}
         ${SDL2_TTF_INCLUDE_DIRS}
-        ${RTTR_INCLUDE_DIR}
+        RTTR::Core
 )
 
 # project libraries
@@ -53,6 +59,23 @@ add_subdirectory(core)
 add_subdirectory(common)
 add_subdirectory(hardware)
 add_subdirectory(emulator)
+
+# all_unit_tests target
+get_property(test_targets GLOBAL PROPERTY UNIT_TEST_TARGETS)
+message(STATUS "UNIT_TEST_TARGETS=${test_targets}")
+add_custom_target(all-unit-tests ALL DEPENDS ${test_targets})
+add_custom_command(
+        TARGET all-unit-tests
+        COMMENT "Execute all unit tests"
+        POST_BUILD
+        COMMAND ctest -C $<CONFIGURATION> --output-on-failure
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+# rpath setup
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH "/usr/local/lib")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # target & linkage
 add_executable(
@@ -69,11 +92,14 @@ add_executable(
         todo.txt
         machines.yaml
         .gitignore
+        catch2.hpp
         main.cpp
         ryu_types.h
         ryu.properties
         ryu_config.in.h
+        taking_break.txt
         application.cpp application.h)
+
 target_link_libraries(
         ryu
         ide
@@ -92,6 +118,7 @@ target_link_libraries(
 )
 
 add_custom_target(ryu-configured DEPENDS dummy-target ryu)
+add_dependencies(ryu-configured all-unit-tests)
 add_custom_command(
         TARGET ryu-configured
         COMMAND ${CMAKE_COMMAND} -E echo "make_directory: ${PROJECT_BINARY_DIR}/logs"
