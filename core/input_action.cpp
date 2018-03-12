@@ -42,11 +42,35 @@ namespace ryu::core {
                                               _description(description) {
     }
 
+    void input_action::bind_quit() {
+        _bindings.push_back(input_binding::for_quit());
+    }
+
+    void input_action::bind_move() {
+        _bindings.push_back(input_binding::for_move());
+    }
+
+    void input_action::bind_resize() {
+        _bindings.push_back(input_binding::for_resize());
+    }
+
     void input_action::register_handler(
             action_sink_type type,
             const input_action_filter& filter,
             const input_action_perform& perform) {
         _handlers.insert(std::make_pair(type, input_action_handler_t {filter, perform}));
+    }
+
+    void input_action::bind_restore() {
+        _bindings.push_back(input_binding::for_restore());
+    }
+
+    void input_action::bind_minimized() {
+        _bindings.push_back(input_binding::for_minimize());
+    }
+
+    void input_action::bind_maximized() {
+        _bindings.push_back(input_binding::for_maximize());
     }
 
     action_type input_action::type() const {
@@ -87,28 +111,26 @@ namespace ryu::core {
         if (_bindings.empty())
             return action_sink::none;
 
-        // N.B. possible optimization, if necessary
-        // XXX: ask event, what class are you?
-        //      keyboard, mouse, joypad
-        //
-        //      look up bindings list by class
-        //
+        event_data_t data {};
+
         for (const auto& binding : _bindings) {
-            if (binding.matches(event))
-                return process_action(binding);
+            if (binding.matches(event, data))
+                return process_action(binding, data);
         }
 
         return action_sink::none;
     }
 
-    action_sink_type input_action::process_action(const input_binding& binding) const {
+    action_sink_type input_action::process_action(
+            const input_binding& binding,
+            const event_data_t& data) const {
         for (uint16_t i = action_sink::last; i > action_sink::none; i--) {
             auto it = _handlers.find(i);
             if (it == _handlers.end())
                 continue;
-            if (!it->second.filter())
+            if (!it->second.filter(data))
                 continue;
-            it->second.perform();
+            it->second.perform(data);
             return (action_sink_type) i;
         }
         return action_sink::none;

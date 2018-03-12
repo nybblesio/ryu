@@ -51,6 +51,13 @@ namespace ryu::core {
         joystick_buttons buttons;
     };
 
+    struct event_data_t {
+        int32_t x;
+        int32_t y;
+        int32_t width;
+        int32_t height;
+    };
+
     static constexpr uint32_t key_f1 = SDLK_F1;
     static constexpr uint32_t key_f2 = SDLK_F2;
     static constexpr uint32_t mod_alt = KMOD_ALT;
@@ -65,8 +72,26 @@ namespace ryu::core {
             key_combination,
             text_input,
             mouse,
-            joystick
+            joystick,
+            quit,
+            window_minimized,
+            window_maximized,
+            window_resize,
+            window_move,
+            window_restore
         };
+
+        static input_binding for_quit();
+
+        static input_binding for_move();
+
+        static input_binding for_resize();
+
+        static input_binding for_restore();
+
+        static input_binding for_minimize();
+
+        static input_binding for_maximize();
 
         static input_binding for_text_input();
 
@@ -74,9 +99,11 @@ namespace ryu::core {
 
         static input_binding for_joystick_buttons(const input_joystick_t& joystick);
 
-        std::string text() const;
+        bool matches(
+            const SDL_Event* event,
+            event_data_t& data) const;
 
-        bool matches(const SDL_Event* event) const;
+        std::string text() const;
 
     protected:
         explicit input_binding(input_binding::types type);

@@ -92,7 +92,7 @@ namespace ryu::emulator {
         toggle_context->register_handler(
             core::action_sink::context,
             core::action_sink::default_filter,
-            [this]() {
+            [this](const core::event_data_t& data) {
                 auto ide_context = dynamic_cast<ide::ide_context*>(engine()->find_context("ide"));
                 switch (_size) {
                     case core::context_window::split:

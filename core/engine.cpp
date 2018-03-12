@@ -124,6 +124,92 @@ namespace ryu::core {
             }
         }
 
+        auto quit_action = input_action::create(
+            action_quit,
+            "ryu_quit",
+            "Ryu",
+            "Quit the Ryu application.");
+        quit_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                quit();
+                return true;
+            });
+        quit_action->bind_quit();
+
+        auto minimized_action = input_action::create(
+            action_window_minimized,
+            "ryu_minimized",
+            "Ryu",
+            "Minimize the Ryu application window.");
+        minimized_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                return true;
+            });
+        minimized_action->bind_minimized();
+
+        auto maximized_action = input_action::create(
+            action_window_maximized,
+            "ryu_maximized",
+            "Ryu",
+            "Maximize the Ryu application window.");
+        maximized_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                return true;
+            });
+        maximized_action->bind_maximized();
+
+        auto move_action = input_action::create(
+            action_window_moved,
+            "ryu_moved",
+            "Ryu",
+            "The Ryu application window was moved.");
+        move_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                _window_rect.left(data.x);
+                _window_rect.top(data.y);
+                raise_move();
+                return true;
+            });
+        move_action->bind_move();
+
+        auto resize_action = input_action::create(
+            action_window_resized,
+            "ryu_resized",
+            "Ryu",
+            "The Ryu application window was resized.");
+        resize_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                _window_rect.width(data.width);
+                _window_rect.height(data.height);
+                raise_resize();
+                return true;
+            });
+        resize_action->bind_resize();
+
+        auto restore_action = input_action::create(
+            action_window_restore,
+            "ryu_restore",
+            "Ryu",
+            "The Ryu application window was restored from minimized or maximized.");
+        restore_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                // XXX:
+                return true;
+            });
+        restore_action->bind_restore();
+
         return true;
     }
 
@@ -193,37 +279,7 @@ namespace ryu::core {
                 for (const auto& action : input_action::catalog())
                     action.process(&e);
 
-                switch (e.type) {
-                    case SDL_WINDOWEVENT: {
-                        switch (e.window.event) {
-                            case SDL_WINDOWEVENT_MINIMIZED:
-                                break;
-                            case SDL_WINDOWEVENT_MAXIMIZED:
-                                break;
-                            case SDL_WINDOWEVENT_MOVED:
-                                _window_rect.left(e.window.data1);
-                                _window_rect.top(e.window.data2);
-                                raise_move();
-                                break;
-                            case SDL_WINDOWEVENT_RESIZED:
-                                _window_rect.width(e.window.data1);
-                                _window_rect.height(e.window.data2);
-                                raise_resize();
-                                break;
-                            default:
-                                break;
-                        }
-                        break;
-                    }
-                    case SDL_QUIT: {
-                        _quit = true;
-                        continue;
-                    }
-                    default: {
-                        events.push_back(e);
-                        break;
-                    }
-                }
+                events.push_back(e);
             }
 
             for (auto& it : _contexts)

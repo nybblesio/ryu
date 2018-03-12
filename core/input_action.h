@@ -25,8 +25,8 @@ namespace ryu::core {
     class input_action;
 
     using input_action_catalog = std::vector<input_action>;
-    using input_action_filter = std::function<bool (void)>;
-    using input_action_perform = std::function<bool (void)>;
+    using input_action_filter = std::function<bool (const event_data_t&)>;
+    using input_action_perform = std::function<bool (const event_data_t&)>;
 
     struct input_action_handler_t {
         input_action_filter filter;
@@ -45,11 +45,11 @@ namespace ryu::core {
             last
         };
 
-        static bool default_filter() {
+        static bool default_filter(const event_data_t& data) {
             return true;
         }
 
-        static bool default_perform() {
+        static bool default_perform(const event_data_t& data) {
             return true;
         }
     };
@@ -69,6 +69,18 @@ namespace ryu::core {
         static const input_action_catalog& catalog();
 
         static input_action* find_by_type(action_type type);
+
+        void bind_quit();
+
+        void bind_move();
+
+        void bind_resize();
+
+        void bind_restore();
+
+        void bind_minimized();
+
+        void bind_maximized();
 
         void register_handler(
             action_sink_type type,
@@ -97,7 +109,9 @@ namespace ryu::core {
             const std::string& description);
 
     private:
-        action_sink_type process_action(const input_binding& binding) const;
+        action_sink_type process_action(
+            const input_binding& binding,
+            const event_data_t& data) const;
 
     private:
         static input_action_catalog s_catalog;
