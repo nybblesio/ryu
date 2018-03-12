@@ -56,6 +56,28 @@ namespace ryu::core {
             wait,
         };
 
+        const uint16_t action_page_up = 20;
+        const uint16_t action_page_down = 21;
+        const uint16_t action_caret_end = 22;
+        const uint16_t action_caret_home = 23;
+        const uint16_t action_first_page = 24;
+        const uint16_t action_last_page = 25;
+        const uint16_t action_caret_up = 26;
+        const uint16_t action_caret_down = 27;
+        const uint16_t action_caret_left = 28;
+        const uint16_t action_caret_right = 29;
+        const uint16_t action_more = 30;
+        const uint16_t action_color_0 = 31;
+        const uint16_t action_color_1 = 32;
+        const uint16_t action_color_2 = 33;
+        const uint16_t action_color_3 = 34;
+        const uint16_t action_color_4 = 35;
+        const uint16_t action_color_5 = 36;
+        const uint16_t action_color_6 = 37;
+        const uint16_t action_color_7 = 38;
+        const uint16_t action_color_8 = 39;
+        const uint16_t action_color_9 = 40;
+
         explicit console(const std::string& name);
 
         void page_up();
