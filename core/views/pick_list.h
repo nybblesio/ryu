@@ -14,8 +14,6 @@
 
 namespace ryu::core {
 
-    typedef std::vector<std::string> option_list;
-
     class pick_list : public core::view {
     public:
         pick_list(
@@ -48,6 +46,8 @@ namespace ryu::core {
         bool move_row_up();
 
         bool move_row_down();
+
+        void on_initialize() override;
 
         void on_draw(core::renderer& surface) override;
 

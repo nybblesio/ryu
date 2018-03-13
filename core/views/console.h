@@ -20,9 +20,6 @@
 
 namespace ryu::core {
 
-    using code_to_attr_callable = std::function<void (attr_t&)>;
-    typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
-
     class console;
 
     struct output_process_result_t {
@@ -73,8 +70,6 @@ namespace ryu::core {
 
         void caret_home();
 
-        void initialize();
-
         uint32_t write_message(
                 const std::string& message,
                 bool last_newline = true);
@@ -116,6 +111,8 @@ namespace ryu::core {
             const int left_padding = 10;
             const int right_padding = 10;
         };
+
+        void on_initialize() override;
 
         void update_virtual_position();
 

@@ -180,6 +180,7 @@ namespace ryu::core {
                         }
                     }
                 }
+                data.key_code = event->key.keysym.sym;
                 return true;
             }
             case text_input: {
@@ -190,12 +191,14 @@ namespace ryu::core {
                     return false;
                 if (it->second.size() == 1) {
                     data.c = it->second.front().ascii;
+                    data.key_code = event->key.keysym.sym;
                 } else {
                     // XXX: sometimes pressing ALT+<key> yields a character and sometimes not
                     for (auto mapping : it->second) {
                         if ((event->key.keysym.mod == KMOD_NONE && mapping.mod == KMOD_NONE)
                         ||  ((event->key.keysym.mod & mapping.mod) != 0)) {
                             data.c = mapping.ascii;
+                            data.key_code = event->key.keysym.sym;
                         }
                     }
                 }

@@ -9,6 +9,8 @@
 //
 
 #include <sstream>
+#include <core/input_binding.h>
+#include <core/input_action.h>
 #include "textbox.h"
 
 namespace ryu::core {
@@ -17,16 +19,6 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host),
                                                _caret("textbox-caret", host) {
-        _document.document_size(1, 100);
-        _document.page_size(1, 16);
-        _document.clear();
-
-        _caret.enabled(false);
-        _caret.initialize(0, 0);
-        _caret.page_size(_document.page_height(), _document.page_width());
-        add_child(&_caret);
-
-        padding({5, 5, 5, 5});
     }
 
     void textbox::clear() {
@@ -45,10 +37,150 @@ namespace ryu::core {
         _document.column(0);
     }
 
+    void textbox::bind_events() {
+        auto caret_left_action = core::input_action::create_no_map(
+            "textbox_caret_left",
+            "Internal",
+            "Move the caret left within the textbox.");
+        caret_left_action->register_handler(
+            core::action_sink::view,
+            [this](const core::event_data_t& data) {
+                return focused();
+            },
+            [this](const core::event_data_t& data) {
+                caret_left();
+                return true;
+            });
+        caret_left_action->bind_keys({core::key_left});
+
+        auto caret_right_action = core::input_action::create_no_map(
+            "textbox_caret_right",
+            "Internal",
+            "Move the caret right within the textbox.");
+        caret_right_action->register_handler(
+            core::action_sink::view,
+            [this](const core::event_data_t& data) {
+                return focused();
+            },
+            [this](const core::event_data_t& data) {
+                caret_right();
+                return true;
+            });
+        caret_right_action->bind_keys({core::key_right});
+
+        auto backspace_action = core::input_action::create(
+            "textbox_backspace",
+            "Internal",
+            "Move the caret left and shift the line left.");
+        backspace_action->register_handler(
+            core::action_sink::view,
+            [this](const core::event_data_t& data) {
+                return focused();
+            },
+            [this](const core::event_data_t& data) {
+                if (_caret.column() == 0) {
+                    _document.delete_line(0);
+                } else {
+                    caret_left();
+                    _document.shift_left(
+                        0,
+                        static_cast<uint16_t>(_document.column() + _caret.column()));
+                }
+                return true;
+            });
+        backspace_action->bind_keys({core::key_backspace});
+
+        auto delete_action = core::input_action::create(
+            "textbox_delete",
+            "Internal",
+            "Shift the line left at the caret position.");
+        delete_action->register_handler(
+            core::action_sink::view,
+            [this](const core::event_data_t& data) {
+                return focused();
+            },
+            [this](const core::event_data_t& data) {
+                _document.shift_left(
+                    0,
+                    static_cast<uint16_t>(_document.column() + _caret.column()));
+                return true;
+            });
+        delete_action->bind_keys({core::key_delete});
+
+        auto home_action = core::input_action::create(
+            "textbox_home",
+            "Internal",
+            "Move the caret to the home position.");
+        home_action->register_handler(
+            core::action_sink::view,
+            [this](const core::event_data_t& data) {
+                return focused();
+            },
+            [this](const core::event_data_t& data) {
+                caret_home();
+                return true;
+            });
+        home_action->bind_keys({core::key_home});
+
+        auto end_action = core::input_action::create(
+            "textbox_end",
+            "Internal",
+            "Move the caret to the end of the line.");
+        end_action->register_handler(
+            core::action_sink::view,
+            [this](const core::event_data_t& data) {
+                return focused();
+            },
+            [this](const core::event_data_t& data) {
+                caret_end();
+                return true;
+            });
+        end_action->bind_keys({core::key_end});
+
+        auto text_input_action = core::input_action::create_no_map(
+            "textbox_input",
+            "Internal",
+            "Any ASCII text input (non-mappable).");
+        text_input_action->register_handler(
+            core::action_sink::view,
+            [this](const core::event_data_t& data) {
+                return focused();
+            },
+            [this](const core::event_data_t& data) {
+                if (_on_key_down != nullptr)
+                    if (!_on_key_down(data.c))
+                        return false;
+
+                _document.put(
+                        0,
+                        static_cast<uint16_t>(_document.column() + _caret.column()),
+                        core::element_t {static_cast<uint8_t>(data.c), _document.default_attr()});
+                caret_right();
+
+                return true;
+            });
+        text_input_action->bind_text_input();
+    }
+
     std::string textbox::value() {
         std::stringstream stream;
         _document.write_line(stream, 0, 0, _document.columns());
         return stream.str();
+    }
+
+    void textbox::on_initialize() {
+        bind_events();
+
+        _document.document_size(1, 100);
+        _document.page_size(1, 16);
+        _document.clear();
+
+        _caret.enabled(false);
+        _caret.initialize(0, 0);
+        _caret.page_size(_document.page_height(), _document.page_width());
+        add_child(&_caret);
+
+        padding({5, 5, 5, 5});
     }
 
     uint16_t textbox::width() const {
@@ -127,7 +259,11 @@ namespace ryu::core {
         surface.set_font_color(font_face(), fg);
 
         std::stringstream stream;
-        _document.write_line(stream, 0, _document.column(), _document.columns());
+        _document.write_line(
+            stream,
+            0,
+            static_cast<uint16_t>(_document.column()),
+            _document.columns());
 
         surface.draw_text_aligned(
             font_face(),
@@ -146,75 +282,6 @@ namespace ryu::core {
         view::palette(value);
         _caret.palette(value);
     }
-
-//    bool textbox::on_process_event(const SDL_Event* e) {
-//        auto processed = false;
-//
-//        if (e->type == SDL_TEXTINPUT) {
-//            const char* c = &e->text.text[0];
-//            while (*c != '\0') {
-//                if (_on_key_down != nullptr) {
-//                    if (!_on_key_down(*c)) {
-//                        c++;
-//                        continue;
-//                    }
-//                }
-//
-//                _document.put(
-//                        0,
-//                        _document.column() + _caret.column(),
-//                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
-//
-//                if (caret_right())
-//                    break;
-//
-//                c++;
-//            }
-//        } else if (e->type == SDL_KEYDOWN) {
-//            switch (e->key.keysym.sym) {
-//                case SDLK_HOME: {
-//                    caret_home();
-//                    processed = true;
-//                    break;
-//                }
-//                case SDLK_END: {
-//                    caret_end();
-//                    processed = true;
-//                    break;
-//                }
-//                case SDLK_RIGHT: {
-//                    caret_right();
-//                    processed = true;
-//                    break;
-//                }
-//                case SDLK_LEFT: {
-//                    caret_left();
-//                    processed = true;
-//                    break;
-//                }
-//                case SDLK_DELETE: {
-//                    _document.shift_left(0, _document.column() + _caret.column());
-//                    processed = true;
-//                    break;
-//                }
-//                case SDLK_BACKSPACE: {
-//                    if (_caret.column() == 0) {
-//                        _document.delete_line(0);
-//                    } else {
-//                        caret_left();
-//                        _document.shift_left(0, _document.column() + _caret.column());
-//                    }
-//                    processed = true;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if (_on_key_down != nullptr)
-//            return _on_key_down(e->key.keysym.sym);
-//
-//        return processed;
-//    }
 
     void textbox::font_family(core::font_family* value) {
         view::font_family(value);

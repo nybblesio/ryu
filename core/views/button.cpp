@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <core/input_action.h>
 #include "button.h"
 
 namespace ryu::core {
@@ -23,6 +24,26 @@ namespace ryu::core {
 
     int button::height() const {
         return _height;
+    }
+
+    void button::on_initialize() {
+        auto activate_action = core::input_action::create_no_map(
+            "button_activate",
+            "Internal",
+            "Activate a button view.");
+        activate_action->register_handler(
+            action_sink::types::view,
+            [this](const event_data_t& data) {
+                return focused();
+            },
+            [this](const event_data_t& data) {
+                if (_on_clicked) {
+                    _on_clicked();
+                    return true;
+                }
+                return false;
+            });
+        activate_action->bind_keys({core::key_space});
     }
 
     void button::width(int value) {
@@ -79,20 +100,6 @@ namespace ryu::core {
 
         surface.pop_blend_mode();
     }
-
-//    bool button::on_process_event(const SDL_Event* e) {
-//        if (e->type == SDL_KEYDOWN) {
-//            switch (e->key.keysym.sym) {
-//                case SDLK_SPACE: {
-//                    if (_on_clicked) {
-//                        _on_clicked();
-//                    }
-//                    return true;
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
     alignment::vertical::types button::valign() const {
         return _valign;

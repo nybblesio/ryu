@@ -72,7 +72,9 @@ namespace ryu::core {
     // --------------------
     class view;
 
-    typedef std::vector<view*> view_list;
+    using view_list = std::vector<view*>;
+
+    using option_list = std::vector<std::string>;
 
     struct alignment {
         struct horizontal {
@@ -143,6 +145,31 @@ namespace ryu::core {
 
     typedef std::vector<span_t> span_list;
     typedef std::vector<vertex_t> vertex_list;
+
+    // --------------------
+    // attributed text
+    // --------------------
+    struct attr_t {
+        uint8_t color = 0;
+        uint8_t style = 0;
+        uint8_t flags = 0;
+        bool operator== (const attr_t& rhs) const {
+            return color == rhs.color && style == rhs.style && flags == rhs.flags;
+        }
+        bool operator!= (const attr_t& rhs) const {
+            return color != rhs.color || style != rhs.style || flags != rhs.flags;
+        }
+    };
+
+    struct attr_chunk_t {
+        attr_t attr;
+        std::string text {};
+    };
+
+    typedef std::vector<attr_chunk_t> attr_chunks;
+
+    using code_to_attr_callable = std::function<void (attr_t&)>;
+    typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
 
     // --------------------
     // data tables

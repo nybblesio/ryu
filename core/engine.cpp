@@ -265,8 +265,8 @@ namespace ryu::core {
             surface.set_color({0x00, 0x00, 0x00, 0xff});
             surface.clear();
 
-            SDL_Event e {};
             for (size_t i = 0; i < 5; i++) {
+                SDL_Event e {};
                 if (!SDL_PollEvent(&e))
                     break;
                 for (const auto& action : input_action::catalog())

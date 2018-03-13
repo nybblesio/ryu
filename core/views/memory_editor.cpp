@@ -22,7 +22,6 @@ namespace ryu::core {
     }
 
     void memory_editor::clear() {
-
         first_page();
         _caret.row(0);
         _caret.column(0);
@@ -30,17 +29,14 @@ namespace ryu::core {
     }
 
     void memory_editor::page_up() {
-
         update_virtual_position();
     }
 
     void memory_editor::page_down() {
-
         update_virtual_position();
     }
 
     void memory_editor::scroll_up() {
-
         update_virtual_position();
     }
 
@@ -65,6 +61,9 @@ namespace ryu::core {
         update_virtual_position();
     }
 
+    void memory_editor::bind_events() {
+    }
+
     void memory_editor::scroll_down() {
         update_virtual_position();
     }
@@ -77,6 +76,10 @@ namespace ryu::core {
         bool clamped = false;
         update_virtual_position();
         return clamped;
+    }
+
+    void memory_editor::on_initialize() {
+        bind_events();
     }
 
     void memory_editor::end_selection() {
@@ -262,6 +265,8 @@ namespace ryu::core {
     }
 
     void memory_editor::initialize(uint32_t rows, uint16_t columns) {
+        view::initialize();
+
         _metrics.line_number_width = font_face()->measure_chars(5) + 2;
 
         _vcol = 0;

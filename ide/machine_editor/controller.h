@@ -13,6 +13,7 @@
 
 #include <core/state.h>
 #include <hardware/machine.h>
+#include <core/view_factory.h>
 #include <core/views/notebook.h>
 #include <core/views/dock_layout_panel.h>
 #include "general_tab.h"
@@ -46,29 +47,31 @@ namespace ryu::ide::machine_editor {
         void on_activate(const core::parameter_dict& params) override;
 
     private:
+        void bind_events();
+
         void update_values();
 
     private:
         metrics_t _metrics;
-        core::label _header;
-        core::label _footer;
-        core::label _name_label;
-        core::notebook _notebook;
-        core::button _map_button;
-        core::button _add_button;
-        core::label _display_label;
-        core::button _delete_button;
-        core::textbox _name_textbox;
         hardware::machine* _machine;
-        core::dock_layout_panel _panel;
-        core::label _address_space_label;
-        core::pick_list _display_pick_list;
-        core::dock_layout_panel _row1_panel;
-        core::dock_layout_panel _row2_panel;
-        core::dock_layout_panel _row3_panel;
-        core::textbox _address_space_textbox;
-        core::dock_layout_panel _button_panel;
-        core::dock_layout_panel _general_panel;
+        core::label_unique_ptr _header;
+        core::label_unique_ptr _footer;
+        core::label_unique_ptr _name_label;
+        core::notebook_unique_ptr _notebook;
+        core::button_unique_ptr _map_button;
+        core::button_unique_ptr _add_button;
+        core::label_unique_ptr _display_label;
+        core::button_unique_ptr _delete_button;
+        core::textbox_unique_ptr _name_textbox;
+        core::dock_layout_panel_unique_ptr _panel;
+        core::label_unique_ptr _address_space_label;
+        core::pick_list_unique_ptr _display_pick_list;
+        core::dock_layout_panel_unique_ptr _row1_panel;
+        core::dock_layout_panel_unique_ptr _row2_panel;
+        core::dock_layout_panel_unique_ptr _row3_panel;
+        core::textbox_unique_ptr _address_space_textbox;
+        core::dock_layout_panel_unique_ptr _button_panel;
+        core::dock_layout_panel_unique_ptr _general_panel;
     };
 
 };

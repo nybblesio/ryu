@@ -78,7 +78,7 @@ namespace ryu::core {
 
         static const input_action_catalog& catalog();
 
-        static input_action* find_by_id(action_id type);
+        static input_action* find_by_id(action_id id);
 
         static input_action* find_by_name(const std::string& name);
 

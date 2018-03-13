@@ -17,7 +17,7 @@ namespace ryu::core {
     caret::caret(
             const std::string& name,
             core::view_host* host) : core::view(core::view::types::control, name, host),
-                                               _timer(500) {
+                                     _timer(500) {
     }
 
     void caret::select() {
@@ -35,8 +35,42 @@ namespace ryu::core {
         raise_caret_changed();
     }
 
+    bool caret::clamp_row() {
+        if (_row < 0) {
+            _row = 0;
+            return true;
+        }
+        auto clamp = _page_height > 0 ? _page_height - 1 : 0;
+        if (_row > clamp) {
+            _row = static_cast<int16_t>(clamp);
+            return true;
+        }
+        return false;
+    }
+
+    bool caret::clamp_column() {
+        if (_column < 0) {
+            _column = 0;
+            return true;
+        }
+        auto clamp = _page_width > 0 ? _page_width - 1 : 0;
+        if (_column > clamp) {
+            _column = static_cast<int16_t>(clamp);
+            return true;
+        }
+        return false;
+    }
+
     uint8_t caret::row() const {
         return static_cast<uint8_t>(_row);
+    }
+
+    void caret::column_select() {
+        _mode = mode::types::column_select;
+        raise_caret_changed();
+    }
+
+    void caret::on_initialize() {
     }
 
     bool caret::row(uint8_t row) {
@@ -62,11 +96,6 @@ namespace ryu::core {
         auto clamped = clamp_row();
         raise_caret_changed();
         return clamped;
-    }
-
-    void caret::column_select() {
-        _mode = mode::types::column_select;
-        raise_caret_changed();
     }
 
     bool caret::left(uint8_t columns) {
@@ -99,43 +128,6 @@ namespace ryu::core {
         return _mode;
     }
 
-    void caret::initialize(uint8_t row, uint8_t column) {
-        _row = row;
-        _column = column;
-        raise_caret_changed();
-        _timer.bind([&](timer* t) {
-            _show = !_show;
-            t->reset();
-        });
-        timer_pool::instance()->add_timer(&_timer);
-    }
-
-    bool caret::clamp_row() {
-        if (_row < 0) {
-            _row = 0;
-            return true;
-        }
-        auto clamp = _page_height > 0 ? _page_height - 1 : 0;
-        if (_row > clamp) {
-            _row = static_cast<int16_t>(clamp);
-            return true;
-        }
-        return false;
-    }
-
-    bool caret::clamp_column() {
-        if (_column < 0) {
-            _column = 0;
-            return true;
-        }
-        auto clamp = _page_width > 0 ? _page_width - 1 : 0;
-        if (_column > clamp) {
-            _column = static_cast<int16_t>(clamp);
-            return true;
-        }
-        return false;
-    }
-
     void caret::on_draw(core::renderer& surface) {
         if (!enabled() || !_show)
             return;
@@ -160,6 +152,19 @@ namespace ryu::core {
         surface.fill_rect(rect);
 
         surface.pop_blend_mode();
+    }
+
+    void caret::initialize(uint8_t row, uint8_t column) {
+        view::initialize();
+
+        _row = row;
+        _column = column;
+        raise_caret_changed();
+        _timer.bind([&](timer* t) {
+            _show = !_show;
+            t->reset();
+        });
+        timer_pool::instance()->add_timer(&_timer);
     }
 
     void caret::page_size(uint8_t page_height, uint8_t page_width) {

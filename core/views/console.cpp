@@ -134,34 +134,6 @@ namespace ryu::core {
         caret_home();
     }
 
-    void console::initialize() {
-        _color = fg_color();
-
-        _document.default_attr(core::attr_t {
-            _color,
-            core::font::styles::normal,
-            core::font::flags::none
-        });
-        _document.document_size(4096, 128);
-        _document.on_document_changed([&]() {
-            raise_caret_changed();
-        });
-        _document.clear();
-
-        _caret.overwrite();
-        _caret.initialize(0, 0);
-        _caret.palette(palette());
-        _caret.font_family(font_family());
-        _caret.on_caret_changed([&]() {
-            raise_caret_changed();
-        });
-
-        add_child(&_caret);
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-
-        bind_events();
-    }
-
     bool console::more() const {
         return _more;
     }
@@ -471,6 +443,34 @@ namespace ryu::core {
 
     void console::more(bool flag) {
         _more = flag;
+    }
+
+    void console::on_initialize() {
+        _color = fg_color();
+
+        _document.default_attr(core::attr_t {
+            _color,
+            core::font::styles::normal,
+            core::font::flags::none
+        });
+        _document.document_size(4096, 128);
+        _document.on_document_changed([&]() {
+            raise_caret_changed();
+        });
+        _document.clear();
+
+        _caret.overwrite();
+        _caret.initialize(0, 0);
+        _caret.palette(palette());
+        _caret.font_family(font_family());
+        _caret.on_caret_changed([&]() {
+            raise_caret_changed();
+        });
+
+        add_child(&_caret);
+        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+
+        bind_events();
     }
 
     void console::raise_caret_changed() {

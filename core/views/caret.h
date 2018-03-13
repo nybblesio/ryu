@@ -69,6 +69,8 @@ namespace ryu::core {
     protected:
         void raise_caret_changed();
 
+        void on_initialize() override;
+
         void on_draw(core::renderer& surface) override;
 
     private:

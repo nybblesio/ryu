@@ -25,6 +25,8 @@ namespace ryu::core {
         void value(bool flag);
 
     protected:
+        void on_initialize() override;
+
         void on_draw(core::renderer& surface) override;
 
     private:

@@ -28,9 +28,9 @@ namespace ryu::ide::source_editor {
     }
 
     void controller::bind_events() {
-        auto leave_action = core::input_action::create(
+        auto leave_action = core::input_action::create_no_map(
             "source_editor_leave",
-            "IDE::Source Editor",
+            "Internal",
             "Close the source editor and return to previous state.");
         leave_action->register_handler(
             core::action_sink::controller,
@@ -41,9 +41,9 @@ namespace ryu::ide::source_editor {
             });
         leave_action->bind_keys({core::key_escape});
 
-        auto command_bar_action = core::input_action::create(
+        auto command_bar_action = core::input_action::create_no_map(
             "source_editor_command_bar",
-            "IDE::Source Editor",
+            "Internal",
             "Activate the command bar.");
         command_bar_action->register_handler(
             core::action_sink::controller,
@@ -121,11 +121,11 @@ namespace ryu::ide::source_editor {
         _command_line.bg_color(ide::colors::fill_color);
         _command_line.sizing(core::view::sizing::types::parent);
         _command_line.on_key_down([&](int keycode) {
-            if (keycode == SDLK_ESCAPE) {
+            if (keycode == 27) {
                 _layout_panel.focus(&_editor);
                 return true;
             }
-            if (keycode == SDLK_RETURN) {
+            if (keycode == 13) {
                 core::result result;
                 auto input = _command_line.value();
                 auto success = context()->environment()->execute(result, input);

@@ -20,7 +20,7 @@
 
 namespace ryu::ide::console_editor {
 
-    const core::code_to_attr_dict controller::_mapper = {
+    const core::code_to_attr_dict controller::s_mapper = {
         {"bold",        [](core::attr_t& attr) { attr.style |= core::font::styles::bold; }},
         {"italic",      [](core::attr_t& attr) { attr.style |= core::font::styles::italic; }},
         {"underline",   [](core::attr_t& attr) { attr.style |= core::font::styles::underline; }},
@@ -43,54 +43,47 @@ namespace ryu::ide::console_editor {
         {"lgrey",       [](core::attr_t& attr) { attr.color = ide::colors::light_grey; }},
     };
 
-    controller::controller(const std::string& name) : ryu::core::state(name),
-                                                      _console("console", this),
-                                                      _caret_status("caret-status", this),
-                                                      _machine_status("machine-status", this),
-                                                      _project_status("project-status", this),
-                                                      _document_status("document-status", this),
-                                                      _working_directory("working-directory", this),
-                                                      _environment_status("environment_status", this),
-                                                      _header("header-label", this),
-                                                      _footer("footer-label", this),
-                                                      _layout_panel("layout-panel", this) {
+    controller::controller(const std::string& name) : ryu::core::state(name) {
     }
 
     void controller::on_initialize() {
-        _project_status.font_family(context()->font_family());
-        _project_status.palette(&context()->palette());
-        _project_status.dock(core::dock::styles::left);
-        _project_status.fg_color(ide::colors::info_text);
-        _project_status.bg_color(ide::colors::fill_color);
-        _project_status.margin({0, context()->font_face()->width, 0, 0});
-        _project_status.value("project: (none)");
+        _project_status = core::view_factory::create_label(
+            this,
+            "project-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            "project: (none)",
+            core::dock::styles::left,
+            {0, context()->font_face()->width, 0, 0});
 
-        _machine_status.font_family(context()->font_family());
-        _machine_status.palette(&context()->palette());
-        _machine_status.dock(core::dock::styles::left);
-        _machine_status.fg_color(ide::colors::info_text);
-        _machine_status.bg_color(ide::colors::fill_color);
-        _machine_status.margin({0, context()->font_face()->width, 0, 0});
-        _machine_status.value("| machine: (none)");
+        _machine_status = core::view_factory::create_label(
+            this,
+            "machine-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            "| machine: (none)",
+            core::dock::styles::left,
+            {0, context()->font_face()->width, 0, 0});
 
-        _working_directory.font_family(context()->font_family());
-        _working_directory.margin({0, 0, 0, 0});
-        _working_directory.palette(&context()->palette());
-        _working_directory.dock(core::dock::styles::left);
-        _working_directory.fg_color(ide::colors::info_text);
-        _working_directory.bg_color(ide::colors::fill_color);
-        _working_directory.value(fmt::format("| cwd: {}", boost::filesystem::current_path().string()));
+        _working_directory = core::view_factory::create_label(
+            this,
+            "working-directory-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            fmt::format("| cwd: {}", boost::filesystem::current_path().string()),
+            core::dock::styles::left);
 
-        _header.font_family(context()->font_family());
-        _header.palette(&context()->palette());
-        _header.dock(core::dock::styles::top);
-        _header.fg_color(ide::colors::info_text);
-        _header.bg_color(ide::colors::fill_color);
-        _header.bounds().height(context()->font_face()->line_height);
-        _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header.add_child(&_project_status);
-        _header.add_child(&_machine_status);
-        _header.add_child(&_working_directory);
+        _header = core::view_factory::create_dock_layout_panel(
+            this,
+            "header-panel",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            core::dock::styles::top,
+            {_metrics.left_padding, _metrics.right_padding, 5, 0});
+        _header->bounds().height(context()->font_face()->line_height);
+        _header->add_child(_project_status.get());
+        _header->add_child(_machine_status.get());
+        _header->add_child(_working_directory.get());
 
         core::project::add_listener([&]() {
             std::string project_name = "(none)";
@@ -103,70 +96,70 @@ namespace ryu::ide::console_editor {
                     machine_name = core::project::instance()->machine()->name();
                 }
             }
-            _project_status.value(fmt::format("project: {}", project_name));
-            _machine_status.value(fmt::format(" | machine: {}", machine_name));
+            _project_status->value(fmt::format("project: {}", project_name));
+            _machine_status->value(fmt::format(" | machine: {}", machine_name));
         });
 
-        _document_status.font_family(context()->font_family());
-        _document_status.palette(&context()->palette());
-        _document_status.dock(core::dock::styles::left);
-        _document_status.fg_color(ide::colors::info_text);
-        _document_status.bg_color(ide::colors::fill_color);
-        _document_status.margin({0, context()->font_face()->width, 0, 0});
+        _document_status = core::view_factory::create_label(
+            this,
+            "document-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            "",
+            core::dock::styles::left,
+            {0, context()->font_face()->width, 0, 0});
 
-        _caret_status.font_family(context()->font_family());
-        _caret_status.margin({0, 0, 0, 0});
-        _caret_status.palette(&context()->palette());
-        _caret_status.dock(core::dock::styles::left);
-        _caret_status.fg_color(ide::colors::info_text);
-        _caret_status.bg_color(ide::colors::fill_color);
+        _caret_status = core::view_factory::create_label(
+            this,
+            "caret-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color);
 
-        _environment_status.font_family(context()->font_family());
-        _environment_status.margin({0, 0, 0, 0});
-        _environment_status.palette(&context()->palette());
-        _environment_status.dock(core::dock::styles::left);
-        _environment_status.fg_color(ide::colors::info_text);
-        _environment_status.bg_color(ide::colors::fill_color);
-        _environment_status.value(fmt::format(
+        _environment_status = core::view_factory::create_label(
+            this,
+            "environment-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            fmt::format(
                 " | env: {}",
                 context()->environment()->name()));
 
-        _footer.font_family(context()->font_family());
-        _footer.palette(&context()->palette());
-        _footer.dock(core::dock::styles::bottom);
-        _footer.bounds().height(context()->font_face()->line_height);
-        _footer.fg_color(ide::colors::info_text);
-        _footer.bg_color(ide::colors::fill_color);
-        _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _footer.add_child(&_document_status);
-        _footer.add_child(&_caret_status);
-        _footer.add_child(&_environment_status);
+        _footer = core::view_factory::create_dock_layout_panel(
+            this,
+            "footer-panel",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            core::dock::styles::bottom,
+            {_metrics.left_padding, _metrics.right_padding, 5, 5});
+        _footer->bounds().height(context()->font_face()->line_height);
+        _footer->add_child(_document_status.get());
+        _footer->add_child(_caret_status.get());
+        _footer->add_child(_environment_status.get());
 
-        _console.font_family(context()->font_family());
-        _console.code_mapper(_mapper);
-        _console.fg_color(ide::colors::text);
-        _console.palette(&context()->palette());
-        _console.dock(core::dock::styles::fill);
-        _console.caret_color(ide::colors::caret);
-        _console.bg_color(ide::colors::fill_color);
-        _console.on_transition([&](const std::string& name, const core::parameter_dict& params) {
+        _console = core::view_factory::create_console(
+            this,
+            "console",
+            ide::colors::text,
+            ide::colors::fill_color,
+            s_mapper);
+        _console->caret_color(ide::colors::caret);
+        _console->on_transition([&](const std::string& name, const core::parameter_dict& params) {
             return transition_to(name, params);
         });
-        _console.on_caret_changed([&](const core::caret& caret, const core::document& document) {
-            _document_status.value(fmt::format(
+        _console->on_caret_changed([&](const core::caret& caret, const core::document& document) {
+            _document_status->value(fmt::format(
                     "C:{:03d}/{:03d} R:{:04d}/{:04d}",
                     document.column() + caret.column() + 1,
                     document.columns(),
                     document.row() + caret.row() + 1,
                     document.rows()));
-            _caret_status.value(fmt::format(
+            _caret_status->value(fmt::format(
                     "| X:{:03d} Y:{:02d} | {}",
                     caret.column() + 1,
                     caret.row() + 1,
                     caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
         });
-
-        _console.on_execute_command([&](core::result& result, const std::string& input) {
+        _console->on_execute_command([&](core::result& result, const std::string& input) {
             auto success = context()->environment()->execute(result, input);
             if (success) {
                 auto command_action_msg = result.find_code("command_action");
@@ -177,24 +170,23 @@ namespace ryu::ide::console_editor {
                 if (command == "quit") {
                     context()->engine()->quit();
                 } else if (command == "update_working_directory") {
-                    _working_directory.value(fmt::format(
+                    _working_directory->value(fmt::format(
                             "| cwd: {}",
                             boost::filesystem::current_path().string()));
                 }
             }
             return success;
         });
-        _console.initialize();
-        _console.focus(&_console);
+        _console->focus(_console.get());
 
-        _layout_panel.font_family(context()->font_family());
-        _layout_panel.palette(&context()->palette());
-        _layout_panel.dock(core::dock::styles::fill);
-        _layout_panel.fg_color(ide::colors::info_text);
-        _layout_panel.bg_color(ide::colors::fill_color);
-        _layout_panel.add_child(&_header);
-        _layout_panel.add_child(&_footer);
-        _layout_panel.add_child(&_console);
+        _layout_panel = core::view_factory::create_dock_layout_panel(
+            this,
+            "layout-panel",
+            ide::colors::info_text,
+            ide::colors::fill_color);
+        _layout_panel->add_child(_header.get());
+        _layout_panel->add_child(_footer.get());
+        _layout_panel->add_child(_console.get());
 
         core::project::add_listener([&](){
             std::string name = "(none)";
@@ -205,31 +197,31 @@ namespace ryu::ide::console_editor {
                     name = active_environment->name();
                 }
             }
-            _environment_status.value(fmt::format(" | env: {}", name));
+            _environment_status->value(fmt::format(" | env: {}", name));
         });
     }
 
     void controller::on_update(uint32_t dt) {
-        _console.update(dt);
+        _console->update(dt);
     }
 
     void controller::on_draw(core::renderer& surface) {
-        _layout_panel.draw(surface);
+        _layout_panel->draw(surface);
     }
 
     void controller::on_resize(const core::rect& bounds) {
-        _layout_panel.resize(bounds);
+        _layout_panel->resize(bounds);
     }
 
     void controller::on_activate(const core::parameter_dict& params) {
         if (!_show_banner)
             return;
 
-        _console.write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>");
-        _console.write_message(" Copyright (C) 2017 Jeff Panici");
-        _console.write_message(" See details in <underline><bold>LICENSE<> file");
-        _console.caret_down();
-        _console.write_message("Ready.");
+        _console->write_message("<rev> <bold>Ryu: <italic>The Arcade Construction Kit <>");
+        _console->write_message(" Copyright (C) 2017 Jeff Panici");
+        _console->write_message(" See details in <underline><bold>LICENSE<> file");
+        _console->caret_down();
+        _console->write_message("Ready.");
         _show_banner = false;
     }
 }

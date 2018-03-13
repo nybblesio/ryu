@@ -28,6 +28,7 @@ add_library(
         font_family.cpp font_family.h
         views/panel.cpp views/panel.h
         preferences.cpp preferences.h
+        view_factory.cpp view_factory.h
         input_action.cpp input_action.h
         parser_types.cpp parser_types.h
         project_file.cpp project_file.h

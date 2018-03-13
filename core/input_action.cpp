@@ -119,8 +119,8 @@ namespace ryu::core {
                 continue;
             if (!it->second.filter(data))
                 continue;
-            it->second.perform(data);
-            return (action_sink_type) i;
+            if (it->second.perform(data))
+                return (action_sink_type) i;
         }
         return action_sink::none;
     }
@@ -133,12 +133,12 @@ namespace ryu::core {
         _bindings.push_back(input_binding::for_key_combination(keys));
     }
 
-    input_action* input_action::find_by_id(action_id type) {
+    input_action* input_action::find_by_id(action_id id) {
         auto it = std::find_if(
             s_catalog.begin(),
             s_catalog.end(),
-            [&type](const input_action& action) {
-                return action._id == type;
+            [&id](const input_action& action) {
+                return action._id == id;
             });
         return it != s_catalog.end() ? &(*it) : nullptr;
     }

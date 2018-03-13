@@ -15,6 +15,7 @@
 #include <ide/ide_types.h>
 #include <core/views/caret.h>
 #include <core/views/label.h>
+#include <core/view_factory.h>
 #include <core/views/console.h>
 #include <core/views/dock_layout_panel.h>
 
@@ -41,20 +42,20 @@ namespace ryu::ide::console_editor {
         void on_activate(const core::parameter_dict& params) override;
 
     private:
-        static const core::code_to_attr_dict _mapper;
+        static const core::code_to_attr_dict s_mapper;
 
         metrics_t _metrics;
-        core::console _console;
         bool _show_banner = true;
-        core::label _caret_status;
-        core::label _machine_status;
-        core::label _project_status;
-        core::label _document_status;
-        core::label _working_directory;
-        core::label _environment_status;
-        core::dock_layout_panel _header;
-        core::dock_layout_panel _footer;
-        core::dock_layout_panel _layout_panel;
+        core::console_unique_ptr _console;
+        core::label_unique_ptr _caret_status;
+        core::label_unique_ptr _machine_status;
+        core::label_unique_ptr _project_status;
+        core::label_unique_ptr _document_status;
+        core::label_unique_ptr _working_directory;
+        core::label_unique_ptr _environment_status;
+        core::dock_layout_panel_unique_ptr _header;
+        core::dock_layout_panel_unique_ptr _footer;
+        core::dock_layout_panel_unique_ptr _layout_panel;
     };
 
 };

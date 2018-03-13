@@ -19,18 +19,6 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
-    struct attr_t {
-        uint8_t color = 0;
-        uint8_t style = 0;
-        uint8_t flags = 0;
-        bool operator== (const attr_t& rhs) const {
-            return color == rhs.color && style == rhs.style && flags == rhs.flags;
-        }
-        bool operator!= (const attr_t& rhs) const {
-            return color != rhs.color || style != rhs.style || flags != rhs.flags;
-        }
-    };
-
     struct element_t {
         uint8_t value = 0;
         attr_t attr;
@@ -55,13 +43,6 @@ namespace ryu::core {
         attr_t default_attr;
         std::vector<element_t> elements;
     };
-
-    struct attr_chunk_t {
-        attr_t attr;
-        std::string text {};
-    };
-
-    typedef std::vector<attr_chunk_t> attr_chunks;
 
     class document {
     public:

@@ -59,6 +59,8 @@ namespace ryu::core {
 
         void raise_caret_changed();
 
+        void on_initialize() override;
+
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& context_bounds) override;
@@ -77,6 +79,8 @@ namespace ryu::core {
         void caret_home();
 
         void first_page();
+
+        void bind_events();
 
         void scroll_left();
 

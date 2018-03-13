@@ -49,6 +49,8 @@ namespace ryu::core {
         void on_clicked(const on_clicked_callable& callable);
 
     protected:
+        void on_initialize() override;
+
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const rect& context_bounds) override;

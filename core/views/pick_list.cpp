@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <core/input_action.h>
 #include "pick_list.h"
 
 namespace ryu::core {
@@ -51,6 +52,53 @@ namespace ryu::core {
 
     std::string pick_list::value() {
         return _value;
+    }
+
+    void pick_list::on_initialize() {
+        auto up_action = core::input_action::create_no_map(
+            "pick_list_up_action",
+            "Internal",
+            "Move to the previous pick list item.");
+        up_action->register_handler(
+            action_sink::types::view,
+            [this](const event_data_t& data) {
+                return focused();
+            },
+            [this](const event_data_t& data) {
+                move_up();
+                return true;
+            });
+        up_action->bind_keys({core::key_up});
+
+        auto down_action = core::input_action::create_no_map(
+            "pick_list_down_action",
+            "Internal",
+            "Move to the next pick list item.");
+        down_action->register_handler(
+            action_sink::types::view,
+            [this](const event_data_t& data) {
+                return focused();
+            },
+            [this](const event_data_t& data) {
+                move_down();
+                return true;
+            });
+        down_action->bind_keys({core::key_down});
+
+        auto select_action = core::input_action::create_no_map(
+            "pick_list_select_action",
+            "Internal",
+            "Make current item the selected value.");
+        select_action->register_handler(
+            action_sink::types::view,
+            [this](const event_data_t& data) {
+                return focused();
+            },
+            [this](const event_data_t& data) {
+                _value = _options[_row + _selection];
+                return true;
+            });
+        select_action->bind_keys({core::key_return});
     }
 
     bool pick_list::move_row_down() {
@@ -156,26 +204,6 @@ namespace ryu::core {
             }
         }
     }
-
-//    bool pick_list::on_process_event(const SDL_Event* e) {
-//        if (e->type == SDL_KEYDOWN) {
-//            switch (e->key.keysym.sym) {
-//                case SDLK_UP: {
-//                    move_up();
-//                    return true;
-//                }
-//                case SDLK_DOWN: {
-//                    move_down();
-//                    return true;
-//                }
-//                case SDLK_RETURN: {
-//                    _value = _options[_row + _selection];
-//                    return true;
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
     void pick_list::on_resize(const core::rect& context_bounds) {
         bounds().size(font_face()->width * (_length + 1), font_face()->line_height + 10);

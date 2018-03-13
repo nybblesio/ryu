@@ -514,6 +514,10 @@ namespace ryu::core {
         return clamped;
     }
 
+    void text_editor::on_initialize() {
+        bind_events();
+    }
+
     void text_editor::end_selection() {
         if (_caret.mode() != core::caret::mode::select)
             return;
@@ -740,6 +744,8 @@ namespace ryu::core {
     }
 
     void text_editor::initialize(uint32_t rows, uint16_t columns) {
+        view::initialize();
+
         _metrics.line_number_width = font_face()->measure_chars(5) + 2;
 
         _vcol = 0;
@@ -762,9 +768,6 @@ namespace ryu::core {
 
         add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-
-        listen_for_on_container_change();
-        bind_events();
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {

@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <core/input_action.h>
 #include "notebook.h"
 
 namespace ryu::core {
@@ -15,6 +16,41 @@ namespace ryu::core {
     notebook::notebook(
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host) {
+    }
+
+    void notebook::on_initialize() {
+        auto prev_tab_action = core::input_action::create_no_map(
+            "notebook_previous_tab",
+            "Internal",
+            "Move to the previous notebook tab.");
+        prev_tab_action->register_handler(
+            action_sink::types::view,
+            [this](const event_data_t& data) {
+                return focused();
+            },
+            [this](const event_data_t& data) {
+                _index--;
+                if (_index < 0)
+                    _index = 0;
+                return true;
+            });
+        prev_tab_action->bind_keys({core::key_up});
+
+        auto next_tab_action = core::input_action::create_no_map(
+            "notebook_next_tab",
+            "Internal",
+            "Move to the next notebook tab.");
+        next_tab_action->register_handler(
+            action_sink::types::view,
+            [this](const event_data_t& data) {
+                return focused();
+            },
+            [this](const event_data_t& data) {
+                if (_index + 1 < _tabs.size())
+                    _index++;
+                return true;
+            });
+        next_tab_action->bind_keys({core::key_down});
     }
 
     int notebook::active_tab() const {
@@ -85,30 +121,6 @@ namespace ryu::core {
                     .size(rect.width() - (tab_width + 1), rect.height());
         surface.draw_rect(content_rect);
     }
-
-//    bool notebook::on_process_event(const SDL_Event* e) {
-//        if (focused()) {
-//            if (e->type == SDL_KEYDOWN) {
-//                switch (e->key.keysym.sym) {
-//                    case SDLK_UP: {
-//                        _index--;
-//                        if (_index < 0)
-//                            _index = 0;
-//                        return true;
-//                    }
-//                    case SDLK_DOWN: {
-//                        if (_index + 1 < _tabs.size())
-//                            _index++;
-//                        return true;
-//                    }
-//                    case SDLK_SPACE: {
-//                        return true;
-//                    }
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
     void notebook::draw_children(core::renderer& surface) {
         surface.push_clip_rect(client_bounds());

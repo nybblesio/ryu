@@ -57,6 +57,7 @@ namespace ryu::core {
         int32_t y;
         int32_t width;
         int32_t height;
+        int32_t key_code;
     };
 
     static constexpr uint32_t key_0 = SDLK_0;

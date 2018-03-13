@@ -8,6 +8,8 @@
 // this source code file.
 //
 
+#include <core/input_binding.h>
+#include <core/input_action.h>
 #include "checkbox.h"
 
 namespace ryu::core {
@@ -23,6 +25,23 @@ namespace ryu::core {
 
     void checkbox::value(bool flag) {
         _value = flag;
+    }
+
+    void checkbox::on_initialize() {
+        auto activate_action = core::input_action::create_no_map(
+            "checkbox_activate",
+            "Internal",
+            "Activate a checkbox view.");
+        activate_action->register_handler(
+            action_sink::types::view,
+            [this](const event_data_t& data) {
+                return focused() && enabled();
+            },
+            [this](const event_data_t& data) {
+                _value = !_value;
+                return true;
+            });
+        activate_action->bind_keys({core::key_space});
     }
 
     void checkbox::on_draw(core::renderer& surface) {
@@ -42,17 +61,5 @@ namespace ryu::core {
             surface.draw_line(bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
         }
     }
-
-//    bool checkbox::on_process_event(const SDL_Event* e) {
-//        if (e->type == SDL_KEYDOWN) {
-//            switch (e->key.keysym.sym) {
-//                case SDLK_SPACE: {
-//                    _value = !_value;
-//                    return true;
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
 }

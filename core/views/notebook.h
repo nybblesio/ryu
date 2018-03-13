@@ -35,6 +35,8 @@ namespace ryu::core {
         const int tab_width = 200;
         const int tab_height = 50;
 
+        void on_initialize() override;
+
         void on_draw(core::renderer& surface) override;
 
         void draw_children(core::renderer& surface) override;

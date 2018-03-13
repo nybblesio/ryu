@@ -10,6 +10,7 @@
 
 #include <utility>
 #include "view.h"
+#include "input_action.h"
 
 namespace ryu::core {
 
@@ -28,6 +29,28 @@ namespace ryu::core {
 
     void view::initialize() {
         listen_for_on_container_change();
+
+        auto field_tab_action = core::input_action::create_no_map(
+            "view_field_tab",
+            "Internal",
+            "Move focus from one field to the next.");
+        field_tab_action->register_handler(
+            action_sink::types::view,
+            [this](const core::event_data_t& data) {
+                return focused() && visible();
+            },
+            [this](const core::event_data_t& data) {
+                if (_on_tab_callable != nullptr) {
+                    const auto* next_view = _on_tab_callable();
+                    if (next_view != nullptr) {
+                        find_root()->focus(next_view);
+                        return true;
+                    }
+                }
+                return false;
+            });
+        field_tab_action->bind_keys({core::key_tab});
+
         on_initialize();
     }
 
@@ -258,46 +281,6 @@ namespace ryu::core {
 
     void view::on_draw(core::renderer& renderer) {
     }
-
-//    bool view::process_event(const SDL_Event* e) {
-//        if (focused()) {
-//            if (!visible()) {
-//                const auto* current = this;
-//                while (!current->visible()) {
-//                    if (current->_on_tab_callable != nullptr) {
-//                        current = current->_on_tab_callable();
-//                    } else {
-//                        break;
-//                    }
-//                }
-//                find_root()->focus(current);
-//            } else {
-//                if (e->type == SDL_KEYDOWN) {
-//                    switch (e->key.keysym.sym) {
-//                        case SDLK_TAB: {
-//                            if (_on_tab_callable != nullptr) {
-//                                const auto* next_view = _on_tab_callable();
-//                                if (next_view != nullptr) {
-//                                    find_root()->focus(next_view);
-//                                    return true;
-//                                }
-//                            }
-//                            break;
-//                        }
-//                    }
-//                }
-//                if (on_process_event(e))
-//                    return true;
-//            }
-//        }
-//
-//        for (auto child : _children) {
-//            if (child->process_event(e))
-//                return true;
-//        }
-//
-//        return false;
-//    }
 
     void view::focus(const core::view* target) {
         if (target == nullptr)
