@@ -13,17 +13,15 @@
 
 namespace ryu::ide::machine_editor {
 
-    components_tab::components_tab(const std::string& name) : core::view(core::view::types::container, name) {
+    components_tab::components_tab(
+            const std::string& name,
+            core::view_container* container) : core::view(core::view::types::container, name, container) {
     }
 
     void components_tab::initialize() {
     }
 
     void components_tab::on_draw(core::renderer& surface) {
-    }
-
-    bool components_tab::on_process_event(const SDL_Event* e) {
-        return false;
     }
 
 }

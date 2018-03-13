@@ -30,8 +30,7 @@ namespace ryu::core {
 
         void update(
                 uint32_t dt,
-                core::renderer& renderer,
-                event_list& events);
+                core::renderer& renderer);
 
         void resize();
 
@@ -130,8 +129,6 @@ namespace ryu::core {
         virtual void on_draw(core::renderer& surface);
 
         virtual bool on_initialize(core::result& result);
-
-        virtual bool on_process_event(const SDL_Event* e);
 
     private:
         uint32_t _id = 0;

@@ -25,6 +25,25 @@
 
 namespace ryu::core {
 
+    class view_container {
+    public:
+        enum change_reasons : uint8_t {
+            focus       = 0b00000001,
+            visibility  = 0b00000010
+        };
+
+        using change_reason_flags = uint8_t;
+        using state_change_callable = std::function<void (change_reason_flags)>;
+
+        virtual ~view_container() = default;
+
+        virtual bool is_focused() const = 0;
+
+        virtual bool is_visible() const = 0;
+
+        virtual void on_change(const state_change_callable& callable) = 0;
+    };
+
     class view {
     public:
         using on_tab_callable = std::function<const core::view* ()>;
@@ -55,11 +74,14 @@ namespace ryu::core {
             };
         };
 
-        view(types::id type, const std::string& name);
+        view(
+            types::id type,
+            const std::string& name,
+            core::view_container* container);
 
         virtual ~view();
 
-        int id() const;
+        uint32_t id() const;
 
         bool layout() const;
 
@@ -137,8 +159,6 @@ namespace ryu::core {
 
         void sizing(view::sizing::types value);
 
-        bool process_event(const SDL_Event* e);
-
         core::font_family* font_family() const;
 
         core::view* get_child_at(size_t index);
@@ -162,16 +182,18 @@ namespace ryu::core {
 
         virtual void on_focus_changed();
 
-        virtual void on_draw(core::renderer& renderer);
+        void listen_for_on_container_change();
 
-        virtual bool on_process_event(const SDL_Event* e);
+        virtual void on_draw(core::renderer& renderer);
 
         virtual void draw_children(core::renderer& renderer);
 
         virtual void on_resize(const core::rect& context_bounds);
 
+        void on_container_change(view_container::change_reason_flags flags);
+
     private:
-        int _id;
+        uint32_t _id;
         short _index = 0;
         std::string _name;
         core::rect _rect {};
@@ -185,6 +207,7 @@ namespace ryu::core {
         on_tab_callable _on_tab_callable;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
+        core::view_container* _container = nullptr;
         uint8_t _font_style = font::styles::normal;
         core::dock::styles _dock = dock::styles::none;
         view::sizing::types _sizing = view::sizing::types::content;

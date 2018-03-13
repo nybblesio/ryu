@@ -12,7 +12,9 @@
 
 namespace ryu::core {
 
-    checkbox::checkbox(const std::string& name) : core::view(types::control, name) {
+    checkbox::checkbox(
+            const std::string& name,
+            core::view_container* container) : core::view(types::control, name, container) {
     }
 
     bool checkbox::value() const {
@@ -41,16 +43,16 @@ namespace ryu::core {
         }
     }
 
-    bool checkbox::on_process_event(const SDL_Event* e) {
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_SPACE: {
-                    _value = !_value;
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+//    bool checkbox::on_process_event(const SDL_Event* e) {
+//        if (e->type == SDL_KEYDOWN) {
+//            switch (e->key.keysym.sym) {
+//                case SDLK_SPACE: {
+//                    _value = !_value;
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
 }

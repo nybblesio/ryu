@@ -13,17 +13,15 @@
 
 namespace ryu::ide::machine_editor {
 
-    settings_tab::settings_tab(const std::string& name) : core::view(core::view::types::container, name) {
+    settings_tab::settings_tab(
+            const std::string& name,
+            core::view_container* container) : core::view(core::view::types::container, name, container) {
     }
 
     void settings_tab::initialize() {
     }
 
     void settings_tab::on_draw(core::renderer& surface) {
-    }
-
-    bool settings_tab::on_process_event(const SDL_Event* e) {
-        return false;
     }
 
 }

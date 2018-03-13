@@ -16,7 +16,9 @@ namespace ryu::core {
 
     class label : public core::view {
     public:
-        explicit label(const std::string& name);
+        label(
+            const std::string& name,
+            core::view_container* container);
 
         std::string value() const;
 

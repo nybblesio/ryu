@@ -14,6 +14,7 @@
 #include <core/project.h>
 #include <core/document.h>
 #include <core/selection.h>
+#include <core/input_action.h>
 #include "caret.h"
 
 namespace ryu::core {
@@ -25,7 +26,9 @@ namespace ryu::core {
         using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
         using char_action_callable = std::function<void (uint32_t, uint16_t)>;
 
-        explicit text_editor(const std::string& name);
+        text_editor(
+                const std::string& name,
+                core::view_container* container);
 
         void clear();
 
@@ -76,8 +79,6 @@ namespace ryu::core {
 
         void on_draw(core::renderer& surface) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
         void on_resize(const core::rect& context_bounds) override;
 
     private:
@@ -95,11 +96,15 @@ namespace ryu::core {
 
         void first_page();
 
+        void bind_events();
+
         void scroll_left();
 
         void scroll_down();
 
         bool scroll_right();
+
+        void caret_newline();
 
         void end_selection();
 
@@ -124,6 +129,8 @@ namespace ryu::core {
         void update_selection(uint16_t line_end);
 
         void get_selected_text(std::stringstream& stream);
+
+        bool input_event_filter(const core::event_data_t& data);
 
         void for_each_selection_char(const char_action_callable& action);
 

@@ -12,7 +12,9 @@
 
 namespace ryu::core {
 
-    notebook::notebook(const std::string& name) : core::view(types::control, name) {
+    notebook::notebook(
+            const std::string& name,
+            core::view_container* container) : core::view(types::control, name, container) {
     }
 
     int notebook::active_tab() const {
@@ -84,29 +86,29 @@ namespace ryu::core {
         surface.draw_rect(content_rect);
     }
 
-    bool notebook::on_process_event(const SDL_Event* e) {
-        if (focused()) {
-            if (e->type == SDL_KEYDOWN) {
-                switch (e->key.keysym.sym) {
-                    case SDLK_UP: {
-                        _index--;
-                        if (_index < 0)
-                            _index = 0;
-                        return true;
-                    }
-                    case SDLK_DOWN: {
-                        if (_index + 1 < _tabs.size())
-                            _index++;
-                        return true;
-                    }
-                    case SDLK_SPACE: {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+//    bool notebook::on_process_event(const SDL_Event* e) {
+//        if (focused()) {
+//            if (e->type == SDL_KEYDOWN) {
+//                switch (e->key.keysym.sym) {
+//                    case SDLK_UP: {
+//                        _index--;
+//                        if (_index < 0)
+//                            _index = 0;
+//                        return true;
+//                    }
+//                    case SDLK_DOWN: {
+//                        if (_index + 1 < _tabs.size())
+//                            _index++;
+//                        return true;
+//                    }
+//                    case SDLK_SPACE: {
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     void notebook::draw_children(core::renderer& surface) {
         surface.push_clip_rect(client_bounds());

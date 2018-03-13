@@ -33,8 +33,4 @@ namespace ryu::emulator {
     void controller::on_resize(const core::rect& bounds) {
     }
 
-    bool controller::on_process_event(const SDL_Event* e) {
-        return false;
-    }
-
 }

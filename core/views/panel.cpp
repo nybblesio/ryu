@@ -12,7 +12,9 @@
 
 namespace ryu::core {
 
-    panel::panel(const std::string& name) : core::view(types::container, name) {
+    panel::panel(
+            const std::string& name,
+            core::view_container* container) : core::view(types::container, name, container) {
     }
 
     border::types panel::border() const {

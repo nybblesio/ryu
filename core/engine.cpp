@@ -265,23 +265,17 @@ namespace ryu::core {
             surface.set_color({0x00, 0x00, 0x00, 0xff});
             surface.clear();
 
-            event_list events {};
+            SDL_Event e {};
             for (size_t i = 0; i < 5; i++) {
-                SDL_Event e {};
                 if (!SDL_PollEvent(&e))
                     break;
-
                 for (const auto& action : input_action::catalog())
                     if (action.process(&e) != action_sink::types::none)
                         break;
-
-                events.push_back(e);
             }
 
             for (auto& it : _contexts)
-                it.second->update(dt, surface, events);
-
-            events.clear();
+                it.second->update(dt, surface);
 
             // N.B. this is an override/overlay draw so contexts
             //      can "bleed" into other contexts.

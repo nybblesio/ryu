@@ -16,7 +16,9 @@ namespace ryu::core {
 
     class dock_layout_panel : public core::panel {
     public:
-        explicit dock_layout_panel(const std::string& name);
+        dock_layout_panel(
+            const std::string& name,
+            core::view_container* container);
 
     protected:
         void on_resize(const core::rect& context_bounds) override;

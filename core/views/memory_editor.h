@@ -20,7 +20,9 @@ namespace ryu::core {
     public:
         using caret_changed_callable = std::function<void(const core::caret&)>;
 
-        explicit memory_editor(const std::string& name);
+        memory_editor(
+            const std::string& name,
+            core::view_container* container);
 
         void clear();
 
@@ -58,8 +60,6 @@ namespace ryu::core {
         void raise_caret_changed();
 
         void on_draw(core::renderer& surface) override;
-
-        bool on_process_event(const SDL_Event* e) override;
 
         void on_resize(const core::rect& context_bounds) override;
 

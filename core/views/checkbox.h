@@ -16,7 +16,9 @@ namespace ryu::core {
 
     class checkbox : public core::view {
     public:
-        explicit checkbox(const std::string& name);
+        checkbox(
+                const std::string& name,
+                core::view_container* container);
 
         bool value() const;
 
@@ -24,8 +26,6 @@ namespace ryu::core {
 
     protected:
         void on_draw(core::renderer& surface) override;
-
-        bool on_process_event(const SDL_Event* e) override;
 
     private:
         bool _value;

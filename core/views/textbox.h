@@ -20,7 +20,9 @@ namespace ryu::core {
     public:
         using on_key_down_callable = std::function<bool (int)>;
 
-        explicit textbox(const std::string& name);
+        textbox(
+                const std::string& name,
+                core::view_container* container);
 
         void clear();
 
@@ -58,8 +60,6 @@ namespace ryu::core {
         bool caret_right(uint8_t columns = 1);
 
         void on_draw(core::renderer& surface) override;
-
-        bool on_process_event(const SDL_Event* e) override;
 
         void on_resize(const core::rect& context_bounds) override;
 

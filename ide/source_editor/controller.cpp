@@ -9,24 +9,55 @@
 #include <ide/ide_types.h>
 #include <core/environment.h>
 #include <core/project_file.h>
+#include <core/input_action.h>
 #include "controller.h"
 
 namespace ryu::ide::source_editor {
 
     controller::controller(const std::string& name) : ryu::core::state(name),
-                                                      _file_status("file-status-label"),
-                                                      _caret_status("caret-status-label"),
-                                                      _editor("text-editor"),
-                                                      _project_label("project-label"),
-                                                      _machine_label("machine-label"),
-                                                      _command_line("command-line"),
-                                                      _document_status("document-status-label"),
-                                                      _footer("footer-panel"),
-                                                      _header("header-panel"),
-                                                      _layout_panel("layout-panel") {
+                                                      _file_status("file-status-label", this),
+                                                      _caret_status("caret-status-label", this),
+                                                      _editor("text-editor", this),
+                                                      _project_label("project-label", this),
+                                                      _machine_label("machine-label", this),
+                                                      _command_line("command-line", this),
+                                                      _document_status("document-status-label", this),
+                                                      _footer("footer-panel", this),
+                                                      _header("header-panel", this),
+                                                      _layout_panel("layout-panel", this) {
+    }
+
+    void controller::bind_events() {
+        auto leave_action = core::input_action::create(
+            "source_editor_leave",
+            "IDE::Source Editor",
+            "Close the source editor and return to previous state.");
+        leave_action->register_handler(
+            core::action_sink::controller,
+            core::action_sink::default_filter,
+            [this](const core::event_data_t& data) {
+                end_state();
+                return true;
+            });
+        leave_action->bind_keys({core::key_escape});
+
+        auto command_bar_action = core::input_action::create(
+            "source_editor_command_bar",
+            "IDE::Source Editor",
+            "Activate the command bar.");
+        command_bar_action->register_handler(
+            core::action_sink::controller,
+            core::action_sink::default_filter,
+            [this](const core::event_data_t& data) {
+                _layout_panel.focus(&_command_line);
+                return true;
+            });
+        command_bar_action->bind_keys({core::mod_ctrl, core::key_space});
     }
 
     void controller::on_initialize() {
+        bind_events();
+
         _project_label.font_family(context()->font_family());
         _project_label.palette(&context()->palette());
         _project_label.dock(core::dock::styles::left);
@@ -222,27 +253,6 @@ namespace ryu::ide::source_editor {
 
     void controller::on_resize(const core::rect& bounds) {
         _layout_panel.resize(bounds);
-    }
-
-    bool controller::on_process_event(const SDL_Event* e) {
-        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
-
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_ESCAPE: {
-                    end_state();
-                    return true;
-                }
-                case SDLK_SPACE: {
-                    if (ctrl_pressed) {
-                        _layout_panel.focus(&_command_line);
-                        return true;
-                    }
-                    break;
-                }
-            }
-        }
-        return _layout_panel.process_event(e);
     }
 
     void controller::on_activate(const core::parameter_dict& params) {

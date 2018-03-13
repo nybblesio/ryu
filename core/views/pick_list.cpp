@@ -12,7 +12,9 @@
 
 namespace ryu::core {
 
-    pick_list::pick_list(const std::string& name) : core::view(types::control, name) {
+    pick_list::pick_list(
+            const std::string& name,
+            core::view_container* container) : core::view(types::control, name, container) {
     }
 
     bool pick_list::move_up() {
@@ -155,25 +157,25 @@ namespace ryu::core {
         }
     }
 
-    bool pick_list::on_process_event(const SDL_Event* e) {
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_UP: {
-                    move_up();
-                    return true;
-                }
-                case SDLK_DOWN: {
-                    move_down();
-                    return true;
-                }
-                case SDLK_RETURN: {
-                    _value = _options[_row + _selection];
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+//    bool pick_list::on_process_event(const SDL_Event* e) {
+//        if (e->type == SDL_KEYDOWN) {
+//            switch (e->key.keysym.sym) {
+//                case SDLK_UP: {
+//                    move_up();
+//                    return true;
+//                }
+//                case SDLK_DOWN: {
+//                    move_down();
+//                    return true;
+//                }
+//                case SDLK_RETURN: {
+//                    _value = _options[_row + _selection];
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     void pick_list::on_resize(const core::rect& context_bounds) {
         bounds().size(font_face()->width * (_length + 1), font_face()->line_height + 10);

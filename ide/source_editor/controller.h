@@ -38,9 +38,10 @@ namespace ryu::ide::source_editor {
 
         void on_resize(const core::rect& bounds) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
         void on_activate(const core::parameter_dict& params) override;
+
+    private:
+        void bind_events();
 
     private:
         metrics_t _metrics;

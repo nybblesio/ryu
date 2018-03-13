@@ -13,8 +13,10 @@
 
 namespace ryu::core {
 
-    textbox::textbox(const std::string& name) : core::view(types::control, name),
-                                                _caret("textbox-caret") {
+    textbox::textbox(
+            const std::string& name,
+            core::view_container* container) : core::view(types::control, name, container),
+                                               _caret("textbox-caret", container) {
         _document.document_size(1, 100);
         _document.page_size(1, 16);
         _document.clear();
@@ -145,74 +147,74 @@ namespace ryu::core {
         _caret.palette(value);
     }
 
-    bool textbox::on_process_event(const SDL_Event* e) {
-        auto processed = false;
-
-        if (e->type == SDL_TEXTINPUT) {
-            const char* c = &e->text.text[0];
-            while (*c != '\0') {
-                if (_on_key_down != nullptr) {
-                    if (!_on_key_down(*c)) {
-                        c++;
-                        continue;
-                    }
-                }
-
-                _document.put(
-                        0,
-                        _document.column() + _caret.column(),
-                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
-
-                if (caret_right())
-                    break;
-
-                c++;
-            }
-        } else if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_HOME: {
-                    caret_home();
-                    processed = true;
-                    break;
-                }
-                case SDLK_END: {
-                    caret_end();
-                    processed = true;
-                    break;
-                }
-                case SDLK_RIGHT: {
-                    caret_right();
-                    processed = true;
-                    break;
-                }
-                case SDLK_LEFT: {
-                    caret_left();
-                    processed = true;
-                    break;
-                }
-                case SDLK_DELETE: {
-                    _document.shift_left(0, _document.column() + _caret.column());
-                    processed = true;
-                    break;
-                }
-                case SDLK_BACKSPACE: {
-                    if (_caret.column() == 0) {
-                        _document.delete_line(0);
-                    } else {
-                        caret_left();
-                        _document.shift_left(0, _document.column() + _caret.column());
-                    }
-                    processed = true;
-                    break;
-                }
-            }
-        }
-
-        if (_on_key_down != nullptr)
-            return _on_key_down(e->key.keysym.sym);
-
-        return processed;
-    }
+//    bool textbox::on_process_event(const SDL_Event* e) {
+//        auto processed = false;
+//
+//        if (e->type == SDL_TEXTINPUT) {
+//            const char* c = &e->text.text[0];
+//            while (*c != '\0') {
+//                if (_on_key_down != nullptr) {
+//                    if (!_on_key_down(*c)) {
+//                        c++;
+//                        continue;
+//                    }
+//                }
+//
+//                _document.put(
+//                        0,
+//                        _document.column() + _caret.column(),
+//                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
+//
+//                if (caret_right())
+//                    break;
+//
+//                c++;
+//            }
+//        } else if (e->type == SDL_KEYDOWN) {
+//            switch (e->key.keysym.sym) {
+//                case SDLK_HOME: {
+//                    caret_home();
+//                    processed = true;
+//                    break;
+//                }
+//                case SDLK_END: {
+//                    caret_end();
+//                    processed = true;
+//                    break;
+//                }
+//                case SDLK_RIGHT: {
+//                    caret_right();
+//                    processed = true;
+//                    break;
+//                }
+//                case SDLK_LEFT: {
+//                    caret_left();
+//                    processed = true;
+//                    break;
+//                }
+//                case SDLK_DELETE: {
+//                    _document.shift_left(0, _document.column() + _caret.column());
+//                    processed = true;
+//                    break;
+//                }
+//                case SDLK_BACKSPACE: {
+//                    if (_caret.column() == 0) {
+//                        _document.delete_line(0);
+//                    } else {
+//                        caret_left();
+//                        _document.shift_left(0, _document.column() + _caret.column());
+//                    }
+//                    processed = true;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        if (_on_key_down != nullptr)
+//            return _on_key_down(e->key.keysym.sym);
+//
+//        return processed;
+//    }
 
     void textbox::font_family(core::font_family* value) {
         view::font_family(value);

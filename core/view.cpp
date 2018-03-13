@@ -17,16 +17,18 @@ namespace ryu::core {
 
     view::view(
             types::id type,
-            const std::string& name) : _id(core::id_pool::instance()->allocate()),
-                                       _name(name),
-                                       _type(type) {
+            const std::string& name,
+            core::view_container* container) : _id(core::id_pool::instance()->allocate()),
+                                               _name(name),
+                                               _type(type),
+                                               _container(container) {
     }
 
     view::~view() {
         core::id_pool::instance()->release(_id);
     }
 
-    int view::id() const {
+    uint32_t view::id() const {
         return _id;
     }
 
@@ -51,7 +53,8 @@ namespace ryu::core {
     }
 
     bool view::visible() const {
-        return (_flags & config::flags::visible) != 0;
+        return _container->is_visible()
+               && (_flags & config::flags::visible) != 0;
     }
 
     bool view::tabstop() const {
@@ -59,7 +62,8 @@ namespace ryu::core {
     }
 
     bool view::focused() const {
-        return (_flags & config::flags::focused) != 0;
+        return _container->is_focused()
+               && (_flags & config::flags::focused) != 0;
     }
 
     void view::clear_children() {
@@ -249,45 +253,45 @@ namespace ryu::core {
     void view::on_draw(core::renderer& renderer) {
     }
 
-    bool view::process_event(const SDL_Event* e) {
-        if (focused()) {
-            if (!visible()) {
-                const auto* current = this;
-                while (!current->visible()) {
-                    if (current->_on_tab_callable != nullptr) {
-                        current = current->_on_tab_callable();
-                    } else {
-                        break;
-                    }
-                }
-                find_root()->focus(current);
-            } else {
-                if (e->type == SDL_KEYDOWN) {
-                    switch (e->key.keysym.sym) {
-                        case SDLK_TAB: {
-                            if (_on_tab_callable != nullptr) {
-                                const auto* next_view = _on_tab_callable();
-                                if (next_view != nullptr) {
-                                    find_root()->focus(next_view);
-                                    return true;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-                if (on_process_event(e))
-                    return true;
-            }
-        }
-
-        for (auto child : _children) {
-            if (child->process_event(e))
-                return true;
-        }
-
-        return false;
-    }
+//    bool view::process_event(const SDL_Event* e) {
+//        if (focused()) {
+//            if (!visible()) {
+//                const auto* current = this;
+//                while (!current->visible()) {
+//                    if (current->_on_tab_callable != nullptr) {
+//                        current = current->_on_tab_callable();
+//                    } else {
+//                        break;
+//                    }
+//                }
+//                find_root()->focus(current);
+//            } else {
+//                if (e->type == SDL_KEYDOWN) {
+//                    switch (e->key.keysym.sym) {
+//                        case SDLK_TAB: {
+//                            if (_on_tab_callable != nullptr) {
+//                                const auto* next_view = _on_tab_callable();
+//                                if (next_view != nullptr) {
+//                                    find_root()->focus(next_view);
+//                                    return true;
+//                                }
+//                            }
+//                            break;
+//                        }
+//                    }
+//                }
+//                if (on_process_event(e))
+//                    return true;
+//            }
+//        }
+//
+//        for (auto child : _children) {
+//            if (child->process_event(e))
+//                return true;
+//        }
+//
+//        return false;
+//    }
 
     void view::focus(const core::view* target) {
         if (target == nullptr)
@@ -297,6 +301,15 @@ namespace ryu::core {
             child->focus(target);
 
         inner_focus(target->_id == this->_id);
+    }
+
+    // XXX: this works, but it has be to invoked manually on the view who needs the notification
+    //      i'm worried i'll forget this is here....need to find a way to refactor view's interface
+    //      so we invoke an initialize method outside of the constructor.  maybe a static ctor?
+    void view::listen_for_on_container_change() {
+        _container->on_change([this](view_container::change_reason_flags flags) {
+            on_focus_changed();
+        });
     }
 
     core::view* view::get_child_at(size_t index) {
@@ -315,10 +328,6 @@ namespace ryu::core {
 
     void view::padding(const core::padding& value) {
         _padding = value;
-    }
-
-    bool view::on_process_event(const SDL_Event* e) {
-        return false;
     }
 
     void view::font_family(core::font_family* font) {

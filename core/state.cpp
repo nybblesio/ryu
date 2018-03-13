@@ -23,19 +23,29 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
-    int state::id() const {
-        return _id;
-    }
-
     void state::end_state() {
         _context->pop_state();
     }
 
     void state::deactivate() {
         on_deactivate();
+        if (_state_change_callback != nullptr)
+            _state_change_callback(change_reasons::focus | change_reasons::visibility);
+    }
+
+    uint32_t state::id() const {
+        return _id;
     }
 
     void state::on_deactivate() {
+    }
+
+    bool state::is_focused() const {
+        return context()->peek_state() == _id;
+    }
+
+    bool state::is_visible() const {
+        return context()->peek_state() == _id;
     }
 
     core::context* state::context() {
@@ -72,10 +82,6 @@ namespace ryu::core {
         on_resize(bounds);
     }
 
-    bool state::process_event(const SDL_Event* e) {
-        return on_process_event(e);
-    }
-
     void state::on_resize(const core::rect& bounds) {
     }
 
@@ -93,6 +99,8 @@ namespace ryu::core {
 
     void state::activate(const core::parameter_dict& params) {
         on_activate(params);
+        if (_state_change_callback != nullptr)
+            _state_change_callback(change_reasons::focus | change_reasons::visibility);
     }
 
     void state::on_activate(const core::parameter_dict& params) {
@@ -108,6 +116,10 @@ namespace ryu::core {
 
     void state::transition_callback(const state_transition_callable& callback) {
         _callback = callback;
+    }
+
+    void state::on_change(const view_container::state_change_callable& callable) {
+        _state_change_callback = callable;
     }
 
     bool state::transition_to(const std::string& name, const parameter_dict& params) {

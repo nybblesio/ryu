@@ -12,7 +12,9 @@
 
 namespace ryu::core {
 
-    button::button(const std::string& name) : core::view(core::view::types::control, name) {
+    button::button(
+        const std::string& name,
+        core::view_container* container) : core::view(core::view::types::control, name, container) {
     }
 
     int button::width() const {
@@ -78,19 +80,19 @@ namespace ryu::core {
         surface.pop_blend_mode();
     }
 
-    bool button::on_process_event(const SDL_Event* e) {
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_SPACE: {
-                    if (_on_clicked) {
-                        _on_clicked();
-                    }
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+//    bool button::on_process_event(const SDL_Event* e) {
+//        if (e->type == SDL_KEYDOWN) {
+//            switch (e->key.keysym.sym) {
+//                case SDLK_SPACE: {
+//                    if (_on_clicked) {
+//                        _on_clicked();
+//                    }
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     alignment::vertical::types button::valign() const {
         return _valign;

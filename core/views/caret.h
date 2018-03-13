@@ -30,7 +30,9 @@ namespace ryu::core {
             };
         };
 
-        explicit caret(const std::string& name);
+        caret(
+            const std::string& name,
+            core::view_container* container);
 
         void select();
 

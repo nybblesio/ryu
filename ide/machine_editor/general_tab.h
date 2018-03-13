@@ -23,14 +23,14 @@ namespace ryu::ide::machine_editor {
 
     class general_tab : public core::view {
     public:
-        explicit general_tab(const std::string& name);
+        general_tab(
+            const std::string& name,
+            core::view_container* container);
 
         void initialize();
 
     protected:
         void on_draw(core::renderer& surface) override;
-
-        bool on_process_event(const SDL_Event* e) override;
     };
 
 };

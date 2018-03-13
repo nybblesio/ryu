@@ -16,7 +16,9 @@ namespace ryu::core {
 
     class notebook : public core::view {
     public:
-        explicit notebook(const std::string& name);
+        notebook(
+            const std::string& name,
+            core::view_container* container);
 
         int active_tab() const;
 
@@ -34,8 +36,6 @@ namespace ryu::core {
         const int tab_height = 50;
 
         void on_draw(core::renderer& surface) override;
-
-        bool on_process_event(const SDL_Event* e) override;
 
         void draw_children(core::renderer& surface) override;
 

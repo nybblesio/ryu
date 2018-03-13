@@ -44,16 +44,16 @@ namespace ryu::ide::console_editor {
     };
 
     controller::controller(const std::string& name) : ryu::core::state(name),
-                                                      _console("console"),
-                                                      _caret_status("caret-status"),
-                                                      _machine_status("machine-status"),
-                                                      _project_status("project-status"),
-                                                      _document_status("document-status"),
-                                                      _working_directory("working-directory"),
-                                                      _environment_status("environment_status"),
-                                                      _header("header-label"),
-                                                      _footer("footer-label"),
-                                                      _layout_panel("layout-panel") {
+                                                      _console("console", this),
+                                                      _caret_status("caret-status", this),
+                                                      _machine_status("machine-status", this),
+                                                      _project_status("project-status", this),
+                                                      _document_status("document-status", this),
+                                                      _working_directory("working-directory", this),
+                                                      _environment_status("environment_status", this),
+                                                      _header("header-label", this),
+                                                      _footer("footer-label", this),
+                                                      _layout_panel("layout-panel", this) {
     }
 
     void controller::on_initialize() {
@@ -219,10 +219,6 @@ namespace ryu::ide::console_editor {
 
     void controller::on_resize(const core::rect& bounds) {
         _layout_panel.resize(bounds);
-    }
-
-    bool controller::on_process_event(const SDL_Event* e) {
-        return _layout_panel.process_event(e);
     }
 
     void controller::on_activate(const core::parameter_dict& params) {

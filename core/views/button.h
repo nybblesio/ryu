@@ -18,7 +18,9 @@ namespace ryu::core {
     public:
         using on_clicked_callable = std::function<void ()>;
 
-        explicit button(const std::string& name);
+        button(
+            const std::string& name,
+            core::view_container* container);
 
         int width() const;
 
@@ -48,8 +50,6 @@ namespace ryu::core {
 
     protected:
         void on_draw(core::renderer& surface) override;
-
-        bool on_process_event(const SDL_Event* e) override;
 
         void on_resize(const rect& context_bounds) override;
 

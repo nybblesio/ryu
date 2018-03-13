@@ -11,18 +11,19 @@
 #include <string>
 #include <SDL_events.h>
 #include <SDL_render.h>
+#include "view.h"
 #include "renderer.h"
 #include "core_types.h"
 
 namespace ryu::core {
 
-    class state {
+    class state : public view_container {
     public:
         explicit state(const std::string& name, bool render_parent = false);
 
-        virtual ~state();
+        ~state() override;
 
-        int id() const;
+        uint32_t id() const;
 
         void deactivate();
 
@@ -36,13 +37,15 @@ namespace ryu::core {
 
         bool is_initialized() const;
 
+        bool is_focused() const override;
+
+        bool is_visible() const override;
+
         void context(core::context* value);
 
         void draw(core::renderer& renderer);
 
         void resize(const core::rect& bounds);
-
-        bool process_event(const SDL_Event* e);
 
         inline core::context* context() const {
             return _context;
@@ -59,6 +62,8 @@ namespace ryu::core {
         }
 
         void activate(const core::parameter_dict& params);
+
+        void on_change(const state_change_callable& callable);
 
         void transition_callback(const state_transition_callable& callback);
 
@@ -79,8 +84,6 @@ namespace ryu::core {
 
         virtual void on_draw(core::renderer& renderer) = 0;
 
-        virtual bool on_process_event(const SDL_Event* e) = 0;
-
         std::string blackboard(const std::string& name) const;
 
         virtual void on_activate(const core::parameter_dict& params);
@@ -88,11 +91,12 @@ namespace ryu::core {
         void blackboard(const std::string& name, const std::string& value);
 
     private:
-        int _id = 0;
+        uint32_t _id = 0;
         std::string _name;
         bool _initialized = false;
         bool _render_parent = false;
         core::context* _context = nullptr;
         state_transition_callable _callback {};
+        state_change_callable _state_change_callback {};
     };
 };

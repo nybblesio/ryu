@@ -17,15 +17,15 @@
 namespace ryu::ide::hex_editor {
 
     controller::controller(const std::string& name) : core::state(name),
-                                                      _caret_status("caret-status"),
-                                                      _machine_status("machine-status"),
-                                                      _project_status("project-status"),
-                                                      _command_line("command-line"),
-                                                      _editor("memory-editor"),
-                                                      _environment_status("environment_status"),
-                                                      _header("header-label"),
-                                                      _footer("footer-label"),
-                                                      _layout_panel("layout-panel") {
+                                                      _caret_status("caret-status", this),
+                                                      _machine_status("machine-status", this),
+                                                      _project_status("project-status", this),
+                                                      _command_line("command-line", this),
+                                                      _editor("memory-editor", this),
+                                                      _environment_status("environment_status", this),
+                                                      _header("header-label", this),
+                                                      _footer("footer-label", this),
+                                                      _layout_panel("layout-panel", this) {
     }
 
     void controller::on_initialize() {
@@ -205,29 +205,29 @@ namespace ryu::ide::hex_editor {
         _layout_panel.resize(bounds);
     }
 
-    bool controller::on_process_event(const SDL_Event* e) {
-        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
-
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_ESCAPE: {
-                    end_state();
-                    return true;
-                }
-                case SDLK_SPACE: {
-                    if (ctrl_pressed) {
-                        _layout_panel.focus(&_command_line);
-                        return true;
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-
-        return _layout_panel.process_event(e);
-    }
+//    bool controller::on_process_event(const SDL_Event* e) {
+//        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
+//
+//        if (e->type == SDL_KEYDOWN) {
+//            switch (e->key.keysym.sym) {
+//                case SDLK_ESCAPE: {
+//                    end_state();
+//                    return true;
+//                }
+//                case SDLK_SPACE: {
+//                    if (ctrl_pressed) {
+//                        _layout_panel.focus(&_command_line);
+//                        return true;
+//                    }
+//                    break;
+//                }
+//                default:
+//                    break;
+//            }
+//        }
+//
+//        return _layout_panel.process_event(e);
+//    }
 
     void controller::on_activate(const core::parameter_dict& params) {
     }

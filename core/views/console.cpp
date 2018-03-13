@@ -91,8 +91,10 @@ namespace ryu::core {
 
     ///////////////////////////////////////////////////////////////////////////
 
-    console::console(const std::string& name) : core::view(core::view::types::container, name),
-                                                _caret("console-caret") {
+    console::console(
+            const std::string& name,
+            core::view_container* container) : core::view(core::view::types::container, name, container),
+                                               _caret("console-caret", container) {
     }
 
     void console::page_up() {
@@ -406,7 +408,7 @@ namespace ryu::core {
         resume_action->register_handler(
             core::action_sink::view,
             [this](const core::event_data_t& data) {
-                return _state == states::wait;
+                return focused() && _state == states::wait;
             },
             [this](const core::event_data_t& data) {
                 caret_home();
@@ -944,7 +946,7 @@ namespace ryu::core {
     }
 
     bool console::input_event_filter(const core::event_data_t& data) {
-        return _state == states::input;
+        return focused() && _state == states::input;
     }
 
     void console::on_execute_command(const execute_command_callable& callable) {

@@ -16,6 +16,7 @@
 #include "context.h"
 #include "id_pool.h"
 #include "environment.h"
+#include "input_action.h"
 
 namespace ryu::core {
 
@@ -30,30 +31,9 @@ namespace ryu::core {
 
     void context::update(
             uint32_t dt,
-            core::renderer& renderer,
-            event_list& events) {
+            core::renderer& renderer) {
         renderer.push_clip_rect(_bounds);
         renderer.push_blend_mode(SDL_BLENDMODE_NONE);
-
-        auto it = events.begin();
-        while (it != events.end()) {
-            bool processed = false;
-            auto event = *it;
-
-            if (_engine->focus() == _id && _stack.peek() != -1) {
-                auto active = _stack.active();
-                processed = active->process_event(&event);
-            }
-
-            if (!processed)
-                processed = on_process_event(&event);
-
-            if (processed) {
-                it = events.erase(it);
-            } else {
-                ++it;
-            }
-        }
 
         auto& fill_color = _palette[_bg_color];
         renderer.set_color(fill_color);
@@ -137,10 +117,6 @@ namespace ryu::core {
     }
 
     void context::on_draw(core::renderer& surface) {
-    }
-
-    bool context::on_process_event(const SDL_Event* e) {
-        return false;
     }
 
     bool context::on_initialize(core::result& result) {

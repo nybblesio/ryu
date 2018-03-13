@@ -30,8 +30,6 @@ namespace ryu::emulator {
 
         void on_resize(const core::rect& bounds) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
     private:
     };
 

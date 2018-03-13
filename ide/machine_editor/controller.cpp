@@ -18,24 +18,24 @@
 namespace ryu::ide::machine_editor {
 
     controller::controller(const std::string& name) : core::state(name),
-                                                      _header("header-label"),
-                                                      _footer("footer-label"),
-                                                      _name_label("name-label"),
-                                                      _notebook("notebook"),
-                                                      _map_button("map-button"),
-                                                      _add_button("add-button"),
-                                                      _display_label("display-label"),
-                                                      _delete_button("delete-button"),
-                                                      _name_textbox("name-textbox"),
-                                                      _panel("panel"),
-                                                      _address_space_label("address-space-label"),
-                                                      _display_pick_list("display-pick-list"),
-                                                      _row1_panel("row1"),
-                                                      _row2_panel("row2"),
-                                                      _row3_panel("roe3"),
-                                                      _address_space_textbox("address-space-textbox"),
-                                                      _button_panel("buttons"),
-                                                      _general_panel("layout-panel") {
+                                                      _header("header-label", this),
+                                                      _footer("footer-label", this),
+                                                      _name_label("name-label", this),
+                                                      _notebook("notebook", this),
+                                                      _map_button("map-button", this),
+                                                      _add_button("add-button", this),
+                                                      _display_label("display-label", this),
+                                                      _delete_button("delete-button", this),
+                                                      _name_textbox("name-textbox", this),
+                                                      _panel("panel", this),
+                                                      _address_space_label("address-space-label", this),
+                                                      _display_pick_list("display-pick-list", this),
+                                                      _row1_panel("row1", this),
+                                                      _row2_panel("row2", this),
+                                                      _row3_panel("roe3", this),
+                                                      _address_space_textbox("address-space-textbox", this),
+                                                      _button_panel("buttons", this),
+                                                      _general_panel("layout-panel", this) {
     }
 
     void controller::on_deactivate() {
@@ -268,17 +268,17 @@ namespace ryu::ide::machine_editor {
         _panel.resize(bounds);
     }
 
-    bool controller::on_process_event(const SDL_Event* e) {
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_ESCAPE: {
-                    end_state();
-                    return true;
-                }
-            }
-        }
-        return _panel.process_event(e);
-    }
+//    bool controller::on_process_event(const SDL_Event* e) {
+//        if (e->type == SDL_KEYDOWN) {
+//            switch (e->key.keysym.sym) {
+//                case SDLK_ESCAPE: {
+//                    end_state();
+//                    return true;
+//                }
+//            }
+//        }
+//        return _panel.process_event(e);
+//    }
 
     void controller::on_activate(const core::parameter_dict& params) {
         auto it = params.find("name");

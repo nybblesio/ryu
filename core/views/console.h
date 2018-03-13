@@ -57,7 +57,9 @@ namespace ryu::core {
             wait,
         };
 
-        explicit console(const std::string& name);
+        console(
+            const std::string& name,
+            core::view_container* container);
 
         void page_up();
 

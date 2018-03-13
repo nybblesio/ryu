@@ -12,7 +12,9 @@
 
 namespace ryu::core {
 
-    label::label(const std::string& name) : core::view(types::control, name) {
+    label::label(
+            const std::string& name,
+            core::view_container* container) : core::view(types::control, name, container) {
     }
 
     std::string label::value() const {
