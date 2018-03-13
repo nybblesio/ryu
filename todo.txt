@@ -29,15 +29,14 @@ Thoughts & Questions
 --------------------------------------
 
 - preferences: key binding data structure and implementation
-    - add serialization/deserialization code to input_action & input_binding so we can write to
-        preferences.yaml
-    - filter out non-ASCII characters during input
+    - add serialization/deserialization code to input_action & input_binding so we can write to preferences.yaml
     - joystick events
-    - mouse events
 
 - bug: console header, project and machine fields not properly resizing
 
 - bug: environment::on_evaluate isn't handling negative number properly
+
+- mouse event bindings
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
@@ -192,3 +191,4 @@ DONE
        to pass back to the UI so we can adjust the caret
 - MISSING: undo/redo need to return # of lines/columns affected & is_delete?
 - encapsulate current SDL_Event data into our own data structure and update interface
+- filter out non-ASCII characters during input
