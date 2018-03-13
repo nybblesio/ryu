@@ -55,8 +55,7 @@ namespace ryu::core {
             }
         }
 
-        auto pal = *palette();
-        auto& fill_color = pal[_bg_color];
+        auto& fill_color = _palette[_bg_color];
         renderer.set_color(fill_color);
         renderer.fill_rect(_bounds);
 
@@ -128,10 +127,6 @@ namespace ryu::core {
 
     void context::draw(core::renderer& renderer) {
         on_draw(renderer);
-    }
-
-    void context::palette(core::palette* palette) {
-        _palette = palette;
     }
 
     void context::remove_state(core::state* state) {

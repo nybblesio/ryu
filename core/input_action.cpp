@@ -32,6 +32,19 @@ namespace ryu::core {
         return &s_catalog.back();
     }
 
+    input_action* input_action::create_no_map(
+            const std::string& name,
+            const std::string& category,
+            const std::string& description) {
+        s_catalog.emplace_back(
+            id_pool::instance()->allocate(),
+            name,
+            category,
+            description,
+            flags::no_map);
+        return &s_catalog.back();
+    }
+
     const input_action_catalog& input_action::catalog() {
         return s_catalog;
     }
@@ -40,10 +53,12 @@ namespace ryu::core {
             action_id id,
             const std::string& name,
             const std::string& category,
-            const std::string& description) : _id(id),
-                                              _name(name),
-                                              _category(category),
-                                              _description(description) {
+            const std::string& description,
+            action_flags flag_value) : _id(id),
+                                       _name(name),
+                                       _category(category),
+                                       _description(description),
+                                       _flags(flag_value) {
     }
 
     void input_action::bind_quit() {
@@ -77,6 +92,10 @@ namespace ryu::core {
 
     void input_action::bind_maximized() {
         _bindings.push_back(input_binding::for_maximize());
+    }
+
+    void input_action::bind_text_input() {
+        _bindings.push_back(input_binding::for_text_input());
     }
 
     action_id input_action::type() const {

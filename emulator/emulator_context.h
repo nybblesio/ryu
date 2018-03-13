@@ -31,10 +31,13 @@ namespace ryu::emulator {
         bool on_initialize(core::result& result) override;
 
     private:
+        void bind_events();
+
+        void configure_states();
+
         void configure_palette();
 
     private:
-        core::palette _palette;
         controller _emulator_state;
         core::context_window::sizes _size = core::context_window::sizes::split;
     };

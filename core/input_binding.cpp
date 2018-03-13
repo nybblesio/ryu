@@ -8,9 +8,70 @@
 // this source code file.
 //
 
+#include <map>
 #include "input_binding.h"
 
 namespace ryu::core {
+
+    struct keycode_to_ascii_t {
+        int32_t mod;
+        char ascii;
+    };
+
+    // XXX: ensure all specialized keycodes are added
+    static std::map<int32_t, std::vector<keycode_to_ascii_t>> s_keycode_map = {
+        {SDLK_BACKQUOTE,    {{KMOD_NONE, '`'},  {KMOD_SHIFT, '~'}}},
+        {SDLK_EXCLAIM,      {{KMOD_NONE, '!'}}},
+        {SDLK_1,            {{KMOD_NONE, '1'},  {KMOD_SHIFT, '!'}}},
+        {SDLK_2,            {{KMOD_NONE, '2'},  {KMOD_SHIFT, '@'}}},
+        {SDLK_3,            {{KMOD_NONE, '3'},  {KMOD_SHIFT, '#'}}},
+        {SDLK_4,            {{KMOD_NONE, '4'},  {KMOD_SHIFT, '$'}}},
+        {SDLK_5,            {{KMOD_NONE, '5'},  {KMOD_SHIFT, '%'}}},
+        {SDLK_PERCENT,      {{KMOD_NONE, '%'}}},
+        {SDLK_6,            {{KMOD_NONE, '6'},  {KMOD_SHIFT, '^'}}},
+        {SDLK_7,            {{KMOD_NONE, '7'},  {KMOD_SHIFT, '&'}}},
+        {SDLK_8,            {{KMOD_NONE, '8'},  {KMOD_SHIFT, '*'}}},
+        {SDLK_9,            {{KMOD_NONE, '9'},  {KMOD_SHIFT, '('}}},
+        {SDLK_0,            {{KMOD_NONE, '0'},  {KMOD_SHIFT, ')'}}},
+        {SDLK_MINUS,        {{KMOD_NONE, '-'},  {KMOD_SHIFT, '_'}}},
+        {SDLK_EQUALS,       {{KMOD_NONE, '='},  {KMOD_SHIFT, '+'}}},
+        {SDLK_TAB,          {{KMOD_NONE, '\t'}, {KMOD_SHIFT, '\t'}}},
+        {SDLK_q,            {{KMOD_NONE, 'q'},  {KMOD_SHIFT, 'Q'}}},
+        {SDLK_w,            {{KMOD_NONE, 'w'},  {KMOD_SHIFT, 'W'}}},
+        {SDLK_e,            {{KMOD_NONE, 'e'},  {KMOD_SHIFT, 'E'}}},
+        {SDLK_r,            {{KMOD_NONE, 'r'},  {KMOD_SHIFT, 'R'}}},
+        {SDLK_t,            {{KMOD_NONE, 't'},  {KMOD_SHIFT, 'T'}}},
+        {SDLK_y,            {{KMOD_NONE, 'y'},  {KMOD_SHIFT, 'Y'}}},
+        {SDLK_u,            {{KMOD_NONE, 'u'},  {KMOD_SHIFT, 'U'}}},
+        {SDLK_i,            {{KMOD_NONE, 'i'},  {KMOD_SHIFT, 'I'}}},
+        {SDLK_o,            {{KMOD_NONE, 'o'},  {KMOD_SHIFT, 'O'}}},
+        {SDLK_p,            {{KMOD_NONE, 'p'},  {KMOD_SHIFT, 'P'}}},
+        {SDLK_LEFTBRACKET,  {{KMOD_NONE, '['},  {KMOD_SHIFT, '{'}}},
+        {SDLK_RIGHTBRACKET, {{KMOD_NONE, ']'},  {KMOD_SHIFT, '}'}}},
+        {SDLK_BACKSLASH,    {{KMOD_NONE, '\\'}, {KMOD_SHIFT, '|'}}},
+        {SDLK_a,            {{KMOD_NONE, 'a'},  {KMOD_SHIFT, 'A'}}},
+        {SDLK_s,            {{KMOD_NONE, 's'},  {KMOD_SHIFT, 'S'}}},
+        {SDLK_d,            {{KMOD_NONE, 'd'},  {KMOD_SHIFT, 'D'}}},
+        {SDLK_f,            {{KMOD_NONE, 'f'},  {KMOD_SHIFT, 'F'}}},
+        {SDLK_g,            {{KMOD_NONE, 'g'},  {KMOD_SHIFT, 'G'}}},
+        {SDLK_h,            {{KMOD_NONE, 'h'},  {KMOD_SHIFT, 'H'}}},
+        {SDLK_j,            {{KMOD_NONE, 'j'},  {KMOD_SHIFT, 'J'}}},
+        {SDLK_k,            {{KMOD_NONE, 'k'},  {KMOD_SHIFT, 'K'}}},
+        {SDLK_l,            {{KMOD_NONE, 'l'},  {KMOD_SHIFT, 'L'}}},
+        {SDLK_SEMICOLON,    {{KMOD_NONE, ';'},  {KMOD_SHIFT, ':'}}},
+        {SDLK_QUOTE,        {{KMOD_NONE, '\''}, {KMOD_SHIFT, '"'}}},
+        {SDLK_z,            {{KMOD_NONE, 'z'},  {KMOD_SHIFT, 'Z'}}},
+        {SDLK_x,            {{KMOD_NONE, 'x'},  {KMOD_SHIFT, 'X'}}},
+        {SDLK_c,            {{KMOD_NONE, 'c'},  {KMOD_SHIFT, 'C'}}},
+        {SDLK_v,            {{KMOD_NONE, 'v'},  {KMOD_SHIFT, 'V'}}},
+        {SDLK_b,            {{KMOD_NONE, 'b'},  {KMOD_SHIFT, 'B'}}},
+        {SDLK_n,            {{KMOD_NONE, 'n'},  {KMOD_SHIFT, 'N'}}},
+        {SDLK_m,            {{KMOD_NONE, 'm'},  {KMOD_SHIFT, 'M'}}},
+        {SDLK_COMMA,        {{KMOD_NONE, ','},  {KMOD_SHIFT, '<'}}},
+        {SDLK_PERIOD,       {{KMOD_NONE, '.'},  {KMOD_SHIFT, '>'}}},
+        {SDLK_SLASH,        {{KMOD_NONE, '/'},  {KMOD_SHIFT, '?'}}},
+        {SDLK_SPACE,        {{KMOD_NONE, ' '}}}
+    };
 
     input_binding input_binding::for_quit() {
         return input_binding(types::quit);
@@ -53,10 +114,6 @@ namespace ryu::core {
     }
 
     input_binding::input_binding(input_binding::types type) : _type(type) {
-    }
-
-    std::string input_binding::text() const {
-        return _text;
     }
 
     bool input_binding::matches(
@@ -115,7 +172,7 @@ namespace ryu::core {
                     return false;
                 for (auto key : _keys) {
                     if (is_modifier_key(key)) {
-                        if (!is_modifier_pressed(key))
+                        if ((event->key.keysym.mod & key) == 0)
                             return false;
                     } else {
                         if (event->key.keysym.sym != key) {
@@ -126,7 +183,23 @@ namespace ryu::core {
                 return true;
             }
             case text_input: {
-                return event->type == SDL_TEXTINPUT;
+                if (event->type != SDL_KEYDOWN)
+                    return false;
+                auto it = s_keycode_map.find(event->key.keysym.sym);
+                if (it == s_keycode_map.end())
+                    return false;
+                if (it->second.size() == 1) {
+                    data.c = it->second.front().ascii;
+                } else {
+                    // XXX: sometimes pressing ALT+<key> yields a character and sometimes not
+                    for (auto mapping : it->second) {
+                        if ((event->key.keysym.mod == KMOD_NONE && mapping.mod == KMOD_NONE)
+                        ||  ((event->key.keysym.mod & mapping.mod) != 0)) {
+                            data.c = mapping.ascii;
+                        }
+                    }
+                }
+                return true;
             }
             case mouse: {
                 return false;

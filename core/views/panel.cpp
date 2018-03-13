@@ -27,15 +27,17 @@ namespace ryu::core {
         auto bounds = client_bounds();
         surface.push_clip_rect(bounds);
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-        auto pal = *palette();
-        auto& fg = pal[fg_color()];
-        auto& bg = pal[bg_color()];
-        surface.set_color(bg);
-        surface.fill_rect(bounds);
-        surface.pop_blend_mode();
-        if (_border != border::types::none) {
-            surface.set_color(fg);
-            surface.draw_rect(bounds);
+        auto current_palette = palette();
+        if (current_palette != nullptr) {
+            auto& fg = current_palette->get(fg_color());
+            auto& bg = current_palette->get(bg_color());
+            surface.set_color(bg);
+            surface.fill_rect(bounds);
+            surface.pop_blend_mode();
+            if (_border != border::types::none) {
+                surface.set_color(fg);
+                surface.draw_rect(bounds);
+            }
         }
         surface.pop_clip_rect();
     }

@@ -14,6 +14,7 @@
 #include <core/view.h>
 #include <core/document.h>
 #include <core/selection.h>
+#include <core/input_action.h>
 #include <core/text_formatter.h>
 #include "caret.h"
 
@@ -84,6 +85,8 @@ namespace ryu::core {
 
         void more(bool flag);
 
+        void caret_newline();
+
         void update(uint32_t dt);
 
         void caret_color(uint8_t color);
@@ -116,12 +119,12 @@ namespace ryu::core {
 
         void on_draw(core::renderer& surface) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
         void on_resize(const core::rect& context_bounds) override;
 
     private:
         friend struct output_queue_entry_t;
+
+        void bind_events();
 
         bool transition_to(
                 const std::string& name,
@@ -152,10 +155,14 @@ namespace ryu::core {
 
         std::string find_command_string();
 
+        void select_color(const std::string& name);
+
+        bool input_event_filter(const core::event_data_t& data);
+
         void scale_columns(std::vector<data_table_column_t>& columns);
 
     private:
-        static command_action_dict _handlers;
+        static command_action_dict s_handlers;
 
         bool _more {};
         caret _caret;

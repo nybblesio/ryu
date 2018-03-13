@@ -95,6 +95,9 @@ namespace ryu::core {
         std::string blackboard(const std::string& name) const;
 
     private:
+        void bind_events();
+
+    private:
         bool _quit = false;
         core::rect _window_rect;
         int _focused_context = -1;

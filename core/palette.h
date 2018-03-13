@@ -8,7 +8,6 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include "palette_entry.h"
@@ -21,10 +20,14 @@ namespace ryu::core {
 
         palette() = default;
 
-        palette_entry& operator[] (size_t index) {
+        palette_entry& get(size_t index) {
             if (index > max_entries)
                 return _entries[max_entries - 1];
             return _entries[index];
+        }
+
+        palette_entry& operator[] (size_t index) {
+            return get(index);
         }
 
     private:

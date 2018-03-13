@@ -61,6 +61,10 @@ namespace ryu::core {
             return _bg_color;
         }
 
+        core::palette& palette() {
+            return _palette;
+        }
+
         void fg_color(uint8_t index) {
             _fg_color = index;
         }
@@ -95,17 +99,11 @@ namespace ryu::core {
 
         void draw(core::renderer& renderer);
 
-        void palette(core::palette* palette);
-
         inline core::engine* engine() const {
             return _engine;
         }
 
         void remove_state(core::state* state);
-
-        inline core::palette* palette() const {
-            return _palette;
-        }
 
         inline core::state* find_state(int id) {
             return _stack.find_state(id);
@@ -141,10 +139,10 @@ namespace ryu::core {
         uint8_t _fg_color = 0;
         uint8_t _bg_color = 0;
         core::rect _bounds {};
+        core::palette _palette {};
         core::state_stack _stack {};
         core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
-        core::palette* _palette = nullptr;
         const core::font_t* _font = nullptr;
         core::font_family* _family = nullptr;
         std::unique_ptr<core::environment> _environment;

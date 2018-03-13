@@ -60,14 +60,14 @@ namespace ryu::ide::machine_editor {
         auto address_space_label_width = context()->font_face()->measure_text("address space: $");
 
         _header.font_family(context()->font_family());
-        _header.palette(context()->palette());
+        _header.palette(&context()->palette());
         _header.dock(core::dock::styles::top);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
         _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 15});
 
         _footer.font_family(context()->font_family());
-        _footer.palette(context()->palette());
+        _footer.palette(&context()->palette());
         _footer.dock(core::dock::styles::bottom);
         _footer.fg_color(ide::colors::info_text);
         _footer.bg_color(ide::colors::fill_color);
@@ -77,7 +77,7 @@ namespace ryu::ide::machine_editor {
         _name_label.value("name:");
         _name_label.font_family(context()->font_family());
         _name_label.margin({0, 0, 0, 0});
-        _name_label.palette(context()->palette());
+        _name_label.palette(&context()->palette());
         _name_label.dock(core::dock::styles::left);
         _name_label.fg_color(ide::colors::text);
         _name_label.bg_color(ide::colors::fill_color);
@@ -93,7 +93,7 @@ namespace ryu::ide::machine_editor {
         _name_textbox.on_tab([&]() -> const core::view* { return &_address_space_textbox; });
         _name_textbox.font_family(context()->font_family());
         _name_textbox.margin({15, 0, 3, 0});
-        _name_textbox.palette(context()->palette());
+        _name_textbox.palette(&context()->palette());
         _name_textbox.dock(core::dock::styles::left);
         _name_textbox.fg_color(ide::colors::text);
         _name_textbox.bg_color(ide::colors::fill_color);
@@ -104,7 +104,7 @@ namespace ryu::ide::machine_editor {
         _address_space_label.font_family(context()->font_family());
         _address_space_label.margin({0, 0, 0, 0});
         _address_space_label.value("address space: $");
-        _address_space_label.palette(context()->palette());
+        _address_space_label.palette(&context()->palette());
         _address_space_label.dock(core::dock::styles::left);
         _address_space_label.fg_color(ide::colors::text);
         _address_space_label.bg_color(ide::colors::fill_color);
@@ -120,7 +120,7 @@ namespace ryu::ide::machine_editor {
         _address_space_textbox.on_tab([&]() -> const core::view* { return &_display_pick_list; });
         _address_space_textbox.font_family(context()->font_family());
         _address_space_textbox.margin({15, 0, 3, 0});
-        _address_space_textbox.palette(context()->palette());
+        _address_space_textbox.palette(&context()->palette());
         _address_space_textbox.dock(core::dock::styles::left);
         _address_space_textbox.fg_color(ide::colors::text);
         _address_space_textbox.bg_color(ide::colors::fill_color);
@@ -131,7 +131,7 @@ namespace ryu::ide::machine_editor {
         _display_label.value("display:");
         _display_label.font_family(context()->font_family());
         _display_label.margin({0, 0, 0, 0});
-        _display_label.palette(context()->palette());
+        _display_label.palette(&context()->palette());
         _display_label.dock(core::dock::styles::left);
         _display_label.fg_color(ide::colors::text);
         _display_label.bg_color(ide::colors::fill_color);
@@ -147,7 +147,7 @@ namespace ryu::ide::machine_editor {
         }
         _display_pick_list.font_family(context()->font_family());
         _display_pick_list.margin({15, 0, 4, 0});
-        _display_pick_list.palette(context()->palette());
+        _display_pick_list.palette(&context()->palette());
         _display_pick_list.dock(core::dock::styles::left);
         _display_pick_list.fg_color(ide::colors::text);
         _display_pick_list.bg_color(ide::colors::fill_color);
@@ -159,7 +159,7 @@ namespace ryu::ide::machine_editor {
         _map_button.value("Map");
         _map_button.font_family(context()->font_family());
         _map_button.margin({5, 5, 5, 5});
-        _map_button.palette(context()->palette());
+        _map_button.palette(&context()->palette());
         _map_button.dock(core::dock::styles::left);
         _map_button.fg_color(ide::colors::light_grey);
         _map_button.bg_color(ide::colors::light_blue);
@@ -168,7 +168,7 @@ namespace ryu::ide::machine_editor {
         _add_button.value("Add");
         _add_button.font_family(context()->font_family());
         _add_button.margin({5, 5, 5, 5});
-        _add_button.palette(context()->palette());
+        _add_button.palette(&context()->palette());
         _add_button.dock(core::dock::styles::left);
         _add_button.fg_color(ide::colors::light_grey);
         _add_button.bg_color(ide::colors::light_blue);
@@ -177,13 +177,13 @@ namespace ryu::ide::machine_editor {
         _delete_button.value("Delete");
         _delete_button.font_family(context()->font_family());
         _delete_button.margin({5, 5, 5, 5});
-        _delete_button.palette(context()->palette());
+        _delete_button.palette(&context()->palette());
         _delete_button.dock(core::dock::styles::left);
         _delete_button.fg_color(ide::colors::light_grey);
         _delete_button.bg_color(ide::colors::light_blue);
         _delete_button.on_tab([&]() -> const core::view* { return &_notebook; });
 
-        _row1_panel.palette(context()->palette());
+        _row1_panel.palette(&context()->palette());
         _row1_panel.dock(core::dock::styles::top);
         _row1_panel.bg_color(ide::colors::transparent);
         _row1_panel.bounds().height(context()->font_face()->line_height * 2);
@@ -191,7 +191,7 @@ namespace ryu::ide::machine_editor {
         _row1_panel.add_child(&_name_label);
         _row1_panel.add_child(&_name_textbox);
 
-        _row2_panel.palette(context()->palette());
+        _row2_panel.palette(&context()->palette());
         _row2_panel.dock(core::dock::styles::top);
         _row2_panel.bg_color(ide::colors::transparent);
         _row2_panel.bounds().height(context()->font_face()->line_height * 2);
@@ -199,7 +199,7 @@ namespace ryu::ide::machine_editor {
         _row2_panel.add_child(&_address_space_label);
         _row2_panel.add_child(&_address_space_textbox);
 
-        _row3_panel.palette(context()->palette());
+        _row3_panel.palette(&context()->palette());
         _row3_panel.dock(core::dock::styles::top);
         _row3_panel.bg_color(ide::colors::transparent);
         _row3_panel.bounds().height(context()->font_face()->line_height * 2);
@@ -207,7 +207,7 @@ namespace ryu::ide::machine_editor {
         _row3_panel.add_child(&_display_label);
         _row3_panel.add_child(&_display_pick_list);
 
-        _button_panel.palette(context()->palette());
+        _button_panel.palette(&context()->palette());
         _button_panel.dock(core::dock::styles::bottom);
         _button_panel.bg_color(ide::colors::transparent);
         _button_panel.bounds().height(context()->font_face()->line_height * 3);
@@ -217,7 +217,7 @@ namespace ryu::ide::machine_editor {
         _button_panel.add_child(&_delete_button);
 
         _general_panel.font_family(context()->font_family());
-        _general_panel.palette(context()->palette());
+        _general_panel.palette(&context()->palette());
         _general_panel.dock(core::dock::styles::fill);
         _general_panel.fg_color(ide::colors::info_text);
         _general_panel.bg_color(ide::colors::fill_color);
@@ -227,7 +227,7 @@ namespace ryu::ide::machine_editor {
 
         _notebook.on_tab([&]() -> const core::view* { return &_name_textbox; });
         _notebook.font_family(context()->font_family());
-        _notebook.palette(context()->palette());
+        _notebook.palette(&context()->palette());
         _notebook.dock(core::dock::styles::fill);
         _notebook.fg_color(ide::colors::info_text);
         _notebook.bg_color(ide::colors::fill_color);
@@ -237,7 +237,7 @@ namespace ryu::ide::machine_editor {
         _notebook.add_tab("Settings", nullptr);
 
         _panel.font_family(context()->font_family());
-        _panel.palette(context()->palette());
+        _panel.palette(&context()->palette());
         _panel.dock(core::dock::styles::fill);
         _panel.fg_color(ide::colors::info_text);
         _panel.bg_color(ide::colors::fill_color);

@@ -140,10 +140,13 @@ namespace ryu::core {
 
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        auto pal = *palette();
-        auto caret_color = pal[fg_color()];
-        caret_color.alpha(0x7f);
-        surface.set_color(caret_color);
+        // XXX: we should cache the modified color when fg_color is changed
+        auto current_palette = palette();
+        if (current_palette != nullptr) {
+            auto caret_color = current_palette->get(fg_color());
+            caret_color.alpha(0x7f);
+            surface.set_color(caret_color);
+        }
 
         auto parent_bounds = parent()->client_bounds();
         auto& rect = bounds();

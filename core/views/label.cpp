@@ -35,14 +35,22 @@ namespace ryu::core {
     void label::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
 
-        auto pal = *palette();
-        auto& fg = pal[fg_color()];
-        auto& bg = pal[bg_color()];
+        auto current_palette = palette();
+        if (current_palette == nullptr)
+            return;
+
+        auto& fg = current_palette->get(fg_color());
+        auto& bg = current_palette->get(bg_color());
 
         surface.set_color(bg);
         surface.fill_rect(bounds);
         surface.set_font_color(font_face(), fg);
-        surface.draw_text_aligned(font_face(), _value, bounds, _halign, _valign);
+        surface.draw_text_aligned(
+            font_face(),
+            _value,
+            bounds,
+            _halign,
+            _valign);
         if (_border != border::types::none) {
             surface.set_color(fg);
             surface.draw_rect(bounds);

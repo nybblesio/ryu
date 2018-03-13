@@ -20,6 +20,7 @@
 namespace ryu::core {
 
     using action_id = uint32_t;
+    using action_flags = uint8_t;
     using action_sink_type = uint16_t;
 
     class input_action;
@@ -58,9 +59,19 @@ namespace ryu::core {
 
     class input_action {
     public:
+        enum flags {
+            none   = 0b00000000,
+            no_map = 0b00000001,
+        };
+
         static void initialize();
 
         static input_action* create(
+            const std::string& name,
+            const std::string& category,
+            const std::string& description);
+
+        static input_action* create_no_map(
             const std::string& name,
             const std::string& category,
             const std::string& description);
@@ -75,7 +86,8 @@ namespace ryu::core {
             action_id id,
             const std::string& name,
             const std::string& category,
-            const std::string& description);
+            const std::string& description,
+            action_flags flag_value = flags::none);
 
         void bind_quit();
 
@@ -89,6 +101,8 @@ namespace ryu::core {
 
         void bind_maximized();
 
+        void bind_text_input();
+
         void register_handler(
             action_sink_type type,
             const input_action_filter& filter,
@@ -99,6 +113,10 @@ namespace ryu::core {
         std::string name() const;
 
         std::string category() const;
+
+        inline bool can_map() const {
+            return (_flags & flags::no_map) == 0;
+        }
 
         std::string description() const;
 
@@ -121,6 +139,7 @@ namespace ryu::core {
         std::string _category;
         std::string _description;
         input_bindings _bindings {};
+        action_flags _flags = flags::none;
         input_action_handlers _handlers {};
     };
 

@@ -36,10 +36,13 @@ namespace ryu::ide {
         bool on_initialize(core::result& result) override;
 
     private:
+        void bind_events();
+
+        void configure_states();
+
         void configure_palette();
 
     private:
-        core::palette _palette;
         hex_editor::controller _hex_editor_state;
         console_editor::controller _console_state;
         source_editor::controller _source_editor_state;

@@ -30,7 +30,7 @@ namespace ryu::ide::hex_editor {
 
     void controller::on_initialize() {
         _project_status.font_family(context()->font_family());
-        _project_status.palette(context()->palette());
+        _project_status.palette(&context()->palette());
         _project_status.dock(core::dock::styles::left);
         _project_status.fg_color(ide::colors::info_text);
         _project_status.bg_color(ide::colors::fill_color);
@@ -38,7 +38,7 @@ namespace ryu::ide::hex_editor {
         _project_status.value("project: (none)");
 
         _machine_status.font_family(context()->font_family());
-        _machine_status.palette(context()->palette());
+        _machine_status.palette(&context()->palette());
         _machine_status.dock(core::dock::styles::left);
         _machine_status.fg_color(ide::colors::info_text);
         _machine_status.bg_color(ide::colors::fill_color);
@@ -46,7 +46,7 @@ namespace ryu::ide::hex_editor {
         _machine_status.value("| machine: (none)");
 
         _header.font_family(context()->font_family());
-        _header.palette(context()->palette());
+        _header.palette(&context()->palette());
         _header.dock(core::dock::styles::top);
         _header.fg_color(ide::colors::info_text);
         _header.bg_color(ide::colors::fill_color);
@@ -72,14 +72,14 @@ namespace ryu::ide::hex_editor {
 
         _caret_status.font_family(context()->font_family());
         _caret_status.margin({0, 0, 0, 0});
-        _caret_status.palette(context()->palette());
+        _caret_status.palette(&context()->palette());
         _caret_status.dock(core::dock::styles::left);
         _caret_status.fg_color(ide::colors::info_text);
         _caret_status.bg_color(ide::colors::fill_color);
 
         _environment_status.font_family(context()->font_family());
         _environment_status.margin({0, 0, 0, 0});
-        _environment_status.palette(context()->palette());
+        _environment_status.palette(&context()->palette());
         _environment_status.dock(core::dock::styles::left);
         _environment_status.fg_color(ide::colors::info_text);
         _environment_status.bg_color(ide::colors::fill_color);
@@ -88,7 +88,7 @@ namespace ryu::ide::hex_editor {
                 context()->environment()->name()));
 
         _footer.font_family(context()->font_family());
-        _footer.palette(context()->palette());
+        _footer.palette(&context()->palette());
         _footer.dock(core::dock::styles::bottom);
         _footer.bounds().height(context()->font_face()->line_height);
         _footer.fg_color(ide::colors::info_text);
@@ -100,7 +100,7 @@ namespace ryu::ide::hex_editor {
         _command_line.width(60);
         _command_line.length(255);
         _command_line.font_family(context()->font_family());
-        _command_line.palette(context()->palette());
+        _command_line.palette(&context()->palette());
         _command_line.dock(core::dock::styles::top);
         _command_line.fg_color(ide::colors::text);
         _command_line.bg_color(ide::colors::fill_color);
@@ -154,7 +154,7 @@ namespace ryu::ide::hex_editor {
         _command_line.margin({_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
 
         _editor.font_family(context()->font_family());
-        _editor.palette(context()->palette());
+        _editor.palette(&context()->palette());
         _editor.dock(core::dock::styles::fill);
         _editor.fg_color(ide::colors::text);
         _editor.caret_color(ide::colors::caret);
@@ -170,7 +170,7 @@ namespace ryu::ide::hex_editor {
         _editor.initialize(65535, 16);
 
         _layout_panel.font_family(context()->font_family());
-        _layout_panel.palette(context()->palette());
+        _layout_panel.palette(&context()->palette());
         _layout_panel.dock(core::dock::styles::fill);
         _layout_panel.fg_color(ide::colors::info_text);
         _layout_panel.bg_color(ide::colors::fill_color);

@@ -124,85 +124,7 @@ namespace ryu::core {
             }
         }
 
-        auto quit_action = input_action::create(
-            "ryu_quit",
-            "Ryu",
-            "Quit the Ryu application.");
-        quit_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                quit();
-                return true;
-            });
-        quit_action->bind_quit();
-
-        auto minimized_action = input_action::create(
-            "ryu_minimized",
-            "Ryu",
-            "Minimize the Ryu application window.");
-        minimized_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                return true;
-            });
-        minimized_action->bind_minimized();
-
-        auto maximized_action = input_action::create(
-            "ryu_maximized",
-            "Ryu",
-            "Maximize the Ryu application window.");
-        maximized_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                return true;
-            });
-        maximized_action->bind_maximized();
-
-        auto move_action = input_action::create(
-            "ryu_moved",
-            "Ryu",
-            "The Ryu application window was moved.");
-        move_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                _window_rect.left(data.x);
-                _window_rect.top(data.y);
-                raise_move();
-                return true;
-            });
-        move_action->bind_move();
-
-        auto resize_action = input_action::create(
-            "ryu_resized",
-            "Ryu",
-            "The Ryu application window was resized.");
-        resize_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                _window_rect.width(data.width);
-                _window_rect.height(data.height);
-                raise_resize();
-                return true;
-            });
-        resize_action->bind_resize();
-
-        auto restore_action = input_action::create(
-            "ryu_restore",
-            "Ryu",
-            "The Ryu application window was restored from minimized or maximized.");
-        restore_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                // XXX:
-                return true;
-            });
-        restore_action->bind_restore();
+        bind_events();
 
         return true;
     }
@@ -223,13 +145,95 @@ namespace ryu::core {
         _focused_context = id;
     }
 
+    void engine::bind_events() {
+        auto quit_action = input_action::create_no_map(
+            "ryu_quit",
+            "Ryu",
+            "Quit the Ryu application.");
+        quit_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                quit();
+                return true;
+            });
+        quit_action->bind_quit();
+
+        auto minimized_action = input_action::create_no_map(
+            "ryu_minimized",
+            "Ryu",
+            "Minimize the Ryu application window.");
+        minimized_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                return true;
+            });
+        minimized_action->bind_minimized();
+
+        auto maximized_action = input_action::create_no_map(
+            "ryu_maximized",
+            "Ryu",
+            "Maximize the Ryu application window.");
+        maximized_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                return true;
+            });
+        maximized_action->bind_maximized();
+
+        auto move_action = input_action::create_no_map(
+            "ryu_moved",
+            "Ryu",
+            "The Ryu application window was moved.");
+        move_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                _window_rect.left(data.x);
+                _window_rect.top(data.y);
+                raise_move();
+                return true;
+            });
+        move_action->bind_move();
+
+        auto resize_action = input_action::create_no_map(
+            "ryu_resized",
+            "Ryu",
+            "The Ryu application window was resized.");
+        resize_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                _window_rect.width(data.width);
+                _window_rect.height(data.height);
+                raise_resize();
+                return true;
+            });
+        resize_action->bind_resize();
+
+        auto restore_action = input_action::create_no_map(
+            "ryu_restore",
+            "Ryu",
+            "The Ryu application window was restored from minimized or maximized.");
+        restore_action->register_handler(
+            action_sink::engine,
+            action_sink::default_filter,
+            [this](const event_data_t& data) {
+                // XXX:
+                return true;
+            });
+        restore_action->bind_restore();
+    }
+
     void engine::raise_resize() {
         if (_resize_callback != nullptr) {
             _resize_callback(core::rect{
-                    0,
-                    0,
-                    _window_rect.width(),
-                    _window_rect.height()});
+                0,
+                0,
+                _window_rect.width(),
+                _window_rect.height()});
         }
     }
 
@@ -242,9 +246,6 @@ namespace ryu::core {
         short frame_count = 0;
         auto last_time = SDL_GetTicks();
         auto last_fps_time = last_time;
-
-        // XXX: is this the best place to call this?
-        SDL_StartTextInput();
 
         core::renderer surface {_renderer};
 
@@ -271,7 +272,8 @@ namespace ryu::core {
                     break;
 
                 for (const auto& action : input_action::catalog())
-                    action.process(&e);
+                    if (action.process(&e) != action_sink::types::none)
+                        break;
 
                 events.push_back(e);
             }
