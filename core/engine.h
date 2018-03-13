@@ -26,13 +26,6 @@ namespace ryu::core {
         using move_callable = std::function<void (const core::rect&)>;
         using resize_callable = std::function<void (const core::rect&)>;
 
-        const uint16_t action_quit = 3;
-        const uint16_t action_window_moved = 4;
-        const uint16_t action_window_resized = 5;
-        const uint16_t action_window_restore = 8;
-        const uint16_t action_window_minimized = 6;
-        const uint16_t action_window_maximized = 7;
-
         static std::vector<core::rect> displays();
 
         engine() = default;

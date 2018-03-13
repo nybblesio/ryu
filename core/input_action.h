@@ -19,7 +19,7 @@
 
 namespace ryu::core {
 
-    using action_type = uint16_t;
+    using action_id = uint32_t;
     using action_sink_type = uint16_t;
 
     class input_action;
@@ -61,14 +61,21 @@ namespace ryu::core {
         static void initialize();
 
         static input_action* create(
-            action_type type,
             const std::string& name,
             const std::string& category,
             const std::string& description);
 
         static const input_action_catalog& catalog();
 
-        static input_action* find_by_type(action_type type);
+        static input_action* find_by_id(action_id type);
+
+        static input_action* find_by_name(const std::string& name);
+
+        input_action(
+            action_id id,
+            const std::string& name,
+            const std::string& category,
+            const std::string& description);
 
         void bind_quit();
 
@@ -87,7 +94,7 @@ namespace ryu::core {
             const input_action_filter& filter,
             const input_action_perform& perform);
 
-        action_type type() const;
+        action_id type() const;
 
         std::string name() const;
 
@@ -101,13 +108,6 @@ namespace ryu::core {
 
         action_sink_type process(const SDL_Event* event) const;
 
-    protected:
-        input_action(
-            action_type type,
-            const std::string& name,
-            const std::string& category,
-            const std::string& description);
-
     private:
         action_sink_type process_action(
             const input_binding& binding,
@@ -116,7 +116,7 @@ namespace ryu::core {
     private:
         static input_action_catalog s_catalog;
 
-        action_type _type;
+        action_id _id;
         std::string _name;
         std::string _category;
         std::string _description;

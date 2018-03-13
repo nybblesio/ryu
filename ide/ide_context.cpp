@@ -173,7 +173,6 @@ namespace ryu::ide {
         configure_palette();
 
         auto toggle_context = core::input_action::create(
-            action_toggle_context,
             "toggle_ide_context",
             "IDE",
             "Collapse, expand, and split the IDE context window.");

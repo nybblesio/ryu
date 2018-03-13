@@ -743,11 +743,12 @@ namespace ryu::core {
 
     bool environment::on_open_editor(
             const command_handler_context_t& context) {
-        if (!has_valid_project(context.result))
-            return false;
-
         auto name = context.get_parameter<core::string_literal_t>("name");
         auto type = context.get_parameter<core::identifier_t>("type");
+
+        if (project_file_type::does_type_require_project(type)
+        && !has_valid_project(context.result))
+            return false;
 
         context.result.add_data("command_action", {
                 {"action", project_file_type::code_to_action(type)},

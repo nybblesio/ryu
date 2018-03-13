@@ -22,8 +22,6 @@ namespace ryu::ide {
 
     class ide_context : public core::context {
     public:
-        const uint16_t action_toggle_context = 1;
-
         explicit ide_context(const std::string& name);
 
         core::context_window::sizes size() const;

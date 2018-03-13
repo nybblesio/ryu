@@ -85,7 +85,6 @@ namespace ryu::emulator {
         push_state(_emulator_state.id(), {});
 
         auto toggle_context = core::input_action::create(
-            action_toggle_context,
             "toggle_emulator_context",
             "Emulator",
             "Collapse, expand, and split the Emulator context window.");

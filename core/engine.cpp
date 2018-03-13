@@ -125,7 +125,6 @@ namespace ryu::core {
         }
 
         auto quit_action = input_action::create(
-            action_quit,
             "ryu_quit",
             "Ryu",
             "Quit the Ryu application.");
@@ -139,7 +138,6 @@ namespace ryu::core {
         quit_action->bind_quit();
 
         auto minimized_action = input_action::create(
-            action_window_minimized,
             "ryu_minimized",
             "Ryu",
             "Minimize the Ryu application window.");
@@ -152,7 +150,6 @@ namespace ryu::core {
         minimized_action->bind_minimized();
 
         auto maximized_action = input_action::create(
-            action_window_maximized,
             "ryu_maximized",
             "Ryu",
             "Maximize the Ryu application window.");
@@ -165,7 +162,6 @@ namespace ryu::core {
         maximized_action->bind_maximized();
 
         auto move_action = input_action::create(
-            action_window_moved,
             "ryu_moved",
             "Ryu",
             "The Ryu application window was moved.");
@@ -181,7 +177,6 @@ namespace ryu::core {
         move_action->bind_move();
 
         auto resize_action = input_action::create(
-            action_window_resized,
             "ryu_resized",
             "Ryu",
             "The Ryu application window was resized.");
@@ -197,7 +192,6 @@ namespace ryu::core {
         resize_action->bind_resize();
 
         auto restore_action = input_action::create(
-            action_window_restore,
             "ryu_restore",
             "Ryu",
             "The Ryu application window was restored from minimized or maximized.");

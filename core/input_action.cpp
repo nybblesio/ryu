@@ -9,6 +9,7 @@
 //
 
 #include <vector>
+#include "id_pool.h"
 #include "input_action.h"
 
 namespace ryu::core {
@@ -20,11 +21,14 @@ namespace ryu::core {
     }
 
     input_action* input_action::create(
-            action_type type,
             const std::string& name,
             const std::string& category,
             const std::string& description) {
-        s_catalog.push_back(input_action(type, name, category, description));
+        s_catalog.emplace_back(
+            id_pool::instance()->allocate(),
+            name,
+            category,
+            description);
         return &s_catalog.back();
     }
 
@@ -33,10 +37,10 @@ namespace ryu::core {
     }
 
     input_action::input_action(
-            action_type type,
+            action_id id,
             const std::string& name,
             const std::string& category,
-            const std::string& description) : _type(type),
+            const std::string& description) : _id(id),
                                               _name(name),
                                               _category(category),
                                               _description(description) {
@@ -58,7 +62,9 @@ namespace ryu::core {
             action_sink_type type,
             const input_action_filter& filter,
             const input_action_perform& perform) {
-        _handlers.insert(std::make_pair(type, input_action_handler_t {filter, perform}));
+        _handlers.insert(std::make_pair(
+            type,
+            input_action_handler_t {filter, perform}));
     }
 
     void input_action::bind_restore() {
@@ -73,8 +79,8 @@ namespace ryu::core {
         _bindings.push_back(input_binding::for_maximize());
     }
 
-    action_type input_action::type() const {
-        return _type;
+    action_id input_action::type() const {
+        return _id;
     }
 
     std::string input_action::name() const {
@@ -85,6 +91,21 @@ namespace ryu::core {
         return _category;
     }
 
+    action_sink_type input_action::process_action(
+        const input_binding& binding,
+        const event_data_t& data) const {
+        for (uint16_t i = action_sink::last; i > action_sink::none; i--) {
+            auto it = _handlers.find(i);
+            if (it == _handlers.end())
+                continue;
+            if (!it->second.filter(data))
+                continue;
+            it->second.perform(data);
+            return (action_sink_type) i;
+        }
+        return action_sink::none;
+    }
+
     std::string input_action::description() const {
         return _description;
     }
@@ -93,18 +114,28 @@ namespace ryu::core {
         _bindings.push_back(input_binding::for_key_combination(keys));
     }
 
-    input_action* input_action::find_by_type(action_type type) {
+    input_action* input_action::find_by_id(action_id type) {
         auto it = std::find_if(
             s_catalog.begin(),
             s_catalog.end(),
             [&type](const input_action& action) {
-                return action._type == type;
+                return action._id == type;
             });
         return it != s_catalog.end() ? &(*it) : nullptr;
     }
 
     void input_action::bind_joystick(input_joystick_t joystick) {
         _bindings.push_back(input_binding::for_joystick_buttons(joystick));
+    }
+
+    input_action* input_action::find_by_name(const std::string& name) {
+        auto it = std::find_if(
+            s_catalog.begin(),
+            s_catalog.end(),
+            [&name](const input_action& action) {
+                return action._name == name;
+            });
+        return it != s_catalog.end() ? &(*it) : nullptr;
     }
 
     action_sink_type input_action::process(const SDL_Event* event) const {
@@ -118,21 +149,6 @@ namespace ryu::core {
                 return process_action(binding, data);
         }
 
-        return action_sink::none;
-    }
-
-    action_sink_type input_action::process_action(
-            const input_binding& binding,
-            const event_data_t& data) const {
-        for (uint16_t i = action_sink::last; i > action_sink::none; i--) {
-            auto it = _handlers.find(i);
-            if (it == _handlers.end())
-                continue;
-            if (!it->second.filter(data))
-                continue;
-            it->second.perform(data);
-            return (action_sink_type) i;
-        }
         return action_sink::none;
     }
 

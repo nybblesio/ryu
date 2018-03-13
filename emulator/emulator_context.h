@@ -17,8 +17,6 @@ namespace ryu::emulator {
 
     class emulator_context : public core::context {
     public:
-        const uint16_t action_toggle_context = 2;
-
         explicit emulator_context(const std::string& name);
 
         core::context_window::sizes size() const;

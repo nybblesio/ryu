@@ -62,6 +62,10 @@ namespace ryu::core {
         return it->second;
     }
 
+    bool project_file_type::does_type_require_project(const std::string& code) {
+        return !(boost::to_lower_copy<std::string>(code) == "mach");
+    }
+
     project_file_type::codes project_file_type::code_to_type(const std::string& code) {
         auto it = s_code_to_type.find(boost::to_lower_copy<std::string>(code));
         if (it == s_code_to_type.end())
