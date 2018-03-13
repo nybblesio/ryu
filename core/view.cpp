@@ -26,6 +26,11 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
+    void view::initialize() {
+        listen_for_on_container_change();
+        on_initialize();
+    }
+
     uint32_t view::id() const {
         return _id;
     }
@@ -55,13 +60,16 @@ namespace ryu::core {
                && (_flags & config::flags::visible) != 0;
     }
 
-    bool view::tabstop() const {
-        return (_flags & config::flags::tabstop) != 0;
-    }
-
     bool view::focused() const {
         return _container->is_focused()
                && (_flags & config::flags::focused) != 0;
+    }
+
+    void view::on_initialize() {
+    }
+
+    bool view::tab_stop() const {
+        return (_flags & config::flags::tab_stop) != 0;
     }
 
     void view::clear_children() {
@@ -136,24 +144,15 @@ namespace ryu::core {
             child->visible(value);
     }
 
-    void view::tabstop(bool value) {
+    void view::tab_stop(bool value) {
         if (value)
-            _flags |= config::flags::tabstop;
+            _flags |= config::flags::tab_stop;
         else
-            _flags &= ~config::flags::tabstop;
+            _flags &= ~config::flags::tab_stop;
     }
 
     std::string view::name() const {
         return _name;
-    }
-
-    core::rect view::client_bounds() {
-        auto rect = bounds();
-        auto pad = padding();
-        core::rect padded;
-        padded.pos(rect.left() + pad.left(), rect.top() + pad.top());
-        padded.size(rect.width() - pad.right(), rect.height() - pad.bottom());
-        return padded;
     }
 
     uint8_t view::bg_color() const {
@@ -166,6 +165,15 @@ namespace ryu::core {
 
     uint8_t view::font_style() const {
         return _font_style;
+    }
+
+    core::rect view::client_bounds() {
+        auto rect = bounds();
+        auto pad = padding();
+        core::rect padded;
+        padded.pos(rect.left() + pad.left(), rect.top() + pad.top());
+        padded.size(rect.width() - pad.right(), rect.height() - pad.bottom());
+        return padded;
     }
 
     void view::bg_color(uint8_t value) {
@@ -301,9 +309,6 @@ namespace ryu::core {
         inner_focus(target->_id == this->_id);
     }
 
-    // XXX: this works, but it has be to invoked manually on the view who needs the notification
-    //      i'm worried i'll forget this is here....need to find a way to refactor view's interface
-    //      so we invoke an initialize method outside of the constructor.  maybe a static ctor?
     void view::listen_for_on_container_change() {
         _container->on_change([this](view_host::change_reason_flags flags) {
             on_focus_changed();

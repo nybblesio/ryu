@@ -58,12 +58,12 @@ namespace ryu::core {
 
         struct config {
             enum flags : uint8_t {
-                none    = 0b00000000,
-                visible = 0b00000001,
-                enabled = 0b00000010,
-                tabstop = 0b00000100,
-                focused = 0b00001000,
-                layout  = 0b00010000
+                none     = 0b00000000,
+                visible  = 0b00000001,
+                enabled  = 0b00000010,
+                tab_stop = 0b00000100,
+                focused  = 0b00001000,
+                layout   = 0b00010000
             };
         };
 
@@ -81,6 +81,8 @@ namespace ryu::core {
 
         virtual ~view();
 
+        void initialize();
+
         uint32_t id() const;
 
         bool layout() const;
@@ -95,9 +97,9 @@ namespace ryu::core {
 
         bool visible() const;
 
-        bool tabstop() const;
-
         core::view* parent();
+
+        bool tab_stop() const;
 
         void clear_children();
 
@@ -119,8 +121,6 @@ namespace ryu::core {
 
         void visible(bool value);
 
-        void tabstop(bool value);
-
         std::string name() const;
 
         core::palette* palette();
@@ -130,6 +130,8 @@ namespace ryu::core {
         uint8_t fg_color() const;
 
         dock::styles dock() const;
+
+        void tab_stop(bool value);
 
         uint8_t font_style() const;
 
@@ -179,6 +181,8 @@ namespace ryu::core {
         core::view* find_root();
 
         void inner_focus(bool value);
+
+        virtual void on_initialize();
 
         virtual void on_focus_changed();
 
