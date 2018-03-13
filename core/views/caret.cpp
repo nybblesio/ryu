@@ -16,7 +16,7 @@ namespace ryu::core {
 
     caret::caret(
             const std::string& name,
-            core::view_container* container) : core::view(core::view::types::control, name, container),
+            core::view_host* host) : core::view(core::view::types::control, name, host),
                                                _timer(500) {
     }
 

@@ -118,7 +118,7 @@ namespace ryu::core {
         _callback = callback;
     }
 
-    void state::on_change(const view_container::state_change_callable& callable) {
+    void state::on_change(const view_host::state_change_callable& callable) {
         _state_change_callback = callable;
     }
 

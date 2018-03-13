@@ -25,7 +25,7 @@
 
 namespace ryu::core {
 
-    class view_container {
+    class view_host {
     public:
         enum change_reasons : uint8_t {
             focus       = 0b00000001,
@@ -35,7 +35,7 @@ namespace ryu::core {
         using change_reason_flags = uint8_t;
         using state_change_callable = std::function<void (change_reason_flags)>;
 
-        virtual ~view_container() = default;
+        virtual ~view_host() = default;
 
         virtual bool is_focused() const = 0;
 
@@ -77,7 +77,7 @@ namespace ryu::core {
         view(
             types::id type,
             const std::string& name,
-            core::view_container* container);
+            core::view_host* host);
 
         virtual ~view();
 
@@ -190,8 +190,6 @@ namespace ryu::core {
 
         virtual void on_resize(const core::rect& context_bounds);
 
-        void on_container_change(view_container::change_reason_flags flags);
-
     private:
         uint32_t _id;
         short _index = 0;
@@ -207,7 +205,7 @@ namespace ryu::core {
         on_tab_callable _on_tab_callable;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
-        core::view_container* _container = nullptr;
+        core::view_host* _container = nullptr;
         uint8_t _font_style = font::styles::normal;
         core::dock::styles _dock = dock::styles::none;
         view::sizing::types _sizing = view::sizing::types::content;
@@ -215,4 +213,3 @@ namespace ryu::core {
     };
 
 };
-

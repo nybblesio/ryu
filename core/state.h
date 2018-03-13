@@ -17,7 +17,7 @@
 
 namespace ryu::core {
 
-    class state : public view_container {
+    class state : public view_host {
     public:
         explicit state(const std::string& name, bool render_parent = false);
 

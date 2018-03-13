@@ -15,8 +15,8 @@ namespace ryu::core {
 
     textbox::textbox(
             const std::string& name,
-            core::view_container* container) : core::view(types::control, name, container),
-                                               _caret("textbox-caret", container) {
+            core::view_host* host) : core::view(types::control, name, host),
+                                               _caret("textbox-caret", host) {
         _document.document_size(1, 100);
         _document.page_size(1, 16);
         _document.clear();

@@ -20,7 +20,7 @@ namespace ryu::core {
     public:
         pick_list(
                 const std::string& name,
-                core::view_container* container);
+                core::view_host* host);
 
         int length() const;
 

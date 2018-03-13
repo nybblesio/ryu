@@ -10,18 +10,16 @@
 
 #include <utility>
 #include "view.h"
-#include "engine.h"
-#include "id_pool.h"
 
 namespace ryu::core {
 
     view::view(
             types::id type,
             const std::string& name,
-            core::view_container* container) : _id(core::id_pool::instance()->allocate()),
-                                               _name(name),
-                                               _type(type),
-                                               _container(container) {
+            core::view_host* host) : _id(core::id_pool::instance()->allocate()),
+                                     _name(name),
+                                     _type(type),
+                                     _container(host) {
     }
 
     view::~view() {
@@ -307,7 +305,7 @@ namespace ryu::core {
     //      i'm worried i'll forget this is here....need to find a way to refactor view's interface
     //      so we invoke an initialize method outside of the constructor.  maybe a static ctor?
     void view::listen_for_on_container_change() {
-        _container->on_change([this](view_container::change_reason_flags flags) {
+        _container->on_change([this](view_host::change_reason_flags flags) {
             on_focus_changed();
         });
     }

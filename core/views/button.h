@@ -20,7 +20,7 @@ namespace ryu::core {
 
         button(
             const std::string& name,
-            core::view_container* container);
+            core::view_host* host);
 
         int width() const;
 

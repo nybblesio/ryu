@@ -14,7 +14,7 @@ namespace ryu::core {
 
     panel::panel(
             const std::string& name,
-            core::view_container* container) : core::view(types::container, name, container) {
+            core::view_host* host) : core::view(types::container, name, host) {
     }
 
     border::types panel::border() const {

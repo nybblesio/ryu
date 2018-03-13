@@ -18,7 +18,7 @@ namespace ryu::core {
     public:
         label(
             const std::string& name,
-            core::view_container* container);
+            core::view_host* host);
 
         std::string value() const;
 

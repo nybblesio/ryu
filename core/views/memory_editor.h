@@ -22,7 +22,7 @@ namespace ryu::core {
 
         memory_editor(
             const std::string& name,
-            core::view_container* container);
+            core::view_host* host);
 
         void clear();
 

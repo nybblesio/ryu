@@ -15,7 +15,7 @@ namespace ryu::ide::machine_editor {
 
     settings_tab::settings_tab(
             const std::string& name,
-            core::view_container* container) : core::view(core::view::types::container, name, container) {
+            core::view_host* host) : core::view(core::view::types::container, name, host) {
     }
 
     void settings_tab::initialize() {

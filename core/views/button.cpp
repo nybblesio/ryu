@@ -14,7 +14,7 @@ namespace ryu::core {
 
     button::button(
         const std::string& name,
-        core::view_container* container) : core::view(core::view::types::control, name, container) {
+        core::view_host* host) : core::view(core::view::types::control, name, host) {
     }
 
     int button::width() const {

@@ -21,8 +21,8 @@ namespace ryu::core {
         using on_key_down_callable = std::function<bool (int)>;
 
         textbox(
-                const std::string& name,
-                core::view_container* container);
+            const std::string& name,
+            core::view_host* host);
 
         void clear();
 

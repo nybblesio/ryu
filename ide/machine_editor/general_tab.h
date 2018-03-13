@@ -25,7 +25,7 @@ namespace ryu::ide::machine_editor {
     public:
         general_tab(
             const std::string& name,
-            core::view_container* container);
+            core::view_host* host);
 
         void initialize();
 

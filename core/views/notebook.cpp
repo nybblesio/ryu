@@ -14,7 +14,7 @@ namespace ryu::core {
 
     notebook::notebook(
             const std::string& name,
-            core::view_container* container) : core::view(types::control, name, container) {
+            core::view_host* host) : core::view(types::control, name, host) {
     }
 
     int notebook::active_tab() const {

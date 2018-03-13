@@ -15,7 +15,7 @@ namespace ryu::ide::machine_editor {
 
     components_tab::components_tab(
             const std::string& name,
-            core::view_container* container) : core::view(core::view::types::container, name, container) {
+            core::view_host* host) : core::view(core::view::types::container, name, host) {
     }
 
     void components_tab::initialize() {

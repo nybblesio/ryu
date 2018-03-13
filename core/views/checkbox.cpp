@@ -14,7 +14,7 @@ namespace ryu::core {
 
     checkbox::checkbox(
             const std::string& name,
-            core::view_container* container) : core::view(types::control, name, container) {
+            core::view_host* host) : core::view(types::control, name, host) {
     }
 
     bool checkbox::value() const {

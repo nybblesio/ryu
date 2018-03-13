@@ -17,8 +17,8 @@ namespace ryu::core {
     class checkbox : public core::view {
     public:
         checkbox(
-                const std::string& name,
-                core::view_container* container);
+            const std::string& name,
+            core::view_host* host);
 
         bool value() const;
 

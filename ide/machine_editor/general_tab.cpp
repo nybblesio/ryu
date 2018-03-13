@@ -15,7 +15,7 @@ namespace ryu::ide::machine_editor {
 
     general_tab::general_tab(
             const std::string& name,
-            core::view_container* container) : core::view(core::view::types::container, name, container) {
+            core::view_host* host) : core::view(core::view::types::container, name, host) {
     }
 
     void general_tab::initialize() {

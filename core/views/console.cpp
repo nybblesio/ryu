@@ -93,8 +93,8 @@ namespace ryu::core {
 
     console::console(
             const std::string& name,
-            core::view_container* container) : core::view(core::view::types::container, name, container),
-                                               _caret("console-caret", container) {
+            core::view_host* host) : core::view(core::view::types::container, name, host),
+                                               _caret("console-caret", host) {
     }
 
     void console::page_up() {

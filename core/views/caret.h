@@ -32,7 +32,7 @@ namespace ryu::core {
 
         caret(
             const std::string& name,
-            core::view_container* container);
+            core::view_host* host);
 
         void select();
 
