@@ -151,6 +151,9 @@ namespace ryu::core {
                     if (!_on_key_down(data.c))
                         return false;
 
+                if (data.c == core::ascii_escape || data.c == core::ascii_return)
+                    return false;
+
                 _document.put(
                         0,
                         static_cast<uint16_t>(_document.column() + _caret.column()),

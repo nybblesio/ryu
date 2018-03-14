@@ -57,6 +57,13 @@ namespace ryu::core {
 
     class view_factory {
     public:
+        static caret_unique_ptr create_caret(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            const core::rect& bounds = {});
+
         static label_unique_ptr create_label(
             core::state* state,
             const std::string& name,

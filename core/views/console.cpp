@@ -399,14 +399,24 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&console::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                if (_caret.mode() == core::caret::mode::insert) {
+                if (data.c == core::ascii_escape)
+                    return true;
+
+                if (_caret.mode() == core::caret::mode::insert)
                     _document.shift_right(_vrow, _vcol);
+
+                if (data.c == core::ascii_return) {
+                    caret_newline();
+                    return true;
                 }
+
                 _document.put(
                     _vrow,
                     _vcol,
                     core::element_t {static_cast<uint8_t>(data.c), core::attr_t{_color}});
+
                 caret_right();
+
                 return true;
             });
         text_input_action->bind_text_input();

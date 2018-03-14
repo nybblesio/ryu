@@ -107,6 +107,9 @@ namespace ryu::core {
     static constexpr uint32_t mod_ctrl = KMOD_CTRL;
     static constexpr uint32_t mod_shift = KMOD_SHIFT;
 
+    static constexpr uint8_t ascii_escape = 0x1b;
+    static constexpr uint8_t ascii_return = '\n';
+
     class input_binding {
     public:
         enum types {

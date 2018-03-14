@@ -121,63 +121,67 @@ namespace ryu::ide::source_editor {
         _command_line->width(60);
         _command_line->length(255);
         _command_line->sizing(core::view::sizing::types::parent);
-        _command_line->on_key_down([&](int keycode) {
-            if (keycode == 27) {
-                _layout_panel->focus(_editor.get());
-                return true;
-            }
-            if (keycode == 13) {
-                core::result result;
-                auto input = _command_line->value();
-                auto success = context()->environment()->execute(result, input);
-                if (success) {
-                    auto command_action_msg = result.find_code("command_action");
-                    if (command_action_msg == nullptr)
-                        return success;
-
-                    // XXX: need to refactor this, it makes my head hurt
-                    auto command = command_action_msg->get_parameter<std::string>("action");
-                    if (command == "quit") {
-                        context()->engine()->quit();
-                    } else if (command == "save_project_file") {
-                        _editor->save(result);
-                    } else if (command == "read_text") {
-                        auto name = command_action_msg->get_parameter<std::string>("name");
-                        if (!name.empty()) {
-                            _editor->load(result, name);
-                        } else {
-                            // XXX: handle errors
-                        }
-                    } else if (command == "write_text") {
-                        auto name = command_action_msg->get_parameter<std::string>("name");
-                        if (!name.empty()) {
-                            _editor->save(result, name);
-                        } else {
-                            // XXX: handle errors
-                        }
-                    } else if (command == "clear") {
-                        _editor->clear();
-                    } else if (command == "goto_line") {
-                        auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
-                        _editor->goto_line(line_number);
-                    } else if (command == "find_text") {
-                        auto needle = command_action_msg->get_parameter<std::string>("needle");
-                        if (!needle.empty()) {
-                            _editor->find(needle);
-                        } else {
-                            // XXX: handle errors
-                        }
-                    }
-                    else {
-                        // XXX: unknown command, error!
-                    }
+        _command_line->on_key_down([&](int key_code) {
+            switch (key_code) {
+                case core::ascii_escape: {
+                    _layout_panel->focus(_editor.get());
+                    return true;
                 }
+                case core::ascii_return: {
+                    core::result result;
+                    auto input = _command_line->value();
+                    auto success = context()->environment()->execute(result, input);
+                    if (success) {
+                        auto command_action_msg = result.find_code("command_action");
+                        if (command_action_msg == nullptr)
+                            return success;
 
-                _command_line->clear();
-                _layout_panel->focus(_editor.get());
-                return true;
+                        // XXX: need to refactor this, it makes my head hurt
+                        auto command = command_action_msg->get_parameter<std::string>("action");
+                        if (command == "quit") {
+                            context()->engine()->quit();
+                        } else if (command == "save_project_file") {
+                            _editor->save(result);
+                        } else if (command == "read_text") {
+                            auto name = command_action_msg->get_parameter<std::string>("name");
+                            if (!name.empty()) {
+                                _editor->load(result, name);
+                            } else {
+                                // XXX: handle errors
+                            }
+                        } else if (command == "write_text") {
+                            auto name = command_action_msg->get_parameter<std::string>("name");
+                            if (!name.empty()) {
+                                _editor->save(result, name);
+                            } else {
+                                // XXX: handle errors
+                            }
+                        } else if (command == "clear") {
+                            _editor->clear();
+                        } else if (command == "goto_line") {
+                            auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
+                            _editor->goto_line(line_number);
+                        } else if (command == "find_text") {
+                            auto needle = command_action_msg->get_parameter<std::string>("needle");
+                            if (!needle.empty()) {
+                                _editor->find(needle);
+                            } else {
+                                // XXX: handle errors
+                            }
+                        } else {
+                            // XXX: unknown command, error!
+                        }
+                    }
+
+                    _command_line->clear();
+                    _layout_panel->focus(_editor.get());
+
+                    return true;
+                }
+                default: {
+                    return true;
+                }
             }
-            return true;
         });
 
         _document_status = core::view_factory::create_label(

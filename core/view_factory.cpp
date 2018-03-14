@@ -312,4 +312,26 @@ namespace ryu::core {
         return view;
     }
 
+    caret_unique_ptr view_factory::create_caret(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            const rect& bounds) {
+        auto host = dynamic_cast<view_host*>(state);
+
+        auto view = std::make_unique<core::caret>(name, host);
+        configure_view(
+            view.get(),
+            state->context()->font_family(),
+            &state->context()->palette(),
+            fg_color,
+            bg_color,
+            dock::styles::none,
+            bounds,
+            {},
+            {});
+        return view;
+    }
+
 }

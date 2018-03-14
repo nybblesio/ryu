@@ -79,6 +79,20 @@ namespace ryu::core {
     }
 
     void text_editor::bind_events() {
+        auto caret_left_action = core::input_action::create(
+            "text_editor_caret_left",
+            "IDE::Text Editor",
+            "Move the caret left on a line.");
+        caret_left_action->register_handler(
+            core::action_sink::view,
+            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+            [this](const core::event_data_t& data) {
+                end_selection();
+                caret_left();
+                return true;
+            });
+        caret_left_action->bind_keys({core::key_left});
+
         auto caret_select_left_action = core::input_action::create(
             "text_editor_caret_select_left",
             "IDE::Text Editor",
@@ -95,20 +109,6 @@ namespace ryu::core {
                 return true;
             });
         caret_select_left_action->bind_keys({core::mod_shift, core::key_left});
-
-        auto caret_left_action = core::input_action::create(
-            "text_editor_caret_left",
-            "IDE::Text Editor",
-            "Move the caret left on a line.");
-        caret_left_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                end_selection();
-                caret_left();
-                return true;
-            });
-        caret_left_action->bind_keys({core::key_left});
 
         auto caret_select_right_action = core::input_action::create(
             "text_editor_caret_select_right",
@@ -491,13 +491,26 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
+                if (data.c == core::ascii_escape)
+                    return false;
+
+                if (data.c == core::ascii_return) {
+                    if (_caret.mode() == core::caret::mode::insert)
+                        _document.split_line(_vrow, _vcol);
+                    caret_newline();
+                    return true;
+                }
+
                 if (_caret.mode() == core::caret::mode::insert)
                     _document.shift_line_right(_vrow, _vcol);
+
                 _document.put(
                     _vrow,
                     _vcol,
                     core::element_t {static_cast<uint8_t>(data.c), _document.default_attr()});
+
                 caret_right();
+
                 return true;
             });
         text_input_action->bind_text_input();

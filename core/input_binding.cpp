@@ -20,7 +20,7 @@ namespace ryu::core {
 
     // XXX: ensure all specialized keycodes are added
     static std::map<int32_t, std::vector<keycode_to_ascii_t>> s_keycode_map = {
-        {SDLK_BACKQUOTE,    {{KMOD_NONE, '`'},  {KMOD_SHIFT, '~'}}},
+        {SDLK_ESCAPE,       {{KMOD_NONE, 0x1b}}},
         {SDLK_EXCLAIM,      {{KMOD_NONE, '!'}}},
         {SDLK_1,            {{KMOD_NONE, '1'},  {KMOD_SHIFT, '!'}}},
         {SDLK_2,            {{KMOD_NONE, '2'},  {KMOD_SHIFT, '@'}}},
@@ -60,6 +60,7 @@ namespace ryu::core {
         {SDLK_l,            {{KMOD_NONE, 'l'},  {KMOD_SHIFT, 'L'}}},
         {SDLK_SEMICOLON,    {{KMOD_NONE, ';'},  {KMOD_SHIFT, ':'}}},
         {SDLK_QUOTE,        {{KMOD_NONE, '\''}, {KMOD_SHIFT, '"'}}},
+        {SDLK_RETURN,       {{KMOD_NONE, '\n'}}},
         {SDLK_z,            {{KMOD_NONE, 'z'},  {KMOD_SHIFT, 'Z'}}},
         {SDLK_x,            {{KMOD_NONE, 'x'},  {KMOD_SHIFT, 'X'}}},
         {SDLK_c,            {{KMOD_NONE, 'c'},  {KMOD_SHIFT, 'C'}}},
@@ -170,18 +171,33 @@ namespace ryu::core {
             case key_combination: {
                 if (event->type != SDL_KEYDOWN)
                     return false;
+
+                uint32_t mod = KMOD_NONE;
+                auto key_total_count = 0;
+                auto key_match_count = 0;
+
                 for (auto key : _keys) {
                     if (is_modifier_key(key)) {
-                        if ((event->key.keysym.mod & key) == 0)
-                            return false;
+                        mod |= key;
                     } else {
-                        if (event->key.keysym.sym != key) {
-                            return false;
-                        }
+                        key_total_count++;
+                        if (event->key.keysym.sym == key)
+                            key_match_count++;
                     }
                 }
-                data.key_code = event->key.keysym.sym;
-                return true;
+
+                if (event->key.keysym.mod == 0 && mod != 0)
+                    return false;
+
+                if (event->key.keysym.mod != 0 && (event->key.keysym.mod & mod) == 0)
+                    return false;
+
+                if (key_match_count == key_total_count) {
+                    data.key_code = event->key.keysym.sym;
+                    return true;
+                }
+
+                return false;
             }
             case text_input: {
                 if (event->type != SDL_KEYDOWN)
