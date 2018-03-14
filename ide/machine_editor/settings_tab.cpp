@@ -18,9 +18,6 @@ namespace ryu::ide::machine_editor {
             core::view_host* host) : core::view(core::view::types::container, name, host) {
     }
 
-    void settings_tab::initialize() {
-    }
-
     void settings_tab::on_draw(core::renderer& surface) {
     }
 

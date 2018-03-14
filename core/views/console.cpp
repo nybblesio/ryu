@@ -459,8 +459,9 @@ namespace ryu::core {
         });
         _document.clear();
 
+        _caret.initialize();
         _caret.overwrite();
-        _caret.initialize(0, 0);
+        _caret.position(0, 0);
         _caret.palette(palette());
         _caret.font_family(font_family());
         _caret.on_caret_changed([&]() {

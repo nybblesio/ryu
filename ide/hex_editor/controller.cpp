@@ -16,44 +16,72 @@
 
 namespace ryu::ide::hex_editor {
 
-    controller::controller(const std::string& name) : core::state(name),
-                                                      _caret_status("caret-status", this),
-                                                      _machine_status("machine-status", this),
-                                                      _project_status("project-status", this),
-                                                      _command_line("command-line", this),
-                                                      _editor("memory-editor", this),
-                                                      _environment_status("environment_status", this),
-                                                      _header("header-label", this),
-                                                      _footer("footer-label", this),
-                                                      _layout_panel("layout-panel", this) {
+    controller::controller(const std::string& name) : core::state(name) {
+    }
+
+    void controller::bind_events() {
+        auto leave_action = core::input_action::create_no_map(
+            "memory_editor_leave",
+            "Internal",
+            "Close the memory editor and return to previous state.");
+        leave_action->register_handler(
+            core::action_sink::controller,
+            [this](const core::event_data_t& data) {
+                return is_focused();
+            },
+            [this](const core::event_data_t& data) {
+                end_state();
+                return true;
+            });
+        leave_action->bind_keys({core::key_escape});
+
+        auto command_bar_action = core::input_action::create_no_map(
+            "memory_editor_command_bar",
+            "Internal",
+            "Activate the command bar.");
+        command_bar_action->register_handler(
+            core::action_sink::controller,
+            [this](const core::event_data_t& data) {
+                return is_focused();
+            },
+            [this](const core::event_data_t& data) {
+                _layout_panel->focus(_command_line.get());
+                return true;
+            });
+        command_bar_action->bind_keys({core::mod_ctrl, core::key_space});
     }
 
     void controller::on_initialize() {
-        _project_status.font_family(context()->font_family());
-        _project_status.palette(&context()->palette());
-        _project_status.dock(core::dock::styles::left);
-        _project_status.fg_color(ide::colors::info_text);
-        _project_status.bg_color(ide::colors::fill_color);
-        _project_status.margin({0, context()->font_face()->width, 0, 0});
-        _project_status.value("project: (none)");
+        bind_events();
 
-        _machine_status.font_family(context()->font_family());
-        _machine_status.palette(&context()->palette());
-        _machine_status.dock(core::dock::styles::left);
-        _machine_status.fg_color(ide::colors::info_text);
-        _machine_status.bg_color(ide::colors::fill_color);
-        _machine_status.margin({0, context()->font_face()->width, 0, 0});
-        _machine_status.value("| machine: (none)");
+        _project_status = core::view_factory::create_label(
+            this,
+            "project-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            "project: (none)",
+            core::dock::styles::left,
+            {0, context()->font_face()->width, 0, 0});
 
-        _header.font_family(context()->font_family());
-        _header.palette(&context()->palette());
-        _header.dock(core::dock::styles::top);
-        _header.fg_color(ide::colors::info_text);
-        _header.bg_color(ide::colors::fill_color);
-        _header.bounds().height(context()->font_face()->line_height);
-        _header.margin({_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header.add_child(&_project_status);
-        _header.add_child(&_machine_status);
+        _machine_status = core::view_factory::create_label(
+            this,
+            "machine-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            "| machine: (none)",
+            core::dock::styles::left,
+            {0, context()->font_face()->width, 0, 0});
+
+        _header = core::view_factory::create_dock_layout_panel(
+            this,
+            "header-panel",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            core::dock::styles::top,
+            {_metrics.left_padding, _metrics.right_padding, 5, 0});
+        _header->bounds().height(context()->font_face()->line_height);
+        _header->add_child(_project_status.get());
+        _header->add_child(_machine_status.get());
 
         core::project::add_listener([&]() {
             std::string project_name = "(none)";
@@ -66,53 +94,55 @@ namespace ryu::ide::hex_editor {
                     machine_name = core::project::instance()->machine()->name();
                 }
             }
-            _project_status.value(fmt::format("project: {}", project_name));
-            _machine_status.value(fmt::format(" | machine: {}", machine_name));
+            _project_status->value(fmt::format("project: {}", project_name));
+            _machine_status->value(fmt::format(" | machine: {}", machine_name));
         });
 
-        _caret_status.font_family(context()->font_family());
-        _caret_status.margin({0, 0, 0, 0});
-        _caret_status.palette(&context()->palette());
-        _caret_status.dock(core::dock::styles::left);
-        _caret_status.fg_color(ide::colors::info_text);
-        _caret_status.bg_color(ide::colors::fill_color);
+        _caret_status = core::view_factory::create_label(
+            this,
+            "caret-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color);
 
-        _environment_status.font_family(context()->font_family());
-        _environment_status.margin({0, 0, 0, 0});
-        _environment_status.palette(&context()->palette());
-        _environment_status.dock(core::dock::styles::left);
-        _environment_status.fg_color(ide::colors::info_text);
-        _environment_status.bg_color(ide::colors::fill_color);
-        _environment_status.value(fmt::format(
+        _environment_status = core::view_factory::create_label(
+            this,
+            "environment-status-label",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            fmt::format(
                 " | env: {}",
                 context()->environment()->name()));
 
-        _footer.font_family(context()->font_family());
-        _footer.palette(&context()->palette());
-        _footer.dock(core::dock::styles::bottom);
-        _footer.bounds().height(context()->font_face()->line_height);
-        _footer.fg_color(ide::colors::info_text);
-        _footer.bg_color(ide::colors::fill_color);
-        _footer.margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _footer.add_child(&_caret_status);
-        _footer.add_child(&_environment_status);
+        _footer = core::view_factory::create_dock_layout_panel(
+            this,
+            "footer-panel",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            core::dock::styles::bottom,
+            {_metrics.left_padding, _metrics.right_padding, 5, 5});
+        _footer->bounds().height(context()->font_face()->line_height);
+        _footer->add_child(_caret_status.get());
+        _footer->add_child(_environment_status.get());
 
-        _command_line.width(60);
-        _command_line.length(255);
-        _command_line.font_family(context()->font_family());
-        _command_line.palette(&context()->palette());
-        _command_line.dock(core::dock::styles::top);
-        _command_line.fg_color(ide::colors::text);
-        _command_line.bg_color(ide::colors::fill_color);
-        _command_line.sizing(core::view::sizing::types::parent);
-        _command_line.on_key_down([&](int keycode) {
-            if (keycode == SDLK_ESCAPE) {
-                _layout_panel.focus(&_editor);
+        _command_line = core::view_factory::create_textbox(
+            this,
+            "command-line-textbox",
+            ide::colors::text,
+            ide::colors::fill_color,
+            "",
+            core::dock::styles::top,
+            {_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
+        _command_line->width(60);
+        _command_line->length(255);
+        _command_line->sizing(core::view::sizing::types::parent);
+        _command_line->on_key_down([&](int keycode) {
+            if (keycode == 27) {
+                _layout_panel->focus(_editor.get());
                 return true;
             }
-            if (keycode == SDLK_RETURN) {
+            if (keycode == 13) {
                 core::result result;
-                auto input = _command_line.value();
+                auto input = _command_line->value();
                 auto success = context()->environment()->execute(result, input);
                 if (success) {
                     auto command_action_msg = result.find_code("command_action");
@@ -139,45 +169,44 @@ namespace ryu::ide::hex_editor {
                         }
                     } else if (command == "goto_line") {
                         auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
-                        _editor.goto_address(line_number);
+                        _editor->goto_address(line_number);
                     } else {
                         // XXX: unknown command, error!
                     }
                 }
 
-                _command_line.clear();
-                _layout_panel.focus(&_editor);
+                _command_line->clear();
+                _layout_panel->focus(_editor.get());
                 return true;
             }
             return true;
         });
-        _command_line.margin({_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
 
-        _editor.font_family(context()->font_family());
-        _editor.palette(&context()->palette());
-        _editor.dock(core::dock::styles::fill);
-        _editor.fg_color(ide::colors::text);
-        _editor.caret_color(ide::colors::caret);
-        _editor.selection_color(ide::colors::selection);
-        _editor.address_color(ide::colors::info_text);
-        _editor.on_caret_changed([&](const core::caret& caret) {
-            _caret_status.value(fmt::format(
+        _editor = core::view_factory::create_memory_editor(
+            this,
+            "memory-editor",
+            ide::colors::text,
+            ide::colors::fill_color);
+        _editor->caret_color(ide::colors::caret);
+        _editor->selection_color(ide::colors::selection);
+        _editor->address_color(ide::colors::info_text);
+        _editor->on_caret_changed([&](const core::caret& caret) {
+            _caret_status->value(fmt::format(
                     "| X:{:03d} Y:{:02d} | {}",
                     caret.column() + 1,
                     caret.row() + 1,
                     caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
         });
-        _editor.initialize(65535, 16);
 
-        _layout_panel.font_family(context()->font_family());
-        _layout_panel.palette(&context()->palette());
-        _layout_panel.dock(core::dock::styles::fill);
-        _layout_panel.fg_color(ide::colors::info_text);
-        _layout_panel.bg_color(ide::colors::fill_color);
-        _layout_panel.add_child(&_header);
-        _layout_panel.add_child(&_command_line);
-        _layout_panel.add_child(&_footer);
-        _layout_panel.add_child(&_editor);
+        _layout_panel = core::view_factory::create_dock_layout_panel(
+            this,
+            "layout-panel",
+            ide::colors::info_text,
+            ide::colors::fill_color);
+        _layout_panel->add_child(_header.get());
+        _layout_panel->add_child(_command_line.get());
+        _layout_panel->add_child(_footer.get());
+        _layout_panel->add_child(_editor.get());
 
         core::project::add_listener([&](){
             auto env = context()->environment();
@@ -190,7 +219,7 @@ namespace ryu::ide::hex_editor {
             } else {
                 env->name("");
             }
-            _environment_status.value(fmt::format(" | env: {}", env->name()));
+            _environment_status->value(fmt::format(" | env: {}", env->name()));
         });
     }
 
@@ -198,36 +227,12 @@ namespace ryu::ide::hex_editor {
     }
 
     void controller::on_draw(core::renderer& surface) {
-        _layout_panel.draw(surface);
+        _layout_panel->draw(surface);
     }
 
     void controller::on_resize(const core::rect& bounds) {
-        _layout_panel.resize(bounds);
+        _layout_panel->resize(bounds);
     }
-
-//    bool controller::on_process_event(const SDL_Event* e) {
-//        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
-//
-//        if (e->type == SDL_KEYDOWN) {
-//            switch (e->key.keysym.sym) {
-//                case SDLK_ESCAPE: {
-//                    end_state();
-//                    return true;
-//                }
-//                case SDLK_SPACE: {
-//                    if (ctrl_pressed) {
-//                        _layout_panel.focus(&_command_line);
-//                        return true;
-//                    }
-//                    break;
-//                }
-//                default:
-//                    break;
-//            }
-//        }
-//
-//        return _layout_panel.process_event(e);
-//    }
 
     void controller::on_activate(const core::parameter_dict& params) {
     }

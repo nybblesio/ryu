@@ -45,16 +45,16 @@ namespace ryu::ide::source_editor {
 
     private:
         metrics_t _metrics;
-        core::label _file_status;
-        core::label _caret_status;
-        core::text_editor _editor;
-        core::label _project_label;
-        core::label _machine_label;
-        core::textbox _command_line;
-        core::label _document_status;
-        core::dock_layout_panel _footer;
-        core::dock_layout_panel _header;
-        core::dock_layout_panel _layout_panel;
+        core::label_unique_ptr _file_status;
+        core::label_unique_ptr _caret_status;
+        core::text_editor_unique_ptr _editor;
+        core::label_unique_ptr _project_label;
+        core::label_unique_ptr _machine_label;
+        core::textbox_unique_ptr _command_line;
+        core::label_unique_ptr _document_status;
+        core::dock_layout_panel_unique_ptr _footer;
+        core::dock_layout_panel_unique_ptr _header;
+        core::dock_layout_panel_unique_ptr _layout_panel;
     };
 
 };

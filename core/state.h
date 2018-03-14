@@ -84,6 +84,8 @@ namespace ryu::core {
 
         virtual void on_draw(core::renderer& renderer) = 0;
 
+        void raise_change_event(change_reason_flags reasons);
+
         std::string blackboard(const std::string& name) const;
 
         virtual void on_activate(const core::parameter_dict& params);
@@ -97,6 +99,6 @@ namespace ryu::core {
         bool _render_parent = false;
         core::context* _context = nullptr;
         state_transition_callable _callback {};
-        state_change_callable _state_change_callback {};
+        std::vector<state_change_callable> _listeners {};
     };
 };

@@ -175,8 +175,9 @@ namespace ryu::core {
         _document.page_size(1, 16);
         _document.clear();
 
+        _caret.initialize();
         _caret.enabled(false);
-        _caret.initialize(0, 0);
+        _caret.position(0, 0);
         _caret.page_size(_document.page_height(), _document.page_width());
         add_child(&_caret);
 

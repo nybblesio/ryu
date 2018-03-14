@@ -11,8 +11,8 @@
 #pragma once
 
 #include <memory>
-#include "core_types.h"
 #include "view.h"
+#include "core_types.h"
 
 namespace ryu::core {
 
@@ -21,6 +21,9 @@ namespace ryu::core {
 
     class caret;
     using caret_unique_ptr = std::unique_ptr<core::caret>;
+
+    class memory_editor;
+    using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
 
     class console;
     using console_unique_ptr = std::unique_ptr<core::console>;
@@ -128,12 +131,34 @@ namespace ryu::core {
             const padding& margin = {},
             const padding& padding = {});
 
+        static memory_editor_unique_ptr create_memory_editor(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style = dock::styles::fill,
+            const padding& margin = {},
+            const padding& padding = {},
+            const core::rect& bounds = {});
+
         static console_unique_ptr create_console(
             core::state* state,
             const std::string& name,
             uint8_t fg_color,
             uint8_t bg_color,
             const core::code_to_attr_dict& mapper,
+            dock::styles dock_style = dock::styles::fill,
+            const padding& margin = {},
+            const padding& padding = {},
+            const core::rect& bounds = {});
+
+        static text_editor_unique_ptr create_text_editor(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            uint32_t rows,
+            uint16_t columns,
             dock::styles dock_style = dock::styles::fill,
             const padding& margin = {},
             const padding& padding = {},

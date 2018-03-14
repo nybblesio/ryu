@@ -516,6 +516,29 @@ namespace ryu::core {
 
     void text_editor::on_initialize() {
         bind_events();
+
+        _metrics.line_number_width = font_face()->measure_chars(5) + 2;
+
+        _vcol = 0;
+        _vrow = 0;
+
+        _caret.initialize();
+        _caret.palette(palette());
+        _caret.on_caret_changed([&]() {
+            raise_caret_changed();
+        });
+        _caret.font_family(font_family());
+        _caret.padding().left(_metrics.line_number_width);
+        _caret.position(0, 0);
+
+        _document.on_document_changed([&]() {
+            raise_caret_changed();
+        });
+        _document.default_attr(core::attr_t {fg_color(), core::font::styles::normal});
+        _document.clear();
+
+        add_child(&_caret);
+        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
     void text_editor::end_selection() {
@@ -732,6 +755,10 @@ namespace ryu::core {
         }
     }
 
+    void text_editor::size(uint32_t rows, uint16_t columns) {
+        _document.document_size(rows, columns);
+    }
+
     void text_editor::on_resize(const core::rect& context_bounds) {
         core::view::on_resize(context_bounds);
 
@@ -741,33 +768,6 @@ namespace ryu::core {
         _document.page_size(_metrics.page_height, _metrics.page_width);
 
         update_virtual_position();
-    }
-
-    void text_editor::initialize(uint32_t rows, uint16_t columns) {
-        view::initialize();
-
-        _metrics.line_number_width = font_face()->measure_chars(5) + 2;
-
-        _vcol = 0;
-        _vrow = 0;
-
-        _caret.palette(palette());
-        _caret.on_caret_changed([&]() {
-            raise_caret_changed();
-        });
-        _caret.font_family(font_family());
-        _caret.padding().left(_metrics.line_number_width);
-        _caret.initialize(0, 0);
-
-        _document.on_document_changed([&]() {
-            raise_caret_changed();
-        });
-        _document.default_attr(core::attr_t {fg_color(), core::font::styles::normal});
-        _document.document_size(rows, columns);
-        _document.clear();
-
-        add_child(&_caret);
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {

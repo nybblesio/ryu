@@ -80,6 +80,23 @@ namespace ryu::core {
 
     void memory_editor::on_initialize() {
         bind_events();
+
+        _metrics.line_number_width = font_face()->measure_chars(5) + 2;
+
+        _vcol = 0;
+        _vrow = 0;
+
+        _caret.initialize();
+        _caret.palette(palette());
+        _caret.on_caret_changed([&]() {
+            raise_caret_changed();
+        });
+        _caret.font_family(font_family());
+        _caret.padding().left(_metrics.line_number_width);
+        _caret.position(0, 0);
+
+        add_child(&_caret);
+        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
     void memory_editor::end_selection() {
@@ -262,26 +279,6 @@ namespace ryu::core {
         _caret.page_size(_metrics.page_height, _metrics.page_width);
 
         update_virtual_position();
-    }
-
-    void memory_editor::initialize(uint32_t rows, uint16_t columns) {
-        view::initialize();
-
-        _metrics.line_number_width = font_face()->measure_chars(5) + 2;
-
-        _vcol = 0;
-        _vrow = 0;
-
-        _caret.palette(palette());
-        _caret.on_caret_changed([&]() {
-            raise_caret_changed();
-        });
-        _caret.font_family(font_family());
-        _caret.padding().left(_metrics.line_number_width);
-        _caret.initialize(0, 0);
-
-        add_child(&_caret);
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
     void memory_editor::on_caret_changed(const caret_changed_callable& callable) {

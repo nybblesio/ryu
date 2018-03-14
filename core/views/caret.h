@@ -60,7 +60,7 @@ namespace ryu::core {
 
         bool column(uint8_t column);
 
-        void initialize(uint8_t row, uint8_t column);
+        void position(uint8_t row, uint8_t column);
 
         void page_size(uint8_t page_height, uint8_t page_width);
 

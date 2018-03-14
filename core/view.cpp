@@ -20,7 +20,7 @@ namespace ryu::core {
             core::view_host* host) : _id(core::id_pool::instance()->allocate()),
                                      _name(name),
                                      _type(type),
-                                     _container(host) {
+                                     _host(host) {
     }
 
     view::~view() {
@@ -28,7 +28,7 @@ namespace ryu::core {
     }
 
     void view::initialize() {
-        listen_for_on_container_change();
+        listen_for_on_host_change();
 
         auto field_tab_action = core::input_action::create_no_map(
             "view_field_tab",
@@ -79,12 +79,12 @@ namespace ryu::core {
     }
 
     bool view::visible() const {
-        return _container->is_visible()
+        return _host->is_visible()
                && (_flags & config::flags::visible) != 0;
     }
 
     bool view::focused() const {
-        return _container->is_focused()
+        return _host->is_focused()
                && (_flags & config::flags::focused) != 0;
     }
 
@@ -292,10 +292,8 @@ namespace ryu::core {
         inner_focus(target->_id == this->_id);
     }
 
-    void view::listen_for_on_container_change() {
-        _container->on_change([this](view_host::change_reason_flags flags) {
-            on_focus_changed();
-        });
+    void view::listen_for_on_host_change() {
+        _host->on_change(std::bind(&view::on_host_changed, this, std::placeholders::_1));
     }
 
     core::view* view::get_child_at(size_t index) {
@@ -337,6 +335,10 @@ namespace ryu::core {
 
     void view::on_tab(const view::on_tab_callable& callable) {
         _on_tab_callable = callable;
+    }
+
+    void view::on_host_changed(view_host::change_reason_flags flags) {
+        on_focus_changed();
     }
 
 }

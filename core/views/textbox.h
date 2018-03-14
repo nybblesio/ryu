@@ -42,11 +42,11 @@ namespace ryu::core {
 
         void fg_color(uint8_t value) override;
 
-        void on_key_down(const on_key_down_callable& callable);
-
         void palette(core::palette* value) override;
 
         void font_family(core::font_family* value) override;
+
+        void on_key_down(const on_key_down_callable& callable);
 
     protected:
         void caret_end();

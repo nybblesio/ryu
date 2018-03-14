@@ -186,13 +186,16 @@ namespace ryu::core {
 
         virtual void on_focus_changed();
 
-        void listen_for_on_container_change();
+        void listen_for_on_host_change();
 
         virtual void on_draw(core::renderer& renderer);
 
         virtual void draw_children(core::renderer& renderer);
 
         virtual void on_resize(const core::rect& context_bounds);
+
+    private:
+        void on_host_changed(view_host::change_reason_flags flags);
 
     private:
         uint32_t _id;
@@ -207,9 +210,9 @@ namespace ryu::core {
         core::view* _parent = nullptr;
         types::id _type = types::control;
         on_tab_callable _on_tab_callable;
+        core::view_host* _host = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
-        core::view_host* _container = nullptr;
         uint8_t _font_style = font::styles::normal;
         core::dock::styles _dock = dock::styles::none;
         view::sizing::types _sizing = view::sizing::types::content;

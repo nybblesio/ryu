@@ -44,8 +44,6 @@ namespace ryu::core {
 
         void find(const std::string& needle);
 
-        void initialize(uint32_t rows, uint16_t columns);
-
         void on_caret_changed(const caret_changed_callable& callable);
 
     protected:

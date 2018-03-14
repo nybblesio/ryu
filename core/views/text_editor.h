@@ -58,7 +58,7 @@ namespace ryu::core {
 
         void line_number_color(uint8_t value);
 
-        void initialize(uint32_t rows, uint16_t columns);
+        void size(uint32_t rows, uint16_t columns);
 
         bool load(core::result& result, const fs::path& path);
 

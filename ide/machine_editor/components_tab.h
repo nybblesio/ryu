@@ -20,8 +20,6 @@ namespace ryu::ide::machine_editor {
             const std::string& name,
             core::view_host* host);
 
-        void initialize();
-
     protected:
         void on_draw(core::renderer& surface) override;
     };

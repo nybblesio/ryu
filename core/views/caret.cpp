@@ -71,6 +71,11 @@ namespace ryu::core {
     }
 
     void caret::on_initialize() {
+        _timer.bind([&](timer* t) {
+            _show = !_show;
+            t->reset();
+        });
+        timer_pool::instance()->add_timer(&_timer);
     }
 
     bool caret::row(uint8_t row) {
@@ -154,17 +159,10 @@ namespace ryu::core {
         surface.pop_blend_mode();
     }
 
-    void caret::initialize(uint8_t row, uint8_t column) {
-        view::initialize();
-
+    void caret::position(uint8_t row, uint8_t column) {
         _row = row;
         _column = column;
         raise_caret_changed();
-        _timer.bind([&](timer* t) {
-            _show = !_show;
-            t->reset();
-        });
-        timer_pool::instance()->add_timer(&_timer);
     }
 
     void caret::page_size(uint8_t page_height, uint8_t page_width) {

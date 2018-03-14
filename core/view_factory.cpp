@@ -15,6 +15,8 @@
 #include <core/views/notebook.h>
 #include <core/views/checkbox.h>
 #include <core/views/pick_list.h>
+#include <core/views/text_editor.h>
+#include <core/views/memory_editor.h>
 #include <core/views/dock_layout_panel.h>
 #include "state.h"
 #include "view_factory.h"
@@ -65,9 +67,11 @@ namespace ryu::core {
             bounds,
             margin,
             padding);
+
         auto& list_options = view->options();
         for (const auto& option : options)
             list_options.push_back(option);
+
         return view;
     }
 
@@ -252,6 +256,59 @@ namespace ryu::core {
             margin,
             padding);
         view->value(value);
+        return view;
+    }
+
+    memory_editor_unique_ptr view_factory::create_memory_editor(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style,
+            const padding& margin,
+            const padding& padding,
+            const rect& bounds) {
+        auto host = dynamic_cast<view_host*>(state);
+
+        auto view = std::make_unique<core::memory_editor>(name, host);
+        configure_view(
+            view.get(),
+            state->context()->font_family(),
+            &state->context()->palette(),
+            fg_color,
+            bg_color,
+            dock_style,
+            bounds,
+            margin,
+            padding);
+        return view;
+    }
+
+    text_editor_unique_ptr view_factory::create_text_editor(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            uint32_t rows,
+            uint16_t columns,
+            dock::styles dock_style,
+            const padding& margin,
+            const padding& padding,
+            const rect& bounds) {
+        auto host = dynamic_cast<view_host*>(state);
+
+        auto view = std::make_unique<core::text_editor>(name, host);
+        configure_view(
+            view.get(),
+            state->context()->font_family(),
+            &state->context()->palette(),
+            fg_color,
+            bg_color,
+            dock_style,
+            bounds,
+            margin,
+            padding);
+        view->size(rows, columns);
         return view;
     }
 

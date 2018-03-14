@@ -6,9 +6,6 @@
 //
 
 #include "state.h"
-#include "engine.h"
-#include "context.h"
-#include "id_pool.h"
 
 namespace ryu::core {
 
@@ -29,8 +26,7 @@ namespace ryu::core {
 
     void state::deactivate() {
         on_deactivate();
-        if (_state_change_callback != nullptr)
-            _state_change_callback(change_reasons::focus | change_reasons::visibility);
+        raise_change_event(change_reasons::focus | change_reasons::visibility);
     }
 
     uint32_t state::id() const {
@@ -99,8 +95,7 @@ namespace ryu::core {
 
     void state::activate(const core::parameter_dict& params) {
         on_activate(params);
-        if (_state_change_callback != nullptr)
-            _state_change_callback(change_reasons::focus | change_reasons::visibility);
+        raise_change_event(change_reasons::focus | change_reasons::visibility);
     }
 
     void state::on_activate(const core::parameter_dict& params) {
@@ -110,16 +105,21 @@ namespace ryu::core {
         return _context->blackboard(name);
     }
 
+    void state::raise_change_event(view_host::change_reason_flags reasons) {
+        for (const auto& listener : _listeners)
+            listener(reasons);
+    }
+
+    void state::on_change(const view_host::state_change_callable& callable) {
+        _listeners.push_back(callable);
+    }
+
     void state::blackboard(const std::string& name, const std::string& value) {
         _context->blackboard(name, value);
     }
 
     void state::transition_callback(const state_transition_callable& callback) {
         _callback = callback;
-    }
-
-    void state::on_change(const view_host::state_change_callable& callable) {
-        _state_change_callback = callable;
     }
 
     bool state::transition_to(const std::string& name, const parameter_dict& params) {
