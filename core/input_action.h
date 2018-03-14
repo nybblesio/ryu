@@ -124,9 +124,9 @@ namespace ryu::core {
 
         action_sink_type process(const SDL_Event* event) const;
 
-        void bind_joystick_hat(int32_t id, joystick_hat_direction direction);
+        void bind_joystick_buttons(int32_t id, button_state buttons);
 
-        void bind_joystick_buttons(int32_t id, const joystick_buttons& buttons);
+        void bind_joystick_hat(int32_t id, uint8_t hat_id, hat_state state);
 
     private:
         action_sink_type process_action(

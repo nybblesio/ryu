@@ -140,7 +140,7 @@ namespace ryu::core {
     }
 
     void console::bind_events() {
-        auto joystick_0 = core::joysticks::instance()->device(0);
+        auto joystick_device = core::joysticks::instance()->device_by_index(0);
 
         auto caret_left_action = core::input_action::create(
             "console_caret_left",
@@ -154,7 +154,10 @@ namespace ryu::core {
                 return true;
             });
         caret_left_action->bind_keys({core::key_left});
-        caret_left_action->bind_joystick_hat(joystick_0->id, core::joy_left);
+        if (joystick_device != nullptr) {
+            caret_left_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_left);
+            caret_left_action->bind_joystick_buttons(joystick_device->id(), core::button_0);
+        }
 
         auto caret_right_action = core::input_action::create(
             "console_caret_right",
@@ -168,7 +171,8 @@ namespace ryu::core {
                 return true;
             });
         caret_right_action->bind_keys({core::key_right});
-        caret_right_action->bind_joystick_hat(joystick_0->id, core::joy_right);
+        if (joystick_device != nullptr)
+            caret_right_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_right);
 
         auto caret_down_action = core::input_action::create(
             "console_caret_down",
@@ -182,7 +186,8 @@ namespace ryu::core {
                 return true;
             });
         caret_down_action->bind_keys({core::key_down});
-        caret_down_action->bind_joystick_hat(joystick_0->id, core::joy_down);
+        if (joystick_device != nullptr)
+            caret_down_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_down);
 
         auto caret_up_action = core::input_action::create(
             "console_caret_up",
@@ -196,7 +201,8 @@ namespace ryu::core {
                 return true;
             });
         caret_up_action->bind_keys({core::key_up});
-        caret_up_action->bind_joystick_hat(joystick_0->id, core::joy_up);
+        if (joystick_device != nullptr)
+        caret_up_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_up);
 
         auto page_up_action = core::input_action::create(
             "console_page_up",

@@ -9,7 +9,7 @@
 //
 
 #include <map>
-#include <iostream>
+#include "joysticks.h"
 #include "input_binding.h"
 
 namespace ryu::core {
@@ -99,34 +99,30 @@ namespace ryu::core {
         return input_binding(types::window_maximized);
     }
 
+    input_binding input_binding::for_joystick_hat(
+            int32_t index,
+            uint8_t hat_id,
+            hat_state state) {
+        auto binding = input_binding(types::joystick);
+        binding._joystick = std::make_unique<input_joystick_t>(index, hat_id, state);
+        return binding;
+    }
+
     input_binding input_binding::for_text_input() {
         return input_binding(types::text_input);
+    }
+
+    input_binding input_binding::for_joystick_buttons(
+            int32_t index,
+            button_state buttons) {
+        auto binding = input_binding(types::joystick);
+        binding._joystick = std::make_unique<input_joystick_t>(index, buttons);
+        return binding;
     }
 
     input_binding input_binding::for_key_combination(const input_keys& keys) {
         auto binding = input_binding(types::key_combination);
         binding._keys = keys;
-        return binding;
-    }
-
-    input_binding input_binding::for_joystick_hat(int32_t id, joystick_hat_direction direction) {
-        auto binding = input_binding(types::joystick);
-        binding._joystick = input_joystick_t {
-            id,
-            input_joystick_t::types::hat,
-            direction
-        };
-        return binding;
-    }
-
-    input_binding input_binding::for_joystick_buttons(int32_t id, const joystick_buttons& buttons) {
-        auto binding = input_binding(types::joystick);
-        binding._joystick = input_joystick_t {
-            id,
-            input_joystick_t::types::button,
-            0,
-            buttons
-        };
         return binding;
     }
 
@@ -240,28 +236,40 @@ namespace ryu::core {
                 return false;
             }
             case joystick: {
-                if (event->type != SDL_JOYBUTTONDOWN && event->type != SDL_JOYHATMOTION)
-                    return false;
-
-                std::cout << "hat value = " << (int)event->jhat.value << std::endl;
-
-                switch (_joystick.type) {
-                    case input_joystick_t::hat:
-                        // XXX: this is now broken until you pass hat ID through
-                        if (event->jhat.hat != _joystick.hat_id)
+                switch (event->type) {
+                    case SDL_JOYBUTTONDOWN: {
+                        auto joystick_device = joysticks::instance()->device_by_id(event->jbutton.which);
+                        if (joystick_device == nullptr)
                             return false;
-
-                        return event->jhat.value == _joystick.direction
-                               && event->type == SDL_JOYHATMOTION;
-                    case input_joystick_t::button:
-                        if (event->jbutton.which != _joystick.id)
-                            return false;
-
-                        return event->jbutton.button == _joystick.buttons.front()
-                               && event->type == SDL_JOYBUTTONDOWN;
-                    case input_joystick_t::axis:
-                    case input_joystick_t::ball:
+                        joystick_device->button(event->jbutton.button, true);
                         break;
+                    }
+                    case SDL_JOYBUTTONUP: {
+                        auto joystick_device = joysticks::instance()->device_by_id(event->jbutton.which);
+                        if (joystick_device == nullptr)
+                            return false;
+                        joystick_device->button(event->jbutton.button, false);
+                        break;
+                    }
+                    case SDL_JOYHATMOTION: {
+                        auto joystick_device = joysticks::instance()->device_by_id(event->jhat.which);
+                        if (joystick_device == nullptr)
+                            return false;
+                        joystick_device->hat(event->jhat.hat, event->jhat.value);
+                        break;
+                    }
+                    default: {
+                        auto joystick_device = joysticks::instance()->device_by_id(_joystick->_index);
+                        switch (_joystick->_type) {
+                            case input_joystick_t::hat:
+                                return (joystick_device->hat(_joystick->_hat_id) & _joystick->_hat_state) != 0;
+                            case input_joystick_t::button:
+                                return (joystick_device->buttons() & _joystick->_buttons) != 0;
+                            case input_joystick_t::axis:
+                            case input_joystick_t::ball:
+                                break;
+                        }
+                    }
                 }
 
                 return false;

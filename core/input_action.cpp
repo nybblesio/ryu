@@ -167,12 +167,12 @@ namespace ryu::core {
         return action_sink::none;
     }
 
-    void input_action::bind_joystick_hat(int32_t id, joystick_hat_direction direction) {
-        _bindings.push_back(input_binding::for_joystick_hat(id, direction));
+    void input_action::bind_joystick_buttons(int32_t id, button_state buttons) {
+        _bindings.push_back(input_binding::for_joystick_buttons(id, buttons));
     }
 
-    void input_action::bind_joystick_buttons(int32_t id, const joystick_buttons& buttons) {
-        _bindings.push_back(input_binding::for_joystick_buttons(id, buttons));
+    void input_action::bind_joystick_hat(int32_t id, uint8_t hat_id, hat_state state) {
+        _bindings.push_back(input_binding::for_joystick_hat(id, hat_id, state));
     }
 
 }

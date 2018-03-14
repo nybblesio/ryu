@@ -270,10 +270,20 @@ namespace ryu::core {
             surface.set_color({0x00, 0x00, 0x00, 0xff});
             surface.clear();
 
-            for (size_t i = 0; i < 5; i++) {
+            event_list events {};
+            while (true) {
                 SDL_Event e {};
                 if (!SDL_PollEvent(&e))
                     break;
+                events.push_back(e);
+            }
+
+            // N.B. push back a dummy event so certain kinds of events
+            //      are processed even though we don't have something from SDL.
+            if (events.empty())
+                events.push_back(SDL_Event {});
+
+            for (auto& e : events) {
                 for (const auto& action : input_action::catalog())
                     if (action.process(&e) != action_sink::types::none)
                         break;

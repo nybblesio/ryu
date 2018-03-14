@@ -19,31 +19,28 @@ namespace ryu::core {
     }
 
     void joysticks::shutdown() {
-        for (const auto& device : _devices) {
-            SDL_JoystickClose(device.joystick);
-        }
         _devices.clear();
     }
 
     void joysticks::initialize() {
         auto number_of_joysticks = SDL_NumJoysticks();
-
         for (auto i = 0; i < number_of_joysticks; i++) {
-            auto joystick = SDL_JoystickOpen(i);
-            if (joystick != nullptr) {
-                _devices.emplace_back(
-                    SDL_JoystickInstanceID(joystick),
-                    SDL_JoystickName(joystick),
-                    SDL_JoystickNumHats(joystick),
-                    SDL_JoystickNumAxes(joystick),
-                    SDL_JoystickNumBalls(joystick),
-                    SDL_JoystickNumButtons(joystick),
-                    joystick);
-            }
+            _devices.emplace_back(i);
+            _devices.back().initialize();
         }
     }
 
-    const joystick_t* joysticks::device(uint16_t index) const {
+    joystick* joysticks::device_by_id(int32_t id) {
+        auto it = std::find_if(
+            _devices.begin(),
+            _devices.end(),
+            [&id](const joystick& joy) {
+                return joy.id() == id;
+            });
+        return it != _devices.end() ? &(*it) : nullptr;
+    }
+
+    joystick* joysticks::device_by_index(uint32_t index) {
         if (index < _devices.size())
             return &_devices[index];
         return nullptr;

@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <SDL_events.h>
+#include "joystick.h"
 
 namespace ryu::core {
 
@@ -43,9 +44,7 @@ namespace ryu::core {
     using input_key = uint32_t;
     using input_keys = std::vector<input_key>;
 
-    using joystick_button = uint8_t;
-    using joystick_hat_direction = uint8_t;
-    using joystick_buttons = std::vector<joystick_button>;
+    using joystick_buttons = uint32_t;
 
     struct input_joystick_t {
         enum types {
@@ -55,11 +54,32 @@ namespace ryu::core {
             ball
         };
 
-        int32_t id;
-        types type;
-        joystick_hat_direction direction;
-        joystick_buttons buttons;
-        uint8_t hat_id;
+        input_joystick_t(
+                uint32_t index,
+                uint8_t id,
+                hat_state state) : _type(types::hat),
+                                   _index(index),
+                                   _hat_id(id),
+                                   _hat_state(state),
+                                   _buttons(0) {
+        }
+
+        input_joystick_t(
+                uint32_t index,
+                button_state buttons) : _type(types::button),
+                                        _index(index),
+                                        _hat_id(0),
+                                        _hat_state(0),
+                                        _buttons(buttons) {
+        }
+
+        types _type;
+        uint32_t _index;
+
+        uint8_t _hat_id;
+        hat_state _hat_state;
+
+        button_state _buttons;
     };
 
     struct event_data_t {
@@ -70,13 +90,6 @@ namespace ryu::core {
         int32_t height;
         int32_t key_code;
     };
-
-    // XXX: these are actually bitmasks
-    //          0 means no motion in any direction
-    static constexpr uint8_t joy_up = 1;
-    static constexpr uint8_t joy_left = 8;
-    static constexpr uint8_t joy_down = 4;
-    static constexpr uint8_t joy_right = 2;
 
     static constexpr uint32_t key_0 = SDLK_0;
     static constexpr uint32_t key_1 = SDLK_1;
@@ -158,11 +171,16 @@ namespace ryu::core {
 
         static input_binding for_text_input();
 
+        static input_binding for_joystick_hat(
+            int32_t index,
+            uint8_t hat_id,
+            hat_state state);
+
+        static input_binding for_joystick_buttons(
+            int32_t index,
+            button_state buttons);
+
         static input_binding for_key_combination(const input_keys& keys);
-
-        static input_binding for_joystick_hat(int32_t id, joystick_hat_direction direction);
-
-        static input_binding for_joystick_buttons(int32_t id, const joystick_buttons& buttons);
 
         bool matches(
             const SDL_Event* event,
@@ -181,7 +199,7 @@ namespace ryu::core {
     private:
         types _type;
         input_keys _keys {};
-        input_joystick_t _joystick {};
+        std::unique_ptr<input_joystick_t> _joystick;
     };
 
 };

@@ -10,39 +10,13 @@
 
 #pragma once
 
-#include <string>
 #include <vector>
+#include <string>
+#include <utility>
 #include <SDL_joystick.h>
+#include "joystick.h"
 
 namespace ryu::core {
-
-    struct joystick_t {
-        joystick_t(
-            int32_t id,
-            const std::string& name,
-            int32_t number_hats,
-            int32_t number_axes,
-            int32_t number_balls,
-            int32_t number_buttons,
-            SDL_Joystick* joystick) : id(id),
-                                      name(name),
-                                      number_hats(number_hats),
-                                      number_axes(number_axes),
-                                      number_balls(number_balls),
-                                      number_buttons(number_buttons),
-                                      joystick(joystick) {
-        }
-
-        int32_t id;
-        std::string name;
-        int32_t number_hats;
-        int32_t number_axes;
-        int32_t number_balls;
-        int32_t number_buttons;
-        SDL_Joystick* joystick;
-    };
-
-    using joystick_list = std::vector<joystick_t>;
 
     class joysticks {
     public:
@@ -52,7 +26,9 @@ namespace ryu::core {
 
         void initialize();
 
-        const joystick_t* device(uint16_t index) const;
+        joystick* device_by_id(int32_t index);
+
+        joystick* device_by_index(uint32_t index);
 
     private:
         joystick_list _devices {};
