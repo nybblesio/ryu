@@ -19,6 +19,7 @@ add_library(
         evaluator.cpp evaluator.h
         font_book.cpp font_book.h
         assembler.cpp assembler.h
+        joysticks.cpp joysticks.h
         timer_pool.cpp timer_pool.h
         core_types.h core_types.cpp
         environment.cpp environment.h

@@ -28,9 +28,12 @@ Thoughts & Questions
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
+- joystick hat motion is a bitmask: 0 for centered
+    * need to track continuous state for each direction bit, toggling the bits for events that come in
+    * return true/false based on the continuous state per joystick
+
 - preferences: key binding data structure and implementation
     - add serialization/deserialization code to input_action & input_binding so we can write to preferences.yaml
-    - joystick events
 
 - bug: console header, project and machine fields not properly resizing
 
@@ -192,3 +195,4 @@ DONE
 - MISSING: undo/redo need to return # of lines/columns affected & is_delete?
 - encapsulate current SDL_Event data into our own data structure and update interface
 - filter out non-ASCII characters during input
+- joystick events

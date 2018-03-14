@@ -9,6 +9,7 @@
 //
 
 #include <map>
+#include <iostream>
 #include "input_binding.h"
 
 namespace ryu::core {
@@ -108,9 +109,24 @@ namespace ryu::core {
         return binding;
     }
 
-    input_binding input_binding::for_joystick_buttons(const input_joystick_t& joystick) {
+    input_binding input_binding::for_joystick_hat(int32_t id, joystick_hat_direction direction) {
         auto binding = input_binding(types::joystick);
-        binding._joystick = joystick;
+        binding._joystick = input_joystick_t {
+            id,
+            input_joystick_t::types::hat,
+            direction
+        };
+        return binding;
+    }
+
+    input_binding input_binding::for_joystick_buttons(int32_t id, const joystick_buttons& buttons) {
+        auto binding = input_binding(types::joystick);
+        binding._joystick = input_joystick_t {
+            id,
+            input_joystick_t::types::button,
+            0,
+            buttons
+        };
         return binding;
     }
 
@@ -224,6 +240,30 @@ namespace ryu::core {
                 return false;
             }
             case joystick: {
+                if (event->type != SDL_JOYBUTTONDOWN && event->type != SDL_JOYHATMOTION)
+                    return false;
+
+                std::cout << "hat value = " << (int)event->jhat.value << std::endl;
+
+                switch (_joystick.type) {
+                    case input_joystick_t::hat:
+                        // XXX: this is now broken until you pass hat ID through
+                        if (event->jhat.hat != _joystick.hat_id)
+                            return false;
+
+                        return event->jhat.value == _joystick.direction
+                               && event->type == SDL_JOYHATMOTION;
+                    case input_joystick_t::button:
+                        if (event->jbutton.which != _joystick.id)
+                            return false;
+
+                        return event->jbutton.button == _joystick.buttons.front()
+                               && event->type == SDL_JOYBUTTONDOWN;
+                    case input_joystick_t::axis:
+                    case input_joystick_t::ball:
+                        break;
+                }
+
                 return false;
             }
             default:

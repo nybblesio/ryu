@@ -15,6 +15,7 @@
 #include "timer_pool.h"
 #include "preferences.h"
 #include "input_action.h"
+#include "joysticks.h"
 
 namespace ryu::core {
 
@@ -44,6 +45,8 @@ namespace ryu::core {
                     _font_family->name(),
                     _font_family->size()));
         }
+
+        joysticks::instance()->shutdown();
 
         if (_renderer != nullptr)
             SDL_DestroyRenderer(_renderer);
@@ -123,6 +126,8 @@ namespace ryu::core {
                 font_face(face);
             }
         }
+
+        joysticks::instance()->initialize();
 
         bind_events();
 

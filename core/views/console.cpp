@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <fmt/format.h>
+#include <core/joysticks.h>
 #include <common/string_support.h>
 #include "console.h"
 
@@ -139,6 +140,8 @@ namespace ryu::core {
     }
 
     void console::bind_events() {
+        auto joystick_0 = core::joysticks::instance()->device(0);
+
         auto caret_left_action = core::input_action::create(
             "console_caret_left",
             "IDE::Console",
@@ -151,6 +154,7 @@ namespace ryu::core {
                 return true;
             });
         caret_left_action->bind_keys({core::key_left});
+        caret_left_action->bind_joystick_hat(joystick_0->id, core::joy_left);
 
         auto caret_right_action = core::input_action::create(
             "console_caret_right",
@@ -164,6 +168,7 @@ namespace ryu::core {
                 return true;
             });
         caret_right_action->bind_keys({core::key_right});
+        caret_right_action->bind_joystick_hat(joystick_0->id, core::joy_right);
 
         auto caret_down_action = core::input_action::create(
             "console_caret_down",
@@ -177,6 +182,7 @@ namespace ryu::core {
                 return true;
             });
         caret_down_action->bind_keys({core::key_down});
+        caret_down_action->bind_joystick_hat(joystick_0->id, core::joy_down);
 
         auto caret_up_action = core::input_action::create(
             "console_caret_up",
@@ -190,6 +196,7 @@ namespace ryu::core {
                 return true;
             });
         caret_up_action->bind_keys({core::key_up});
+        caret_up_action->bind_joystick_hat(joystick_0->id, core::joy_up);
 
         auto page_up_action = core::input_action::create(
             "console_page_up",

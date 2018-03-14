@@ -143,10 +143,6 @@ namespace ryu::core {
         return it != s_catalog.end() ? &(*it) : nullptr;
     }
 
-    void input_action::bind_joystick(input_joystick_t joystick) {
-        _bindings.push_back(input_binding::for_joystick_buttons(joystick));
-    }
-
     input_action* input_action::find_by_name(const std::string& name) {
         auto it = std::find_if(
             s_catalog.begin(),
@@ -169,6 +165,14 @@ namespace ryu::core {
         }
 
         return action_sink::none;
+    }
+
+    void input_action::bind_joystick_hat(int32_t id, joystick_hat_direction direction) {
+        _bindings.push_back(input_binding::for_joystick_hat(id, direction));
+    }
+
+    void input_action::bind_joystick_buttons(int32_t id, const joystick_buttons& buttons) {
+        _bindings.push_back(input_binding::for_joystick_buttons(id, buttons));
     }
 
 }

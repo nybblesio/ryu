@@ -44,11 +44,22 @@ namespace ryu::core {
     using input_keys = std::vector<input_key>;
 
     using joystick_button = uint8_t;
+    using joystick_hat_direction = uint8_t;
     using joystick_buttons = std::vector<joystick_button>;
 
     struct input_joystick_t {
+        enum types {
+            hat = 1,
+            button,
+            axis,
+            ball
+        };
+
         int32_t id;
+        types type;
+        joystick_hat_direction direction;
         joystick_buttons buttons;
+        uint8_t hat_id;
     };
 
     struct event_data_t {
@@ -59,6 +70,13 @@ namespace ryu::core {
         int32_t height;
         int32_t key_code;
     };
+
+    // XXX: these are actually bitmasks
+    //          0 means no motion in any direction
+    static constexpr uint8_t joy_up = 1;
+    static constexpr uint8_t joy_left = 8;
+    static constexpr uint8_t joy_down = 4;
+    static constexpr uint8_t joy_right = 2;
 
     static constexpr uint32_t key_0 = SDLK_0;
     static constexpr uint32_t key_1 = SDLK_1;
@@ -142,7 +160,9 @@ namespace ryu::core {
 
         static input_binding for_key_combination(const input_keys& keys);
 
-        static input_binding for_joystick_buttons(const input_joystick_t& joystick);
+        static input_binding for_joystick_hat(int32_t id, joystick_hat_direction direction);
+
+        static input_binding for_joystick_buttons(int32_t id, const joystick_buttons& buttons);
 
         bool matches(
             const SDL_Event* event,
