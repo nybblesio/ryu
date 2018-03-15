@@ -39,9 +39,6 @@ namespace ryu::core {
             const std::string& name,
             const std::string& category,
             const std::string& description) {
-        auto action = find_by_name(name);
-        if (action != nullptr)
-            return action;
         s_catalog.emplace_back(
             id_pool::instance()->allocate(),
             name,
@@ -49,6 +46,10 @@ namespace ryu::core {
             description,
             flags::no_map);
         return &s_catalog.back();
+    }
+
+    bool input_action::exists(const std::string& name) {
+        return find_by_name(name) != nullptr;
     }
 
     const input_action_catalog& input_action::catalog() {

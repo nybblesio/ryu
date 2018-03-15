@@ -28,15 +28,18 @@ Thoughts & Questions
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
-- bug: console header, project and machine fields not properly resizing
+- implement machine pick list state + UI
+    - list out table of machines, e.g. ID, name
+    - edit & delete buttons on each line
+    - scrollable
+    - add new machine button at bottom
+    - find by typing, e.g. ctrl+p in vim or intellij find type
 
-- bug: environment::on_evaluate isn't handling negative number properly
+- implement machine editor state with complete UI for all pieces
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
 - implement core::observable model so the UI can register to receive events from the underlying model
-
-- implement full & correct machine editor interface
 
 - implement full & correct project editor interface + shortcut selection UI
 
@@ -50,6 +53,9 @@ Thoughts & Questions
 
 - mouse event bindings
 
+- bug: console header, project and machine fields not properly resizing
+
+- bug: environment::on_evaluate isn't handling negative number properly
 
 [feature/piece-table] Document Data Structure
 ----------------------------------------------

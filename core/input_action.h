@@ -78,6 +78,8 @@ namespace ryu::core {
             const std::string& category,
             const std::string& description);
 
+        static bool exists(const std::string& name);
+
         static const input_action_catalog& catalog();
 
         static input_action* find_by_id(action_id id);
