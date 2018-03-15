@@ -28,6 +28,11 @@ Thoughts & Questions
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
+15 Mar: afternoon
+- refactor console and source editor's footer into one document_footer view
+- implement a column-based pick list where each row is a panel that can have column labels & column buttons
+
+16 Mar: morning
 - implement machine pick list state + UI
     - list out table of machines, e.g. ID, name
     - edit & delete buttons on each line
@@ -200,3 +205,4 @@ DONE
     * return true/false based on the continuous state per joystick
 - preferences: key binding data structure and implementation
     - add serialization/deserialization code to input_action & input_binding so we can write to preferences.yaml
+- consolidate each state's header view into one new state_header view
