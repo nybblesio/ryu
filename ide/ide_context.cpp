@@ -49,7 +49,9 @@ namespace ryu::ide {
                 }
                 return true;
             });
-        toggle_context->bind_keys({core::mod_alt, core::key_f1});
+        if (!toggle_context->has_bindings()) {
+            toggle_context->bind_keys({core::mod_alt, core::key_f1});
+        }
     }
 
     void ide_context::configure_states() {

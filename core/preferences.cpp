@@ -10,6 +10,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include "preferences.h"
+#include "input_action.h"
 
 namespace ryu::core {
 
@@ -65,7 +66,12 @@ namespace ryu::core {
         emitter << YAML::Key << "emulator_window_size" << YAML::Value << _emulator_window_size;
         emitter << YAML::EndMap;
 
-        emitter << YAML::EndMap;
+        emitter << YAML::Key << "actions" << YAML::BeginSeq;
+
+        if (!core::input_action::save(result, emitter))
+            return !result.is_failed();
+
+        emitter << YAML::EndSeq;
 
         auto file_path = preferences_file_path();
 
@@ -187,6 +193,11 @@ namespace ryu::core {
             && emulator_window_size.IsScalar()) {
                 _emulator_window_size = (core::context_window::sizes)emulator_window_size.as<int>();
             }
+        }
+
+        auto actions = root["actions"];
+        if (actions != nullptr && actions.IsSequence()) {
+            core::input_action::load(result, actions);
         }
 
         return !result.is_failed();

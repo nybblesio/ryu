@@ -68,7 +68,7 @@ namespace ryu::core {
             });
         caret_right_action->bind_keys({core::key_right});
 
-        auto backspace_action = core::input_action::create(
+        auto backspace_action = core::input_action::create_no_map(
             "textbox_backspace",
             "Internal",
             "Move the caret left and shift the line left.");
@@ -90,7 +90,7 @@ namespace ryu::core {
             });
         backspace_action->bind_keys({core::key_backspace});
 
-        auto delete_action = core::input_action::create(
+        auto delete_action = core::input_action::create_no_map(
             "textbox_delete",
             "Internal",
             "Shift the line left at the caret position.");
@@ -107,7 +107,7 @@ namespace ryu::core {
             });
         delete_action->bind_keys({core::key_delete});
 
-        auto home_action = core::input_action::create(
+        auto home_action = core::input_action::create_no_map(
             "textbox_home",
             "Internal",
             "Move the caret to the home position.");
@@ -122,7 +122,7 @@ namespace ryu::core {
             });
         home_action->bind_keys({core::key_home});
 
-        auto end_action = core::input_action::create(
+        auto end_action = core::input_action::create_no_map(
             "textbox_end",
             "Internal",
             "Move the caret to the end of the line.");

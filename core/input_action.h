@@ -15,6 +15,8 @@
 #include <cstdint>
 #include <functional>
 #include <SDL_events.h>
+#include <yaml-cpp/yaml.h>
+#include "result.h"
 #include "input_binding.h"
 
 namespace ryu::core {
@@ -80,7 +82,11 @@ namespace ryu::core {
 
         static input_action* find_by_id(action_id id);
 
+        static bool load(core::result& result, YAML::Node& root);
+
         static input_action* find_by_name(const std::string& name);
+
+        static bool save(core::result& result, YAML::Emitter& emitter);
 
         input_action(
             action_id id,
@@ -111,6 +117,8 @@ namespace ryu::core {
         action_id type() const;
 
         std::string name() const;
+
+        bool has_bindings() const;
 
         std::string category() const;
 

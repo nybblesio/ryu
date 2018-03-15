@@ -76,7 +76,7 @@ namespace ryu::core {
 
         uint32_t index() const;
 
-        uint32_t buttons() const;
+        button_state buttons() const;
 
         bool button(uint8_t id) const;
 

@@ -28,18 +28,9 @@ Thoughts & Questions
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
-- joystick hat motion is a bitmask: 0 for centered
-    * need to track continuous state for each direction bit, toggling the bits for events that come in
-    * return true/false based on the continuous state per joystick
-
-- preferences: key binding data structure and implementation
-    - add serialization/deserialization code to input_action & input_binding so we can write to preferences.yaml
-
 - bug: console header, project and machine fields not properly resizing
 
 - bug: environment::on_evaluate isn't handling negative number properly
-
-- mouse event bindings
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
@@ -56,6 +47,8 @@ Thoughts & Questions
 - implement preferences UI
 
 - look for good tab-like bitmaps instead of poly draws
+
+- mouse event bindings
 
 
 [feature/piece-table] Document Data Structure
@@ -196,3 +189,8 @@ DONE
 - encapsulate current SDL_Event data into our own data structure and update interface
 - filter out non-ASCII characters during input
 - joystick events
+- joystick hat motion is a bitmask: 0 for centered
+    * need to track continuous state for each direction bit, toggling the bits for events that come in
+    * return true/false based on the continuous state per joystick
+- preferences: key binding data structure and implementation
+    - add serialization/deserialization code to input_action & input_binding so we can write to preferences.yaml

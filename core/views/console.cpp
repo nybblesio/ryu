@@ -140,8 +140,6 @@ namespace ryu::core {
     }
 
     void console::bind_events() {
-        auto joystick_device = core::joysticks::instance()->device_by_index(0);
-
         auto caret_left_action = core::input_action::create(
             "console_caret_left",
             "IDE::Console",
@@ -153,10 +151,8 @@ namespace ryu::core {
                 caret_left();
                 return true;
             });
-        caret_left_action->bind_keys({core::key_left});
-        if (joystick_device != nullptr) {
-            caret_left_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_left);
-            caret_left_action->bind_joystick_buttons(joystick_device->id(), core::button_0);
+        if (!caret_left_action->has_bindings()) {
+            caret_left_action->bind_keys({core::key_left});
         }
 
         auto caret_right_action = core::input_action::create(
@@ -170,9 +166,9 @@ namespace ryu::core {
                 caret_right();
                 return true;
             });
-        caret_right_action->bind_keys({core::key_right});
-        if (joystick_device != nullptr)
-            caret_right_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_right);
+        if (!caret_right_action->has_bindings()) {
+            caret_right_action->bind_keys({core::key_right});
+        }
 
         auto caret_down_action = core::input_action::create(
             "console_caret_down",
@@ -185,9 +181,9 @@ namespace ryu::core {
                 caret_down();
                 return true;
             });
-        caret_down_action->bind_keys({core::key_down});
-        if (joystick_device != nullptr)
-            caret_down_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_down);
+        if (!caret_down_action->has_bindings()) {
+            caret_down_action->bind_keys({core::key_down});
+        }
 
         auto caret_up_action = core::input_action::create(
             "console_caret_up",
@@ -200,9 +196,9 @@ namespace ryu::core {
                 caret_up();
                 return true;
             });
-        caret_up_action->bind_keys({core::key_up});
-        if (joystick_device != nullptr)
-        caret_up_action->bind_joystick_hat(joystick_device->id(), 0, core::hat_up);
+        if (!caret_up_action->has_bindings()) {
+            caret_up_action->bind_keys({core::key_up});
+        }
 
         auto page_up_action = core::input_action::create(
             "console_page_up",
@@ -215,7 +211,9 @@ namespace ryu::core {
                 page_up();
                 return true;
             });
-        page_up_action->bind_keys({core::key_page_up});
+        if (!page_up_action->has_bindings()) {
+            page_up_action->bind_keys({core::key_page_up});
+        }
 
         auto first_page_action = core::input_action::create(
             "console_first_page",
@@ -228,7 +226,9 @@ namespace ryu::core {
                 first_page();
                 return true;
             });
-        first_page_action->bind_keys({core::mod_ctrl, core::key_page_up});
+        if (!first_page_action->has_bindings()) {
+            first_page_action->bind_keys({core::mod_ctrl, core::key_page_up});
+        }
 
         auto page_down_action = core::input_action::create(
             "console_page_down",
@@ -241,7 +241,9 @@ namespace ryu::core {
                 page_down();
                 return true;
             });
-        page_down_action->bind_keys({core::key_page_down});
+        if (!page_down_action->has_bindings()) {
+            page_down_action->bind_keys({core::key_page_down});
+        }
 
         auto last_page_action = core::input_action::create(
             "console_last_page",
@@ -254,7 +256,9 @@ namespace ryu::core {
                 last_page();
                 return true;
             });
-        last_page_action->bind_keys({core::mod_ctrl, core::key_page_down});
+        if (!last_page_action->has_bindings()) {
+            last_page_action->bind_keys({core::mod_ctrl, core::key_page_down});
+        }
 
         auto caret_home_action = core::input_action::create(
             "console_caret_home",
@@ -267,7 +271,9 @@ namespace ryu::core {
                 caret_home();
                 return true;
             });
-        caret_home_action->bind_keys({core::key_home});
+        if (!caret_home_action->has_bindings()) {
+            caret_home_action->bind_keys({core::key_home});
+        }
 
         auto caret_end_action = core::input_action::create(
             "console_caret_end",
@@ -280,7 +286,9 @@ namespace ryu::core {
                 caret_end();
                 return true;
             });
-        caret_end_action->bind_keys({core::key_end});
+        if (!caret_end_action->has_bindings()) {
+            caret_end_action->bind_keys({core::key_end});
+        }
 
         auto delete_action = core::input_action::create(
             "console_delete",
@@ -293,7 +301,9 @@ namespace ryu::core {
                 _document.shift_left(_vrow, _vcol);
                 return true;
             });
-        delete_action->bind_keys({core::key_delete});
+        if (!delete_action->has_bindings()) {
+            delete_action->bind_keys({core::key_delete});
+        }
 
         auto delete_eol_action = core::input_action::create(
             "console_delete_eol",
@@ -306,7 +316,9 @@ namespace ryu::core {
                 _document.shift_left(_vrow, _vcol, _metrics.page_width);
                 return true;
             });
-        delete_eol_action->bind_keys({core::mod_ctrl, core::key_delete});
+        if (!delete_eol_action->has_bindings()) {
+            delete_eol_action->bind_keys({core::mod_ctrl, core::key_delete});
+        }
 
         auto backspace_action = core::input_action::create(
             "console_backspace",
@@ -321,7 +333,9 @@ namespace ryu::core {
                 _document.shift_left(_vrow, _vcol);
                 return true;
             });
-        backspace_action->bind_keys({core::key_backspace});
+        if (!backspace_action->has_bindings()) {
+            backspace_action->bind_keys({core::key_backspace});
+        }
 
         auto insert_action = core::input_action::create(
             "console_insert",
@@ -337,7 +351,9 @@ namespace ryu::core {
                     _caret.insert();
                 return true;
             });
-        insert_action->bind_keys({core::key_insert});
+        if (!insert_action->has_bindings()) {
+            insert_action->bind_keys({core::key_insert});
+        }
 
         auto insert_space_action = core::input_action::create(
             "console_insert_space",
@@ -350,7 +366,9 @@ namespace ryu::core {
                 _document.shift_right(_vrow, _vcol);
                 return true;
             });
-        insert_space_action->bind_keys({core::mod_ctrl, core::key_insert});
+        if (!insert_space_action->has_bindings()) {
+            insert_space_action->bind_keys({core::mod_ctrl, core::key_insert});
+        }
 
         auto soft_return_action = core::input_action::create(
             "console_soft_return",
@@ -363,7 +381,9 @@ namespace ryu::core {
                 caret_newline();
                 return true;
             });
-        soft_return_action->bind_keys({core::mod_shift, core::key_return});
+        if (!soft_return_action->has_bindings()) {
+            soft_return_action->bind_keys({core::mod_shift, core::key_return});
+        }
 
         auto return_action = core::input_action::create(
             "console_return",
@@ -384,7 +404,9 @@ namespace ryu::core {
                 caret_newline();
                 return true;
             });
-        return_action->bind_keys({core::key_return});
+        if (!return_action->has_bindings()) {
+            return_action->bind_keys({core::key_return});
+        }
 
         auto resume_action = core::input_action::create(
             "console_resume",
@@ -402,7 +424,9 @@ namespace ryu::core {
                 _state = states::resume_processing;
                 return true;
             });
-        resume_action->bind_keys({core::key_space});
+        if (!resume_action->has_bindings()) {
+            resume_action->bind_keys({core::key_space});
+        }
 
         auto text_input_action = core::input_action::create_no_map(
             "console_text_input",
@@ -432,7 +456,9 @@ namespace ryu::core {
 
                 return true;
             });
-        text_input_action->bind_text_input();
+        if (!text_input_action->has_bindings()) {
+            text_input_action->bind_text_input();
+        }
     }
 
     void console::update(uint32_t) {

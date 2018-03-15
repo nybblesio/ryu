@@ -91,7 +91,9 @@ namespace ryu::core {
                 caret_left();
                 return true;
             });
-        caret_left_action->bind_keys({core::key_left});
+        if (!caret_left_action->has_bindings()) {
+            caret_left_action->bind_keys({core::key_left});
+        }
 
         auto caret_select_left_action = core::input_action::create(
             "text_editor_caret_select_left",
@@ -108,7 +110,9 @@ namespace ryu::core {
                 caret_left();
                 return true;
             });
-        caret_select_left_action->bind_keys({core::mod_shift, core::key_left});
+        if (!caret_select_left_action->has_bindings()) {
+            caret_select_left_action->bind_keys({core::mod_shift, core::key_left});
+        }
 
         auto caret_select_right_action = core::input_action::create(
             "text_editor_caret_select_right",
@@ -125,7 +129,9 @@ namespace ryu::core {
                 caret_right();
                 return true;
             });
-        caret_select_right_action->bind_keys({core::mod_shift, core::key_right});
+        if (!caret_select_right_action->has_bindings()) {
+            caret_select_right_action->bind_keys({core::mod_shift, core::key_right});
+        }
 
         auto caret_right_action = core::input_action::create(
             "text_editor_caret_right",
@@ -139,7 +145,9 @@ namespace ryu::core {
                 caret_right();
                 return true;
             });
-        caret_right_action->bind_keys({core::key_right});
+        if (!caret_right_action->has_bindings()) {
+            caret_right_action->bind_keys({core::key_right});
+        }
 
         auto caret_select_down_action = core::input_action::create(
             "text_editor_caret_select_down",
@@ -159,7 +167,9 @@ namespace ryu::core {
                 caret_newline();
                 return true;
             });
-        caret_select_down_action->bind_keys({core::mod_shift, core::key_down});
+        if (!caret_select_down_action->has_bindings()) {
+            caret_select_down_action->bind_keys({core::mod_shift, core::key_down});
+        }
 
         auto caret_down_action = core::input_action::create(
             "text_editor_caret_down",
@@ -173,7 +183,9 @@ namespace ryu::core {
                 caret_down();
                 return true;
             });
-        caret_down_action->bind_keys({core::key_down});
+        if (!caret_down_action->has_bindings()) {
+            caret_down_action->bind_keys({core::key_down});
+        }
 
         auto caret_select_up_action = core::input_action::create(
             "text_editor_caret_select_up",
@@ -194,7 +206,9 @@ namespace ryu::core {
                 caret_home();
                 return true;
             });
-        caret_select_up_action->bind_keys({core::mod_shift, core::key_up});
+        if (!caret_select_up_action->has_bindings()) {
+            caret_select_up_action->bind_keys({core::mod_shift, core::key_up});
+        }
 
         auto caret_up_action = core::input_action::create(
             "text_editor_caret_up",
@@ -208,7 +222,9 @@ namespace ryu::core {
                 caret_up();
                 return true;
             });
-        caret_up_action->bind_keys({core::key_up});
+        if (!caret_up_action->has_bindings()) {
+            caret_up_action->bind_keys({core::key_up});
+        }
 
         auto page_up_action = core::input_action::create(
             "text_editor_page_up",
@@ -221,7 +237,9 @@ namespace ryu::core {
                 page_up();
                 return true;
             });
-        page_up_action->bind_keys({core::key_page_up});
+        if (!page_up_action->has_bindings()) {
+            page_up_action->bind_keys({core::key_page_up});
+        }
 
         auto page_down_action = core::input_action::create(
             "text_editor_page_down",
@@ -234,7 +252,9 @@ namespace ryu::core {
                 page_down();
                 return true;
             });
-        page_down_action->bind_keys({core::key_page_down});
+        if (!page_down_action->has_bindings()) {
+            page_down_action->bind_keys({core::key_page_down});
+        }
 
         auto insert_action = core::input_action::create(
             "text_editor_insert",
@@ -250,7 +270,9 @@ namespace ryu::core {
                     _caret.insert();
                 return true;
             });
-        insert_action->bind_keys({core::key_insert});
+        if (!insert_action->has_bindings()) {
+            insert_action->bind_keys({core::key_insert});
+        }
 
         auto copy_action = core::input_action::create(
             "text_editor_copy",
@@ -265,7 +287,9 @@ namespace ryu::core {
                 SDL_SetClipboardText(stream.str().c_str());
                 return true;
             });
-        copy_action->bind_keys({core::mod_ctrl, core::key_c});
+        if (!copy_action->has_bindings()) {
+            copy_action->bind_keys({core::mod_ctrl, core::key_c});
+        }
 
         auto cut_action = core::input_action::create(
             "text_editor_cut",
@@ -281,7 +305,9 @@ namespace ryu::core {
                 delete_selection();
                 return true;
             });
-        cut_action->bind_keys({core::mod_ctrl, core::key_x});
+        if (!cut_action->has_bindings()) {
+            cut_action->bind_keys({core::mod_ctrl, core::key_x});
+        }
 
         auto paste_action = core::input_action::create(
             "text_editor_paste",
@@ -297,7 +323,9 @@ namespace ryu::core {
                 insert_text(text);
                 return true;
             });
-        paste_action->bind_keys({core::mod_ctrl, core::key_v});
+        if (!paste_action->has_bindings()) {
+            paste_action->bind_keys({core::mod_ctrl, core::key_v});
+        }
 
         auto return_action = core::input_action::create(
             "text_editor_return",
@@ -312,7 +340,9 @@ namespace ryu::core {
                 caret_newline();
                 return true;
             });
-        return_action->bind_keys({core::key_return});
+        if (!return_action->has_bindings()) {
+            return_action->bind_keys({core::key_return});
+        }
 
         auto shift_tab_action = core::input_action::create(
             "text_editor_shift_tab",
@@ -329,7 +359,9 @@ namespace ryu::core {
                 _document.shift_line_left(_vrow, _vcol, spaces);
                 return true;
             });
-        shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
+        if (!shift_tab_action->has_bindings()) {
+            shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
+        }
 
         auto tab_action = core::input_action::create(
             "text_editor_tab",
@@ -346,7 +378,9 @@ namespace ryu::core {
                 caret_right(spaces);
                 return true;
             });
-        tab_action->bind_keys({core::key_tab});
+        if (!tab_action->has_bindings()) {
+            tab_action->bind_keys({core::key_tab});
+        }
 
         auto delete_action = core::input_action::create(
             "text_editor_delete",
@@ -367,7 +401,9 @@ namespace ryu::core {
                 }
                 return true;
             });
-        delete_action->bind_keys({core::key_delete});
+        if (!delete_action->has_bindings()) {
+            delete_action->bind_keys({core::key_delete});
+        }
 
         auto backspace_action = core::input_action::create(
             "text_editor_backspace",
@@ -388,7 +424,9 @@ namespace ryu::core {
                 }
                 return true;
             });
-        backspace_action->bind_keys({core::key_backspace});
+        if (!backspace_action->has_bindings()) {
+            backspace_action->bind_keys({core::key_backspace});
+        }
 
         auto first_page_action = core::input_action::create(
             "text_editor_first_page",
@@ -401,7 +439,9 @@ namespace ryu::core {
                 first_page();
                 return true;
             });
-        first_page_action->bind_keys({core::mod_ctrl, core::key_home});
+        if (!first_page_action->has_bindings()) {
+            first_page_action->bind_keys({core::mod_ctrl, core::key_home});
+        }
 
         auto select_home_action = core::input_action::create(
             "text_editor_select_home",
@@ -420,7 +460,9 @@ namespace ryu::core {
                 caret_home();
                 return true;
             });
-        select_home_action->bind_keys({core::mod_shift, core::key_home});
+        if (!select_home_action->has_bindings()) {
+            select_home_action->bind_keys({core::mod_shift, core::key_home});
+        }
 
         auto home_action = core::input_action::create(
             "text_editor_home",
@@ -434,7 +476,9 @@ namespace ryu::core {
                 caret_home();
                 return true;
             });
-        home_action->bind_keys({core::key_home});
+        if (!home_action->has_bindings()) {
+            home_action->bind_keys({core::key_home});
+        }
 
         auto last_page_action = core::input_action::create(
             "text_editor_last_page",
@@ -447,7 +491,9 @@ namespace ryu::core {
                 last_page();
                 return true;
             });
-        last_page_action->bind_keys({core::mod_ctrl, core::key_end});
+        if (!last_page_action->has_bindings()) {
+            last_page_action->bind_keys({core::mod_ctrl, core::key_end});
+        }
 
         auto select_end_action = core::input_action::create(
             "text_editor_select_end",
@@ -467,7 +513,9 @@ namespace ryu::core {
                 caret_end();
                 return true;
             });
-        select_end_action->bind_keys({core::mod_shift, core::key_end});
+        if (!select_end_action->has_bindings()) {
+            select_end_action->bind_keys({core::mod_shift, core::key_end});
+        }
 
         auto end_action = core::input_action::create(
             "text_editor_end",
@@ -481,7 +529,9 @@ namespace ryu::core {
                 caret_end();
                 return true;
             });
-        end_action->bind_keys({core::key_end});
+        if (!end_action->has_bindings()) {
+            end_action->bind_keys({core::key_end});
+        }
 
         auto text_input_action = core::input_action::create_no_map(
             "text_editor_input",
@@ -513,7 +563,9 @@ namespace ryu::core {
 
                 return true;
             });
-        text_input_action->bind_text_input();
+        if (!text_input_action->has_bindings()) {
+            text_input_action->bind_text_input();
+        }
     }
 
     void text_editor::caret_newline() {

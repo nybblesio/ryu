@@ -43,7 +43,9 @@ namespace ryu::emulator {
                 }
                 return true;
             });
-        toggle_context->bind_keys({core::mod_alt, core::key_f2});
+        if (!toggle_context->has_bindings()) {
+            toggle_context->bind_keys({core::mod_alt, core::key_f2});
+        }
     }
 
     void emulator_context::configure_states() {

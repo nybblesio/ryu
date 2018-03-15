@@ -279,4 +279,16 @@ namespace ryu::core {
         }
     }
 
+    input_keys input_binding::key_config() const {
+        return _keys;
+    }
+
+    input_binding::types input_binding::type() const {
+        return _type;
+    }
+
+    const input_joystick_t* input_binding::joystick_config() const {
+        return _joystick.get();
+    }
+
 }

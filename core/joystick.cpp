@@ -47,7 +47,7 @@ namespace ryu::core {
         return _index;
     }
 
-    uint32_t joystick::buttons() const {
+    button_state joystick::buttons() const {
         return _buttons;
     }
 

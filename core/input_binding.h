@@ -186,6 +186,12 @@ namespace ryu::core {
             const SDL_Event* event,
             event_data_t& data) const;
 
+        types type() const;
+
+        input_keys key_config() const;
+
+        const input_joystick_t* joystick_config() const;
+
     protected:
         explicit input_binding(input_binding::types type);
 
