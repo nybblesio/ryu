@@ -41,16 +41,16 @@ find_package(SDL2_ttf REQUIRED)
 find_package(RTTR CONFIG REQUIRED Core)
 
 include_directories(
-        ${PROJECT_BINARY_DIR}
-        ${PROJECT_SOURCE_DIR}
-        ${Boost_INCLUDE_DIRS}
-        ${YAML_CPP_INCLUDE_DIR}
-        ${FMT_INCLUDE_DIRS}
-        ${Log4cpp_INCLUDE_DIR}
-        ${SDL2_INCLUDE_DIR}
-        ${SDL2_IMAGE_INCLUDE_DIRS}
-        ${SDL2_TTF_INCLUDE_DIRS}
-        RTTR::Core
+    ${PROJECT_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR}
+    ${Boost_INCLUDE_DIRS}
+    ${YAML_CPP_INCLUDE_DIR}
+    ${FMT_INCLUDE_DIRS}
+    ${Log4cpp_INCLUDE_DIR}
+    ${SDL2_INCLUDE_DIR}
+    ${SDL2_IMAGE_INCLUDE_DIRS}
+    ${SDL2_TTF_INCLUDE_DIRS}
+    RTTR::Core
 )
 
 # project libraries

@@ -52,7 +52,7 @@ namespace ryu::core {
     }
 
     bool joystick::button(uint8_t id) const {
-        return (_buttons & (2^id)) != 0;
+        return (_buttons & (1 << id)) != 0;
     }
 
     hat_state joystick::hat(uint8_t id) const {
@@ -65,9 +65,9 @@ namespace ryu::core {
 
     void joystick::button(uint8_t id, bool pressed) {
         if (pressed)
-            _buttons |= 2^id;
+            _buttons |= 1 << id;
         else
-            _buttons |= ~(2^id);
+            _buttons &= ~(1 << id);
     }
 
 }
