@@ -34,6 +34,13 @@ namespace ryu::core {
             }
         },
         {
+            "list_machine",
+            [](core::console& console, auto params) {
+                console.transition_to("list_machine", params);
+                return true;
+            }
+        },
+        {
             "edit_source",
             [](core::console& console, auto params) {
                 console.transition_to("edit_source", params);

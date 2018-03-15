@@ -47,58 +47,15 @@ namespace ryu::ide::console_editor {
     }
 
     void controller::on_initialize() {
-        _project_status = core::view_factory::create_label(
-            this,
-            "project-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "project: (none)",
-            core::dock::styles::left,
-            {0, context()->font_face()->width, 0, 0});
-
-        _machine_status = core::view_factory::create_label(
-            this,
-            "machine-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "| machine: (none)",
-            core::dock::styles::left,
-            {0, context()->font_face()->width, 0, 0});
-
-        _working_directory = core::view_factory::create_label(
-            this,
-            "working-directory-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            fmt::format("| cwd: {}", boost::filesystem::current_path().string()),
-            core::dock::styles::left);
-
-        _header = core::view_factory::create_dock_layout_panel(
+        _header = core::view_factory::create_state_header(
             this,
             "header-panel",
             ide::colors::info_text,
             ide::colors::fill_color,
             core::dock::styles::top,
             {_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header->bounds().height(context()->font_face()->line_height);
-        _header->add_child(_project_status.get());
-        _header->add_child(_machine_status.get());
-        _header->add_child(_working_directory.get());
-
-        core::project::add_listener([&]() {
-            std::string project_name = "(none)";
-            std::string machine_name = "(none)";
-            if (core::project::instance() != nullptr) {
-                project_name = core::project::instance()->name();
-                if (core::project::instance()->dirty())
-                    project_name += "*";
-                if (core::project::instance()->machine() != nullptr) {
-                    machine_name = core::project::instance()->machine()->name();
-                }
-            }
-            _project_status->value(fmt::format("project: {}", project_name));
-            _machine_status->value(fmt::format(" | machine: {}", machine_name));
-        });
+        _header->state("console");
+        _header->state_color(ide::colors::white);
 
         _document_status = core::view_factory::create_label(
             this,
@@ -115,15 +72,6 @@ namespace ryu::ide::console_editor {
             ide::colors::info_text,
             ide::colors::fill_color);
 
-        _environment_status = core::view_factory::create_label(
-            this,
-            "environment-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            fmt::format(
-                " | env: {}",
-                context()->environment()->name()));
-
         _footer = core::view_factory::create_dock_layout_panel(
             this,
             "footer-panel",
@@ -134,7 +82,6 @@ namespace ryu::ide::console_editor {
         _footer->bounds().height(context()->font_face()->line_height);
         _footer->add_child(_document_status.get());
         _footer->add_child(_caret_status.get());
-        _footer->add_child(_environment_status.get());
 
         _console = core::view_factory::create_console(
             this,
@@ -169,10 +116,6 @@ namespace ryu::ide::console_editor {
                 auto command = command_action_msg->get_parameter<std::string>("action");
                 if (command == "quit") {
                     context()->engine()->quit();
-                } else if (command == "update_working_directory") {
-                    _working_directory->value(fmt::format(
-                            "| cwd: {}",
-                            boost::filesystem::current_path().string()));
                 }
             }
             return success;
@@ -187,18 +130,6 @@ namespace ryu::ide::console_editor {
         _layout_panel->add_child(_header.get());
         _layout_panel->add_child(_footer.get());
         _layout_panel->add_child(_console.get());
-
-        core::project::add_listener([&](){
-            std::string name = "(none)";
-            auto project = core::project::instance();
-            if (project != nullptr) {
-                auto active_environment = project->active_environment();
-                if (active_environment != nullptr) {
-                    name = active_environment->name();
-                }
-            }
-            _environment_status->value(fmt::format(" | env: {}", name));
-        });
     }
 
     void controller::on_update(uint32_t dt) {

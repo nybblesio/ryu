@@ -620,9 +620,9 @@ namespace ryu::core {
                 command::types::edit_machine,
                 command_size_flags::none,
                 {
-                    {"name", variant::types::string_literal}
+                    {"name", variant::types::string_literal, false}
                 },
-                "Open machine editor for <italic>name<> machine in registry.",
+                "Open machine editor on <italic>name<> or show the pick list if no name is passed.",
                 "machine",
                 1
             }

@@ -22,6 +22,9 @@ namespace ryu::core {
     class caret;
     using caret_unique_ptr = std::unique_ptr<core::caret>;
 
+    class state_header;
+    using state_header_unique_ptr = std::unique_ptr<core::state_header>;
+
     class memory_editor;
     using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
 
@@ -128,6 +131,15 @@ namespace ryu::core {
             const padding& margin = {},
             const padding& padding = {},
             const core::rect& bounds = {});
+
+        static state_header_unique_ptr create_state_header(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style = dock::styles::fill,
+            const padding& margin = {},
+            const padding& padding = {});
 
         static dock_layout_panel_unique_ptr create_dock_layout_panel(
             core::state* state,

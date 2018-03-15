@@ -27,6 +27,10 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
+    view_host* view::host() {
+        return _host;
+    }
+
     void view::initialize() {
         listen_for_on_host_change();
 

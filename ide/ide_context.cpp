@@ -20,6 +20,7 @@ namespace ryu::ide {
     ide_context::ide_context(const std::string& name) : core::context(name),
                                                         _hex_editor_state("hex editor"),
                                                         _console_state("console"),
+                                                        _machine_list_state("machine list"),
                                                         _source_editor_state("text editor"),
                                                         _machine_editor_state("machine editor") {
     }
@@ -67,10 +68,14 @@ namespace ryu::ide {
                 } else if (command == "edit_machine") {
                     push_state(_machine_editor_state.id(), params);
                     return true;
+                } else if (command == "list_machine") {
+                    push_state(_machine_list_state.id(), params);
+                    return true;
                 }
                 return false;
             });
         add_state(&_hex_editor_state);
+        add_state(&_machine_list_state);
         add_state(&_source_editor_state);
         add_state(&_machine_editor_state);
         push_state(_console_state.id(), {});

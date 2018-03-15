@@ -1679,11 +1679,15 @@ namespace ryu::core {
 
     bool environment::on_edit_machine(
             const command_handler_context_t& context) {
+        std::string action("edit_machine");
+        auto name = context.get_parameter<core::string_literal_t>("name");
+        if (name.empty())
+            action = "list_machine";
         context.result.add_data(
                 "command_action",
                 {
-                    {"action", std::string("edit_machine")},
-                    {"name", context.get_parameter<core::string_literal_t>("name")}
+                    {"action", action},
+                    {"name", name}
                 });
         return true;
     }

@@ -15,7 +15,7 @@
 #include <hardware/machine.h>
 #include <core/view_factory.h>
 #include <core/views/notebook.h>
-#include <core/views/dock_layout_panel.h>
+#include <core/views/state_header.h>
 #include "general_tab.h"
 
 namespace ryu::ide::machine_editor {
@@ -54,13 +54,13 @@ namespace ryu::ide::machine_editor {
     private:
         metrics_t _metrics;
         hardware::machine* _machine;
-        core::label_unique_ptr _header;
         core::label_unique_ptr _footer;
         core::label_unique_ptr _name_label;
         core::notebook_unique_ptr _notebook;
         core::button_unique_ptr _map_button;
         core::button_unique_ptr _add_button;
         core::label_unique_ptr _display_label;
+        core::state_header_unique_ptr _header;
         core::button_unique_ptr _delete_button;
         core::textbox_unique_ptr _name_textbox;
         core::dock_layout_panel_unique_ptr _panel;

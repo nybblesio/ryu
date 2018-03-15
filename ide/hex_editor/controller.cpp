@@ -54,64 +54,21 @@ namespace ryu::ide::hex_editor {
     void controller::on_initialize() {
         bind_events();
 
-        _project_status = core::view_factory::create_label(
-            this,
-            "project-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "project: (none)",
-            core::dock::styles::left,
-            {0, context()->font_face()->width, 0, 0});
-
-        _machine_status = core::view_factory::create_label(
-            this,
-            "machine-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "| machine: (none)",
-            core::dock::styles::left,
-            {0, context()->font_face()->width, 0, 0});
-
-        _header = core::view_factory::create_dock_layout_panel(
+        _header = core::view_factory::create_state_header(
             this,
             "header-panel",
             ide::colors::info_text,
             ide::colors::fill_color,
             core::dock::styles::top,
             {_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header->bounds().height(context()->font_face()->line_height);
-        _header->add_child(_project_status.get());
-        _header->add_child(_machine_status.get());
-
-        core::project::add_listener([&]() {
-            std::string project_name = "(none)";
-            std::string machine_name = "(none)";
-            if (core::project::instance() != nullptr) {
-                project_name = core::project::instance()->name();
-                if (core::project::instance()->dirty())
-                    project_name += "*";
-                if (core::project::instance()->machine() != nullptr) {
-                    machine_name = core::project::instance()->machine()->name();
-                }
-            }
-            _project_status->value(fmt::format("project: {}", project_name));
-            _machine_status->value(fmt::format(" | machine: {}", machine_name));
-        });
+        _header->state("memory editor");
+        _header->state_color(ide::colors::white);
 
         _caret_status = core::view_factory::create_label(
             this,
             "caret-status-label",
             ide::colors::info_text,
             ide::colors::fill_color);
-
-        _environment_status = core::view_factory::create_label(
-            this,
-            "environment-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            fmt::format(
-                " | env: {}",
-                context()->environment()->name()));
 
         _footer = core::view_factory::create_dock_layout_panel(
             this,
@@ -122,7 +79,6 @@ namespace ryu::ide::hex_editor {
             {_metrics.left_padding, _metrics.right_padding, 5, 5});
         _footer->bounds().height(context()->font_face()->line_height);
         _footer->add_child(_caret_status.get());
-        _footer->add_child(_environment_status.get());
 
         _command_line = core::view_factory::create_textbox(
             this,
@@ -135,12 +91,12 @@ namespace ryu::ide::hex_editor {
         _command_line->width(60);
         _command_line->length(255);
         _command_line->sizing(core::view::sizing::types::parent);
-        _command_line->on_key_down([&](int keycode) {
-            if (keycode == 27) {
+        _command_line->on_key_down([&](int key_code) {
+            if (key_code == core::ascii_escape) {
                 _layout_panel->focus(_editor.get());
                 return true;
             }
-            if (keycode == 13) {
+            if (key_code == core::ascii_return) {
                 core::result result;
                 auto input = _command_line->value();
                 auto success = context()->environment()->execute(result, input);
@@ -207,20 +163,6 @@ namespace ryu::ide::hex_editor {
         _layout_panel->add_child(_command_line.get());
         _layout_panel->add_child(_footer.get());
         _layout_panel->add_child(_editor.get());
-
-        core::project::add_listener([&](){
-            auto env = context()->environment();
-            auto project = core::project::instance();
-            if (project != nullptr) {
-                auto active_environment = project->active_environment();
-                if (active_environment != nullptr) {
-                    env->name(active_environment->path().filename().string());
-                }
-            } else {
-                env->name("");
-            }
-            _environment_status->value(fmt::format(" | env: {}", env->name()));
-        });
     }
 
     void controller::on_update(uint32_t dt) {

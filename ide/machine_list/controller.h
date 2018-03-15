@@ -4,24 +4,19 @@
 // Copyright (C) 2017 Jeff Panici
 // All Rights Reserved.
 //
+// See the LICENSE file for details about the license covering
+// this source code file.
+//
 
 #pragma once
 
 #include <core/state.h>
-#include <core/project.h>
-#include <hardware/machine.h>
-#include <core/views/label.h>
-#include <core/views/textbox.h>
-#include <core/views/text_editor.h>
 #include <core/views/state_header.h>
 
-namespace ryu::ide::source_editor {
+namespace ryu::ide::machine_list {
 
     class controller : public ryu::core::state {
     public:
-        const uint32_t rows = 4096;
-        const uint16_t columns = 128;
-
         explicit controller(const std::string& name);
 
     protected:
@@ -31,6 +26,8 @@ namespace ryu::ide::source_editor {
         };
 
         void on_initialize() override;
+
+        void on_deactivate() override;
 
         void on_update(uint32_t dt) override;
 
@@ -43,15 +40,13 @@ namespace ryu::ide::source_editor {
     private:
         void bind_events();
 
+        void create_views();
+
     private:
         metrics_t _metrics;
-        core::label_unique_ptr _caret_status;
-        core::text_editor_unique_ptr _editor;
         core::state_header_unique_ptr _header;
-        core::textbox_unique_ptr _command_line;
-        core::label_unique_ptr _document_status;
-        core::dock_layout_panel_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
     };
 
 };
+

@@ -14,8 +14,8 @@
 #include <core/views/label.h>
 #include <core/view_factory.h>
 #include <core/views/textbox.h>
+#include <core/views/state_header.h>
 #include <core/views/memory_editor.h>
-#include <core/views/dock_layout_panel.h>
 
 namespace ryu::ide::hex_editor {
 
@@ -45,12 +45,9 @@ namespace ryu::ide::hex_editor {
     private:
         metrics_t _metrics;
         core::label_unique_ptr _caret_status;
-        core::label_unique_ptr _machine_status;
-        core::label_unique_ptr _project_status;
+        core::state_header_unique_ptr _header;
         core::textbox_unique_ptr _command_line;
         core::memory_editor_unique_ptr _editor;
-        core::label_unique_ptr _environment_status;
-        core::dock_layout_panel_unique_ptr _header;
         core::dock_layout_panel_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
     };

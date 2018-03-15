@@ -41,17 +41,13 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::update_values() {
-        int machine_id = 0;
         if (_machine != nullptr) {
-            machine_id = _machine->id();
             _name_textbox->value(_machine->name());
             auto disp = _machine->display();
             if (disp != nullptr)
                 _display_pick_list->value(disp->name());
             _address_space_textbox->value(fmt::format("{0:08x}", _machine->address_space()));
         }
-        _header->value(fmt::format("machine editor | id: {}", machine_id));
-        _header->resize(context()->bounds());
     }
 
     void controller::on_initialize() {
@@ -59,14 +55,15 @@ namespace ryu::ide::machine_editor {
 
         auto address_space_label_width = context()->font_face()->measure_text("address space: $");
 
-        _header = core::view_factory::create_label(
+        _header = core::view_factory::create_state_header(
             this,
-            "header-label",
+            "header-panel",
             ide::colors::info_text,
             ide::colors::fill_color,
-            "",
             core::dock::styles::top,
             {_metrics.left_padding, _metrics.right_padding, 5, 15});
+        _header->state("machine editor");
+        _header->state_color(ide::colors::white);
 
         _footer = core::view_factory::create_label(
             this,

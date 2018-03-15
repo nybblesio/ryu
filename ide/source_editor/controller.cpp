@@ -53,62 +53,16 @@ namespace ryu::ide::source_editor {
     void controller::on_initialize() {
         bind_events();
 
-        _project_label = core::view_factory::create_label(
-            this,
-            "project-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "project: (none)",
-            core::dock::styles::left,
-            {0, context()->font_face()->width, 0, 0});
-
-        _machine_label = core::view_factory::create_label(
-            this,
-            "machine-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "| machine: (none)",
-            core::dock::styles::left,
-            {0, context()->font_face()->width, 0, 0});
-
-        _file_status = core::view_factory::create_label(
-            this,
-            "file-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "| file: (none)",
-            core::dock::styles::left);
-
-        core::project::add_listener([&]() {
-            std::string project_name = "(none)";
-            std::string machine_name = "(none)";
-            std::string file = "(none)";
-
-            if (core::project::instance() != nullptr) {
-                project_name = core::project::instance()->name();
-                if (core::project::instance()->dirty())
-                    project_name += "*";
-                if (core::project::instance()->machine() != nullptr) {
-                    machine_name = core::project::instance()->machine()->name();
-                }
-            }
-
-            _project_label->value(fmt::format("project: {}", project_name));
-            _machine_label->value(fmt::format("| machine: {}", machine_name));
-            _file_status->value(fmt::format("| file: {}", file));
-        });
-
-        _header = core::view_factory::create_dock_layout_panel(
+        _header = core::view_factory::create_state_header(
             this,
             "header-panel",
             ide::colors::info_text,
             ide::colors::fill_color,
             core::dock::styles::top,
             {_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header->bounds().height(context()->font_face()->line_height);
-        _header->add_child(_project_label.get());
-        _header->add_child(_machine_label.get());
-        _header->add_child(_file_status.get());
+        _header->state("source editor");
+        _header->state_color(ide::colors::white);
+        _header->custom("| file: (none)");
 
         _command_line = core::view_factory::create_textbox(
             this,
@@ -225,7 +179,7 @@ namespace ryu::ide::source_editor {
             if (file_name.empty()) {
                 file_name = "(none)";
             }
-            _file_status->value(fmt::format("| file: {}", file_name));
+            _header->custom(fmt::format("| file: {}", file_name));
             _document_status->value(fmt::format(
                     "C:{:03d}/{:03d} R:{:04d}/{:04d}",
                     document.column() + caret.column() + 1,

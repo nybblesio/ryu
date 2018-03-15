@@ -178,6 +178,8 @@ namespace ryu::core {
         virtual void font_family(core::font_family* font);
 
     protected:
+        view_host* host();
+
         core::view* find_root();
 
         void inner_focus(bool value);

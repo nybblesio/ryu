@@ -50,6 +50,7 @@ add_library(
         assembly_listing.cpp assembly_listing.h
         views/text_editor.cpp views/text_editor.h
         project_file_type.cpp project_file_type.h
+        views/state_header.cpp views/state_header.h
         views/memory_editor.cpp views/memory_editor.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h
         assembly_language_parser.cpp assembly_language_parser.h)
