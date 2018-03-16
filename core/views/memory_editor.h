@@ -11,7 +11,6 @@
 #pragma once
 
 #include <core/view.h>
-#include <core/selection.h>
 #include "caret.h"
 
 namespace ryu::core {
@@ -88,8 +87,6 @@ namespace ryu::core {
 
         void end_selection();
 
-        void delete_selection();
-
         void calculate_page_metrics();
 
         void update_virtual_position();
@@ -104,8 +101,6 @@ namespace ryu::core {
 
         bool caret_right(uint8_t columns = 1);
 
-        void update_selection(uint16_t line_end);
-
     private:
         uint16_t _vcol;
         uint32_t _vrow;
@@ -113,7 +108,6 @@ namespace ryu::core {
         metrics_t _metrics;
         uint8_t _selection_color;
         uint8_t _line_number_color;
-        core::selection _selection;
         caret_changed_callable _caret_changed_callback;
     };
 

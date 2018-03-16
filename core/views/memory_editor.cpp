@@ -104,7 +104,6 @@ namespace ryu::core {
             return;
 
         _caret.insert();
-        _selection.end(_vrow, _vcol);
     }
 
     void memory_editor::on_focus_changed() {
@@ -136,9 +135,6 @@ namespace ryu::core {
     void memory_editor::update_virtual_position() {
         _vrow = _caret.row();
         _vcol = _caret.column();
-
-        if (_caret.mode() != core::caret::mode::select)
-            _selection.clear();
     }
 
     void memory_editor::caret_color(uint8_t value) {
@@ -173,19 +169,6 @@ namespace ryu::core {
 
     void memory_editor::address_color(uint8_t value) {
         _line_number_color = value;
-    }
-
-    void memory_editor::update_selection(uint16_t line_end) {
-        if (_caret.mode() == core::caret::mode::select) {
-            if (_vrow < _selection.start().row && line_end < _selection.start().column)
-                _selection.start(_vrow, line_end);
-            else
-                _selection.end(_vrow, line_end);
-        } else {
-            _caret.select();
-            _selection.start(_vrow, 0);
-            _selection.end(_vrow, line_end);
-        }
     }
 
     void memory_editor::on_draw(core::renderer& surface) {
@@ -232,35 +215,6 @@ namespace ryu::core {
 //
 //            y += face->line_height;
 //        }
-    }
-
-    void memory_editor::delete_selection() {
-        _selection.normalize();
-
-//        auto row = _selection.start().row;
-//        auto last_row = _selection.end().row;
-
-//        if (row == last_row) {
-//            auto line_end = _document.find_line_end(row);
-//            if (_selection.start().column == 0 && _selection.end().column == line_end) {
-//                _document.delete_line(row);
-//            } else {
-//                for (uint16_t col = _selection.start().column; col < _selection.end().column; col++)
-//                    _document.put(row, col, core::element_t {0, _document.default_attr()});
-//            }
-//        } else {
-//            _document.delete_line(row);
-//            for (auto i = row; i < last_row; i++)
-//                _document.delete_line(row);
-//            for (uint16_t col = 0; col < _selection.end().column; col++)
-//                _document.put(row, col, core::element_t {0, _document.default_attr()});
-//        }
-
-        _caret.row(static_cast<uint8_t>(_selection.start().row));
-        _caret.column(static_cast<uint8_t>(_selection.start().column));
-
-        update_virtual_position();
-        end_selection();
     }
 
     void memory_editor::calculate_page_metrics() {

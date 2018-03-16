@@ -13,7 +13,6 @@
 #include <core/view.h>
 #include <core/project.h>
 #include <core/document.h>
-#include <core/selection.h>
 #include <core/input_action.h>
 #include "caret.h"
 
@@ -136,7 +135,6 @@ namespace ryu::core {
         core::document _document;
         uint8_t _selection_color;
         uint8_t _line_number_color;
-        core::selection _selection;
         caret_changed_callable _caret_changed_callback;
     };
 

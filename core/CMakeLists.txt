@@ -16,7 +16,6 @@ add_library(
         document.cpp document.h
         renderer.cpp renderer.h
         joystick.cpp joystick.h
-        selection.cpp selection.h
         evaluator.cpp evaluator.h
         font_book.cpp font_book.h
         assembler.cpp assembler.h

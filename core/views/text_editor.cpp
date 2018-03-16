@@ -92,6 +92,7 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
+
                 return true;
             });
         if (!caret_select_left_action->has_bindings()) {
@@ -350,14 +351,10 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                if (_selection.valid()) {
-                    delete_selection();
+                if (_document.is_line_empty()) {
+                    _document.delete_line();
                 } else {
-                    if (_document.is_line_empty()) {
-                        _document.delete_line();
-                    } else {
-                        _document.shift_line_left();
-                    }
+                    _document.shift_line_left();
                 }
                 return true;
             });
@@ -650,15 +647,14 @@ namespace ryu::core {
                 auto width = face->measure_text(chunk.text);
                 auto color = pal[chunk.attr.color];
 
-                // XXX: need to rework this with saner selection implementation
-//                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
-//                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-//                    auto selection_color = pal[_selection_color];
-//                    selection_color.alpha(0x7f);
-//                    surface.set_color(selection_color);
-//                    surface.fill_rect(core::rect{x, y, width, face->line_height});
-//                    surface.pop_blend_mode();
-//                }
+                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
+                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
+                    auto selection_color = pal[_selection_color];
+                    selection_color.alpha(0x7f);
+                    surface.set_color(selection_color);
+                    surface.fill_rect(core::rect{x, y, width, face->line_height});
+                    surface.pop_blend_mode();
+                }
 
                 surface.draw_text(face, x, y, chunk.text, color);
 
@@ -717,29 +713,29 @@ namespace ryu::core {
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {
-        _selection.normalize();
-        auto row = _selection.start().row;
-        auto last_row = _selection.end().row;
-
-        if (row == last_row) {
-            _document.write_line(stream, row, _selection.start().column, _selection.end().column);
-            stream << "\n";
-        } else {
-            _document.write_line(stream, row, _selection.start().column, _document.columns());
-            stream << "\n";
-            ++row;
-            if (row == last_row) {
-                _document.write_line(stream, last_row, 0, _selection.end().column);
-                stream << "\n";
-            } else {
-                for (; row < last_row; ++row) {
-                    _document.write_line(stream, row, 0, _document.columns());
-                    stream << "\n";
-                }
-                _document.write_line(stream, last_row, 0, _selection.end().column);
-                stream << "\n";
-            }
-        }
+//        _selection.normalize();
+//        auto row = _selection.start().row;
+//        auto last_row = _selection.end().row;
+//
+//        if (row == last_row) {
+//            _document.write_line(stream, row, _selection.start().column, _selection.end().column);
+//            stream << "\n";
+//        } else {
+//            _document.write_line(stream, row, _selection.start().column, _document.columns());
+//            stream << "\n";
+//            ++row;
+//            if (row == last_row) {
+//                _document.write_line(stream, last_row, 0, _selection.end().column);
+//                stream << "\n";
+//            } else {
+//                for (; row < last_row; ++row) {
+//                    _document.write_line(stream, row, 0, _document.columns());
+//                    stream << "\n";
+//                }
+//                _document.write_line(stream, last_row, 0, _selection.end().column);
+//                stream << "\n";
+//            }
+//        }
     }
 
     bool text_editor::load(core::result& result, const fs::path& path) {

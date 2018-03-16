@@ -76,10 +76,35 @@ namespace ryu::core {
             return _elements.size();
         }
 
+        void clear_selection() {
+            _selection_end = 0;
+            _selection_start = 0;
+        }
+
+        bool has_selection() const {
+            return _selection_end - _selection_start > 0;
+        }
+
         element_t* get(size_t column) {
             if (column < _elements.size())
                 return &_elements[column];
             return nullptr;
+        }
+
+        uint16_t selection_end() const {
+            return _selection_end;
+        }
+
+        uint16_t selection_start() const {
+            return _selection_start;
+        }
+
+        void selection_end(uint16_t value) {
+            _selection_end = value;
+        }
+
+        void selection_start(uint16_t value) {
+            _selection_start = value;
         }
 
         void put(size_t column, const element_t& value) {
@@ -105,7 +130,17 @@ namespace ryu::core {
             }
         }
 
-        attr_chunks chunks(uint16_t start_column, uint16_t end_column) const {
+        void apply_selection(
+                attr_t& attr,
+                uint16_t start_column,
+                uint16_t end_column) {
+            if (!has_selection())
+                return;
+            if (_selection_start >= start_column && _selection_end <= end_column)
+                attr.flags |= core::font::flags::reverse;
+        }
+
+        attr_chunks chunks(uint16_t start_column, uint16_t end_column) {
             if (_elements.empty())
                 return {};
 
@@ -114,6 +149,8 @@ namespace ryu::core {
             std::stringstream stream;
 
             auto last_attr = _elements[col].attr;
+            apply_selection(last_attr, start_column, end_column);
+
             while (col < end_column && col < _elements.size()) {
                 const auto& element = _elements[col];
                 if (last_attr != element.attr) {
@@ -124,6 +161,7 @@ namespace ryu::core {
                         stream.clear();
                     }
                     last_attr = element.attr;
+                    apply_selection(last_attr, start_column, end_column);
                 }
                 if (element.value == 0)
                     stream << " ";
@@ -149,6 +187,8 @@ namespace ryu::core {
 
     private:
         attr_t _default_attr;
+        uint16_t _selection_end;
+        uint16_t _selection_start;
         std::vector<element_t> _elements {};
     };
 
@@ -255,6 +295,8 @@ namespace ryu::core {
 
         void clear();
 
+        void select();
+
         void page_up();
 
         void page_size(
@@ -308,6 +350,8 @@ namespace ryu::core {
         int16_t column() const;
 
         attr_t& default_attr();
+
+        void clear_selection();
 
         uint16_t find_line_end();
 

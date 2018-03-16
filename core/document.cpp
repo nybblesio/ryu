@@ -26,6 +26,10 @@ namespace ryu::core {
         raise_document_changed();
     }
 
+    void document::select() {
+
+    }
+
     void document::write_line(
             std::ostream& stream,
             uint32_t row,
@@ -177,6 +181,13 @@ namespace ryu::core {
 
     int16_t document::column() const {
         return _column;
+    }
+
+    void document::clear_selection() {
+        auto line = line_at();
+        if (line == nullptr)
+            return;
+        line->clear_selection();
     }
 
     uint16_t document::columns() const {
