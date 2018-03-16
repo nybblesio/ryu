@@ -16,9 +16,9 @@
 #include <core/views/checkbox.h>
 #include <core/views/pick_list.h>
 #include <core/views/text_editor.h>
-#include <core/views/dock_layout_panel.h>
 #include <core/views/state_header.h>
 #include <core/views/memory_editor.h>
+#include <core/views/document_footer.h>
 #include "state.h"
 #include "view_factory.h"
 
@@ -356,6 +356,30 @@ namespace ryu::core {
             {},
             margin,
             padding);
+        return view;
+    }
+
+    document_footer_unique_ptr view_factory::create_document_footer(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style,
+            const padding& margin,
+            const padding& padding) {
+        auto host = dynamic_cast<view_host*>(state);
+
+        auto view = std::make_unique<core::document_footer>(name, host);
+        configure_view(
+                view.get(),
+                state->context()->font_family(),
+                &state->context()->palette(),
+                fg_color,
+                bg_color,
+                dock_style,
+                {},
+                margin,
+                padding);
         return view;
     }
 

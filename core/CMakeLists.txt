@@ -52,5 +52,6 @@ add_library(
         project_file_type.cpp project_file_type.h
         views/state_header.cpp views/state_header.h
         views/memory_editor.cpp views/memory_editor.h
+        views/document_footer.cpp views/document_footer.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h
         assembly_language_parser.cpp assembly_language_parser.h)

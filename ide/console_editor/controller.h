@@ -18,6 +18,7 @@
 #include <core/view_factory.h>
 #include <core/views/console.h>
 #include <core/views/state_header.h>
+#include <core/views/document_footer.h>
 
 namespace ryu::ide::console_editor {
 
@@ -47,10 +48,8 @@ namespace ryu::ide::console_editor {
         metrics_t _metrics;
         bool _show_banner = true;
         core::console_unique_ptr _console;
-        core::label_unique_ptr _caret_status;
         core::state_header_unique_ptr _header;
-        core::label_unique_ptr _document_status;
-        core::dock_layout_panel_unique_ptr _footer;
+        core::document_footer_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
     };
 

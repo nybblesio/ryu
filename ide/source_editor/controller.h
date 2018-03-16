@@ -14,6 +14,7 @@
 #include <core/views/textbox.h>
 #include <core/views/text_editor.h>
 #include <core/views/state_header.h>
+#include <core/views/document_footer.h>
 
 namespace ryu::ide::source_editor {
 
@@ -45,12 +46,10 @@ namespace ryu::ide::source_editor {
 
     private:
         metrics_t _metrics;
-        core::label_unique_ptr _caret_status;
         core::text_editor_unique_ptr _editor;
         core::state_header_unique_ptr _header;
         core::textbox_unique_ptr _command_line;
-        core::label_unique_ptr _document_status;
-        core::dock_layout_panel_unique_ptr _footer;
+        core::document_footer_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
     };
 

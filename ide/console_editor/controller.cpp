@@ -57,31 +57,13 @@ namespace ryu::ide::console_editor {
         _header->state("console");
         _header->state_color(ide::colors::white);
 
-        _document_status = core::view_factory::create_label(
-            this,
-            "document-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "",
-            core::dock::styles::left,
-            {0, context()->font_face()->width, 0, 0});
-
-        _caret_status = core::view_factory::create_label(
-            this,
-            "caret-status-label",
-            ide::colors::info_text,
-            ide::colors::fill_color);
-
-        _footer = core::view_factory::create_dock_layout_panel(
-            this,
-            "footer-panel",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            core::dock::styles::bottom,
-            {_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _footer->bounds().height(context()->font_face()->line_height);
-        _footer->add_child(_document_status.get());
-        _footer->add_child(_caret_status.get());
+        _footer = core::view_factory::create_document_footer(
+                this,
+                "footer-panel",
+                ide::colors::info_text,
+                ide::colors::fill_color,
+                core::dock::styles::bottom,
+                {_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _console = core::view_factory::create_console(
             this,
@@ -94,17 +76,7 @@ namespace ryu::ide::console_editor {
             return transition_to(name, params);
         });
         _console->on_caret_changed([&](const core::caret& caret, const core::document& document) {
-            _document_status->value(fmt::format(
-                    "C:{:03d}/{:03d} R:{:04d}/{:04d}",
-                    document.column() + caret.column() + 1,
-                    document.columns(),
-                    document.row() + caret.row() + 1,
-                    document.rows()));
-            _caret_status->value(fmt::format(
-                    "| X:{:03d} Y:{:02d} | {}",
-                    caret.column() + 1,
-                    caret.row() + 1,
-                    caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
+            _footer->value(caret, document);
         });
         _console->on_execute_command([&](core::result& result, const std::string& input) {
             auto success = context()->environment()->execute(result, input);
