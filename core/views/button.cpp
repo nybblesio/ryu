@@ -34,7 +34,7 @@ namespace ryu::core {
         activate_action->register_handler(
             action_sink::types::view,
             [this](const event_data_t& data) {
-                return focused();
+                return focused() && enabled();
             },
             [this](const event_data_t& data) {
                 if (_on_clicked) {

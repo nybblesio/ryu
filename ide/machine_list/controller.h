@@ -12,6 +12,7 @@
 
 #include <core/state.h>
 #include <core/views/state_header.h>
+#include <core/views/column_pick_list.h>
 
 namespace ryu::ide::machine_list {
 
@@ -22,7 +23,7 @@ namespace ryu::ide::machine_list {
     protected:
         struct metrics_t {
             const int left_padding = 10;
-            const int right_padding = 10;
+            const int right_padding = 50;
         };
 
         void on_initialize() override;
@@ -44,8 +45,13 @@ namespace ryu::ide::machine_list {
 
     private:
         metrics_t _metrics;
+        core::button_unique_ptr _add_button;
+        core::button_unique_ptr _edit_button;
         core::state_header_unique_ptr _header;
+        core::button_unique_ptr _delete_button;
+        core::column_pick_list_unique_ptr _pick_list;
         core::dock_layout_panel_unique_ptr _layout_panel;
+        core::dock_layout_panel_unique_ptr _buttons_panel;
     };
 
 };

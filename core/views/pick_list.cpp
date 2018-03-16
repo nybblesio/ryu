@@ -29,7 +29,9 @@ namespace ryu::core {
 
     bool pick_list::move_down() {
         _selection++;
-        auto max = std::min(_visibile_items, static_cast<const int&>(_options.size())) - 1;
+        auto max = std::min(
+            _visibile_items,
+            static_cast<const int&>(_options.size())) - 1;
         if (_selection > max) {
             _selection = max;
             return move_row_down();
@@ -169,23 +171,34 @@ namespace ryu::core {
             surface.set_color(fg);
             surface.draw_rect(bounds);
         } else {
-            surface.draw_line(bounds.left(), bounds.bottom(), bounds.right() + 5, bounds.bottom());
+            surface.draw_line(
+                bounds.left(),
+                bounds.bottom(),
+                bounds.right() + 5,
+                bounds.bottom());
         }
 
         if (focused()) {
-            core::rect box {bounds.left(),
-                            bounds.bottom(),
-                            bounds.width() + 6,
-                            (font_face()->line_height * (_visibile_items + 1))};
+            core::rect box {
+                bounds.left(),
+                bounds.bottom(),
+                bounds.width() + 6,
+                (font_face()->line_height * (_visibile_items + 1))};
             surface.set_color(fg);
             surface.draw_rect(box);
 
             auto y = box.top() + 4;
             auto start = _row;
-            auto max = std::min(_visibile_items, static_cast<const int&>(_options.size()));
+            auto max = std::min(
+                _visibile_items,
+                static_cast<int32_t>(_options.size()));
             auto stop = _row + max;
             for (auto row = start; row < stop; ++row) {
-                core::rect line = {bounds.left() + 4, y, bounds.width() - 2, font_face()->line_height};
+                core::rect line = {
+                    bounds.left() + 4,
+                    y,
+                    bounds.width() - 2,
+                    font_face()->line_height};
                 if (row == _row + _selection) {
                     surface.push_blend_mode(SDL_BLENDMODE_BLEND);
                     auto selection_color = pal[fg_color()];
@@ -206,7 +219,9 @@ namespace ryu::core {
     }
 
     void pick_list::on_resize(const core::rect& context_bounds) {
-        bounds().size(font_face()->width * (_length + 1), font_face()->line_height + 10);
+        bounds().size(
+            font_face()->width * (_length + 1),
+            font_face()->line_height + 10);
     }
 
 }

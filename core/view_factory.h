@@ -61,6 +61,9 @@ namespace ryu::core {
     class textbox;
     using textbox_unique_ptr = std::unique_ptr<core::textbox>;
 
+    class column_pick_list;
+    using column_pick_list_unique_ptr = std::unique_ptr<core::column_pick_list>;
+
     class view_factory {
     public:
         static caret_unique_ptr create_caret(
@@ -69,6 +72,14 @@ namespace ryu::core {
             uint8_t fg_color,
             uint8_t bg_color,
             const core::rect& bounds = {});
+
+        static column_pick_list_unique_ptr create_column_pick_list(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            const padding& margin = {},
+            const padding& padding = {});
 
         static label_unique_ptr create_label(
             core::state* state,

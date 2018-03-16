@@ -19,6 +19,7 @@
 #include <core/views/state_header.h>
 #include <core/views/memory_editor.h>
 #include <core/views/document_footer.h>
+#include <core/views/column_pick_list.h>
 #include "state.h"
 #include "view_factory.h"
 
@@ -371,15 +372,38 @@ namespace ryu::core {
 
         auto view = std::make_unique<core::document_footer>(name, host);
         configure_view(
-                view.get(),
-                state->context()->font_family(),
-                &state->context()->palette(),
-                fg_color,
-                bg_color,
-                dock_style,
-                {},
-                margin,
-                padding);
+            view.get(),
+            state->context()->font_family(),
+            &state->context()->palette(),
+            fg_color,
+            bg_color,
+            dock_style,
+            {},
+            margin,
+            padding);
+        return view;
+    }
+
+    column_pick_list_unique_ptr view_factory::create_column_pick_list(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            const padding& margin,
+            const padding& padding) {
+        auto host = dynamic_cast<view_host*>(state);
+
+        auto view = std::make_unique<core::column_pick_list>(name, host);
+        configure_view(
+            view.get(),
+            state->context()->font_family(),
+            &state->context()->palette(),
+            fg_color,
+            bg_color,
+            dock::styles::fill,
+            {},
+            margin,
+            padding);
         return view;
     }
 

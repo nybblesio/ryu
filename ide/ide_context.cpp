@@ -58,7 +58,7 @@ namespace ryu::ide {
     void ide_context::configure_states() {
         add_state(
             &_console_state,
-            [&](const std::string& command, const core::parameter_dict& params) {
+            [this](const std::string& command, const core::parameter_dict& params) {
                 if (command == "edit_source") {
                     push_state(_source_editor_state.id(), params);
                     return true;
@@ -75,7 +75,15 @@ namespace ryu::ide {
                 return false;
             });
         add_state(&_hex_editor_state);
-        add_state(&_machine_list_state);
+        add_state(
+            &_machine_list_state,
+            [this](const std::string& command, const core::parameter_dict& params) {
+                if (command == "edit_machine") {
+                    push_state(_machine_editor_state.id(), params);
+                    return true;
+                }
+                return false;
+            });
         add_state(&_source_editor_state);
         add_state(&_machine_editor_state);
         push_state(_console_state.id(), {});
