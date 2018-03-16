@@ -114,8 +114,6 @@ namespace ryu::core {
 
         void calculate_page_metrics();
 
-        void update_virtual_position();
-
         void caret_up(uint8_t rows = 1);
 
         void on_focus_changed() override;
@@ -128,17 +126,11 @@ namespace ryu::core {
 
         bool caret_right(uint8_t columns = 1);
 
-        void update_selection(uint16_t line_end);
-
         void get_selected_text(std::stringstream& stream);
 
         bool input_event_filter(const core::event_data_t& data);
 
-        void for_each_selection_char(const char_action_callable& action);
-
     private:
-        uint16_t _vcol;
-        uint32_t _vrow;
         core::caret _caret;
         metrics_t _metrics;
         core::document _document;

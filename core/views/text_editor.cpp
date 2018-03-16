@@ -26,56 +26,46 @@ namespace ryu::core {
         first_page();
         _caret.row(0);
         _caret.column(0);
-        update_virtual_position();
     }
 
     void text_editor::page_up() {
         _document.page_up();
-        update_virtual_position();
     }
 
     void text_editor::page_down() {
         _document.page_down();
-        update_virtual_position();
     }
 
     void text_editor::scroll_up() {
         _document.scroll_up();
-        update_virtual_position();
     }
 
     void text_editor::caret_end() {
-        auto end_column = _document.find_line_end(_vrow);
+        auto end_column = _document.find_line_end();
         caret_home();
         for (auto i = 0; i < end_column; i++)
             caret_right();
-        update_virtual_position();
     }
 
     void text_editor::last_page() {
         _document.last_page();
-        update_virtual_position();
     }
 
     void text_editor::first_page() {
         _document.first_page();
-        update_virtual_position();
     }
 
     void text_editor::caret_home() {
         _caret.column(0);
         _document.home();
-        update_virtual_position();
     }
 
     void text_editor::scroll_down() {
         _document.scroll_down();
-        update_virtual_position();
     }
 
     void text_editor::scroll_left() {
         _document.scroll_left();
-        update_virtual_position();
     }
 
     void text_editor::bind_events() {
@@ -87,7 +77,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                end_selection();
                 caret_left();
                 return true;
             });
@@ -103,11 +92,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                update_selection(_vcol);
-                auto element = _document.get(_vrow, _vcol);
-                if (element != nullptr)
-                    element->attr.flags |= core::font::flags::reverse;
-                caret_left();
                 return true;
             });
         if (!caret_select_left_action->has_bindings()) {
@@ -122,11 +106,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                update_selection(_vcol);
-                auto element = _document.get(_vrow, _vcol);
-                if (element != nullptr)
-                    element->attr.flags |= core::font::flags::reverse;
-                caret_right();
                 return true;
             });
         if (!caret_select_right_action->has_bindings()) {
@@ -157,14 +136,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                auto line_end = _document.find_line_end(_vrow);
-                update_selection(line_end);
-                for (auto col = _vcol; col < line_end; col++) {
-                    auto element = _document.get(_vrow, col);
-                    if (element != nullptr)
-                        element->attr.flags |= core::font::flags::reverse;
-                }
-                caret_newline();
                 return true;
             });
         if (!caret_select_down_action->has_bindings()) {
@@ -195,15 +166,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                auto line_end = _document.find_line_end(_vrow);
-                update_selection(line_end);
-                for (auto col = _vcol; col < line_end; col++) {
-                    auto element = _document.get(_vrow, col);
-                    if (element != nullptr)
-                        element->attr.flags |= core::font::flags::reverse;
-                }
-                caret_up();
-                caret_home();
                 return true;
             });
         if (!caret_select_up_action->has_bindings()) {
@@ -336,7 +298,7 @@ namespace ryu::core {
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
                 if (_caret.mode() == core::caret::mode::insert)
-                    _document.split_line(_vrow, _vcol);
+                    _document.split_line();
                 caret_newline();
                 return true;
             });
@@ -354,9 +316,9 @@ namespace ryu::core {
             [this](const core::event_data_t& data) {
                 if (_caret.column() == 0)
                     return true;
-                auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
+                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
                 caret_left(spaces);
-                _document.shift_line_left(_vrow, _vcol, spaces);
+                _document.shift_line_left(spaces);
                 return true;
             });
         if (!shift_tab_action->has_bindings()) {
@@ -371,10 +333,8 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
-                _document.shift_line_right(_vrow, _vcol, spaces);
-                for (auto col = _vcol; col < _vcol + spaces; col++)
-                    _document.put(_vrow, col, core::element_t {0, _document.default_attr()});
+                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+                _document.shift_line_right(spaces);
                 caret_right(spaces);
                 return true;
             });
@@ -393,10 +353,10 @@ namespace ryu::core {
                 if (_selection.valid()) {
                     delete_selection();
                 } else {
-                    if (_document.is_line_empty(_vrow)) {
-                        _document.delete_line(_vrow);
+                    if (_document.is_line_empty()) {
+                        _document.delete_line();
                     } else {
-                        _document.shift_line_left(_vrow, _vcol);
+                        _document.shift_line_left();
                     }
                 }
                 return true;
@@ -413,14 +373,14 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                if (_document.is_line_empty(_vrow)) {
-                    _document.delete_line(_vrow);
+                if (_document.is_line_empty()) {
+                    _document.delete_line();
                 } else if (_caret.column() == 0) {
-                    _document.delete_line(_vrow);
+                    _document.delete_line();
                     caret_up();
                 } else {
                     caret_left();
-                    _document.shift_line_left(_vrow, _vcol);
+                    _document.shift_line_left();
                 }
                 return true;
             });
@@ -451,13 +411,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                update_selection(_vcol);
-                for (auto col = _vcol; col >= 0; col--) {
-                    auto element = _document.get(_vrow, col);
-                    if (element != nullptr)
-                        element->attr.flags |= core::font::flags::reverse;
-                }
-                caret_home();
                 return true;
             });
         if (!select_home_action->has_bindings()) {
@@ -472,7 +425,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                end_selection();
                 caret_home();
                 return true;
             });
@@ -503,14 +455,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                auto line_end = _document.find_line_end(_vrow);
-                update_selection(line_end);
-                for (auto col = _vcol; col < line_end; col++) {
-                    auto element = _document.get(_vrow, col);
-                    if (element != nullptr)
-                        element->attr.flags |= core::font::flags::reverse;
-                }
-                caret_end();
                 return true;
             });
         if (!select_end_action->has_bindings()) {
@@ -525,7 +469,6 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                end_selection();
                 caret_end();
                 return true;
             });
@@ -546,18 +489,17 @@ namespace ryu::core {
 
                 if (data.c == core::ascii_return) {
                     if (_caret.mode() == core::caret::mode::insert)
-                        _document.split_line(_vrow, _vcol);
+                        _document.split_line();
                     caret_newline();
                     return true;
                 }
 
                 if (_caret.mode() == core::caret::mode::insert)
-                    _document.shift_line_right(_vrow, _vcol);
+                    _document.shift_line_right();
 
-                _document.put(
-                    _vrow,
-                    _vcol,
-                    core::element_t {static_cast<uint8_t>(data.c), _document.default_attr()});
+                _document.put(core::element_t {
+                    static_cast<uint8_t>(data.c),
+                    _document.default_attr()});
 
                 caret_right();
 
@@ -575,7 +517,6 @@ namespace ryu::core {
 
     bool text_editor::scroll_right() {
         bool clamped = _document.scroll_right();
-        update_virtual_position();
         return clamped;
     }
 
@@ -583,9 +524,6 @@ namespace ryu::core {
         bind_events();
 
         _metrics.line_number_width = font_face()->measure_chars(5) + 2;
-
-        _vcol = 0;
-        _vrow = 0;
 
         _caret.initialize();
         _caret.palette(palette());
@@ -595,14 +533,18 @@ namespace ryu::core {
         _caret.font_family(font_family());
         _caret.padding().left(_metrics.line_number_width);
         _caret.position(0, 0);
+        add_child(&_caret);
 
+        auto& default_attr = _document.default_attr();
+        default_attr.color = fg_color();
+        default_attr.style = core::font::styles::normal;
+
+        _document.caret(&_caret);
         _document.on_document_changed([&]() {
             raise_caret_changed();
         });
-        _document.default_attr(core::attr_t {fg_color(), core::font::styles::normal});
         _document.clear();
 
-        add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
@@ -611,14 +553,6 @@ namespace ryu::core {
             return;
 
         _caret.insert();
-
-        for_each_selection_char([&](uint32_t row, uint16_t col) {
-            auto element = _document.get(row, col);
-            if (element != nullptr)
-                element->attr.flags &= ~core::font::flags::reverse;
-        });
-
-        _selection.end(_vrow, _vcol);
     }
 
     void text_editor::on_focus_changed() {
@@ -633,7 +567,6 @@ namespace ryu::core {
     void text_editor::caret_up(uint8_t rows) {
         if (_caret.up(rows))
             scroll_up();
-        update_virtual_position();
     }
 
     void text_editor::goto_line(uint32_t row) {
@@ -642,21 +575,11 @@ namespace ryu::core {
         else if (row > _document.rows())
             row = _document.rows();
         _document.row(row - 1);
-        update_virtual_position();
     }
 
     void text_editor::caret_down(uint8_t rows) {
         if (_caret.down(rows))
             scroll_down();
-        update_virtual_position();
-    }
-
-    void text_editor::update_virtual_position() {
-        _vrow = static_cast<uint32_t>(_document.row() + _caret.row());
-        _vcol = static_cast<uint16_t>(_document.column() + _caret.column());
-
-        if (_caret.mode() != core::caret::mode::select)
-            _selection.clear();
     }
 
     void text_editor::caret_color(uint8_t value) {
@@ -666,7 +589,6 @@ namespace ryu::core {
     void text_editor::caret_left(uint8_t columns) {
         if (_caret.left(columns))
             scroll_left();
-        update_virtual_position();
     }
 
     bool text_editor::caret_right(uint8_t columns) {
@@ -676,7 +598,6 @@ namespace ryu::core {
             if (clamped)
                 caret_newline();
         }
-        update_virtual_position();
         return clamped;
     }
 
@@ -689,19 +610,6 @@ namespace ryu::core {
 
     void text_editor::line_number_color(uint8_t value) {
         _line_number_color = value;
-    }
-
-    void text_editor::update_selection(uint16_t line_end) {
-        if (_caret.mode() == core::caret::mode::select) {
-            if (_vrow < _selection.start().row && line_end < _selection.start().column)
-                _selection.start(_vrow, line_end);
-            else
-                _selection.end(_vrow, line_end);
-        } else {
-            _caret.select();
-            _selection.start(_vrow, 0);
-            _selection.end(_vrow, line_end);
-        }
     }
 
     void text_editor::on_draw(core::renderer& surface) {
@@ -742,14 +650,15 @@ namespace ryu::core {
                 auto width = face->measure_text(chunk.text);
                 auto color = pal[chunk.attr.color];
 
-                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
-                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                    auto selection_color = pal[_selection_color];
-                    selection_color.alpha(0x7f);
-                    surface.set_color(selection_color);
-                    surface.fill_rect(core::rect{x, y, width, face->line_height});
-                    surface.pop_blend_mode();
-                }
+                // XXX: need to rework this with saner selection implementation
+//                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
+//                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
+//                    auto selection_color = pal[_selection_color];
+//                    selection_color.alpha(0x7f);
+//                    surface.set_color(selection_color);
+//                    surface.fill_rect(core::rect{x, y, width, face->line_height});
+//                    surface.pop_blend_mode();
+//                }
 
                 surface.draw_text(face, x, y, chunk.text, color);
 
@@ -761,31 +670,6 @@ namespace ryu::core {
     }
 
     void text_editor::delete_selection() {
-        _selection.normalize();
-
-        auto row = _selection.start().row;
-        auto last_row = _selection.end().row;
-
-        if (row == last_row) {
-            auto line_end = _document.find_line_end(row);
-            if (_selection.start().column == 0 && _selection.end().column == line_end) {
-                _document.delete_line(row);
-            } else {
-                for (uint16_t col = _selection.start().column; col < _selection.end().column; col++)
-                    _document.put(row, col, core::element_t {0, _document.default_attr()});
-            }
-        } else {
-            _document.delete_line(row);
-            for (auto i = row; i < last_row; i++)
-                _document.delete_line(row);
-            for (uint16_t col = 0; col < _selection.end().column; col++)
-                _document.put(row, col, core::element_t {0, _document.default_attr()});
-        }
-
-        _caret.row(static_cast<uint8_t>(_selection.start().row));
-        _caret.column(static_cast<uint8_t>(_selection.start().column));
-        update_virtual_position();
-        end_selection();
     }
 
     void text_editor::calculate_page_metrics() {
@@ -804,15 +688,14 @@ namespace ryu::core {
 
             if (*c == '\n') {
                 if (_caret.mode() == core::caret::mode::insert)
-                    _document.split_line(_vrow, _vcol);
+                    _document.split_line();
                 caret_newline();
             } else {
                 if (_caret.mode() == core::caret::mode::insert)
-                    _document.shift_line_right(_vrow, _vcol);
-                _document.put(
-                        _vrow,
-                        _vcol,
-                        core::element_t {static_cast<uint8_t>(*c), _document.default_attr()});
+                    _document.shift_line_right();
+                _document.put(core::element_t {
+                    static_cast<uint8_t>(*c),
+                    _document.default_attr()});
                 caret_right();
             }
 
@@ -831,8 +714,6 @@ namespace ryu::core {
 
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
-
-        update_virtual_position();
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {
@@ -875,25 +756,6 @@ namespace ryu::core {
 
     void text_editor::on_caret_changed(const caret_changed_callable& callable) {
         _caret_changed_callback = callable;
-    }
-
-    void text_editor::for_each_selection_char(const text_editor::char_action_callable& action) {
-        _selection.normalize();
-        auto row = _selection.start().row;
-        auto col = _selection.start().column;
-        auto line_end = _document.find_line_end(row);
-        while (true) {
-            action(row, col);
-            col++;
-            if (col >= line_end
-            || (_selection.end().column > 0 && col > _selection.end().column && row == _selection.end().row)) {
-                col = 0;
-                row++;
-                if (row > _selection.end().row)
-                    break;
-                line_end = _document.find_line_end(row);
-            }
-        }
     }
 
 }

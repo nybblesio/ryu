@@ -80,6 +80,8 @@ namespace ryu::core {
 
         bool more() const;
 
+        void caret_up_line();
+
         void more(bool flag);
 
         void caret_newline();
@@ -113,8 +115,6 @@ namespace ryu::core {
         };
 
         void on_initialize() override;
-
-        void update_virtual_position();
 
         void on_draw(core::renderer& surface) override;
 
@@ -166,8 +166,6 @@ namespace ryu::core {
         bool _more {};
         caret _caret;
         uint8_t _color;
-        uint16_t _vcol;
-        uint32_t _vrow;
         metrics_t _metrics;
         document _document;
         selection _selection;

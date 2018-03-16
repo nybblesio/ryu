@@ -27,7 +27,7 @@ namespace ryu::core {
     }
 
     void textbox::caret_end() {
-        auto line_end = _document.find_line_end(0);
+        auto line_end = _document.find_line_end();
         for (auto i = 0; i < line_end; i++)
             caret_right();
     }
@@ -79,12 +79,10 @@ namespace ryu::core {
             },
             [this](const core::event_data_t& data) {
                 if (_caret.column() == 0) {
-                    _document.delete_line(0);
+                    _document.delete_line();
                 } else {
                     caret_left();
-                    _document.shift_left(
-                        0,
-                        static_cast<uint16_t>(_document.column() + _caret.column()));
+                    _document.shift_line_left();
                 }
                 return true;
             });
@@ -100,9 +98,7 @@ namespace ryu::core {
                 return focused();
             },
             [this](const core::event_data_t& data) {
-                _document.shift_left(
-                    0,
-                    static_cast<uint16_t>(_document.column() + _caret.column()));
+                _document.shift_line_left();
                 return true;
             });
         delete_action->bind_keys({core::key_delete});
@@ -154,10 +150,9 @@ namespace ryu::core {
                 if (data.c == core::ascii_escape || data.c == core::ascii_return)
                     return false;
 
-                _document.put(
-                        0,
-                        static_cast<uint16_t>(_document.column() + _caret.column()),
-                        core::element_t {static_cast<uint8_t>(data.c), _document.default_attr()});
+                _document.put(core::element_t {
+                    static_cast<uint8_t>(data.c),
+                    _document.default_attr()});
                 caret_right();
 
                 return true;
@@ -174,15 +169,16 @@ namespace ryu::core {
     void textbox::on_initialize() {
         bind_events();
 
-        _document.document_size(1, 100);
-        _document.page_size(1, 16);
-        _document.clear();
-
         _caret.initialize();
         _caret.enabled(false);
         _caret.position(0, 0);
         _caret.page_size(_document.page_height(), _document.page_width());
         add_child(&_caret);
+
+        _document.caret(&_caret);
+        _document.document_size(1, 100);
+        _document.page_size(1, 16);
+        _document.clear();
 
         padding({5, 5, 5, 5});
     }
@@ -213,6 +209,7 @@ namespace ryu::core {
     void textbox::fg_color(uint8_t value) {
         view::fg_color(value);
         _caret.fg_color(value);
+        _document.default_attr().color = value;
     }
 
     void textbox::bg_color(uint8_t value) {

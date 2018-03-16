@@ -107,34 +107,33 @@ namespace ryu::core {
 
     void console::page_up() {
         _document.page_up();
-        update_virtual_position();
     }
 
     void console::page_down() {
         _document.page_down();
-        update_virtual_position();
     }
 
     void console::last_page() {
         _document.last_page();
-        update_virtual_position();
     }
 
     void console::first_page() {
         _document.first_page();
-        update_virtual_position();
     }
 
     void console::caret_end() {
         _caret.column(_metrics.page_width);
         _document.end(_metrics.page_width);
-        update_virtual_position();
     }
 
     void console::caret_home() {
         _caret.column(0);
         _document.home();
-        update_virtual_position();
+    }
+
+    void console::caret_up_line() {
+        caret_up();
+        caret_end();
     }
 
     void console::caret_newline() {
@@ -305,7 +304,7 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&console::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                _document.shift_left(_vrow, _vcol);
+                _document.shift_line_left();
                 return true;
             });
         if (!delete_action->has_bindings()) {
@@ -320,7 +319,7 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&console::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                _document.shift_left(_vrow, _vcol, _metrics.page_width);
+                _document.shift_line_left(_metrics.page_width);
                 return true;
             });
         if (!delete_eol_action->has_bindings()) {
@@ -337,7 +336,7 @@ namespace ryu::core {
             [this](const core::event_data_t& data) {
                 if (caret_left())
                     caret_left();
-                _document.shift_left(_vrow, _vcol);
+                _document.shift_line_left();
                 return true;
             });
         if (!backspace_action->has_bindings()) {
@@ -370,7 +369,7 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&console::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                _document.shift_right(_vrow, _vcol);
+                _document.shift_line_right();
                 return true;
             });
         if (!insert_space_action->has_bindings()) {
@@ -447,17 +446,16 @@ namespace ryu::core {
                     return true;
 
                 if (_caret.mode() == core::caret::mode::insert)
-                    _document.shift_right(_vrow, _vcol);
+                    _document.shift_line_left();
 
                 if (data.c == core::ascii_return) {
                     caret_newline();
                     return true;
                 }
 
-                _document.put(
-                    _vrow,
-                    _vcol,
-                    core::element_t {static_cast<uint8_t>(data.c), core::attr_t{_color}});
+                _document.put(core::element_t {
+                    static_cast<uint8_t>(data.c),
+                    core::attr_t{_color}});
 
                 caret_right();
 
@@ -504,17 +502,6 @@ namespace ryu::core {
     void console::on_initialize() {
         _color = fg_color();
 
-        _document.default_attr(core::attr_t {
-            _color,
-            core::font::styles::normal,
-            core::font::flags::none
-        });
-        _document.document_size(4096, 128);
-        _document.on_document_changed([&]() {
-            raise_caret_changed();
-        });
-        _document.clear();
-
         _caret.initialize();
         _caret.overwrite();
         _caret.position(0, 0);
@@ -523,6 +510,18 @@ namespace ryu::core {
         _caret.on_caret_changed([&]() {
             raise_caret_changed();
         });
+
+        auto& default_attr = _document.default_attr();
+        default_attr.color = _color;
+        default_attr.flags = core::font::flags::none;
+        default_attr.style = core::font::styles::normal;
+
+        _document.caret(&_caret);
+        _document.document_size(4096, 128);
+        _document.on_document_changed([&]() {
+            raise_caret_changed();
+        });
+        _document.clear();
 
         add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
@@ -536,25 +535,13 @@ namespace ryu::core {
     }
 
     void console::caret_up(uint8_t rows) {
-        if (_caret.up(rows)) {
+        if (_caret.up(rows))
             _document.scroll_up();
-        }
-        update_virtual_position();
     }
 
     void console::caret_down(uint8_t rows) {
-        if (_caret.down(rows)) {
+        if (_caret.down(rows))
             _document.scroll_down();
-        }
-        update_virtual_position();
-    }
-
-    void console::update_virtual_position() {
-        _vrow = static_cast<uint32_t>(_document.row() + _caret.row());
-        _vcol = static_cast<uint16_t>(_document.column() + _caret.column());
-
-        if (_caret.mode() != core::caret::mode::select)
-            _selection.clear();
     }
 
     void console::calculate_page_metrics() {
@@ -572,13 +559,10 @@ namespace ryu::core {
     bool console::caret_left(uint8_t columns) {
         auto overflow = false;
         if (_caret.left(columns)) {
-            if (_document.scroll_left()) {
-                caret_up();
-                caret_end();
-            }
+            if (_document.scroll_left())
+                caret_up_line();
             overflow = true;
         }
-        update_virtual_position();
         return overflow;
     }
 
@@ -589,7 +573,6 @@ namespace ryu::core {
                 caret_newline();
             overflow = true;
         }
-        update_virtual_position();
         return overflow;
     }
 
@@ -668,7 +651,7 @@ namespace ryu::core {
             caret_left();
             if (_caret.row() == 0 && _caret.column() == 0)
                 break;
-            auto element = _document.get(_vrow, _vcol);
+            auto element = _document.get();
             if (element == nullptr || element->value == 0)
                 break;
         }
@@ -677,7 +660,7 @@ namespace ryu::core {
         //caret_right();
         while (true) {
             caret_right();
-            auto element = _document.get(_vrow, _vcol);
+            auto element = _document.get();
             if (element == nullptr || element->value == 0)
                 break;
             cmd << element->value;
@@ -978,10 +961,9 @@ namespace ryu::core {
             }
 
             for (size_t i = 0; i < span.text.length(); i++) {
-                _document.put(
-                        _vrow,
-                        _vcol,
-                        core::element_t {static_cast<uint8_t>(span.text[i]), attr});
+                _document.put(core::element_t {
+                    static_cast<uint8_t>(span.text[i]),
+                    attr});
                 caret_right();
             }
         }
