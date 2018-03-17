@@ -135,11 +135,11 @@ namespace ryu::core {
 
     void column_pick_list::raise_activated() {
         if (_activated_callable != nullptr)
-            _activated_callable(_row + _selected);
+            _activated_callable(selected());
     }
 
     uint32_t column_pick_list::selected() const {
-        return _selected;
+        return _row + _selected;
     }
 
     const row_list& column_pick_list::rows() const {
@@ -155,18 +155,16 @@ namespace ryu::core {
             if (_rows.empty())
                 _selection_changed_callable(-1);
             else
-                _selection_changed_callable(_row + _selected);
+                _selection_changed_callable(selected());
         }
     }
 
     void column_pick_list::remove_row(uint32_t index) {
         if (index < _rows.size()) {
             _rows.erase(_rows.begin() + index);
-            if (_selected == index) {
-                move_up();
-                return;
-            }
-            raise_selection_changed();
+            calculate_visible_and_max_rows();
+            if (move_up())
+                raise_selection_changed();
         }
     }
 
@@ -220,7 +218,7 @@ namespace ryu::core {
              row_index++) {
             const auto& row = _rows[row_index];
 
-            if (row_index == _row + _selected) {
+            if (row_index == selected()) {
                 surface.push_blend_mode(SDL_BLENDMODE_BLEND);
                 auto selection_color = fg;
                 selection_color.alpha(0x5f);
@@ -260,6 +258,17 @@ namespace ryu::core {
         surface.pop_clip_rect();
     }
 
+    void column_pick_list::calculate_visible_and_max_rows() {
+        auto row_height = font_face()->line_height + 2;
+        auto vertical_margin = (margin().top() + margin().bottom());
+        _visible_rows = static_cast<uint32_t>((client_bounds().height() - vertical_margin) / row_height);
+        if (_visible_rows > 0 && _rows.size() > 1)
+            _visible_rows--;
+        _max_rows = std::min<uint32_t>(
+            _visible_rows,
+            static_cast<uint32_t>(_rows.size()));
+    }
+
     void column_pick_list::add_row(const pick_list_row_t& row) {
         _rows.push_back(row);
         raise_selection_changed();
@@ -274,15 +283,7 @@ namespace ryu::core {
 
     void column_pick_list::on_resize(const core::rect& context_bounds) {
         view::on_resize(context_bounds);
-
-        auto row_height = font_face()->line_height + 2;
-        auto vertical_margin = (margin().top() + margin().bottom());
-        _visible_rows = static_cast<uint32_t>((client_bounds().height() - vertical_margin) / row_height);
-        if (_visible_rows > 0 && _rows.size() > 1)
-            _visible_rows--;
-        _max_rows = std::min<uint32_t>(
-            _visible_rows,
-            static_cast<uint32_t>(_rows.size()));
+        calculate_visible_and_max_rows();
     }
 
     void column_pick_list::on_activated(const column_pick_list::activated_callable& callable) {

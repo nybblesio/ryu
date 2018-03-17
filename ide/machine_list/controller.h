@@ -43,6 +43,12 @@ namespace ryu::ide::machine_list {
 
         void create_views();
 
+        void edit_new_machine();
+
+        void edit_selected_machine();
+
+        void delete_selected_machine();
+
     private:
         metrics_t _metrics;
         core::button_unique_ptr _add_button;

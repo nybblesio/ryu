@@ -47,15 +47,25 @@ namespace ryu::ide::machine_list {
                 return is_focused();
             },
             [this](const core::event_data_t& data) {
-                auto new_machine_name = fmt::format(
-                    "Machine {}",
-                    hardware::registry::instance()->machines().size());
-                transition_to(
-                    "edit_machine",
-                    {{"name", new_machine_name}});
+                edit_new_machine();
                 return true;
             });
         add_action->bind_keys({core::key_f1});
+
+        auto delete_action = core::input_action::create_no_map(
+            "machine_list_delete",
+            "Internal",
+            "Delete the selection machine from the registry.");
+        delete_action->register_handler(
+            core::action_sink::controller,
+            [this](const core::event_data_t& data) {
+                return is_focused();
+            },
+            [this](const core::event_data_t& data) {
+                delete_selected_machine();
+                return true;
+            });
+        delete_action->bind_keys({core::key_delete});
     }
 
     void controller::create_views() {
@@ -101,6 +111,7 @@ namespace ryu::ide::machine_list {
                 525,
                 core::column_pick_list::halign_t::left);
         _pick_list->on_activated([this](uint32_t row) {
+            edit_selected_machine();
         });
         _pick_list->on_tab([&]() -> const core::view* {
             return _add_button.get();
@@ -111,58 +122,53 @@ namespace ryu::ide::machine_list {
         });
 
         _add_button = core::view_factory::create_button(
-                this,
-                "add-button",
-                ide::colors::light_grey,
-                ide::colors::light_blue,
-                "Add (F1)",
-                core::dock::styles::left,
-                {5, 5, 5, 5});
+            this,
+            "add-button",
+            ide::colors::light_grey,
+            ide::colors::light_blue,
+            "Add (F1)",
+            core::dock::styles::left,
+            {5, 5, 5, 5});
         _add_button->width(230);
         _add_button->on_tab([this]() -> const core::view* {
             return _edit_button.get();
         });
         _add_button->on_clicked([this]() {
-            auto new_machine_name = fmt::format(
-                "Machine {}",
-                hardware::registry::instance()->machines().size());
-            transition_to(
-                "edit_machine",
-                {{"name", new_machine_name}});
+            edit_new_machine();
         });
 
         _edit_button = core::view_factory::create_button(
-                this,
-                "edit-button",
-                ide::colors::light_grey,
-                ide::colors::light_blue,
-                "Edit (RETURN)",
-                core::dock::styles::left,
-                {5, 5, 5, 5});
+            this,
+            "edit-button",
+            ide::colors::light_grey,
+            ide::colors::light_blue,
+            "Edit (RETURN)",
+            core::dock::styles::left,
+            {5, 5, 5, 5});
         _edit_button->width(230);
         _edit_button->enabled(false);
         _edit_button->on_tab([&]() -> const core::view* {
             return _delete_button.get();
         });
         _edit_button->on_clicked([this]() {
-
+            edit_selected_machine();
         });
 
         _delete_button = core::view_factory::create_button(
-                this,
-                "delete-button",
-                ide::colors::light_grey,
-                ide::colors::light_blue,
-                "Delete (DEL)",
-                core::dock::styles::left,
-                {5, 5, 5, 5});
+            this,
+            "delete-button",
+            ide::colors::light_grey,
+            ide::colors::light_blue,
+            "Delete (DEL)",
+            core::dock::styles::left,
+            {5, 5, 5, 5});
         _delete_button->width(230);
         _delete_button->enabled(false);
         _delete_button->on_tab([&]() -> const core::view* {
             return _pick_list.get();
         });
         _delete_button->on_clicked([this]() {
-
+            delete_selected_machine();
         });
 
         _buttons_panel = core::view_factory::create_dock_layout_panel(
@@ -197,7 +203,34 @@ namespace ryu::ide::machine_list {
     void controller::on_deactivate() {
     }
 
+    void controller::edit_new_machine() {
+        auto new_machine_name = fmt::format(
+            "Machine {}",
+            hardware::registry::instance()->machines().size());
+        transition_to(
+            "edit_machine",
+            {{"name", new_machine_name}});
+    }
+
     void controller::on_update(uint32_t dt) {
+    }
+
+    void controller::edit_selected_machine() {
+        auto machine = hardware::registry::instance()
+            ->find_machine(_pick_list->rows()[_pick_list->selected()].key);
+        if (machine == nullptr)
+            return;
+        transition_to(
+            "edit_machine",
+            {{"name", machine->name()}});
+    }
+
+    void controller::delete_selected_machine() {
+        core::result result;
+        hardware::registry::instance()
+            ->remove_machine(result, _pick_list->rows()[_pick_list->selected()].key);
+        if (!result.is_failed())
+            _pick_list->remove_row(_pick_list->selected());
     }
 
     void controller::on_draw(core::renderer& surface) {
