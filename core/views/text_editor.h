@@ -29,6 +29,8 @@ namespace ryu::core {
                 const std::string& name,
                 core::view_host* host);
 
+        ~text_editor() override;
+
         void clear();
 
         fs::path path() const {

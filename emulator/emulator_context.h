@@ -11,6 +11,7 @@
 #pragma once
 
 #include <core/context.h>
+#include <core/view_factory.h>
 #include "controller.h"
 
 namespace ryu::emulator {

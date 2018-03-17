@@ -34,6 +34,42 @@ namespace ryu::ide::machine_editor {
                 return true;
             });
         leave_action->bind_keys({core::key_escape});
+
+        auto add_action = core::input_action::create_no_map(
+            "machine_editor_add",
+            "Internal",
+            "Add a new component to the machine and open the editor.");
+        add_action->register_handler(
+            core::action_sink::controller,
+            core::action_sink::default_filter,
+            [this](const core::event_data_t& data) {
+                return true;
+            });
+        add_action->bind_keys({core::key_f1});
+
+        auto map_action = core::input_action::create_no_map(
+            "machine_editor_map",
+            "Internal",
+            "Show the memory map of this machine.");
+        map_action->register_handler(
+            core::action_sink::controller,
+            core::action_sink::default_filter,
+            [this](const core::event_data_t& data) {
+                return true;
+            });
+        map_action->bind_keys({core::key_f2});
+
+        auto delete_action = core::input_action::create_no_map(
+            "machine_editor_delete",
+            "Internal",
+            "Remove the selected component from this machine.");
+        delete_action->register_handler(
+            core::action_sink::controller,
+            core::action_sink::default_filter,
+            [this](const core::event_data_t& data) {
+                return true;
+            });
+        delete_action->bind_keys({core::key_delete});
     }
 
     void controller::on_deactivate() {
@@ -53,7 +89,9 @@ namespace ryu::ide::machine_editor {
     void controller::on_initialize() {
         bind_events();
 
-        auto address_space_label_width = context()->font_face()->measure_text("address space: $");
+        auto font_face = context()->font_face();
+        auto display_label_width = font_face->measure_text("display:");
+        auto address_space_label_width = font_face->measure_text("address space: $");
 
         _header = core::view_factory::create_state_header(
             this,
@@ -65,27 +103,19 @@ namespace ryu::ide::machine_editor {
         _header->state("machine editor");
         _header->state_color(ide::colors::white);
 
-        _footer = core::view_factory::create_label(
-            this,
-            "footer-label",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "F1=Map | F2=Add | DEL=Remove | ESC=Close",
-            core::dock::styles::bottom,
-            {_metrics.left_padding, _metrics.right_padding, 5, 5});
-
         _name_label = core::view_factory::create_label(
             this,
             "name-label",
             ide::colors::text,
             ide::colors::fill_color,
             "name:",
-            core::dock::styles::left);
+            core::dock::styles::left,
+            {5, 5, 5, 5});
+        _name_label->border(core::border::types::solid);
         _name_label->sizing(core::view::sizing::types::fixed);
         _name_label->halign(core::alignment::horizontal::right);
-        _name_label->bounds().size(
-                address_space_label_width,
-                context()->font_face()->line_height);
+        _name_label->valign(core::alignment::vertical::middle);
+        _name_label->bounds().size(display_label_width, font_face->line_height);
 
         _name_textbox = core::view_factory::create_textbox(
             this,
@@ -94,12 +124,14 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             "",
             core::dock::styles::left,
-            {15, 0, 3, 0});
+            {5, 5, 5, 5});
         _name_textbox->width(32);
         _name_textbox->length(32);
         _name_textbox->enabled(true);
-        _name_textbox->on_tab([&]() -> const core::view* { return _address_space_textbox.get(); });
-        _name_textbox->on_key_down([&](int keycode) {
+        _name_textbox->on_tab([&]() -> const core::view* {
+            return _address_space_textbox.get();
+        });
+        _name_textbox->on_key_down([&](int key_code) {
             return true;
         });
 
@@ -109,12 +141,14 @@ namespace ryu::ide::machine_editor {
             ide::colors::text,
             ide::colors::fill_color,
             "address space: $",
-            core::dock::styles::left);
+            core::dock::styles::left,
+            {20, 5, 5, 5});
+        _address_space_label->border(core::border::types::solid);
         _address_space_label->sizing(core::view::sizing::types::fixed);
-        _address_space_label->halign(core::alignment::horizontal::right);
+        _address_space_label->valign(core::alignment::vertical::middle);
         _address_space_label->bounds().size(
-                address_space_label_width,
-                context()->font_face()->line_height);
+            address_space_label_width,
+            font_face->line_height + 10);
 
         _address_space_textbox = core::view_factory::create_textbox(
             this,
@@ -123,13 +157,15 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             "",
             core::dock::styles::left,
-            {15, 0, 3, 0});
+            {5, 5, 5, 5});
         _address_space_textbox->width(8);
         _address_space_textbox->length(8);
         _address_space_textbox->enabled(true);
-        _address_space_textbox->on_tab([&]() -> const core::view* { return _display_pick_list.get(); });
-        _address_space_textbox->on_key_down([](int keycode) {
-            return isxdigit(keycode);
+        _address_space_textbox->on_tab([&]() -> const core::view* {
+            return _display_pick_list.get();
+        });
+        _address_space_textbox->on_key_down([](int key_code) {
+            return isxdigit(key_code);
         });
 
         _display_label = core::view_factory::create_label(
@@ -141,9 +177,8 @@ namespace ryu::ide::machine_editor {
             core::dock::styles::left);
         _display_label->sizing(core::view::sizing::types::fixed);
         _display_label->halign(core::alignment::horizontal::right);
-        _display_label->bounds().size(
-                address_space_label_width,
-                context()->font_face()->line_height);
+        _display_label->valign(core::alignment::vertical::middle);
+        _display_label->bounds().size(display_label_width, font_face->line_height + 10);
 
         core::option_list display_options {};
         for (auto& display : hardware::display::catalog())
@@ -157,40 +192,51 @@ namespace ryu::ide::machine_editor {
             display_options,
             core::dock::styles::left,
             {15, 0, 4, 0});
-        _display_pick_list->on_tab([&]() -> const core::view* { return _map_button.get(); });
-        _display_pick_list->bounds().size(
-                context()->font_face()->width * _display_pick_list->length(),
-                context()->font_face()->line_height);
-
-        _map_button = core::view_factory::create_button(
-            this,
-            "map-button",
-            ide::colors::light_grey,
-            ide::colors::light_blue,
-            "Map",
-            core::dock::styles::left,
-            {5, 5, 5, 5});
-        _map_button->on_tab([&]() -> const core::view* { return _add_button.get(); });
+        _display_pick_list->on_tab([&]() -> const core::view* {
+            return _add_button.get();
+        });
+//        _display_pick_list->bounds().size(
+//            context()->font_face()->width * _display_pick_list->length(),
+//            context()->font_face()->line_height);
 
         _add_button = core::view_factory::create_button(
             this,
             "add-button",
             ide::colors::light_grey,
             ide::colors::light_blue,
-            "Add",
+            "Add (F1)",
             core::dock::styles::left,
             {5, 5, 5, 5});
-        _add_button->on_tab([&]() -> const core::view* { return _delete_button.get(); });
+        _add_button->width(230);
+        _add_button->on_tab([&]() -> const core::view* {
+            return _delete_button.get();
+        });
 
         _delete_button = core::view_factory::create_button(
             this,
             "delete-button",
             ide::colors::light_grey,
             ide::colors::light_blue,
-            "Delete",
+            "Delete (DEL)",
             core::dock::styles::left,
             {5, 5, 5, 5});
-        _delete_button->on_tab([&]() -> const core::view* { return _notebook.get(); });
+        _delete_button->width(230);
+        _delete_button->on_tab([&]() -> const core::view* {
+            return _map_button.get();
+        });
+
+        _map_button = core::view_factory::create_button(
+            this,
+            "map-button",
+            ide::colors::light_grey,
+            ide::colors::light_blue,
+            "Map (F2)",
+            core::dock::styles::right,
+            {5, 5, 5, 5});
+        _map_button->width(230);
+        _map_button->on_tab([&]() -> const core::view* {
+            return _name_textbox.get();
+        });
 
         _row1_panel = core::view_factory::create_dock_layout_panel(
             this,
@@ -198,10 +244,12 @@ namespace ryu::ide::machine_editor {
             ide::colors::info_text,
             ide::colors::transparent,
             core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _row1_panel->bounds().height(context()->font_face()->line_height * 2);
+            {_metrics.left_padding, _metrics.right_padding, 20, 20});
+        _row1_panel->bounds().height(context()->font_face()->line_height);
         _row1_panel->add_child(_name_label.get());
         _row1_panel->add_child(_name_textbox.get());
+        _row1_panel->add_child(_address_space_label.get());
+        _row1_panel->add_child(_address_space_textbox.get());
 
         _row2_panel = core::view_factory::create_dock_layout_panel(
             this,
@@ -209,21 +257,10 @@ namespace ryu::ide::machine_editor {
             ide::colors::info_text,
             ide::colors::transparent,
             core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _row2_panel->bounds().height(context()->font_face()->line_height * 2);
-        _row2_panel->add_child(_address_space_label.get());
-        _row2_panel->add_child(_address_space_textbox.get());
-
-        _row3_panel = core::view_factory::create_dock_layout_panel(
-            this,
-            "row3-panel",
-            ide::colors::info_text,
-            ide::colors::transparent,
-            core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _row3_panel->bounds().height(context()->font_face()->line_height * 2);
-        _row3_panel->add_child(_display_label.get());
-        _row3_panel->add_child(_display_pick_list.get());
+            {_metrics.left_padding, _metrics.right_padding, 20, 20});
+        _row2_panel->bounds().height(context()->font_face()->line_height);
+        _row2_panel->add_child(_display_label.get());
+        _row2_panel->add_child(_display_pick_list.get());
 
         _button_panel = core::view_factory::create_dock_layout_panel(
             this,
@@ -231,33 +268,20 @@ namespace ryu::ide::machine_editor {
             ide::colors::info_text,
             ide::colors::transparent,
             core::dock::styles::bottom,
-            {_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _button_panel->bounds().height(context()->font_face()->line_height * 3);
+            {_metrics.left_padding, _metrics.right_padding, 10, 10});
+        _button_panel->bounds().height(_map_button->height());
         _button_panel->add_child(_map_button.get());
         _button_panel->add_child(_add_button.get());
         _button_panel->add_child(_delete_button.get());
 
-        _general_panel = core::view_factory::create_dock_layout_panel(
+        _top_panel = core::view_factory::create_dock_layout_panel(
             this,
-            "general-panel",
+            "top-panel",
             ide::colors::info_text,
             ide::colors::fill_color,
             core::dock::styles::fill);
-        _general_panel->add_child(_row1_panel.get());
-        _general_panel->add_child(_row2_panel.get());
-        _general_panel->add_child(_row3_panel.get());
-
-        _notebook = core::view_factory::create_notebook(
-            this,
-            "delete-button",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            core::dock::styles::fill,
-            {_metrics.left_padding, _metrics.right_padding, 5, 15});
-        _notebook->on_tab([&]() -> const core::view* { return _name_textbox.get(); });
-        _notebook->add_tab("General", _general_panel.get());
-        _notebook->add_tab("Components", nullptr);
-        _notebook->add_tab("Settings", nullptr);
+        _top_panel->add_child(_row1_panel.get());
+        _top_panel->add_child(_row2_panel.get());
 
         _panel = core::view_factory::create_dock_layout_panel(
             this,
@@ -266,10 +290,10 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             core::dock::styles::fill);
         _panel->add_child(_header.get());
-        _panel->add_child(_footer.get());
         _panel->add_child(_button_panel.get());
-        _panel->add_child(_notebook.get());
-        _panel->focus(_notebook.get());
+        _panel->add_child(_top_panel.get());
+
+        _panel->focus(_name_textbox.get());
     }
 
     void controller::on_update(uint32_t dt) {

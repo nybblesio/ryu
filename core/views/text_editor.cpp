@@ -21,6 +21,9 @@ namespace ryu::core {
                                                _caret("editor-caret", host) {
     }
 
+    text_editor::~text_editor() {
+    }
+
     void text_editor::clear() {
         _document.clear();
         first_page();

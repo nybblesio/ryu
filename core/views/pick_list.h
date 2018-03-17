@@ -20,6 +20,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~pick_list() override;
+
         int length() const;
 
         std::string value();

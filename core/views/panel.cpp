@@ -17,6 +17,9 @@ namespace ryu::core {
             core::view_host* host) : core::view(types::container, name, host) {
     }
 
+    panel::~panel() {
+    }
+
     border::types panel::border() const {
         return _border;
     }

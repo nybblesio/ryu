@@ -20,6 +20,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~notebook() override;
+
         int active_tab() const;
 
         void remove_tab(int index);

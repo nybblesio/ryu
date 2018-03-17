@@ -20,6 +20,9 @@ namespace ryu::core {
                                      _timer(500) {
     }
 
+    caret::~caret() {
+    }
+
     void caret::select() {
         _mode = mode::types::select;
         raise_caret_changed();

@@ -18,7 +18,10 @@ namespace ryu::core {
     memory_editor::memory_editor(
             const std::string& name,
             core::view_host* host) : core::view(core::view::types::container, name, host),
-                                               _caret("editor-caret", host) {
+                                     _caret("editor-caret", host) {
+    }
+
+    memory_editor::~memory_editor() {
     }
 
     void memory_editor::clear() {

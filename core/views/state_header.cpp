@@ -24,6 +24,9 @@ namespace ryu::core {
                                      _environment_status("environment-status-label", host) {
     }
 
+    state_header::~state_header() {
+    }
+
     void state_header::on_initialize() {
         _state_label.initialize();
         _state_label.palette(palette());

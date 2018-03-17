@@ -19,6 +19,9 @@ namespace ryu::core {
             core::view_host* host) : core::view(types::control, name, host) {
     }
 
+    checkbox::~checkbox() {
+    }
+
     bool checkbox::value() const {
         return _value;
     }

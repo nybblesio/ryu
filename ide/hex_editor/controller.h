@@ -11,11 +11,7 @@
 #pragma once
 
 #include <core/state.h>
-#include <core/views/label.h>
 #include <core/view_factory.h>
-#include <core/views/textbox.h>
-#include <core/views/state_header.h>
-#include <core/views/memory_editor.h>
 
 namespace ryu::ide::hex_editor {
 

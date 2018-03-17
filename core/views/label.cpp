@@ -17,6 +17,9 @@ namespace ryu::core {
             core::view_host* host) : core::view(types::control, name, host) {
     }
 
+    label::~label() {
+    }
+
     std::string label::value() const {
         return _value;
     }

@@ -11,6 +11,7 @@
 #include <core/engine.h>
 #include <core/project.h>
 #include <ide/ide_context.h>
+#include <core/input_action.h>
 #include <core/project_file.h>
 #include "controller.h"
 

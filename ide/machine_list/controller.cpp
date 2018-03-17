@@ -10,10 +10,7 @@
 
 #include <ide/ide_types.h>
 #include <core/input_action.h>
-#include <core/views/button.h>
-#include <core/view_factory.h>
 #include <hardware/registry.h>
-#include <core/views/dock_layout_panel.h>
 #include "controller.h"
 
 namespace ryu::ide::machine_list {

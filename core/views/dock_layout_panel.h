@@ -20,6 +20,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~dock_layout_panel() override;
+
     protected:
         void on_resize(const core::rect& context_bounds) override;
     };

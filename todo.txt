@@ -28,13 +28,9 @@ Thoughts & Questions
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
-- implement machine pick list state + UI
-    - edit & delete buttons on each line
-    - find by typing, e.g. ctrl+p in vim or intellij find type
-    - some kind of indicator that there's more data up or down
-        * should I render a footer-type bar on the pick list that shows page x of y, current row
-
-- implement machine editor state with complete UI for all pieces
+- machine_editor::controller:
+    - remove text footer
+    - remove the notebook: just need top panel, column_pick_list for components, and button panel at bottom.
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
@@ -55,6 +51,15 @@ Thoughts & Questions
 - bug: console header, project and machine fields not properly resizing
 
 - bug: environment::on_evaluate isn't handling negative number properly
+
+- pick_list:
+    1. search in list by typing
+    2. page up/page down
+
+- column_pick_list:
+    1. render scrolling indicators and maybe "page x of y, row z" type footer
+    2. search in the list by typing
+    3. page up/page down actions
 
 [feature/piece-table] Document Data Structure
 ----------------------------------------------
@@ -204,5 +209,6 @@ DONE
 - implement a column-based pick list where each row is a panel that can have column labels & column buttons
 - implement machine pick list state + UI
     - list out table of machines, e.g. ID, name
+    - edit & delete buttons on each line
     - scrollable
     - add new machine button at bottom

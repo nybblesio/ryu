@@ -57,6 +57,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~console() override;
+
         void page_up();
 
         void page_down();

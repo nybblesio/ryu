@@ -21,6 +21,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~state_header() override;
+
         std::string state() const;
 
         std::string custom() const;

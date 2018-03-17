@@ -23,6 +23,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~document_footer() override;
+
         void value(
             const core::caret& caret,
             const core::document& document);

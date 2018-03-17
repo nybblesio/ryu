@@ -18,6 +18,9 @@ namespace ryu::core {
             core::view_host* host) : core::view(types::control, name, host) {
     }
 
+    pick_list::~pick_list() {
+    }
+
     bool pick_list::move_up() {
         _selection--;
         if (_selection < 0) {

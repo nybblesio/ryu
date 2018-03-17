@@ -8,18 +8,6 @@
 // this source code file.
 //
 
-#include <core/views/label.h>
-#include <core/views/button.h>
-#include <core/views/console.h>
-#include <core/views/textbox.h>
-#include <core/views/notebook.h>
-#include <core/views/checkbox.h>
-#include <core/views/pick_list.h>
-#include <core/views/text_editor.h>
-#include <core/views/state_header.h>
-#include <core/views/memory_editor.h>
-#include <core/views/document_footer.h>
-#include <core/views/column_pick_list.h>
 #include "state.h"
 #include "view_factory.h"
 

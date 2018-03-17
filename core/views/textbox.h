@@ -24,6 +24,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~textbox() override;
+
         void clear();
 
         std::string value();

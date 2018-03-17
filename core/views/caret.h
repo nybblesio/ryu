@@ -34,6 +34,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~caret() override;
+
         void select();
 
         void insert();

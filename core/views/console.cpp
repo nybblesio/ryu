@@ -105,6 +105,9 @@ namespace ryu::core {
                                                _caret("console-caret", host) {
     }
 
+    console::~console() {
+    }
+
     void console::page_up() {
         _document.page_up();
     }

@@ -18,6 +18,9 @@ namespace ryu::core {
         core::view_host* host) : core::view(core::view::types::control, name, host) {
     }
 
+    button::~button() {
+    }
+
     int button::width() const {
         return _width;
     }

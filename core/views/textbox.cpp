@@ -21,6 +21,9 @@ namespace ryu::core {
                                                _caret("textbox-caret", host) {
     }
 
+    textbox::~textbox() {
+    }
+
     void textbox::clear() {
         _document.clear();
         caret_home();

@@ -62,6 +62,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~column_pick_list() override;
+
         void clear();
 
         void add_header(

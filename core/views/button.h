@@ -22,6 +22,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~button() override;
+
         int width() const;
 
         int height() const;

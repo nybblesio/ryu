@@ -19,6 +19,9 @@ namespace ryu::core {
                                      _document_status("document-status-label", host) {
     }
 
+    document_footer::~document_footer() {
+    }
+
     void document_footer::value(
             const core::caret& caret,
             const core::document& document) {

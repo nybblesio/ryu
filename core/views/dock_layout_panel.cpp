@@ -17,6 +17,9 @@ namespace ryu::core {
             core::view_host* host) : panel(name, host) {
     }
 
+    dock_layout_panel::~dock_layout_panel() {
+    }
+
     void dock_layout_panel::on_resize(const core::rect& context_bounds) {
         if (type() != types::container)
             return;

@@ -10,11 +10,7 @@
 #include <core/state.h>
 #include <core/project.h>
 #include <hardware/machine.h>
-#include <core/views/label.h>
-#include <core/views/textbox.h>
-#include <core/views/text_editor.h>
-#include <core/views/state_header.h>
-#include <core/views/document_footer.h>
+#include <core/view_factory.h>
 
 namespace ryu::ide::source_editor {
 

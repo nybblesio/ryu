@@ -18,6 +18,9 @@ namespace ryu::core {
             core::view_host* host) : core::view(types::control, name, host) {
     }
 
+    column_pick_list::~column_pick_list() {
+    }
+
     void column_pick_list::clear() {
         _headers.clear();
         _rows.clear();

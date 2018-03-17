@@ -20,6 +20,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~panel() override;
+
         border::types border() const;
 
         void border(border::types value);

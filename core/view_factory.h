@@ -11,57 +11,37 @@
 #pragma once
 
 #include <memory>
-#include "view.h"
+#include <core/views/label.h>
+#include <core/views/button.h>
+#include <core/views/console.h>
+#include <core/views/textbox.h>
+#include <core/views/notebook.h>
+#include <core/views/checkbox.h>
+#include <core/views/pick_list.h>
+#include <core/views/text_editor.h>
+#include <core/views/state_header.h>
+#include <core/views/memory_editor.h>
+#include <core/views/document_footer.h>
+#include <core/views/column_pick_list.h>
 #include "core_types.h"
 
 namespace ryu::core {
 
-    class button;
     using button_unique_ptr = std::unique_ptr<core::button>;
-
-    class caret;
     using caret_unique_ptr = std::unique_ptr<core::caret>;
-
-    class state_header;
     using state_header_unique_ptr = std::unique_ptr<core::state_header>;
-
-    class document_footer;
     using document_footer_unique_ptr = std::unique_ptr<core::document_footer>;
-
-    class memory_editor;
     using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
-
-    class console;
     using console_unique_ptr = std::unique_ptr<core::console>;
-
-    class checkbox;
     using checkbox_unique_ptr = std::unique_ptr<core::checkbox>;
-
-    class dock_layout_panel;
     using dock_layout_panel_unique_ptr = std::unique_ptr<core::dock_layout_panel>;
-
-    class label;
     using label_unique_ptr = std::unique_ptr<core::label>;
-
-    class memory_editor;
     using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
-
-    class notebook;
     using notebook_unique_ptr = std::unique_ptr<core::notebook>;
-
-    class panel;
     using panel_unique_ptr = std::unique_ptr<core::panel>;
-
-    class pick_list;
     using pick_list_unique_ptr = std::unique_ptr<core::pick_list>;
-
-    class text_editor;
     using text_editor_unique_ptr = std::unique_ptr<core::text_editor>;
-
-    class textbox;
     using textbox_unique_ptr = std::unique_ptr<core::textbox>;
-
-    class column_pick_list;
     using column_pick_list_unique_ptr = std::unique_ptr<core::column_pick_list>;
 
     class view_factory {
@@ -156,13 +136,13 @@ namespace ryu::core {
             const padding& padding = {});
 
         static document_footer_unique_ptr create_document_footer(
-                core::state* state,
-                const std::string& name,
-                uint8_t fg_color,
-                uint8_t bg_color,
-                dock::styles dock_style = dock::styles::fill,
-                const padding& margin = {},
-                const padding& padding = {});
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style = dock::styles::fill,
+            const padding& margin = {},
+            const padding& padding = {});
 
         static dock_layout_panel_unique_ptr create_dock_layout_panel(
             core::state* state,

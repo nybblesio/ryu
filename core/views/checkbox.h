@@ -20,6 +20,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~checkbox() override;
+
         bool value() const;
 
         void value(bool flag);

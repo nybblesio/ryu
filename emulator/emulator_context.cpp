@@ -10,6 +10,7 @@
 
 #include <ide/ide_types.h>
 #include <ide/ide_context.h>
+#include <core/input_action.h>
 #include "emulator_context.h"
 
 namespace ryu::emulator {

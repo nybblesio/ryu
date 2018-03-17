@@ -8,7 +8,6 @@
 // this source code file.
 //
 
-#include <core/font_book.h>
 #include <core/input_action.h>
 #include <hardware/registry.h>
 #include <emulator/emulator_context.h>

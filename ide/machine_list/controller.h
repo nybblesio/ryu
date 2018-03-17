@@ -11,8 +11,7 @@
 #pragma once
 
 #include <core/state.h>
-#include <core/views/state_header.h>
-#include <core/views/column_pick_list.h>
+#include <core/view_factory.h>
 
 namespace ryu::ide::machine_list {
 

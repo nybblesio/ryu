@@ -18,6 +18,9 @@ namespace ryu::core {
             core::view_host* host) : core::view(types::control, name, host) {
     }
 
+    notebook::~notebook() {
+    }
+
     void notebook::on_initialize() {
         auto prev_tab_action = core::input_action::create_no_map(
             "notebook_previous_tab",

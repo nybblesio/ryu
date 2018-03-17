@@ -13,12 +13,7 @@
 #include <SDL_events.h>
 #include <core/state.h>
 #include <ide/ide_types.h>
-#include <core/views/caret.h>
-#include <core/views/label.h>
 #include <core/view_factory.h>
-#include <core/views/console.h>
-#include <core/views/state_header.h>
-#include <core/views/document_footer.h>
 
 namespace ryu::ide::console_editor {
 

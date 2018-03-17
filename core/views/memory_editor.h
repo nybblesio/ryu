@@ -23,6 +23,8 @@ namespace ryu::core {
             const std::string& name,
             core::view_host* host);
 
+        ~memory_editor() override;
+
         void clear();
 
         int page_width() const {

@@ -8,7 +8,6 @@
 #include <core/engine.h>
 #include <ide/ide_types.h>
 #include <core/environment.h>
-#include <core/view_factory.h>
 #include <core/project_file.h>
 #include <core/input_action.h>
 #include "controller.h"
