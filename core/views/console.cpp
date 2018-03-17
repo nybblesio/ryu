@@ -117,28 +117,17 @@ namespace ryu::core {
         _document.last_page();
     }
 
-    void console::first_page() {
-        _document.first_page();
+    void console::caret_end() {
+        _document.line_end();
     }
 
-    void console::caret_end() {
-        _caret.column(_metrics.page_width);
-        _document.end(_metrics.page_width);
+    void console::first_page() {
+        _document.first_page();
     }
 
     void console::caret_home() {
         _caret.column(0);
         _document.home();
-    }
-
-    void console::caret_up_line() {
-        caret_up();
-        caret_end();
-    }
-
-    void console::caret_newline() {
-        caret_down();
-        caret_home();
     }
 
     bool console::more() const {
@@ -453,6 +442,14 @@ namespace ryu::core {
                     return true;
                 }
 
+                // XXX: need to make tab stops configurable
+                if (data.c == core::ascii_tab) {
+                    auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+                    _document.shift_line_right(spaces);
+                    caret_right(spaces);
+                    return true;
+                }
+
                 _document.put(core::element_t {
                     static_cast<uint8_t>(data.c),
                     core::attr_t{_color}});
@@ -464,6 +461,21 @@ namespace ryu::core {
         if (!text_input_action->has_bindings()) {
             text_input_action->bind_text_input();
         }
+    }
+
+    void console::caret_up_line() {
+        caret_up();
+        caret_line_end();
+    }
+
+    void console::caret_newline() {
+        caret_down();
+        caret_home();
+    }
+
+    void console::caret_line_end() {
+        _caret.column(_metrics.page_width);
+        _document.end(_metrics.page_width);
     }
 
     void console::update(uint32_t) {
@@ -649,24 +661,45 @@ namespace ryu::core {
         // first, seek backwards to a null value
         while (true) {
             caret_left();
-            if (_caret.row() == 0 && _caret.column() == 0)
+
+            if (_caret.row() == 0
+            &&  _document.row() == 0
+            &&  _caret.column() == 0
+            &&  _document.column() == 0) {
                 break;
+            }
+
             auto element = _document.get();
             if (element == nullptr || element->value == 0)
                 break;
         }
 
-        // second, scan forward to the next null value to build the command
-        //caret_right();
-        while (true) {
+        // then, if we're not in the upper left of the
+        // document, move right by one
+        if (!(_caret.row() == 0
+        &&    _document.row() == 0
+        &&    _caret.column() == 0
+        &&    _document.column() == 0)) {
             caret_right();
+        }
+
+        // finally, scan forward to the next
+        // null value to build the command or end of the page
+        while (true) {
+            if (_caret.row() == _metrics.page_height
+            &&  _caret.column() == _metrics.page_width) {
+                break;
+            }
+
             auto element = _document.get();
             if (element == nullptr || element->value == 0)
                 break;
             cmd << element->value;
+
+            caret_right();
         }
 
-        // finally, if we got something, try to execute it
+        // ...and, if we got something, try to execute it
         return cmd.str();
     }
 

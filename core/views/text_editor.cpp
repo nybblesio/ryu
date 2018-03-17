@@ -351,10 +351,15 @@ namespace ryu::core {
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
             [this](const core::event_data_t& data) {
-                if (_document.is_line_empty()) {
+                if (_document.virtual_column() == 0) {
+                    caret_up();
                     _document.delete_line();
                 } else {
-                    _document.shift_line_left();
+                    if (_document.is_line_empty()) {
+                        _document.delete_line();
+                    } else {
+                        _document.shift_line_left();
+                    }
                 }
                 return true;
             });
@@ -373,8 +378,8 @@ namespace ryu::core {
                 if (_document.is_line_empty()) {
                     _document.delete_line();
                 } else if (_caret.column() == 0) {
-                    _document.delete_line();
                     caret_up();
+                    _document.delete_line();
                 } else {
                     caret_left();
                     _document.shift_line_left();

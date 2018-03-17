@@ -28,8 +28,7 @@ namespace ryu::core {
             return move_row_up();
         }
         _selected--;
-        raise_selection_changed();
-        return false;
+        return true;
     }
 
     void column_pick_list::add_header(
@@ -50,7 +49,6 @@ namespace ryu::core {
 
     bool column_pick_list::move_down() {
         _selected++;
-        raise_selection_changed();
         auto max = std::min<uint32_t>(
             _visible_rows,
             static_cast<const uint32_t&>(_rows.size())) - 1;
@@ -58,7 +56,7 @@ namespace ryu::core {
             _selected = max;
             return move_row_down();
         }
-        return false;
+        return true;
     }
 
     void column_pick_list::clear_rows() {
@@ -68,10 +66,10 @@ namespace ryu::core {
 
     bool column_pick_list::move_row_up() {
         if (_row == 0) {
-            return true;
+            return false;
         }
         _row--;
-        return false;
+        return true;
     }
 
     bool column_pick_list::move_row_down() {
@@ -81,9 +79,9 @@ namespace ryu::core {
         auto max = _rows.size() - _visible_rows;
         if (_row > max) {
             _row = static_cast<int>(max);
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     void column_pick_list::on_initialize() {
@@ -97,7 +95,8 @@ namespace ryu::core {
                 return focused();
             },
             [this](const event_data_t& data) {
-                move_up();
+                if (move_up())
+                    raise_selection_changed();
                 return true;
             });
         up_action->bind_keys({core::key_up});
@@ -112,7 +111,8 @@ namespace ryu::core {
                 return focused();
             },
             [this](const event_data_t& data) {
-                move_down();
+                if (move_down())
+                    raise_selection_changed();
                 return true;
             });
         down_action->bind_keys({core::key_down});
@@ -133,10 +133,9 @@ namespace ryu::core {
         select_action->bind_keys({core::key_return});
     }
 
-    // XXX: should be _row + _selected
     void column_pick_list::raise_activated() {
         if (_activated_callable != nullptr)
-            _activated_callable(_selected);
+            _activated_callable(_row + _selected);
     }
 
     uint32_t column_pick_list::selected() const {
@@ -151,13 +150,12 @@ namespace ryu::core {
         return _border;
     }
 
-    // XXX: should be _row + _selected
     void column_pick_list::raise_selection_changed() {
         if (_selection_changed_callable != nullptr) {
             if (_rows.empty())
                 _selection_changed_callable(-1);
             else
-                _selection_changed_callable(_selected);
+                _selection_changed_callable(_row + _selected);
         }
     }
 
@@ -177,17 +175,13 @@ namespace ryu::core {
     }
 
     void column_pick_list::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
-
         auto pal = *palette();
-        auto fg = pal[fg_color()];
+        auto fg = adjust_color(pal[fg_color()]);
         auto& bg = pal[bg_color()];
 
-        if (!enabled() || !focused()) {
-            fg = fg - 35;
-        }
-
         surface.set_color(bg);
+
+        auto bounds = client_bounds();
         surface.fill_rect(bounds);
         surface.push_clip_rect(client_bounds());
 
@@ -205,9 +199,11 @@ namespace ryu::core {
                 bounds.top(),
                 header.width,
                 row_height};
-            surface.set_color(pal[header.bg_color]);
+            surface.set_color(adjust_color(pal[header.bg_color]));
             surface.fill_rect(header_rect);
-            surface.set_font_color(font_face(), pal[header.fg_color]);
+            surface.set_font_color(
+                font_face(),
+                adjust_color(pal[header.fg_color]));
             header_rect.deflate(3, 2);
             surface.draw_text_aligned(
                 font_face(),
@@ -226,7 +222,7 @@ namespace ryu::core {
 
             if (row_index == _row + _selected) {
                 surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                auto selection_color = pal[fg_color()];
+                auto selection_color = fg;
                 selection_color.alpha(0x5f);
                 surface.set_color(selection_color);
                 surface.fill_rect({2, column_y, bounds.width() + 5, row_height});
@@ -245,7 +241,9 @@ namespace ryu::core {
                     clamped_width,
                     row_height};
                 surface.push_clip_rect(column_rect);
-                surface.set_font_color(font_face(), pal[header.fg_color]);
+                surface.set_font_color(
+                    font_face(),
+                    adjust_color(pal[header.fg_color]));
                 surface.draw_text_aligned(
                     font_face(),
                     row.columns[index++],
@@ -265,6 +263,13 @@ namespace ryu::core {
     void column_pick_list::add_row(const pick_list_row_t& row) {
         _rows.push_back(row);
         raise_selection_changed();
+    }
+
+    palette_entry column_pick_list::adjust_color(palette_entry entry) {
+        if (!enabled() || !focused()) {
+            return entry - 35;
+        }
+        return entry;
     }
 
     void column_pick_list::on_resize(const core::rect& context_bounds) {

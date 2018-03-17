@@ -48,6 +48,10 @@ namespace ryu::core {
         return false;
     }
 
+    void caret::last_column() {
+        _column = _page_width;
+    }
+
     bool caret::clamp_column() {
         if (_column < 0) {
             _column = 0;

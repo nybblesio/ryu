@@ -8,7 +8,6 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <core/state.h>
@@ -31,7 +30,7 @@ namespace ryu::ide::machine_editor {
     protected:
         struct metrics_t {
             const int left_padding = 10;
-            const int right_padding = 10;
+            const int right_padding = 50;
         };
 
         void on_deactivate() override;

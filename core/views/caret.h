@@ -40,6 +40,8 @@ namespace ryu::core {
 
         void overwrite();
 
+        void last_column();
+
         uint8_t row() const;
 
         void column_select();

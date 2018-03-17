@@ -140,6 +140,7 @@ namespace ryu::core {
 
     static constexpr uint8_t ascii_escape = 0x1b;
     static constexpr uint8_t ascii_return = '\n';
+    static constexpr uint8_t ascii_tab = '\t';
 
     class input_binding {
     public:

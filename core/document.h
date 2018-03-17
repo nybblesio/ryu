@@ -38,8 +38,8 @@ namespace ryu::core {
                 uint16_t start_column,
                 uint16_t end_column) {
             for (uint16_t col = start_column;
-                 col < end_column && col < _elements.size();
-                 col++) {
+                     col < end_column && col < _elements.size();
+                     col++) {
                 const auto& element = _elements[col];
                 if (element.value == 0)
                     stream << " ";
@@ -114,19 +114,21 @@ namespace ryu::core {
         }
 
         void shift_left(uint16_t column, uint16_t times) {
-            for (size_t i = 0;
-                 i < times && column < _elements.size();
-                 i++, column--) {
+            if (column >= _elements.size())
+                return;
+            for (size_t i = 0; i < times; i++) {
                 _elements.erase(_elements.begin() + column);
                 _elements.push_back(element_t {0, _default_attr});
             }
         }
 
         void shift_right(uint16_t column, uint16_t times) {
-            for (size_t i = 0;
-                 i < times && column < _elements.size();
-                 i++, column++) {
-                _elements.insert(_elements.begin() + column, element_t {0, _default_attr});
+            if (column < _elements.size()) {
+                for (size_t i = 0; i < times; i++) {
+                    _elements.insert(
+                        _elements.begin() + column,
+                        element_t {0, _default_attr});
+                }
             }
         }
 
@@ -186,9 +188,9 @@ namespace ryu::core {
         }
 
     private:
-        attr_t _default_attr;
-        uint16_t _selection_end;
-        uint16_t _selection_start;
+        attr_t _default_attr {};
+        uint16_t _selection_end = 0;
+        uint16_t _selection_start = 0;
         std::vector<element_t> _elements {};
     };
 
@@ -196,14 +198,15 @@ namespace ryu::core {
     public:
         void clear() {
             _lines.clear();
+            _line_index.clear();
         }
 
         bool empty() const {
-            return _lines.empty();
+            return _line_index.empty();
         }
 
         size_t size() const {
-            return _lines.size();
+            return _line_index.size();
         }
 
         attr_t& default_attr() {
@@ -211,14 +214,15 @@ namespace ryu::core {
         }
 
         line_t* at(uint32_t row) {
-            if (_lines.empty() || row > _lines.size() - 1)
-                add_missing_lines((row + 1) - _lines.size());
-            return &_lines[row];
+            add_missing_lines(row);
+            return _line_index[row].operator->();
         }
 
         void delete_at(uint32_t row) {
-            if (row < _lines.size())
-                _lines.erase(_lines.begin() + row);
+            if (row < _lines.size()) {
+                _lines.erase(_line_index[row]);
+                _line_index.erase(_line_index.begin() + row);
+            }
         }
 
         void line_width(uint16_t width) {
@@ -226,14 +230,17 @@ namespace ryu::core {
         }
 
         line_t* insert_at(uint32_t row) {
-            if (_lines.empty() || row > _lines.size() - 1) {
-                add_missing_lines((row + 1) - _lines.size());
-            } else {
-                _lines.insert(
-                    _lines.begin() + row,
-                    line_t {_width, _default_attr});
-            }
-            return &_lines[row];
+            if (row + 1 >= _line_index.size() - 1)
+                return at(row);
+
+            _line_index.insert(
+                _line_index.begin() + row,
+                std::list<line_t>::iterator());
+            _line_index[row] = _lines.insert(
+                _line_index[row + 1],
+                line_t {_width, _default_attr});
+
+            return _line_index[row].operator->();
         }
 
         void default_attr(const attr_t& attr) {
@@ -242,7 +249,7 @@ namespace ryu::core {
 
         void split_at(uint32_t row, uint32_t column) {
             auto current_line = at(row);
-            auto new_line = insert_at(row);
+            auto new_line = insert_at(row + 1);
             uint16_t col = 0;
             for (; column < current_line->length(); column++) {
                 auto old_element = current_line->get(column);
@@ -256,15 +263,22 @@ namespace ryu::core {
         }
 
     private:
-        void add_missing_lines(size_t count) {
-            for (size_t i = 0; i < count; i++)
-                _lines.emplace_back(_width, _default_attr);
+        void add_missing_lines(uint32_t row) {
+            if (_line_index.empty() || row > _line_index.size() - 1) {
+                auto count = (row + 1) - _line_index.size();
+                for (size_t i = 0; i < count; i++) {
+                    _line_index.emplace_back(_lines.insert(
+                        _lines.end(),
+                        line_t {_width, _default_attr}));
+                }
+            }
         }
 
     private:
         uint16_t _width = 0;
         attr_t _default_attr {};
-        std::vector<line_t> _lines {};
+        std::list<line_t> _lines {};
+        std::vector<std::list<line_t>::iterator> _line_index {};
     };
 
     class document {
@@ -304,6 +318,8 @@ namespace ryu::core {
             uint8_t width);
 
         void shift_up();
+
+        void line_end();
 
         element_t* get();
 

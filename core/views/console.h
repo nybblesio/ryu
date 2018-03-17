@@ -69,6 +69,8 @@ namespace ryu::core {
 
         void caret_home();
 
+        void caret_line_end();
+
         uint32_t write_message(
                 const std::string& message,
                 bool last_newline = true);

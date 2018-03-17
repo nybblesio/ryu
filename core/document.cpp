@@ -51,6 +51,22 @@ namespace ryu::core {
         _lines.delete_at(0);
     }
 
+    void document::line_end() {
+        _caret->last_column();
+        end(_page_width);
+        while (true) {
+            auto element = get();
+            if (element != nullptr && element->value != 0) {
+                _caret->right(1);
+                break;
+            }
+            if (virtual_column() == 0)
+                break;
+            if (_caret->left(1))
+                scroll_left();
+        }
+    }
+
     void document::page_down() {
         _row += _page_height;
         clamp_row();

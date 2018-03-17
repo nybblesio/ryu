@@ -110,6 +110,9 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
+        palette_entry adjust_color(palette_entry entry);
+
+    private:
         uint32_t _row = 0;
         row_list _rows {};
         uint32_t _max_rows = 0;
