@@ -54,16 +54,6 @@ namespace ryu::hardware {
                 uint32_t address,
                 integrated_circuit::endianness::types endianess) const;
 
-        virtual ryu::core::byte_list write_word(
-                uint32_t address,
-                uint16_t value,
-                integrated_circuit::endianness::types endianess);
-
-        virtual ryu::core::byte_list write_dword(
-                uint32_t address,
-                uint32_t value,
-                integrated_circuit::endianness::types endianess);
-
         void write_latch(bool enabled);
 
         uint32_t address_space() const;
@@ -73,6 +63,16 @@ namespace ryu::hardware {
         std::string component_name() const;
 
         void address_space(uint32_t value);
+
+        virtual ryu::core::byte_list write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess);
+
+        virtual ryu::core::byte_list write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess);
 
         virtual endianness::types endianess() const;
 

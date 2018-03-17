@@ -24,25 +24,25 @@ namespace ryu::core {
                 int32_t top,
                 int32_t bottom);
 
-        int32_t left() const;
+        int32_t top() const;
 
-        void left(int32_t value);
+        int32_t left() const;
 
         int32_t right() const;
 
-        void right(int32_t value);
+        int32_t bottom() const;
 
-        int32_t top() const;
+        int32_t vertical() const;
 
         void top(int32_t value);
 
-        int32_t bottom() const;
+        void left(int32_t value);
+
+        void right(int32_t value);
 
         void bottom(int32_t value);
 
         int32_t horizontal() const;
-
-        int32_t vertical() const;
 
     private:
         int32_t _top = 0;

@@ -24,7 +24,9 @@ namespace ryu::core {
 
     protected:
         void on_resize(const core::rect& context_bounds) override;
-    };
 
+    private:
+        void resize_child(core::view* child, core::rect& bounds);
+    };
 };
 

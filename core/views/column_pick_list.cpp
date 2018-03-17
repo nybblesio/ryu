@@ -285,7 +285,22 @@ namespace ryu::core {
     }
 
     void column_pick_list::on_resize(const core::rect& context_bounds) {
-        view::on_resize(context_bounds);
+        switch (sizing()) {
+            case sizing::content:
+            case sizing::fixed: {
+                // XXX: need to implement this
+                break;
+            }
+            case sizing::parent: {
+                auto container = parent();
+                auto rect = container != nullptr ? container->bounds() : context_bounds;
+                auto& margins = margin();
+                bounds().size(
+                    rect.width() - margins.horizontal(),
+                    rect.height() - margins.vertical());
+                break;
+            }
+        }
         calculate_visible_and_max_rows();
     }
 
