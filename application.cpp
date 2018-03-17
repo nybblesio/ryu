@@ -13,50 +13,65 @@
 #include <core/font_book.h>
 #include <hardware/hardware.h>
 #include <hardware/registry.h>
+#include <log4cpp/Category.hh>
+#include <log4cpp/PropertyConfigurator.hh>
 #include "application.h"
+#include "logger.h"
 
 namespace ryu {
 
     void application::show_result_messages(core::result& result) {
-        for (auto& message : result.messages())
-            std::cout << message.code() << ": "
-                      << message.message() << "\n"
-                      << "\t" << message.details() << "\n";
+        for (auto& message : result.messages()) {
+            _log->error(fmt::format("{}: {}", message.code(), message.message()));
+            if (!message.details().empty())
+                _log->error(message.details());
+        }
     }
 
     bool application::init(int argc, char** argv) {
         core::result result;
 
+        log4cpp::PropertyConfigurator::configure("ryu.properties");
+        _log = logger::instance()->category("ryu", log4cpp::Priority::INFO);
+        _log->info("init start.");
+
         _executable_path = boost::filesystem::system_complete(argv[0]);
         _executable_path = _executable_path.parent_path();
         _prefs.executable_path(_executable_path);
 
+        _log->info(fmt::format("executable path: {}", _executable_path.string()));
+
+        _log->info("preferences load");
         if (!_prefs.load(result)) {
-            std::cout << "loading preferences failed:\n";
+            _log->error("unable to load preferences");
             show_result_messages(result);
             return false;
         }
 
+        _log->info("hardware initialize");
         if (!hardware::initialize(result, _executable_path)) {
-            std::cout << "hardware initialize failed:\n";
+            _log->error("hardware initialization failed:");
             show_result_messages(result);
             return false;
         }
 
+        _log->info("engine initialize");
         if (!_engine.initialize(result, _prefs)) {
-            std::cout << "engine initialize failed:\n";
+            _log->error("engine initialization failed:");
             show_result_messages(result);
             return false;
         }
 
+        _log->info("ide configuration");
         if (!configure_ide(result)) {
-            std::cout << "configure_ide failed:\n";
+            _log->error("ide configuration failed:");
             show_result_messages(result);
             return false;
         }
 
+        _log->info("emulator configuration");
         if (!configure_emulator(result)) {
-            std::cout << "configure_emulator failed:\n";
+            _log->error("emulator initialization failed:");
             show_result_messages(result);
             return false;
         }
@@ -66,18 +81,23 @@ namespace ryu {
             _emulator_context.parent_resize(bounds);
         });
 
-        std::cout << std::endl;
-
         return true;
     }
 
     bool application::shutdown() {
         core::result result;
 
-        _prefs.default_path(boost::filesystem::current_path());
+        _log->info("shutdown start");
 
+
+        _prefs.default_path(boost::filesystem::current_path());
+        _log->info(fmt::format(
+            "preferences default path: {}",
+            _prefs.default_path().string()));
+
+        _log->info("engine shutdown");
         if (!_engine.shutdown(result, _prefs)) {
-            std::cout << "engine shutdown failed:\n";
+            _log->error("engine shutdown failed:");
             show_result_messages(result);
             return false;
         }
@@ -99,13 +119,12 @@ namespace ryu {
         _prefs.ide_window_size(_ide_context.size());
         _prefs.emulator_window_size(_emulator_context.size());
 
+        _log->info("save preferences");
         if (!_prefs.save(result)) {
-            std::cout << "saving preferences failed:\n";
+            _log->error("preferences save failed:");
             show_result_messages(result);
             return false;
         }
-
-        std::cout << std::endl;
 
         return true;
     }
@@ -118,13 +137,12 @@ namespace ryu {
 
         core::result result;
 
+        _log->info("engine run");
         if (!_engine.run(result)) {
-            std::cout << "run failed:\n";
+            _log->error("engine run failed:");
             show_result_messages(result);
             return 1;
         }
-
-        std::cout << std::endl;
 
         return !shutdown() ? 1 : 0;
     }

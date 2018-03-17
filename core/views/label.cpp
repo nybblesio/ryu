@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <logger.h>
 #include "label.h"
 
 namespace ryu::core {
@@ -15,6 +16,7 @@ namespace ryu::core {
     label::label(
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host) {
+        _log = logger::instance()->category("label", log4cpp::Priority::INFO);
     }
 
     label::~label() {
@@ -39,6 +41,18 @@ namespace ryu::core {
 
     void label::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
+
+//        if (name() == "name-label" || name() == "display-label") {
+//            _log->info(fmt::format(
+//                "name: {} = [left: {}, right: {}, width: {}], [top: {}, bottom: {}, height: {}]",
+//                name(),
+//                bounds.left(),
+//                bounds.right(),
+//                bounds.width(),
+//                bounds.top(),
+//                bounds.bottom(),
+//                bounds.height()));
+//        }
 
         auto current_palette = palette();
         if (current_palette == nullptr)

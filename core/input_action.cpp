@@ -9,12 +9,16 @@
 //
 
 #include <vector>
+#include <logger.h>
 #include "id_pool.h"
 #include "input_action.h"
 
 namespace ryu::core {
 
     input_action_catalog input_action::s_catalog {};
+    static log4cpp::Category* s_log = logger::instance()->category(
+        "input_action",
+        log4cpp::Priority::INFO);
 
     void input_action::initialize() {
         s_catalog.reserve(1024);
@@ -80,8 +84,8 @@ namespace ryu::core {
             auto bindings_node = action_node["bindings"];
             if (bindings_node != nullptr && bindings_node.IsSequence()) {
                 for (auto binding_it = bindings_node.begin();
-                     binding_it != bindings_node.end();
-                     ++binding_it) {
+                         binding_it != bindings_node.end();
+                         ++binding_it) {
                     auto binding_node = *binding_it;
                     if (!binding_node.IsMap())
                         continue;
@@ -108,6 +112,7 @@ namespace ryu::core {
                 }
             }
         }
+
         return !result.is_failed();
     }
 
@@ -235,14 +240,16 @@ namespace ryu::core {
     }
 
     action_sink_type input_action::process_action(
-        const input_binding& binding,
-        const event_data_t& data) const {
+            const input_binding& binding,
+            const event_data_t& data) const {
         for (uint16_t i = action_sink::last; i > action_sink::none; i--) {
             auto it = _handlers.find(i);
             if (it == _handlers.end())
                 continue;
+//            s_log->info(fmt::format("name: {}, action_sink: {}", name(), i));
             if (!it->second.filter(data))
                 continue;
+//            s_log->info("...perform");
             if (it->second.perform(data))
                 return (action_sink_type) i;
         }

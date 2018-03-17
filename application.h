@@ -14,6 +14,7 @@
 #include <core/engine.h>
 #include <ide/ide_context.h>
 #include <core/preferences.h>
+#include <log4cpp/Category.hh>
 #include <emulator/emulator_context.h>
 
 namespace ryu {
@@ -41,6 +42,7 @@ namespace ryu {
         core::engine _engine {};
         fs::path _executable_path;
         core::preferences _prefs {};
+        log4cpp::Category* _log = nullptr;
         ide::ide_context _ide_context {"ide"};
         emulator::emulator_context _emulator_context {"emulator"};
     };

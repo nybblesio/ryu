@@ -26,6 +26,9 @@ namespace ryu::ide::machine_editor {
 
     protected:
         struct metrics_t {
+            const int row_panel_margin = 15;
+            const int button_panel_margin = 10;
+
             const int left_padding = 10;
             const int right_padding = 50;
         };
@@ -59,6 +62,7 @@ namespace ryu::ide::machine_editor {
         core::textbox_unique_ptr _name_textbox;
         core::dock_layout_panel_unique_ptr _panel;
         core::label_unique_ptr _address_space_label;
+        core::column_pick_list_unique_ptr _pick_list;
         core::dock_layout_panel_unique_ptr _top_panel;
         core::pick_list_unique_ptr _display_pick_list;
         core::dock_layout_panel_unique_ptr _row1_panel;

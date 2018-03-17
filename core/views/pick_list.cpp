@@ -42,24 +42,7 @@ namespace ryu::core {
         return false;
     }
 
-    bool pick_list::move_row_up() {
-        _row--;
-        if (_row < 0) {
-            _row = 0;
-            return true;
-        }
-        return false;
-    }
-
-    int pick_list::length() const {
-        return _length;
-    }
-
-    std::string pick_list::value() {
-        return _value;
-    }
-
-    void pick_list::on_initialize() {
+    void pick_list::bind_events() {
         auto up_action = core::input_action::create_no_map(
             "pick_list_up_action",
             "Internal",
@@ -104,6 +87,28 @@ namespace ryu::core {
                 return true;
             });
         select_action->bind_keys({core::key_return});
+    }
+
+    bool pick_list::move_row_up() {
+        _row--;
+        if (_row < 0) {
+            _row = 0;
+            return true;
+        }
+        return false;
+    }
+
+    int pick_list::length() const {
+        return _length;
+    }
+
+    std::string pick_list::value() {
+        return _value;
+    }
+
+    void pick_list::on_initialize() {
+        bind_events();
+        padding({5, 5, 5, 5});
     }
 
     bool pick_list::move_row_down() {

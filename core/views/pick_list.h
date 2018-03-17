@@ -56,6 +56,9 @@ namespace ryu::core {
         void on_resize(const rect& context_bounds) override;
 
     private:
+        void bind_events();
+
+    private:
         int _row = 0;
         int _length = 32;
         std::string _value;

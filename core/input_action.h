@@ -16,6 +16,7 @@
 #include <functional>
 #include <SDL_events.h>
 #include <yaml-cpp/yaml.h>
+#include <log4cpp/Category.hh>
 #include "result.h"
 #include "input_binding.h"
 
@@ -56,6 +57,28 @@ namespace ryu::core {
             return true;
         }
     };
+
+    // XXX: switch catalog to a map that looks something like this:
+    //
+    // textbox_delete
+    //      |
+    //      +--> action_sink_type::view -> [{}, {}, {}, {}, {}...]
+    //
+    //
+    //
+    //
+    //  action: foo
+    //
+    //  action_sink_type
+    //
+    //  view                -> register handlers
+    //
+    //      state           ->        "
+    //
+    //          context     ->        "
+    //
+    //              engine  ->        "
+    //
 
     using input_action_handlers = std::map<action_sink_type, input_action_handler_t>;
 

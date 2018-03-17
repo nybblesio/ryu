@@ -28,9 +28,13 @@ Thoughts & Questions
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
+- BUG/Design: input_action is just using a vector to store things now, but isn't ordered by action_sink_type
+                -AND- does it make sense to switch to a map of name to action handlers?
+
+                -AND- does the override approach really make sense as is?
+
 - machine_editor::controller:
-    - remove text footer
-    - remove the notebook: just need top panel, column_pick_list for components, and button panel at bottom.
+    - column_pick_list and top_panel not laying out correctly
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 

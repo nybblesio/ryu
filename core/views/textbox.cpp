@@ -297,15 +297,17 @@ namespace ryu::core {
             case sizing::content:
             case sizing::fixed: {
                 bounds().size(
-                        font_face()->width * (_document.page_width() + 1),
-                        font_face()->line_height + 10);
+                    font_face()->width * (_document.page_width() + 1),
+                    font_face()->line_height + 10);
                 break;
             }
             case sizing::parent: {
                 auto container = parent();
                 auto rect = container != nullptr ? container->bounds() : context_bounds;
                 auto& margins = margin();
-                bounds().size(rect.width() - margins.right(), font_face()->line_height + 10);
+                bounds().size(
+                    rect.width() - margins.right(),
+                    font_face()->line_height + 10);
                 break;
             }
         }

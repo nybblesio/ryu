@@ -109,13 +109,13 @@ namespace ryu::ide::machine_editor {
             ide::colors::text,
             ide::colors::fill_color,
             "name:",
-            core::dock::styles::left,
-            {5, 5, 5, 5});
-        _name_label->border(core::border::types::solid);
+            core::dock::styles::left);
         _name_label->sizing(core::view::sizing::types::fixed);
         _name_label->halign(core::alignment::horizontal::right);
         _name_label->valign(core::alignment::vertical::middle);
-        _name_label->bounds().size(display_label_width, font_face->line_height);
+        _name_label->bounds().size(
+            display_label_width,
+            font_face->line_height + 10);
 
         _name_textbox = core::view_factory::create_textbox(
             this,
@@ -124,7 +124,7 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             "",
             core::dock::styles::left,
-            {5, 5, 5, 5});
+            {20, 0, 0, 0});
         _name_textbox->width(32);
         _name_textbox->length(32);
         _name_textbox->enabled(true);
@@ -142,13 +142,12 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             "address space: $",
             core::dock::styles::left,
-            {20, 5, 5, 5});
-        _address_space_label->border(core::border::types::solid);
+            {20, 0, 0, 0});
         _address_space_label->sizing(core::view::sizing::types::fixed);
         _address_space_label->valign(core::alignment::vertical::middle);
         _address_space_label->bounds().size(
             address_space_label_width,
-            font_face->line_height + 10);
+            font_face->line_height + 20);
 
         _address_space_textbox = core::view_factory::create_textbox(
             this,
@@ -157,7 +156,7 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             "",
             core::dock::styles::left,
-            {5, 5, 5, 5});
+            {20, 0, 0, 0});
         _address_space_textbox->width(8);
         _address_space_textbox->length(8);
         _address_space_textbox->enabled(true);
@@ -167,6 +166,10 @@ namespace ryu::ide::machine_editor {
         _address_space_textbox->on_key_down([](int key_code) {
             return isxdigit(key_code);
         });
+
+        core::option_list display_options {};
+        for (auto& display : hardware::display::catalog())
+            display_options.push_back(display.name());
 
         _display_label = core::view_factory::create_label(
             this,
@@ -180,10 +183,6 @@ namespace ryu::ide::machine_editor {
         _display_label->valign(core::alignment::vertical::middle);
         _display_label->bounds().size(display_label_width, font_face->line_height + 10);
 
-        core::option_list display_options {};
-        for (auto& display : hardware::display::catalog())
-            display_options.push_back(display.name());
-
         _display_pick_list = core::view_factory::create_pick_list(
             this,
             "display-pick-list",
@@ -191,13 +190,10 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             display_options,
             core::dock::styles::left,
-            {15, 0, 4, 0});
+            {20, 0, 0, 0});
         _display_pick_list->on_tab([&]() -> const core::view* {
-            return _add_button.get();
+            return _pick_list.get();
         });
-//        _display_pick_list->bounds().size(
-//            context()->font_face()->width * _display_pick_list->length(),
-//            context()->font_face()->line_height);
 
         _add_button = core::view_factory::create_button(
             this,
@@ -238,14 +234,20 @@ namespace ryu::ide::machine_editor {
             return _name_textbox.get();
         });
 
+        auto row_margins = core::padding {
+            _metrics.left_padding,
+            _metrics.right_padding,
+            _metrics.row_panel_margin,
+            _metrics.row_panel_margin
+        };
         _row1_panel = core::view_factory::create_dock_layout_panel(
             this,
             "row1-panel",
             ide::colors::info_text,
             ide::colors::transparent,
             core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 20, 20});
-        _row1_panel->bounds().height(context()->font_face()->line_height);
+            row_margins);
+        _row1_panel->bounds().height(context()->font_face()->line_height + 10);
         _row1_panel->add_child(_name_label.get());
         _row1_panel->add_child(_name_textbox.get());
         _row1_panel->add_child(_address_space_label.get());
@@ -257,29 +259,74 @@ namespace ryu::ide::machine_editor {
             ide::colors::info_text,
             ide::colors::transparent,
             core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 20, 20});
-        _row2_panel->bounds().height(context()->font_face()->line_height);
+            row_margins);
+        _row2_panel->bounds().height(context()->font_face()->line_height + 10);
         _row2_panel->add_child(_display_label.get());
         _row2_panel->add_child(_display_pick_list.get());
 
+        auto button_panel_margin = core::padding {
+            _metrics.left_padding,
+            _metrics.right_padding,
+            _metrics.button_panel_margin,
+            _metrics.button_panel_margin
+        };
         _button_panel = core::view_factory::create_dock_layout_panel(
             this,
             "button-panel",
             ide::colors::info_text,
             ide::colors::transparent,
             core::dock::styles::bottom,
-            {_metrics.left_padding, _metrics.right_padding, 10, 10});
+            button_panel_margin);
         _button_panel->bounds().height(_map_button->height());
         _button_panel->add_child(_map_button.get());
         _button_panel->add_child(_add_button.get());
         _button_panel->add_child(_delete_button.get());
+
+        _pick_list = core::view_factory::create_column_pick_list(
+            this,
+            "pick-list",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            {_metrics.left_padding, _metrics.right_padding, 5, 15});
+        _pick_list->border(core::border::types::solid);
+        _pick_list->add_header(
+            "ID",
+            ide::colors::white,
+            ide::colors::light_blue,
+            125,
+            core::column_pick_list::halign_t::left);
+        _pick_list->add_header(
+            "Name",
+            ide::colors::white,
+            ide::colors::light_blue,
+            525,
+            core::column_pick_list::halign_t::left);
+        _pick_list->add_header(
+            "Address",
+            ide::colors::white,
+            ide::colors::light_blue,
+            250,
+            core::column_pick_list::halign_t::left);
+        _pick_list->add_header(
+            "Circuit",
+            ide::colors::white,
+            ide::colors::light_blue,
+            525,
+            core::column_pick_list::halign_t::left);
+        _pick_list->on_activated([this](uint32_t row) {
+        });
+        _pick_list->on_tab([&]() -> const core::view* {
+            return _add_button.get();
+        });
+        _pick_list->on_selection_changed([this](int32_t row) {
+        });
 
         _top_panel = core::view_factory::create_dock_layout_panel(
             this,
             "top-panel",
             ide::colors::info_text,
             ide::colors::fill_color,
-            core::dock::styles::fill);
+            core::dock::styles::top);
         _top_panel->add_child(_row1_panel.get());
         _top_panel->add_child(_row2_panel.get());
 
@@ -291,6 +338,7 @@ namespace ryu::ide::machine_editor {
             core::dock::styles::fill);
         _panel->add_child(_header.get());
         _panel->add_child(_button_panel.get());
+        _panel->add_child(_pick_list.get());
         _panel->add_child(_top_panel.get());
 
         _panel->focus(_name_textbox.get());
