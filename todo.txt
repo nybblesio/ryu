@@ -28,13 +28,28 @@ Thoughts & Questions
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
+- source_editor/document/text_editor: re-implement selection as a line-based concept
+    * cut, copy, paste, delete selection
+
+- source_editor/document/text_editor: review other action bindings and bug fix/revise
+
+- source_editor/document/text_editor: rework how loading/saving work in document and the editors
+
 - BUG/Design: input_action is just using a vector to store things now, but isn't ordered by action_sink_type
                 -AND- does it make sense to switch to a map of name to action handlers?
+                -AND- does the override approach really make sense as is?  How many views are going to override
+                        input actions that belong to the controller or contexts?
 
-                -AND- does the override approach really make sense as is?
+- BUG: dock_layout_panel isn't handling the machine_editor::controller layout properly, need to revisit this
+    * bug: console header, project and machine fields not properly resizing
+
+- NEW: component_editor::controller
 
 - machine_editor::controller:
-    - column_pick_list and top_panel not laying out correctly
+    - add component
+    - edit component
+    - delete component
+    - make text_editor easier to work with as a multi-line textbox
 
 - figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
 
@@ -51,8 +66,6 @@ Thoughts & Questions
 - look for good tab-like bitmaps instead of poly draws
 
 - mouse event bindings
-
-- bug: console header, project and machine fields not properly resizing
 
 - bug: environment::on_evaluate isn't handling negative number properly
 
