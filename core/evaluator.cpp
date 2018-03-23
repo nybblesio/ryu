@@ -279,6 +279,8 @@ namespace ryu::core {
                             case operator_t::op::not_equal:             return lhs != rhs;
                             case operator_t::op::greater_than:          return lhs > rhs;
                             case operator_t::op::greater_than_equal:    return lhs >= rhs;
+                            case operator_t::op::shift_left:            return lhs << rhs;
+                            case operator_t::op::shift_right:           return lhs >> rhs;
                             default:
                                 error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
                                 break;

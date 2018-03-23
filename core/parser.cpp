@@ -137,6 +137,28 @@ namespace ryu::core {
             }
         },
         {
+            ">>",
+            {
+                operator_t::op::shift_right,
+                ">>",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "<<",
+            {
+                operator_t::op::shift_left,
+                "<<",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
             ">",
             {
                 operator_t::op::greater_than,

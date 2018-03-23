@@ -378,7 +378,9 @@ namespace ryu::core {
             left_parenthesis,
             right_parenthesis,
             left_bracket,
-            right_bracket
+            right_bracket,
+            shift_left,
+            shift_right
         };
 
         enum op_type : uint8_t {
@@ -648,6 +650,12 @@ namespace ryu::core {
         }
         numeric_literal_t operator^ (const numeric_literal_t& other) {
             return numeric_literal_t {value ^ other.value};
+        }
+        numeric_literal_t operator<< (const numeric_literal_t& other) {
+            return numeric_literal_t {value << other.value};
+        }
+        numeric_literal_t operator>> (const numeric_literal_t& other) {
+            return numeric_literal_t {value >> other.value};
         }
         boolean_literal_t operator< (const numeric_literal_t& other) {
             return boolean_literal_t {value < other.value};
