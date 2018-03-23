@@ -277,26 +277,23 @@ namespace ryu::core {
             std::vector<std::string>& results) {
 
         std::string ascii;
-        std::string signed_fmt_spec,
+        std::string hex_fmt_spc,
                 decimal_fmt_spec,
                 ascii_fmt_spec,
                 binary_fmt_spec;
 
-        uint32_t mask = 0;
         auto byte_count = 0;
         switch (size) {
             case core::command_size_flags::byte:
                 byte_count = 1;
-                mask = 0xff;
-                signed_fmt_spec = "${0:02x}";
+                hex_fmt_spc = "${0:02x}";
                 decimal_fmt_spec = "{0:>3}";
                 ascii_fmt_spec = "\"{0:>1}\"";
                 binary_fmt_spec = "%{0:08b}";
                 break;
             case core::command_size_flags::word:
                 byte_count = 2;
-                mask = 0xffff;
-                signed_fmt_spec = "${0:04x}";
+                hex_fmt_spc = "${0:04x}";
                 decimal_fmt_spec = "{0:>5}";
                 ascii_fmt_spec = "\"{0:>2}\"";
                 binary_fmt_spec = "%{0:016b}";
@@ -304,8 +301,7 @@ namespace ryu::core {
             case core::command_size_flags::none:
             case core::command_size_flags::dword:
                 byte_count = 4;
-                mask = 0xffffffff;
-                signed_fmt_spec = "${0:08x}";
+                hex_fmt_spc = "${0:08x}";
                 decimal_fmt_spec = "{0:>10}";
                 ascii_fmt_spec = "\"{0:>4}\"";
                 binary_fmt_spec = "%{0:032b}";
@@ -321,12 +317,13 @@ namespace ryu::core {
             ascii += isprint(c) ? c : '.';
         }
 
-        int32_t signed_value = static_cast<int32_t>(value) & mask;
-
-        results.push_back(fmt::format(signed_fmt_spec, signed_value));
-        results.push_back(fmt::format(decimal_fmt_spec, value));
+        results.push_back(fmt::format(hex_fmt_spc, value));
+        if ((value & 0b10000000000000000000000000000000) != 0)
+            results.push_back(fmt::format(decimal_fmt_spec, static_cast<int32_t>(value)));
+        else
+            results.push_back(fmt::format(decimal_fmt_spec, value));
         results.push_back(fmt::format(ascii_fmt_spec, ascii));
-        results.push_back(fmt::format(binary_fmt_spec, signed_value));
+        results.push_back(fmt::format(binary_fmt_spec, value));
     }
 
     environment::environment() : _assembler(std::make_unique<core::assembler>()),

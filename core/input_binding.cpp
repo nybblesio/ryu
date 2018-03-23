@@ -23,6 +23,7 @@ namespace ryu::core {
     static std::map<int32_t, std::vector<keycode_to_ascii_t>> s_keycode_map = {
         {SDLK_ESCAPE,       {{KMOD_NONE, 0x1b}}},
         {SDLK_EXCLAIM,      {{KMOD_NONE, '!'}}},
+        {SDLK_BACKQUOTE,    {{KMOD_NONE, '`'},  {KMOD_SHIFT, '~'}}},
         {SDLK_1,            {{KMOD_NONE, '1'},  {KMOD_SHIFT, '!'}}},
         {SDLK_2,            {{KMOD_NONE, '2'},  {KMOD_SHIFT, '@'}}},
         {SDLK_3,            {{KMOD_NONE, '3'},  {KMOD_SHIFT, '#'}}},
