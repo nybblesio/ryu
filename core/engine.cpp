@@ -171,7 +171,7 @@ namespace ryu::core {
         minimized_action->register_handler(
             action_sink::engine,
             action_sink::default_filter,
-            [this](const event_data_t& data) {
+            [](const event_data_t& data) {
                 return true;
             });
         minimized_action->bind_minimized();
@@ -183,7 +183,7 @@ namespace ryu::core {
         maximized_action->register_handler(
             action_sink::engine,
             action_sink::default_filter,
-            [this](const event_data_t& data) {
+            [](const event_data_t& data) {
                 return true;
             });
         maximized_action->bind_maximized();
@@ -225,7 +225,7 @@ namespace ryu::core {
         restore_action->register_handler(
             action_sink::engine,
             action_sink::default_filter,
-            [this](const event_data_t& data) {
+            [](const event_data_t& data) {
                 // XXX:
                 return true;
             });

@@ -94,8 +94,7 @@ namespace ryu::core {
         caret_select_left_action->register_handler(
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-
+            [](const core::event_data_t& data) {
                 return true;
             });
         if (!caret_select_left_action->has_bindings()) {
@@ -109,7 +108,7 @@ namespace ryu::core {
         caret_select_right_action->register_handler(
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         if (!caret_select_right_action->has_bindings()) {
@@ -139,7 +138,7 @@ namespace ryu::core {
         caret_select_down_action->register_handler(
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         if (!caret_select_down_action->has_bindings()) {
@@ -169,7 +168,7 @@ namespace ryu::core {
         caret_select_up_action->register_handler(
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         if (!caret_select_up_action->has_bindings()) {
@@ -415,7 +414,7 @@ namespace ryu::core {
         select_home_action->register_handler(
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         if (!select_home_action->has_bindings()) {
@@ -459,7 +458,7 @@ namespace ryu::core {
         select_end_action->register_handler(
             core::action_sink::view,
             std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         if (!select_end_action->has_bindings()) {

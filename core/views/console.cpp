@@ -438,7 +438,7 @@ namespace ryu::core {
                     return true;
 
                 if (_caret.mode() == core::caret::mode::insert)
-                    _document.shift_line_left();
+                    _document.shift_line_right();
 
                 if (data.c == core::ascii_return) {
                     caret_newline();

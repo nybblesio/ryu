@@ -42,7 +42,7 @@ namespace ryu::ide::machine_editor {
         add_action->register_handler(
             core::action_sink::controller,
             core::action_sink::default_filter,
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         add_action->bind_keys({core::key_f1});
@@ -54,7 +54,7 @@ namespace ryu::ide::machine_editor {
         map_action->register_handler(
             core::action_sink::controller,
             core::action_sink::default_filter,
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         map_action->bind_keys({core::key_f2});
@@ -66,7 +66,7 @@ namespace ryu::ide::machine_editor {
         delete_action->register_handler(
             core::action_sink::controller,
             core::action_sink::default_filter,
-            [this](const core::event_data_t& data) {
+            [](const core::event_data_t& data) {
                 return true;
             });
         delete_action->bind_keys({core::key_delete});
@@ -413,12 +413,12 @@ namespace ryu::ide::machine_editor {
             ide::colors::light_blue,
             325,
             core::column_pick_list::halign_t::left);
-        _component_pick_list->on_activated([this](uint32_t row) {
+        _component_pick_list->on_activated([](uint32_t row) {
         });
         _component_pick_list->on_tab([&]() -> const core::view* {
             return _add_button.get();
         });
-        _component_pick_list->on_selection_changed([this](int32_t row) {
+        _component_pick_list->on_selection_changed([](int32_t row) {
         });
 
         auto row_margins = core::padding {
