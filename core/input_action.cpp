@@ -9,16 +9,16 @@
 //
 
 #include <vector>
-#include <logger.h>
+#include <logger_factory.h>
 #include "id_pool.h"
 #include "input_action.h"
 
 namespace ryu::core {
 
     input_action_catalog input_action::s_catalog {};
-    static log4cpp::Category* s_log = logger::instance()->category(
+    static logger* s_log = logger_factory::instance()->create(
         "input_action",
-        log4cpp::Priority::INFO);
+        logger::level::info);
 
     void input_action::initialize() {
         s_catalog.reserve(1024);

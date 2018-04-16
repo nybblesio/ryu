@@ -17,7 +17,7 @@ namespace ryu::core {
 
     text_editor::text_editor(
             const std::string& name,
-            core::view_host* host) : core::view(core::view::types::container, name, host),
+            core::view_host* host) : core::view(core::view::types::control, name, host),
                                                _caret("editor-caret", host) {
     }
 
@@ -676,11 +676,16 @@ namespace ryu::core {
     }
 
     void text_editor::calculate_page_metrics() {
+        auto face = font_face();
         auto rect = bounds();
         if (rect.empty())
             return;
-        _metrics.page_width = static_cast<uint8_t>((rect.width() - _metrics.line_number_width) / font_face()->width);
-        _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
+        _metrics.page_width = static_cast<uint8_t>(std::max<int32_t>(
+                (rect.width() - _metrics.line_number_width) / face->width,
+                _metrics.page_width));
+        _metrics.page_height = static_cast<uint8_t>(std::max<int32_t>(
+                rect.height() / face->line_height,
+                _metrics.page_height));
     }
 
     void text_editor::insert_text(const char* text) {
@@ -710,6 +715,11 @@ namespace ryu::core {
         _document.document_size(rows, columns);
     }
 
+    void text_editor::page_size(uint8_t height, uint8_t width) {
+        _metrics.page_height = height;
+        _metrics.page_width = width;
+    }
+
     void text_editor::on_resize(const core::rect& context_bounds) {
         core::view::on_resize(context_bounds);
 
@@ -717,6 +727,21 @@ namespace ryu::core {
 
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
+
+        switch(sizing()) {
+            case sizing::content: {
+                auto face = font_face();
+                auto height = bounds().height();
+                bounds().size(
+                        context_bounds.width() + margin().horizontal(),
+                        std::max<int32_t>(height, (face->line_height * _metrics.page_height) + margin().vertical()));
+                break;
+            }
+            case sizing::fixed:
+                break;
+            case sizing::parent:
+                break;
+        }
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {

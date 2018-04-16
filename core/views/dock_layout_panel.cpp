@@ -8,7 +8,13 @@
 // this source code file.
 //
 
+#include <fmt/format.h>
+#include <logger_factory.h>
 #include "dock_layout_panel.h"
+
+static ryu::logger* _log = ryu::logger_factory::instance()->create(
+        "dock_layout_panel",
+        ryu::logger::level::info);
 
 namespace ryu::core {
 
@@ -76,6 +82,31 @@ namespace ryu::core {
         if (type() != types::container)
             return;
 
+        auto& rect = bounds();
+        if (rect.width() == 0 || rect.height() == 0) {
+            auto width = 0;
+            auto height = 0;
+            auto last_left = 0;
+            auto last_top = 0;
+            for (auto child : children()) {
+                child->resize(context_bounds);
+                auto child_margins = child->margin();
+                auto child_bounds = child->client_bounds();
+                if (child_bounds.left() > last_left) {
+                    last_left = child_bounds.left();
+                    width = child_bounds.right() + child_margins.horizontal();
+                }
+                if (child_bounds.top() > last_top) {
+                    last_top = child_bounds.top();
+                    height = child_bounds.bottom() + child_margins.vertical();
+                }
+            }
+            if (width > rect.width())
+                rect.width(width);
+            if (height > rect.height())
+                rect.height(height);
+        }
+
         core::rect bounds;
         auto parent_view = parent();
         if (parent_view != nullptr) {
@@ -87,8 +118,9 @@ namespace ryu::core {
             bounds = context_bounds;
         }
 
-        for (auto child : children())
+        for (auto child : children()) {
             resize_child(child, bounds);
+        }
 
         if (parent_view == nullptr)
             resize_child(this, bounds);

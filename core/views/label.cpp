@@ -8,7 +8,7 @@
 // this source code file.
 //
 
-#include <logger.h>
+#include <logger_factory.h>
 #include "label.h"
 
 namespace ryu::core {
@@ -16,7 +16,7 @@ namespace ryu::core {
     label::label(
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host) {
-        _log = logger::instance()->category("label", log4cpp::Priority::INFO);
+        _log = logger_factory::instance()->create("label", logger::level::info);
     }
 
     label::~label() {

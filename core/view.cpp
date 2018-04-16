@@ -198,8 +198,12 @@ namespace ryu::core {
         auto rect = bounds();
         auto pad = padding();
         core::rect padded;
-        padded.pos(rect.left() + pad.left(), rect.top() + pad.top());
-        padded.size(rect.width() - pad.right(), rect.height() - pad.bottom());
+        padded.pos(
+                rect.left() + pad.left(),
+                rect.top() + pad.top());
+        padded.size(
+                std::max(0, rect.width() - pad.right()),
+                std::max(0, rect.height() - pad.bottom()));
         return padded;
     }
 

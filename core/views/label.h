@@ -11,7 +11,7 @@
 #pragma once
 
 #include <core/view.h>
-#include <log4cpp/Category.hh>
+#include <logger_factory.h>
 
 namespace ryu::core {
 
@@ -46,7 +46,7 @@ namespace ryu::core {
 
     private:
         std::string _value;
-        log4cpp::Category* _log = nullptr;
+        logger* _log = nullptr;
         border::types _border = border::types::none;
         alignment::vertical::types _valign = alignment::vertical::middle;
         alignment::horizontal::types _halign = alignment::horizontal::none;

@@ -881,6 +881,9 @@ namespace ryu::core {
     command_parser::command_parser() : parser() {
     }
 
+    command_parser::~command_parser() {
+    }
+
     ast_node_shared_ptr command_parser::parse_command() {
         consume_white_space();
 

@@ -26,6 +26,8 @@ namespace ryu::core {
 
         command_parser();
 
+        virtual ~command_parser();
+
         ast_node_shared_ptr parse(const parser_input_t& input) override;
 
     protected:

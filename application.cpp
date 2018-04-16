@@ -13,10 +13,8 @@
 #include <core/font_book.h>
 #include <hardware/hardware.h>
 #include <hardware/registry.h>
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
 #include "application.h"
-#include "logger.h"
+#include "logger_factory.h"
 
 namespace ryu {
 
@@ -31,8 +29,8 @@ namespace ryu {
     bool application::init(int argc, char** argv) {
         core::result result;
 
-        log4cpp::PropertyConfigurator::configure("ryu.properties");
-        _log = logger::instance()->category("ryu", log4cpp::Priority::INFO);
+        logger_factory::instance()->initialize("ryu.properties");
+        _log = logger_factory::instance()->create("ryu", logger::level::info);
         _log->info("init start.");
 
         _executable_path = boost::filesystem::system_complete(argv[0]);

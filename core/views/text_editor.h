@@ -61,6 +61,8 @@ namespace ryu::core {
 
         void size(uint32_t rows, uint16_t columns);
 
+        void page_size(uint8_t height, uint8_t width);
+
         bool load(core::result& result, const fs::path& path);
 
         bool save(core::result& result, const fs::path& path = "");
@@ -69,8 +71,8 @@ namespace ryu::core {
 
     protected:
         struct metrics_t {
-            uint8_t page_width {};
-            uint8_t page_height {};
+            uint8_t page_width = 0;
+            uint8_t page_height = 0;
             int line_number_width {};
             const int left_padding = 10;
             const int right_padding = 10;
