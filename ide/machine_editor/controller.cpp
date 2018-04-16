@@ -103,17 +103,18 @@ namespace ryu::ide::machine_editor {
 
     void controller::on_deactivate() {
         _machine = nullptr;
+        _layout_panel->visible(false);
     }
 
     void controller::update_values() {
-        if (_machine == nullptr) {
-            _name_textbox->value("");
-            _display_pick_list->value("");
-            _address_space_textbox->value("");
-            _description_text_editor->clear();
-            _component_pick_list->clear_rows();
+        _name_textbox->value("");
+        _display_pick_list->value("");
+        _address_space_textbox->value("");
+        _description_text_editor->clear();
+        _component_pick_list->clear_rows();
+
+        if (_machine == nullptr)
             return;
-        }
 
         _name_textbox->value(_machine->name());
         auto display_instance = _machine->display();
@@ -342,8 +343,8 @@ namespace ryu::ide::machine_editor {
         auto button_panel_margin = core::padding {
             _metrics.left_padding,
             _metrics.right_padding,
-            _metrics.button_panel_margin,
-            _metrics.button_panel_margin
+            _metrics.button_panel_margin_top,
+            _metrics.button_panel_margin_bottom
         };
         _button_panel = core::view_factory::create_dock_layout_panel(
             this,
@@ -421,6 +422,8 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_activate(const core::parameter_dict& params) {
+        _layout_panel->visible(true);
+
         auto it = params.find("name");
         if (it != params.end()) {
             auto name_param = boost::get<std::string>(it->second);
@@ -430,6 +433,7 @@ namespace ryu::ide::machine_editor {
                 mach->name(name_param);
             }
             machine(mach);
+            context()->resize();
         }
     }
 

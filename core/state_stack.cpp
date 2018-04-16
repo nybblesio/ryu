@@ -32,7 +32,6 @@ namespace ryu::core {
                 break;
             }
             case pending_state::action::pop: {
-                // XXX: need to call deactivate on each stack as we remove them from the stack
                 while (!_stack.empty()) {
                     auto top = _stack.back();
                     _stack.pop_back();
@@ -52,6 +51,15 @@ namespace ryu::core {
         _pending_id = -1;
     }
 
+    void state_stack::add_state(
+            core::state* state,
+            const state_transition_callable& callback) {
+        if (state == nullptr)
+            return;
+        state->transition_callback(callback);
+        _states.insert(std::make_pair(state->id(), state_t {state}));
+    }
+
     int state_stack::peek() const {
         return _stack.empty() ? -1 : _stack.back();
     }
@@ -69,8 +77,8 @@ namespace ryu::core {
         if (_active != nullptr)
             _active->deactivate();
         _active = find_state(peek());
-        _active->activate(_pending_params);
         _active->resize(_active->context()->bounds());
+        _active->activate(_pending_params);
     }
 
     core::state* state_stack::find_state(int id) {
@@ -118,13 +126,6 @@ namespace ryu::core {
         _pending_action = pending_state::action::push;
         _pending_params = params;
         _pending_id = id;
-    }
-
-    void state_stack::add_state(core::state* state, const state_transition_callable& callback) {
-        if (state == nullptr)
-            return;
-        state->transition_callback(callback);
-        _states.insert(std::make_pair(state->id(), state_t {state}));
     }
 
 }

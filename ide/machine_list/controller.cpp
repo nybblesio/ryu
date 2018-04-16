@@ -198,6 +198,7 @@ namespace ryu::ide::machine_list {
     }
 
     void controller::on_deactivate() {
+        _layout_panel->visible(false);
     }
 
     void controller::edit_new_machine() {
@@ -255,6 +256,9 @@ namespace ryu::ide::machine_list {
                 }
             });
         }
+
+        _layout_panel->visible(true);
+        context()->resize();
     }
 
 }

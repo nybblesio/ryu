@@ -27,7 +27,8 @@ namespace ryu::ide::machine_editor {
     protected:
         struct metrics_t {
             const int row_panel_margin = 15;
-            const int button_panel_margin = 10;
+            const int button_panel_margin_top = 5;
+            const int button_panel_margin_bottom = 5;
 
             const int left_padding = 10;
             const int right_padding = 50;

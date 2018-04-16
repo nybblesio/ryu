@@ -23,9 +23,9 @@ namespace ryu::core {
 
         ~state() override;
 
-        uint32_t id() const;
-
         void deactivate();
+
+        uint32_t id() const;
 
         core::context* context();
 

@@ -332,6 +332,9 @@ namespace ryu::core {
     }
 
     void view::resize(const core::rect& context_bounds) {
+        if (!visible())
+            return;
+
         layout(false);
         on_resize(context_bounds);
         for (auto child : _children)

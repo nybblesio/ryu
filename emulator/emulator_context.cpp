@@ -16,7 +16,7 @@
 namespace ryu::emulator {
 
     emulator_context::emulator_context(const std::string& name) : core::context(name),
-                                                                  _emulator_state("execute") {
+                                                                  _emulator_state("machine-emulator") {
     }
 
     void emulator_context::bind_events() {

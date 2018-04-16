@@ -29,6 +29,8 @@ namespace ryu::ide::source_editor {
 
         void on_initialize() override;
 
+        void on_deactivate() override;
+
         void on_update(uint32_t dt) override;
 
         void on_draw(core::renderer& surface) override;

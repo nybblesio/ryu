@@ -49,6 +49,10 @@ namespace ryu::ide::source_editor {
         command_bar_action->bind_keys({core::mod_ctrl, core::key_space});
     }
 
+    void controller::on_deactivate() {
+        _layout_panel->visible(false);
+    }
+
     void controller::on_initialize() {
         bind_events();
 
@@ -206,7 +210,7 @@ namespace ryu::ide::source_editor {
             }
         }
 
-        // XXX: handle result if errored
+        _layout_panel->visible(true);
     }
 
 }

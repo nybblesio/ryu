@@ -45,8 +45,10 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
+        void update_content_bounds();
+
+    private:
         std::string _value;
-        logger* _log = nullptr;
         border::types _border = border::types::none;
         alignment::vertical::types _valign = alignment::vertical::middle;
         alignment::horizontal::types _halign = alignment::horizontal::none;

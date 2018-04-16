@@ -13,13 +13,24 @@
 
 namespace ryu::core {
 
+    static logger* s_log = logger_factory::instance()->create(
+            "label",
+            logger::level::info);
+
     label::label(
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host) {
-        _log = logger_factory::instance()->create("label", logger::level::info);
     }
 
     label::~label() {
+    }
+
+    void label::update_content_bounds() {
+        auto face = font_face();
+        if (face != nullptr) {
+            auto width = face->measure_text(_value);
+            bounds().size(width, face->line_height);
+        }
     }
 
     std::string label::value() const {
@@ -35,15 +46,18 @@ namespace ryu::core {
     }
 
     void label::value(const std::string& value) {
-        _value = value;
-        requires_layout();
+        if (_value != value) {
+            _value = value;
+            update_content_bounds();
+            requires_layout();
+        }
     }
 
     void label::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
 
 //        if (name() == "name-label" || name() == "display-label") {
-//            _log->info(fmt::format(
+//            s_log->info(fmt::format(
 //                "name: {} = [left: {}, right: {}, width: {}], [top: {}, bottom: {}, height: {}]",
 //                name(),
 //                bounds.left(),
@@ -95,9 +109,7 @@ namespace ryu::core {
     void label::on_resize(const core::rect& context_bounds) {
         switch (sizing()) {
             case sizing::content: {
-                auto face = font_face();
-                if (face != nullptr)
-                    bounds().size(face->measure_text(value()), face->line_height);
+                update_content_bounds();
                 break;
             }
             case sizing::parent: {

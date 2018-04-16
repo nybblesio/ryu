@@ -12,11 +12,11 @@
 #include <logger_factory.h>
 #include "dock_layout_panel.h"
 
-static ryu::logger* _log = ryu::logger_factory::instance()->create(
-        "dock_layout_panel",
-        ryu::logger::level::info);
-
 namespace ryu::core {
+
+    static logger* s_log = logger_factory::instance()->create(
+            "dock_layout_panel",
+            logger::level::info);
 
     dock_layout_panel::dock_layout_panel(
             const std::string& name,

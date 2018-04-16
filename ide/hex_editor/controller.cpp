@@ -52,6 +52,10 @@ namespace ryu::ide::hex_editor {
         command_bar_action->bind_keys({core::mod_ctrl, core::key_space});
     }
 
+    void controller::on_deactivate() {
+        _layout_panel->visible(false);
+    }
+
     void controller::on_initialize() {
         bind_events();
 
@@ -178,6 +182,7 @@ namespace ryu::ide::hex_editor {
     }
 
     void controller::on_activate(const core::parameter_dict& params) {
+        _layout_panel->visible(true);
     }
 
 }

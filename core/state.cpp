@@ -5,9 +5,14 @@
 // All Rights Reserved.
 //
 
+#include <logger_factory.h>
 #include "state.h"
 
 namespace ryu::core {
+
+    static logger* s_log = logger_factory::instance()->create(
+            "state",
+            logger::level::info);
 
     state::state(
             const std::string& name,
@@ -75,6 +80,7 @@ namespace ryu::core {
     void state::resize(const core::rect& bounds) {
         if (!_initialized)
             return;
+        s_log->info(fmt::format("state::resize -> name = {}", name()));
         on_resize(bounds);
     }
 
@@ -85,7 +91,6 @@ namespace ryu::core {
         if (!_initialized) {
             on_initialize();
             _initialized = true;
-            resize(bounds);
         }
     }
 
