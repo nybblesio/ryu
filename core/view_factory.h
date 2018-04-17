@@ -21,6 +21,7 @@
 #include <core/views/text_editor.h>
 #include <core/views/state_header.h>
 #include <core/views/memory_editor.h>
+#include <core/views/loadable_view.h>
 #include <core/views/document_footer.h>
 #include <core/views/column_pick_list.h>
 #include "core_types.h"
@@ -43,6 +44,7 @@ namespace ryu::core {
     using text_editor_unique_ptr = std::unique_ptr<core::text_editor>;
     using textbox_unique_ptr = std::unique_ptr<core::textbox>;
     using column_pick_list_unique_ptr = std::unique_ptr<core::column_pick_list>;
+    using loadable_view_unique_ptr = std::unique_ptr<core::loadable_view>;
 
     class view_factory {
     public:
@@ -52,14 +54,6 @@ namespace ryu::core {
             uint8_t fg_color,
             uint8_t bg_color,
             const core::rect& bounds = {});
-
-        static column_pick_list_unique_ptr create_column_pick_list(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const padding& margin = {},
-            const padding& padding = {});
 
         static label_unique_ptr create_label(
             core::state* state,
@@ -144,25 +138,6 @@ namespace ryu::core {
             const padding& margin = {},
             const padding& padding = {});
 
-        static dock_layout_panel_unique_ptr create_dock_layout_panel(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {});
-
-        static memory_editor_unique_ptr create_memory_editor(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {},
-            const core::rect& bounds = {});
-
         static console_unique_ptr create_console(
             core::state* state,
             const std::string& name,
@@ -185,6 +160,44 @@ namespace ryu::core {
             const padding& margin = {},
             const padding& padding = {},
             const core::rect& bounds = {});
+
+        static memory_editor_unique_ptr create_memory_editor(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style = dock::styles::fill,
+            const padding& margin = {},
+            const padding& padding = {},
+            const core::rect& bounds = {});
+
+        static loadable_view_unique_ptr create_loadable_view(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            core::result& result,
+            const boost::filesystem::path& path,
+            const padding& margin = {},
+            const padding& padding = {});
+
+
+        static column_pick_list_unique_ptr create_column_pick_list(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            const padding& margin = {},
+            const padding& padding = {});
+
+        static dock_layout_panel_unique_ptr create_dock_layout_panel(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style = dock::styles::fill,
+            const padding& margin = {},
+            const padding& padding = {});
 
     private:
         static void configure_view(

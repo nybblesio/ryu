@@ -395,4 +395,31 @@ namespace ryu::core {
         return view;
     }
 
+    loadable_view_unique_ptr view_factory::create_loadable_view(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            core::result& result,
+            const boost::filesystem::path& path,
+            const padding& margin,
+            const padding& padding) {
+        auto host = dynamic_cast<view_host*>(state);
+
+        auto view = std::make_unique<core::loadable_view>(name, host);
+        configure_view(
+                view.get(),
+                state->context()->font_family(),
+                &state->context()->palette(),
+                fg_color,
+                bg_color,
+                dock::styles::fill,
+                {},
+                margin,
+                padding);
+        if (view->load(result, path))
+            return view;
+        return nullptr;
+    }
+
 }
