@@ -1,0 +1,82 @@
+constants:
+  view:
+    input-filters:
+      none: 0
+      hex: 1
+      decimal: 2
+      identifier: 3
+      string: 4
+    types:
+      label: 0
+      text-box: 1
+      text-editor: 2
+      pick-list: 3
+      column-pick-list: 4
+      panel: 5
+      dock-panel: 6
+      notebook: 7
+      state-header: 8
+    border:
+      none: 0
+      solid: 1
+      dashed: 2
+      rounded: 3
+    dock:
+      none: 0
+      bottom: 1
+      fill: 2
+      left: 3
+      right: 4
+      top: 5
+    sizing:
+      content: 0
+      fixed: 1
+      parent: 2
+    flags:
+      none:     0b00000000
+      visible:  0b00000001
+      enabled:  0b00000010
+      tab_stop: 0b00000100
+      focused:  0b00001000
+      layout:   0b00010000
+    alignments:
+      horizontal:
+        none: 0
+        left: 1
+        right: 2
+        center: 3
+      vertical:
+        none: 0
+        top: 1
+        middle: 2
+        bottom: 3
+
+  sources:
+    displays: 0
+    components: 1
+    circuits: 2
+
+  ide:
+    colors:
+      black: 0
+      white: 1
+      grey: 2
+      blue: 3
+      fill-color: 3
+      red: 4
+      cyan: 5
+      purple: 6
+      green: 7
+      yellow: 8
+      orange: 9
+      brown: 10
+      pink: 11
+      dark-grey: 12
+      light-green: 13
+      light-blue: 14
+      selection: 14
+      caret: 14
+      text: 14
+      light-grey: 15
+      info-text: 15
+      transparent: 16

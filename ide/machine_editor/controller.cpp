@@ -18,6 +18,10 @@
 
 namespace ryu::ide::machine_editor {
 
+    static logger* s_log = logger_factory::instance()->create(
+            "machine_editor::controller",
+            logger::level::info);
+
     controller::controller(const std::string& name) : core::state(name) {
     }
 
@@ -140,6 +144,21 @@ namespace ryu::ide::machine_editor {
     void controller::on_initialize() {
         bind_events();
         create_views();
+
+        core::result result;
+        auto temp = core::view_factory::create_loadable_view(
+            this,
+            "loadable-view",
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            result,
+            "/users/jeff/src/nybbles/ryu/build/debug/assets/views/machine-editor.yaml");
+
+        for (auto& message : result.messages()) {
+            s_log->error(fmt::format("{}: {}", message.code(), message.message()));
+            if (!message.details().empty())
+                s_log->error(message.details());
+        }
     }
 
     void controller::create_top_panel() {
