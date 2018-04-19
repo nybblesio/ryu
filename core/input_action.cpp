@@ -16,6 +16,7 @@
 namespace ryu::core {
 
     input_action_catalog input_action::s_catalog {};
+
     static logger* s_log = logger_factory::instance()->create(
         "input_action",
         logger::level::info);

@@ -560,7 +560,8 @@ namespace ryu::core {
     }
 
     void text_editor::on_focus_changed() {
-        _caret.enabled(focused());
+        auto flag = focused();
+        _caret.enabled(flag);
     }
 
     void text_editor::raise_caret_changed() {
@@ -779,7 +780,8 @@ namespace ryu::core {
     }
 
     bool text_editor::input_event_filter(const core::event_data_t& data) {
-        return focused();
+        auto flag = focused();
+        return flag;
     }
 
     void text_editor::on_caret_changed(const caret_changed_callable& callable) {

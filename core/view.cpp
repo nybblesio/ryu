@@ -34,10 +34,24 @@ namespace ryu::core {
     void view::initialize() {
         listen_for_on_host_change();
 
+        auto field_shift_tab_action = core::input_action::create_no_map(
+                "view_field_shift_tab",
+                "Internal",
+                "Move focus from the current field to the previous field.");
+        field_shift_tab_action->register_handler(
+                action_sink::types::view,
+                [this](const core::event_data_t& data) {
+                    return focused() && visible();
+                },
+                [this](const core::event_data_t& data) {
+                    return false;
+                });
+        field_shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
+
         auto field_tab_action = core::input_action::create_no_map(
             "view_field_tab",
             "Internal",
-            "Move focus from one field to the next.");
+            "Move focus from the current field to the next field.");
         field_tab_action->register_handler(
             action_sink::types::view,
             [this](const core::event_data_t& data) {
@@ -88,8 +102,9 @@ namespace ryu::core {
     }
 
     bool view::focused() const {
-        return _host->is_focused()
-               && (_flags & config::flags::focused) != 0;
+        auto host_focus = _host->is_focused();
+        auto flag = (_flags & config::flags::focused) != 0;
+        return host_focus && flag;
     }
 
     void view::on_initialize() {

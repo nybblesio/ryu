@@ -58,28 +58,6 @@ namespace ryu::core {
         }
     };
 
-    // XXX: switch catalog to a map that looks something like this:
-    //
-    // textbox_delete
-    //      |
-    //      +--> action_sink_type::view -> [{}, {}, {}, {}, {}...]
-    //
-    //
-    //
-    //
-    //  action: foo
-    //
-    //  action_sink_type
-    //
-    //  view                -> register handlers
-    //
-    //      state           ->        "
-    //
-    //          context     ->        "
-    //
-    //              engine  ->        "
-    //
-
     using input_action_handlers = std::map<action_sink_type, input_action_handler_t>;
 
     class input_action {
@@ -91,6 +69,9 @@ namespace ryu::core {
 
         static void initialize();
 
+        // XXX: add a filter callback to input_action itself
+        //          this callback will return true if the input_action is valid in a given
+        //          runtime context or false if not
         static input_action* create(
             const std::string& name,
             const std::string& category,
@@ -103,6 +84,9 @@ namespace ryu::core {
 
         static bool exists(const std::string& name);
 
+        // XXX: create another version of this function, e.g. active_catalog, etc. that
+        //      walks all of the input_actions and invokes the filter callback.  Only those that
+        //      are valid are returned to the caller.
         static const input_action_catalog& catalog();
 
         static input_action* find_by_id(action_id id);

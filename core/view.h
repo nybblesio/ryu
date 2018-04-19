@@ -46,6 +46,8 @@ namespace ryu::core {
 
     class view {
     public:
+        // XXX: get rid of this callback and replace it with two fields
+        //      on view: view* _next_view and view* _prev_view
         using on_tab_callable = std::function<const core::view* ()>;
 
         struct sizing {
@@ -169,7 +171,9 @@ namespace ryu::core {
 
         void padding(const core::padding& value);
 
+        // XXX: replace this with next_view(view* value) and set _next_view
         void on_tab(const on_tab_callable& callable);
+        // XXX: add prev_view(view* value) and set _prev_view
 
         virtual void palette(core::palette* palette);
 
@@ -211,7 +215,11 @@ namespace ryu::core {
         core::padding _padding {};
         core::view* _parent = nullptr;
         types::id _type = types::control;
+
+        // XXX: replace this with view* _next_view
         on_tab_callable _on_tab_callable;
+
+        // XXX: add view* _prev_view
         core::view_host* _host = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;

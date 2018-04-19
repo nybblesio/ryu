@@ -22,6 +22,7 @@ namespace ryu::core {
 
     class environment;
 
+    // ADD: accessor function that grabs core::preferences* from engine
     class context {
     public:
         explicit context(const std::string& name);

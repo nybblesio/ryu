@@ -1,84 +1,156 @@
 THINGS TO DO
 ------------
 
-Project & Admin tasks
----------------------
-
-- Flesh out README.md for GitHub
-
-- Create website for Ryu project
-
 Thoughts & Questions
 ----------------------
 
-- should we create our own meta-layer instead of using rttr?
-    * some kind of pre-processor
-    * should the meta-code live inside C++ source?  painful, if so
+=================================
 
-- should we add a "clear symbols" command?
+Project & Admin tasks
+---------------------
+- Create website for Ryu project
 
-- should we clear the symbol table during close project?
+=================================
 
-- should ROM even be write protected during "development"?
-    * should we issue errors when trying to write unlatched ROM
-    * maybe the write latch should be disabled only during emulation/distribution
-    * OR maybe the write latch is controlled through the environment file
-
+Art Asset Requirements
+----------------------
+- Context tab/button bitmaps
 
 [feature/tools] IDE UI & related tasks
 --------------------------------------
+- UPDATE: README.md
 
-- BUG/Design: input_action is just using a vector to store things now, but isn't ordered by action_sink_type
-                -AND- does it make sense to switch to a map of name to action handlers?
-                -AND- does the override approach really make sense as is?  How many views are going to override
-                        input actions that belong to the controller or contexts?
+- CHERRY PICK: from feature/piece-table core_types.cpp
 
-- ADD: SHIFT-TAB to reverse direction through fields
+- REFACTOR: use pratt parser model to completely replace shunting-yard implementation
 
-- machine_editor::controller:
-    - add component
-    - edit component
-    - delete component
-    - make text_editor easier to work with as a multi-line textbox
+- NEW: implement ability to redirect to new or appended text file in core::console
+
+- REFACTOR: once_column_t struct to live with his table buddies and make more generic
+
+- FIX: see notes in input_action.h to fix
+
+- NEW: mouse event bindings ----
+    which button?
+    bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
+
+- NEW: SHIFT-TAB to reverse direction through fields
+    - see notes in view.h
+
+- NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
+        that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
+        dock_layout_panel.
+
+- NEW: raise error dialog where applicable
+
+- NEW: pick_list --- add field and get/set for height of drop down portion
+        make the field an actual textbox and search list when user types
+        page up and page down key bindings
+
+- NEW: add "clear symbols" command
+
+- NEW: clproj should clear symbol table
+
+- NEW: change engine::initialize to accept core::preferences* instead of const& and store in field
+        add core::preferences* preferences() accessor to context.h
+
+- FINISH: machine_editor::controller:
+    - add component callback
+    - edit component callback
+    - delete component callback
 
 - NEW: component_editor::controller
+    - create a view YAML file for the layout
+    - implement button callbacks
 
-- figure out how to surface errors & other messages for display in editors, e.g. source_editor, memory_editor.
+- NEW: create new core::notification_center that encapsulates observers and the observed
+        - refactor core::project into this model
+        - helpers to send notifications
+        NOTE: inspiration here was from NSNotificationCenter in Cocoa
 
+- NEW: create new ide::project_editor::controller
+    - create project_editor.yaml view file
+        - state_header
+        - project header information
+        - project files (column_pick_list)
+        - button panel for add/edit/remove/clear files
+
+- NEW: using new dialog system, create ide::project_jump::controller
+    - create project_jump.yaml view file
+    - new data structure needed here, MRU for files on project
+    - might be new views required here, not sure
+
+- NEW: column_pick_list enhancements ---
+    1. fix whitespace/padding issues
+    2. render footer with size indicators, e.g. page x of y, row z, etc.
+    3. add support for type-ahead search
+    4. page up/page down input_actions
+
+- NEW: ide::palette_editor::controller
+    1. need new palette_entry_view:
+
+         +---------------+
+         | color swatch  | R: ___  G: ___ B: ___ A: ____
+         +---------------+
+
+    2. need new palette_view. this is a multi-column layout of palette_entry_views.
+    3. create palette_editor view YAML file
+    4. need to get parameters for palette from the machine's video generator IC
+            use an interface?  core::video_generator, IC implements this interface
+                                  - where in the memory map do these go?
+                                  - palette definitions
+                                  - tile definitions
+                                  - sprite definitions
+                                  - background definitions
+                          also core::sound_generator, IC implements this interface
+
+- NEW: ide::tile_editor::controller (does both sprites and tiles)
+    1. need new tile_editor view:  width, height, position, fat pixel size
+    2. need tile_selector view: width, height, position
+    3. need to render samples of the tile
+    4. need palette_selector/entry_selector views
+
+- NEW: ide::actor_editor::controller
+    1. need tile_layout_editor view
+    2. need a time line/frames view: add, edit, remove frames
+    3. need a play/stop/restart button for animations
+    4. generates assembly include, manually specify memory map location for .org
+
+- NEW: ide::background_editor::controller
+    1. need tile_selector view: how do we choose which tile banks to use?
+    2. need scrolling layout view
+        - core::video_generator tells us background definitions
+
+- NEW: ide::preferences::controller
+    1. create preferences.yaml view file
+        - maybe use core::notebook to break up sections
+        - reuse palette editor views to allow customization of IDE and emu palettes
+    2. input bindings
+
+[feature/tools] Emulator IDE
+----------------------------
+- NEW: emulator::service::controller
+    1. create service.yaml view file
+    2. dip switches
+    3. high scores
+    4. other persistent data?
+    5. sound testing
+
+- NEW: integrated_circuit subclass for midway_mcr_video_generator
+    1. implements the core::video_generator interface
+    2. OpenGL based implementation for backgrounds, tiles, sprites
+    3. shader for palettes
+
+- NEW: integrated_circuit subclass for joystick
+
+[feature/piece-table] Document Data Structure
+----------------------------------------------
 - source_editor/document/text_editor: re-implement selection as a line-based concept
     * cut, copy, paste, delete selection
 
 - source_editor/document/text_editor: review other action bindings and bug fix/revise
 
 - source_editor/document/text_editor: rework how loading/saving work in document and the editors
-
-- implement core::observable model so the UI can register to receive events from the underlying model
-
-- implement full & correct project editor interface + shortcut selection UI
-
-- implement palette editor
-
-- implement tile/sprite editor
-
-- implement preferences UI
-
-- look for good tab-like bitmaps instead of poly draws
-
-- mouse event bindings
-
-- bug: environment::on_evaluate isn't handling negative number properly
-
-- pick_list:
-    1. search in list by typing
-    2. page up/page down
-
-- column_pick_list:
-    1. render scrolling indicators and maybe "page x of y, row z" type footer
-    2. search in the list by typing
-    3. page up/page down actions
-
-[feature/piece-table] Document Data Structure
-----------------------------------------------
 
 - BUG: redo is broken
 
@@ -115,26 +187,6 @@ Thoughts & Questions
 - rework text_box::on_draw to use new document
 
 - fix text_box event handling
-
-
-Lower Priority Clean-up tasks
------------------------------
-
-- refactor once_column_t struct to live with his table buddies and make more generic
-
-- add serialize interface for use by ast_node_t and apply to value structs
-
-- implement ability to redirect to new or appended text file in core::console
-
-- implement pratt parsers for operators
-
-Emulator & related tasks
-------------------------
-
-- implement integrated_circuit subclass for midway_mcr_video_generator that displays background map of tiles &
-  foreground layer of sprites, controller initially through memory_editor & commands
-
-- implement integrated_circuit subclass for joystick input
 
 DONE
 ----
@@ -230,3 +282,4 @@ DONE
     - add new machine button at bottom
 -  BUG: dock_layout_panel isn't handling the machine_editor::controller layout properly, need to revisit this
     * bug: console header, project and machine fields not properly resizing
+- bug: environment::on_evaluate isn't handling negative number properly

@@ -38,6 +38,7 @@ namespace ryu::core {
                 core::result& result,
                 core::preferences& prefs);
 
+        //  CHANGE: const& prefs to core::preferences* and store in _prefs field
         bool initialize(
                 result& result,
                 const core::preferences& prefs);
@@ -98,6 +99,7 @@ namespace ryu::core {
         void bind_events();
 
     private:
+        // ADD: core::preferences* _prefs pointer to engine
         bool _quit = false;
         core::rect _window_rect;
         int _focused_context = -1;

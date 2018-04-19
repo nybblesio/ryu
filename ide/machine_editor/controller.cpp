@@ -145,20 +145,20 @@ namespace ryu::ide::machine_editor {
         bind_events();
         create_views();
 
-        core::result result;
-        auto temp = core::view_factory::create_loadable_view(
-            this,
-            "loadable-view",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            result,
-            "/users/jeff/src/nybbles/ryu/build/debug/assets/views/machine-editor.yaml");
-
-        for (auto& message : result.messages()) {
-            s_log->error(fmt::format("{}: {}", message.code(), message.message()));
-            if (!message.details().empty())
-                s_log->error(message.details());
-        }
+//        core::result result;
+//        auto temp = core::view_factory::create_loadable_view(
+//            this,
+//            "loadable-view",
+//            ide::colors::info_text,
+//            ide::colors::fill_color,
+//            result,
+//            "/users/jeff/src/nybbles/ryu/build/debug/assets/views/machine-editor.yaml");
+//
+//        for (auto& message : result.messages()) {
+//            s_log->error(fmt::format("{}: {}", message.code(), message.message()));
+//            if (!message.details().empty())
+//                s_log->error(message.details());
+//        }
     }
 
     void controller::create_top_panel() {
@@ -242,8 +242,8 @@ namespace ryu::ide::machine_editor {
             core::dock::styles::left,
             {20, 0, 0, 0});
         _display_pick_list->on_tab([&]() -> const core::view* {
-            return _component_pick_list.get();
-            //return _description_text_editor.get();
+            //return _component_pick_list.get();
+            return _description_text_editor.get();
         });
 
         auto row_margins = core::padding {
