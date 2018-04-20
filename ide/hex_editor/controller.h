@@ -48,6 +48,8 @@ namespace ryu::ide::hex_editor {
         core::memory_editor_unique_ptr _editor;
         core::dock_layout_panel_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
+
+        void define_actions();
     };
 
 };

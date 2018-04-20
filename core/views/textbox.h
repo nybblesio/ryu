@@ -74,6 +74,8 @@ namespace ryu::core {
         core::caret _caret;
         core::document _document;
         on_key_down_callable _on_key_down {};
+
+        void define_actions();
     };
 
 };

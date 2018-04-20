@@ -31,6 +31,7 @@ namespace ryu::core {
 
     void context::update(
             uint32_t dt,
+            pending_event_list& pending_events,
             core::renderer& renderer) {
         renderer.push_clip_rect(_bounds);
         renderer.push_blend_mode(SDL_BLENDMODE_NONE);
@@ -41,6 +42,8 @@ namespace ryu::core {
 
         _stack.draw(dt, renderer);
         _stack.update();
+
+        //_action_provider.process(pending_events);
 
         renderer.pop_blend_mode();
         renderer.pop_clip_rect();

@@ -91,6 +91,13 @@ namespace ryu::core {
         int32_t key_code;
     };
 
+    struct pending_event_t {
+        uint32_t id;
+        event_data_t data;
+    };
+
+    using pending_event_list = std::vector<pending_event_t>;
+
     static constexpr uint32_t key_0 = SDLK_0;
     static constexpr uint32_t key_1 = SDLK_1;
     static constexpr uint32_t key_2 = SDLK_2;
@@ -210,4 +217,3 @@ namespace ryu::core {
     };
 
 };
-

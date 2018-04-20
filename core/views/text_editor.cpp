@@ -18,7 +18,7 @@ namespace ryu::core {
     text_editor::text_editor(
             const std::string& name,
             core::view_host* host) : core::view(core::view::types::control, name, host),
-                                               _caret("editor-caret", host) {
+                                     _caret("editor-caret", host) {
     }
 
     text_editor::~text_editor() {
@@ -71,447 +71,457 @@ namespace ryu::core {
         _document.scroll_left();
     }
 
-    void text_editor::bind_events() {
+    void text_editor::define_actions() {
         auto caret_left_action = core::input_action::create(
-            "text_editor_caret_left",
-            "IDE::Text Editor",
-            "Move the caret left on a line.");
-        caret_left_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_left();
-                return true;
-            });
+                "text_editor_caret_left",
+                "IDE::Text Editor",
+                "Move the caret left on a line.");
         if (!caret_left_action->has_bindings()) {
             caret_left_action->bind_keys({core::key_left});
         }
 
         auto caret_select_left_action = core::input_action::create(
-            "text_editor_caret_select_left",
-            "IDE::Text Editor",
-            "Move the caret left on a line in selection mode.");
-        caret_select_left_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [](const core::event_data_t& data) {
-                return true;
-            });
+                "text_editor_caret_select_left",
+                "IDE::Text Editor",
+                "Move the caret left on a line in selection mode.");
         if (!caret_select_left_action->has_bindings()) {
             caret_select_left_action->bind_keys({core::mod_shift, core::key_left});
         }
 
         auto caret_select_right_action = core::input_action::create(
-            "text_editor_caret_select_right",
-            "IDE::Text Editor",
-            "Move the caret right on a line in selection mode.");
-        caret_select_right_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [](const core::event_data_t& data) {
-                return true;
-            });
+                "text_editor_caret_select_right",
+                "IDE::Text Editor",
+                "Move the caret right on a line in selection mode.");
         if (!caret_select_right_action->has_bindings()) {
             caret_select_right_action->bind_keys({core::mod_shift, core::key_right});
         }
 
         auto caret_right_action = core::input_action::create(
-            "text_editor_caret_right",
-            "IDE::Text Editor",
-            "Move the caret right on a line.");
-        caret_right_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                end_selection();
-                caret_right();
-                return true;
-            });
+                "text_editor_caret_right",
+                "IDE::Text Editor",
+                "Move the caret right on a line.");
         if (!caret_right_action->has_bindings()) {
             caret_right_action->bind_keys({core::key_right});
         }
 
         auto caret_select_down_action = core::input_action::create(
-            "text_editor_caret_select_down",
-            "IDE::Text Editor",
-            "Move the caret down a line in selection mode.");
-        caret_select_down_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [](const core::event_data_t& data) {
-                return true;
-            });
+                "text_editor_caret_select_down",
+                "IDE::Text Editor",
+                "Move the caret down a line in selection mode.");
         if (!caret_select_down_action->has_bindings()) {
             caret_select_down_action->bind_keys({core::mod_shift, core::key_down});
         }
 
         auto caret_down_action = core::input_action::create(
-            "text_editor_caret_down",
-            "IDE::Text Editor",
-            "Move the caret down a line.");
-        caret_down_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                end_selection();
-                caret_down();
-                return true;
-            });
+                "text_editor_caret_down",
+                "IDE::Text Editor",
+                "Move the caret down a line.");
         if (!caret_down_action->has_bindings()) {
             caret_down_action->bind_keys({core::key_down});
         }
 
         auto caret_select_up_action = core::input_action::create(
-            "text_editor_caret_select_up",
-            "IDE::Text Editor",
-            "Move the caret up a line in selection mode.");
-        caret_select_up_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [](const core::event_data_t& data) {
-                return true;
-            });
+                "text_editor_caret_select_up",
+                "IDE::Text Editor",
+                "Move the caret up a line in selection mode.");
         if (!caret_select_up_action->has_bindings()) {
             caret_select_up_action->bind_keys({core::mod_shift, core::key_up});
         }
 
         auto caret_up_action = core::input_action::create(
-            "text_editor_caret_up",
-            "IDE::Text Editor",
-            "Move the caret left up a line.");
-        caret_up_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                end_selection();
-                caret_up();
-                return true;
-            });
+                "text_editor_caret_up",
+                "IDE::Text Editor",
+                "Move the caret left up a line.");
         if (!caret_up_action->has_bindings()) {
             caret_up_action->bind_keys({core::key_up});
         }
 
         auto page_up_action = core::input_action::create(
-            "text_editor_page_up",
-            "IDE::Text Editor",
-            "Move up one page.");
-        page_up_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                page_up();
-                return true;
-            });
+                "text_editor_page_up",
+                "IDE::Text Editor",
+                "Move up one page.");
         if (!page_up_action->has_bindings()) {
             page_up_action->bind_keys({core::key_page_up});
         }
 
         auto page_down_action = core::input_action::create(
-            "text_editor_page_down",
-            "IDE::Text Editor",
-            "Move down one page.");
-        page_down_action->register_handler(
-            core::action_sink::view,
-            core::action_sink::default_filter,
-            [this](const core::event_data_t& data) {
-                page_down();
-                return true;
-            });
+                "text_editor_page_down",
+                "IDE::Text Editor",
+                "Move down one page.");
         if (!page_down_action->has_bindings()) {
             page_down_action->bind_keys({core::key_page_down});
         }
 
         auto insert_action = core::input_action::create(
-            "text_editor_insert",
-            "IDE::Text Editor",
-            "Toggle insert/overwrite mode.");
-        insert_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (_caret.mode() == core::caret::mode::insert)
-                    _caret.overwrite();
-                else
-                    _caret.insert();
-                return true;
-            });
+                "text_editor_insert",
+                "IDE::Text Editor",
+                "Toggle insert/overwrite mode.");
         if (!insert_action->has_bindings()) {
             insert_action->bind_keys({core::key_insert});
         }
 
         auto copy_action = core::input_action::create(
-            "text_editor_copy",
-            "IDE::Text Editor",
-            "Copy the active selection.");
-        copy_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                std::stringstream stream;
-                get_selected_text(stream);
-                SDL_SetClipboardText(stream.str().c_str());
-                return true;
-            });
+                "text_editor_copy",
+                "IDE::Text Editor",
+                "Copy the active selection.");
         if (!copy_action->has_bindings()) {
             copy_action->bind_keys({core::mod_ctrl, core::key_c});
         }
 
         auto cut_action = core::input_action::create(
-            "text_editor_cut",
-            "IDE::Text Editor",
-            "Cut the active selection.");
-        cut_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                std::stringstream stream;
-                get_selected_text(stream);
-                SDL_SetClipboardText(stream.str().c_str());
-                delete_selection();
-                return true;
-            });
+                "text_editor_cut",
+                "IDE::Text Editor",
+                "Cut the active selection.");
         if (!cut_action->has_bindings()) {
             cut_action->bind_keys({core::mod_ctrl, core::key_x});
         }
 
         auto paste_action = core::input_action::create(
-            "text_editor_paste",
-            "IDE::Text Editor",
-            "Paste the clipboard at the caret position.");
-        paste_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused() && SDL_HasClipboardText();
-            },
-            [this](const core::event_data_t& data) {
-                auto text = SDL_GetClipboardText();
-                insert_text(text);
-                return true;
-            });
+                "text_editor_paste",
+                "IDE::Text Editor",
+                "Paste the clipboard at the caret position.");
         if (!paste_action->has_bindings()) {
             paste_action->bind_keys({core::mod_ctrl, core::key_v});
         }
 
         auto return_action = core::input_action::create(
-            "text_editor_return",
-            "IDE::Text Editor",
-            "Move caret to the next line at the home position.");
-        return_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (_caret.mode() == core::caret::mode::insert)
-                    _document.split_line();
-                caret_newline();
-                return true;
-            });
+                "text_editor_return",
+                "IDE::Text Editor",
+                "Move caret to the next line at the home position.");
         if (!return_action->has_bindings()) {
             return_action->bind_keys({core::key_return});
         }
 
         auto shift_tab_action = core::input_action::create(
-            "text_editor_shift_tab",
-            "IDE::Text Editor",
-            "Move caret to the previous tab stop.");
-        shift_tab_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (_caret.column() == 0)
-                    return true;
-                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
-                caret_left(spaces);
-                _document.shift_line_left(spaces);
-                return true;
-            });
+                "text_editor_shift_tab",
+                "IDE::Text Editor",
+                "Move caret to the previous tab stop.");
         if (!shift_tab_action->has_bindings()) {
             shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
         }
 
         auto tab_action = core::input_action::create(
-            "text_editor_tab",
-            "IDE::Text Editor",
-            "Move caret to the next tab stop.");
-        tab_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
-                _document.shift_line_right(spaces);
-                caret_right(spaces);
-                return true;
-            });
+                "text_editor_tab",
+                "IDE::Text Editor",
+                "Move caret to the next tab stop.");
         if (!tab_action->has_bindings()) {
             tab_action->bind_keys({core::key_tab});
         }
 
         auto delete_action = core::input_action::create(
-            "text_editor_delete",
-            "IDE::Text Editor",
-            "Shift the line left at the caret position.");
-        delete_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (_document.virtual_column() == 0) {
-                    caret_up();
-                    _document.delete_line();
-                } else {
-                    if (_document.is_line_empty()) {
-                        _document.delete_line();
-                    } else {
-                        _document.shift_line_left();
-                    }
-                }
-                return true;
-            });
+                "text_editor_delete",
+                "IDE::Text Editor",
+                "Shift the line left at the caret position.");
         if (!delete_action->has_bindings()) {
             delete_action->bind_keys({core::key_delete});
         }
 
         auto backspace_action = core::input_action::create(
-            "text_editor_backspace",
-            "IDE::Text Editor",
-            "Move the caret left and shift the line left.");
-        backspace_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (_document.is_line_empty()) {
-                    _document.delete_line();
-                } else if (_caret.column() == 0) {
-                    caret_up();
-                    _document.delete_line();
-                } else {
-                    caret_left();
-                    _document.shift_line_left();
-                }
-                return true;
-            });
+                "text_editor_backspace",
+                "IDE::Text Editor",
+                "Move the caret left and shift the line left.");
         if (!backspace_action->has_bindings()) {
             backspace_action->bind_keys({core::key_backspace});
         }
 
         auto first_page_action = core::input_action::create(
-            "text_editor_first_page",
-            "IDE::Text Editor",
-            "Move to the first page in the home position.");
-        first_page_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                first_page();
-                return true;
-            });
+                "text_editor_first_page",
+                "IDE::Text Editor",
+                "Move to the first page in the home position.");
         if (!first_page_action->has_bindings()) {
             first_page_action->bind_keys({core::mod_ctrl, core::key_home});
         }
 
         auto select_home_action = core::input_action::create(
-            "text_editor_select_home",
-            "IDE::Text Editor",
-            "Move the caret to the home position in selection mode.");
-        select_home_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [](const core::event_data_t& data) {
-                return true;
-            });
+                "text_editor_select_home",
+                "IDE::Text Editor",
+                "Move the caret to the home position in selection mode.");
         if (!select_home_action->has_bindings()) {
             select_home_action->bind_keys({core::mod_shift, core::key_home});
         }
 
         auto home_action = core::input_action::create(
-            "text_editor_home",
-            "IDE::Text Editor",
-            "Move the caret to the home position.");
-        home_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_home();
-                return true;
-            });
+                "text_editor_home",
+                "IDE::Text Editor",
+                "Move the caret to the home position.");
         if (!home_action->has_bindings()) {
             home_action->bind_keys({core::key_home});
         }
 
         auto last_page_action = core::input_action::create(
-            "text_editor_last_page",
-            "IDE::Text Editor",
-            "Move to the last page in the end position.");
-        last_page_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                last_page();
-                return true;
-            });
+                "text_editor_last_page",
+                "IDE::Text Editor",
+                "Move to the last page in the end position.");
         if (!last_page_action->has_bindings()) {
             last_page_action->bind_keys({core::mod_ctrl, core::key_end});
         }
 
         auto select_end_action = core::input_action::create(
-            "text_editor_select_end",
-            "IDE::Text Editor",
-            "Move the caret to the end position in selection mode.");
-        select_end_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [](const core::event_data_t& data) {
-                return true;
-            });
+                "text_editor_select_end",
+                "IDE::Text Editor",
+                "Move the caret to the end position in selection mode.");
         if (!select_end_action->has_bindings()) {
             select_end_action->bind_keys({core::mod_shift, core::key_end});
         }
 
         auto end_action = core::input_action::create(
-            "text_editor_end",
-            "IDE::Text Editor",
-            "Move the caret to the end position.");
-        end_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_end();
-                return true;
-            });
+                "text_editor_end",
+                "IDE::Text Editor",
+                "Move the caret to the end position.");
         if (!end_action->has_bindings()) {
             end_action->bind_keys({core::key_end});
         }
 
         auto text_input_action = core::input_action::create_no_map(
-            "text_editor_input",
-            "IDE::Console",
-            "Any ASCII text input (non-mappable).");
-        text_input_action->register_handler(
-            core::action_sink::view,
-            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (data.c == core::ascii_escape)
-                    return false;
-
-                if (data.c == core::ascii_return) {
-                    if (_caret.mode() == core::caret::mode::insert)
-                        _document.split_line();
-                    caret_newline();
-                    return true;
-                }
-
-                if (_caret.mode() == core::caret::mode::insert)
-                    _document.shift_line_right();
-
-                _document.put(core::element_t {
-                    static_cast<uint8_t>(data.c),
-                    _document.default_attr()});
-
-                caret_right();
-
-                return true;
-            });
+                "text_editor_input",
+                "IDE::Console",
+                "Any ASCII text input (non-mappable).");
         if (!text_input_action->has_bindings()) {
             text_input_action->bind_text_input();
         }
+    }
+
+    void text_editor::bind_events() {
+//        caret_left_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_left();
+//                return true;
+//            });
+//        caret_select_left_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [](const core::event_data_t& data) {
+//                return true;
+//            });
+//        caret_select_right_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [](const core::event_data_t& data) {
+//                return true;
+//            });
+//        caret_right_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                end_selection();
+//                caret_right();
+//                return true;
+//            });
+//        caret_select_down_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [](const core::event_data_t& data) {
+//                return true;
+//            });
+//        caret_down_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                end_selection();
+//                caret_down();
+//                return true;
+//            });
+//        caret_select_up_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [](const core::event_data_t& data) {
+//                return true;
+//            });
+//        caret_up_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                end_selection();
+//                caret_up();
+//                return true;
+//            });
+//        page_up_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                page_up();
+//                return true;
+//            });
+//        page_down_action->register_handler(
+//            core::action_sink::view,
+//            core::action_sink::default_filter,
+//            [this](const core::event_data_t& data) {
+//                page_down();
+//                return true;
+//            });
+//        insert_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (_caret.mode() == core::caret::mode::insert)
+//                    _caret.overwrite();
+//                else
+//                    _caret.insert();
+//                return true;
+//            });
+//        copy_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                std::stringstream stream;
+//                get_selected_text(stream);
+//                SDL_SetClipboardText(stream.str().c_str());
+//                return true;
+//            });
+//        cut_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                std::stringstream stream;
+//                get_selected_text(stream);
+//                SDL_SetClipboardText(stream.str().c_str());
+//                delete_selection();
+//                return true;
+//            });
+//        paste_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused() && SDL_HasClipboardText();
+//            },
+//            [this](const core::event_data_t& data) {
+//                auto text = SDL_GetClipboardText();
+//                insert_text(text);
+//                return true;
+//            });
+//        return_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (_caret.mode() == core::caret::mode::insert)
+//                    _document.split_line();
+//                caret_newline();
+//                return true;
+//            });
+//        shift_tab_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (tab_stop())
+//                    return false;
+//                if (_caret.column() == 0)
+//                    return true;
+//                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+//                caret_left(spaces);
+//                _document.shift_line_left(spaces);
+//                return true;
+//            });
+//        tab_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (tab_stop())
+//                    return false;
+//                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+//                _document.shift_line_right(spaces);
+//                caret_right(spaces);
+//                return true;
+//            });
+//        delete_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (_document.virtual_column() == 0) {
+//                    caret_up();
+//                    _document.delete_line();
+//                } else {
+//                    if (_document.is_line_empty()) {
+//                        _document.delete_line();
+//                    } else {
+//                        _document.shift_line_left();
+//                    }
+//                }
+//                return true;
+//            });
+//        backspace_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (_document.is_line_empty()) {
+//                    _document.delete_line();
+//                } else if (_caret.column() == 0) {
+//                    caret_up();
+//                    _document.delete_line();
+//                } else {
+//                    caret_left();
+//                    _document.shift_line_left();
+//                }
+//                return true;
+//            });
+//        first_page_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                first_page();
+//                return true;
+//            });
+//        select_home_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [](const core::event_data_t& data) {
+//                return true;
+//            });
+//        home_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_home();
+//                return true;
+//            });
+//        last_page_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                last_page();
+//                return true;
+//            });
+//        select_end_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [](const core::event_data_t& data) {
+//                return true;
+//            });
+//        if (!select_end_action->has_bindings()) {
+//            select_end_action->bind_keys({core::mod_shift, core::key_end});
+//        }
+//        end_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_end();
+//                return true;
+//            });
+//        text_input_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (data.c == core::ascii_escape)
+//                    return false;
+//
+//                if (data.c == core::ascii_return) {
+//                    if (_caret.mode() == core::caret::mode::insert)
+//                        _document.split_line();
+//                    caret_newline();
+//                    return true;
+//                }
+//
+//                if (_caret.mode() == core::caret::mode::insert)
+//                    _document.shift_line_right();
+//
+//                _document.put(core::element_t {
+//                    static_cast<uint8_t>(data.c),
+//                    _document.default_attr()});
+//
+//                caret_right();
+//
+//                return true;
+//            });
     }
 
     void text_editor::caret_newline() {

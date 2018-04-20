@@ -99,6 +99,7 @@ namespace ryu::core {
         bool _render_parent = false;
         core::context* _context = nullptr;
         state_transition_callable _callback {};
+        core::input_action_provider _action_provider;
         std::vector<state_change_callable> _listeners {};
     };
 };

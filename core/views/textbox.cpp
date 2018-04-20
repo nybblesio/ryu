@@ -40,127 +40,135 @@ namespace ryu::core {
         _document.column(0);
     }
 
-    void textbox::bind_events() {
+    void textbox::define_actions() {
         auto caret_left_action = core::input_action::create_no_map(
-            "textbox_caret_left",
-            "Internal",
-            "Move the caret left within the textbox.");
-        caret_left_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused();
-            },
-            [this](const core::event_data_t& data) {
-                caret_left();
-                return true;
-            });
+                "textbox_caret_left",
+                "Internal",
+                "Move the caret left within the textbox.");
         caret_left_action->bind_keys({core::key_left});
 
         auto caret_right_action = core::input_action::create_no_map(
-            "textbox_caret_right",
-            "Internal",
-            "Move the caret right within the textbox.");
-        caret_right_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused();
-            },
-            [this](const core::event_data_t& data) {
-                caret_right();
-                return true;
-            });
+                "textbox_caret_right",
+                "Internal",
+                "Move the caret right within the textbox.");
         caret_right_action->bind_keys({core::key_right});
 
         auto backspace_action = core::input_action::create_no_map(
-            "textbox_backspace",
-            "Internal",
-            "Move the caret left and shift the line left.");
-        backspace_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused();
-            },
-            [this](const core::event_data_t& data) {
-                if (_caret.column() == 0) {
-                    _document.delete_line();
-                } else {
-                    caret_left();
-                    _document.shift_line_left();
-                }
-                return true;
-            });
+                "textbox_backspace",
+                "Internal",
+                "Move the caret left and shift the line left.");
         backspace_action->bind_keys({core::key_backspace});
 
         auto delete_action = core::input_action::create_no_map(
-            "textbox_delete",
-            "Internal",
-            "Shift the line left at the caret position.");
-        delete_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused();
-            },
-            [this](const core::event_data_t& data) {
-                _document.shift_line_left();
-                return true;
-            });
+                "textbox_delete",
+                "Internal",
+                "Shift the line left at the caret position.");
         delete_action->bind_keys({core::key_delete});
 
         auto home_action = core::input_action::create_no_map(
-            "textbox_home",
-            "Internal",
-            "Move the caret to the home position.");
-        home_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused();
-            },
-            [this](const core::event_data_t& data) {
-                caret_home();
-                return true;
-            });
+                "textbox_home",
+                "Internal",
+                "Move the caret to the home position.");
         home_action->bind_keys({core::key_home});
 
         auto end_action = core::input_action::create_no_map(
-            "textbox_end",
-            "Internal",
-            "Move the caret to the end of the line.");
-        end_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused();
-            },
-            [this](const core::event_data_t& data) {
-                caret_end();
-                return true;
-            });
+                "textbox_end",
+                "Internal",
+                "Move the caret to the end of the line.");
         end_action->bind_keys({core::key_end});
 
         auto text_input_action = core::input_action::create_no_map(
-            "textbox_input",
-            "Internal",
-            "Any ASCII text input (non-mappable).");
-        text_input_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused();
-            },
-            [this](const core::event_data_t& data) {
-                if (_on_key_down != nullptr)
-                    if (!_on_key_down(data.c))
-                        return false;
-
-                if (data.c == core::ascii_escape || data.c == core::ascii_return)
-                    return false;
-
-                _document.put(core::element_t {
-                    static_cast<uint8_t>(data.c),
-                    _document.default_attr()});
-                caret_right();
-
-                return true;
-            });
+                "textbox_input",
+                "Internal",
+                "Any ASCII text input (non-mappable).");
         text_input_action->bind_text_input();
+    }
+
+    void textbox::bind_events() {
+//        caret_left_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                caret_left();
+//                return true;
+//            });
+//
+//        caret_right_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                caret_right();
+//                return true;
+//            });
+//
+//        backspace_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                if (_caret.column() == 0) {
+//                    _document.delete_line();
+//                } else {
+//                    caret_left();
+//                    _document.shift_line_left();
+//                }
+//                return true;
+//            });
+//
+//        delete_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                _document.shift_line_left();
+//                return true;
+//            });
+//        home_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                caret_home();
+//                return true;
+//            });
+//        end_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                caret_end();
+//                return true;
+//            });
+//        text_input_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                if (_on_key_down != nullptr)
+//                    if (!_on_key_down(data.c))
+//                        return false;
+//
+//                if (data.c == core::ascii_escape
+//                ||  data.c == core::ascii_tab
+//                ||  data.c == core::ascii_return)
+//                    return false;
+//
+//                _document.put(core::element_t {
+//                    static_cast<uint8_t>(data.c),
+//                    _document.default_attr()});
+//                caret_right();
+//
+//                return true;
+//            });
     }
 
     std::string textbox::value() {
@@ -170,6 +178,7 @@ namespace ryu::core {
     }
 
     void textbox::on_initialize() {
+        tab_stop(true);
         bind_events();
 
         _caret.initialize();

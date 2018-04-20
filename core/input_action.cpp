@@ -8,7 +8,7 @@
 // this source code file.
 //
 
-#include <vector>
+#include <utility>
 #include <logger_factory.h>
 #include "id_pool.h"
 #include "input_action.h"
@@ -16,6 +16,7 @@
 namespace ryu::core {
 
     input_action_catalog input_action::s_catalog {};
+    input_action_index input_action::s_catalog_index {};
 
     static logger* s_log = logger_factory::instance()->create(
         "input_action",
@@ -28,29 +29,51 @@ namespace ryu::core {
     input_action* input_action::create(
             const std::string& name,
             const std::string& category,
-            const std::string& description) {
+            const std::string& description,
+            input_action::type::values types,
+            input_action::flag::values flags) {
         auto action = find_by_name(name);
         if (action != nullptr)
             return action;
         s_catalog.emplace_back(
-            id_pool::instance()->allocate(),
-            name,
-            category,
-            description);
-        return &s_catalog.back();
+                id_pool::instance()->allocate(),
+                name,
+                category,
+                description,
+                types,
+                flags);
+        action = &s_catalog.back();
+        action_type_flags type = input_action::type::keyboard;
+        while (type != input_action::type::last) {
+            if ((types & type) == 0) {
+                type <<= 1;
+                continue;
+            }
+            auto it = s_catalog_index.find(type);
+            if (it == s_catalog_index.end()) {
+                s_catalog_index.insert(std::make_pair(
+                    type,
+                    input_action_ptr_list {action}));
+            } else {
+                auto& list = it->second;
+                list.push_back(action);
+            }
+            type <<= 1;
+        }
+        return action;
     }
 
     input_action* input_action::create_no_map(
             const std::string& name,
             const std::string& category,
-            const std::string& description) {
-        s_catalog.emplace_back(
-            id_pool::instance()->allocate(),
-            name,
-            category,
-            description,
-            flags::no_map);
-        return &s_catalog.back();
+            const std::string& description,
+            input_action::type::values types) {
+        return create(
+                name,
+                category,
+                description,
+                types,
+                input_action::flag::no_map);
     }
 
     bool input_action::exists(const std::string& name) {
@@ -61,6 +84,28 @@ namespace ryu::core {
         return s_catalog;
     }
 
+    input_action_ptr_list input_action::filtered_catalog(
+            input_action::type::values types) {
+        input_action_ptr_list list {};
+
+        action_type_flags type = input_action::type::keyboard;
+        while (type != input_action::type::last) {
+            if ((types & type) == 0) {
+                type <<= 1;
+                continue;
+            }
+            auto it = s_catalog_index.find(type);
+            if (it != s_catalog_index.end()) {
+                auto& actions = it->second;
+                for (auto action_ptr : actions)
+                    list.push_back(action_ptr);
+            }
+            type <<= 1;
+        }
+
+        return list;
+    }
+
     bool input_action::load(core::result& result, YAML::Node& root) {
         for (auto it = root.begin(); it != root.end(); ++it) {
             auto action_node = *it;
@@ -68,10 +113,16 @@ namespace ryu::core {
                 continue;
 
             auto action_id = action_node["id"].as<uint32_t>();
-            auto flags = static_cast<uint8_t>(action_node["flags"].as<uint32_t>());
             auto name = action_node["name"].as<std::string>();
             auto category = action_node["category"].as<std::string>();
             auto description = action_node["description"].as<std::string>();
+            auto flags = static_cast<action_flags>(action_node["flags"].as<uint32_t>());
+
+            action_type_flags types = input_action::type::keyboard;
+            auto types_node = action_node["types"];
+            if (!types_node.IsNull() && types_node.IsScalar()) {
+                types = static_cast<action_type_flags>(types_node.as<uint32_t>());
+            }
 
             id_pool::instance()->mark_used(action_id);
             s_catalog.emplace_back(
@@ -79,8 +130,10 @@ namespace ryu::core {
                 name,
                 category,
                 description);
+
             auto action = &s_catalog.back();
             action->_flags = flags;
+            action->_types = types;
 
             auto bindings_node = action_node["bindings"];
             if (bindings_node != nullptr && bindings_node.IsSequence()) {
@@ -125,6 +178,7 @@ namespace ryu::core {
             emitter << YAML::BeginMap;
             emitter << YAML::Key << "id" << YAML::Value << action._id;
             emitter << YAML::Key << "flags" << YAML::Hex << (int)action._flags;
+            emitter << YAML::Key << "types" << YAML::Hex << (int)action._types;
             emitter << YAML::Key << "name" << YAML::Value << action._name;
             emitter << YAML::Key << "category" << YAML::Value << action._category;
             emitter << YAML::Key << "description" << YAML::Value << action._description;
@@ -180,11 +234,31 @@ namespace ryu::core {
             const std::string& name,
             const std::string& category,
             const std::string& description,
+            action_type_flags type_value,
             action_flags flag_value) : _id(id),
                                        _name(name),
                                        _category(category),
                                        _description(description),
-                                       _flags(flag_value) {
+                                       _flags(flag_value),
+                                       _types(type_value) {
+    }
+
+    bool input_action::process(
+            const SDL_Event* event,
+            event_data_t& data) const {
+        if (_bindings.empty())
+            return false;
+
+        for (const auto& binding : _bindings) {
+            if (binding.matches(event, data))
+                return true;
+        }
+
+        return false;
+    }
+
+    action_id input_action::id() const {
+        return _id;
     }
 
     bool input_action::has_bindings() const {
@@ -203,15 +277,6 @@ namespace ryu::core {
         _bindings.push_back(input_binding::for_resize());
     }
 
-    void input_action::register_handler(
-            action_sink_type type,
-            const input_action_filter& filter,
-            const input_action_perform& perform) {
-        _handlers.insert(std::make_pair(
-            type,
-            input_action_handler_t {filter, perform}));
-    }
-
     void input_action::bind_restore() {
         _bindings.push_back(input_binding::for_restore());
     }
@@ -228,10 +293,6 @@ namespace ryu::core {
         _bindings.push_back(input_binding::for_text_input());
     }
 
-    action_id input_action::type() const {
-        return _id;
-    }
-
     std::string input_action::name() const {
         return _name;
     }
@@ -240,29 +301,16 @@ namespace ryu::core {
         return _category;
     }
 
-    action_sink_type input_action::process_action(
-            const input_binding& binding,
-            const event_data_t& data) const {
-        for (uint16_t i = action_sink::last; i > action_sink::none; i--) {
-            auto it = _handlers.find(i);
-            if (it == _handlers.end())
-                continue;
-//            s_log->info(fmt::format("name: {}, action_sink: {}", name(), i));
-            if (!it->second.filter(data))
-                continue;
-//            s_log->info("...perform");
-            if (it->second.perform(data))
-                return (action_sink_type) i;
-        }
-        return action_sink::none;
-    }
-
     std::string input_action::description() const {
         return _description;
     }
 
     void input_action::bind_keys(input_keys keys) {
         _bindings.push_back(input_binding::for_key_combination(keys));
+    }
+
+    action_type_flags input_action::types() const {
+        return _types;
     }
 
     input_action* input_action::find_by_id(action_id id) {
@@ -275,6 +323,10 @@ namespace ryu::core {
         return it != s_catalog.end() ? &(*it) : nullptr;
     }
 
+    void input_action::types(input_action::flag::values flags) {
+        _types = flags;
+    }
+
     input_action* input_action::find_by_name(const std::string& name) {
         auto it = std::find_if(
             s_catalog.begin(),
@@ -283,20 +335,6 @@ namespace ryu::core {
                 return action._name == name;
             });
         return it != s_catalog.end() ? &(*it) : nullptr;
-    }
-
-    action_sink_type input_action::process(const SDL_Event* event) const {
-        if (_bindings.empty())
-            return action_sink::none;
-
-        event_data_t data {};
-
-        for (const auto& binding : _bindings) {
-            if (binding.matches(event, data))
-                return process_action(binding, data);
-        }
-
-        return action_sink::none;
     }
 
     void input_action::bind_joystick_buttons(int32_t id, button_state buttons) {

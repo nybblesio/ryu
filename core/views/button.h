@@ -51,6 +51,10 @@ namespace ryu::core {
         void on_clicked(const on_clicked_callable& callable);
 
     protected:
+        void bind_events();
+
+        void define_actions();
+
         void on_initialize() override;
 
         void on_draw(core::renderer& surface) override;

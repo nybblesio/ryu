@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override" CACHE STRING "compile flags" FORCE)
@@ -41,6 +41,7 @@ find_package(SDL2_ttf REQUIRED)
 find_package(RTTR CONFIG REQUIRED Core)
 
 include_directories(
+    /usr/local/opt/llvm/include/include/c++/v1
     ${PROJECT_BINARY_DIR}
     ${PROJECT_SOURCE_DIR}
     ${Boost_INCLUDE_DIRS}

@@ -34,6 +34,8 @@ namespace ryu::emulator {
     private:
         void bind_events();
 
+        void define_actions();
+
         void configure_states();
 
         void configure_palette();

@@ -82,6 +82,8 @@ namespace ryu::core {
     }
 
     void memory_editor::on_initialize() {
+        tab_stop(true);
+
         bind_events();
 
         _metrics.line_number_width = font_face()->measure_chars(5) + 2;

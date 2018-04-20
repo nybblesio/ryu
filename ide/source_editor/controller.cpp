@@ -17,36 +17,40 @@ namespace ryu::ide::source_editor {
     controller::controller(const std::string& name) : ryu::core::state(name) {
     }
 
-    void controller::bind_events() {
+    void controller::define_actions() {
         auto leave_action = core::input_action::create_no_map(
-            "source_editor_leave",
-            "Internal",
-            "Close the source editor and return to previous state.");
-        leave_action->register_handler(
-            core::action_sink::controller,
-            [this](const core::event_data_t& data) {
-                return is_focused();
-            },
-            [this](const core::event_data_t& data) {
-                end_state();
-                return true;
-            });
+                "source_editor_leave",
+                "Internal",
+                "Close the source editor and return to previous state.");
         leave_action->bind_keys({core::key_escape});
 
         auto command_bar_action = core::input_action::create_no_map(
-            "source_editor_command_bar",
-            "Internal",
-            "Activate the command bar.");
-        command_bar_action->register_handler(
-            core::action_sink::controller,
-            [this](const core::event_data_t& data) {
-                return is_focused();
-            },
-            [this](const core::event_data_t& data) {
-                _layout_panel->focus(_command_line.get());
-                return true;
-            });
+                "source_editor_command_bar",
+                "Internal",
+                "Activate the command bar.");
         command_bar_action->bind_keys({core::mod_ctrl, core::key_space});
+    }
+
+    void controller::bind_events() {
+//        leave_action->register_handler(
+//            core::action_sink::controller,
+//            [this](const core::event_data_t& data) {
+//                return is_focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                end_state();
+//                return true;
+//            });
+//
+//        command_bar_action->register_handler(
+//            core::action_sink::controller,
+//            [this](const core::event_data_t& data) {
+//                return is_focused();
+//            },
+//            [this](const core::event_data_t& data) {
+//                _layout_panel->focus(_command_line.get());
+//                return true;
+//            });
     }
 
     void controller::on_deactivate() {

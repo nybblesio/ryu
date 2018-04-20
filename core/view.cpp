@@ -31,45 +31,52 @@ namespace ryu::core {
         return _host;
     }
 
-    void view::initialize() {
-        listen_for_on_host_change();
+    void view::bind_events() {
+//        field_shift_tab_action->register_handler(
+//                action_sink::types::view,
+//                [this](const core::event_data_t& data) {
+//                    return focused() && visible();
+//                },
+//                [this](const core::event_data_t& data) {
+//                    if (_prev != nullptr) {
+//                        find_root()->focus(_prev);
+//                        return true;
+//                    }
+//                    return false;
+//                });
 
+//        field_tab_action->register_handler(
+//            action_sink::types::view,
+//            [this](const core::event_data_t& data) {
+//                return focused() && visible();
+//            },
+//            [this](const core::event_data_t& data) {
+//                if (_next != nullptr) {
+//                    find_root()->focus(_next);
+//                    return true;
+//                }
+//                return false;
+//            });
+    }
+
+    void view::define_actions() {
         auto field_shift_tab_action = core::input_action::create_no_map(
                 "view_field_shift_tab",
                 "Internal",
                 "Move focus from the current field to the previous field.");
-        field_shift_tab_action->register_handler(
-                action_sink::types::view,
-                [this](const core::event_data_t& data) {
-                    return focused() && visible();
-                },
-                [this](const core::event_data_t& data) {
-                    return false;
-                });
         field_shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
 
         auto field_tab_action = core::input_action::create_no_map(
-            "view_field_tab",
-            "Internal",
-            "Move focus from the current field to the next field.");
-        field_tab_action->register_handler(
-            action_sink::types::view,
-            [this](const core::event_data_t& data) {
-                return focused() && visible();
-            },
-            [this](const core::event_data_t& data) {
-                if (_on_tab_callable != nullptr) {
-                    const auto* next_view = _on_tab_callable();
-                    if (next_view != nullptr) {
-                        find_root()->focus(next_view);
-                        return true;
-                    }
-                }
-                return false;
-            });
+                "view_field_tab",
+                "Internal",
+                "Move focus from the current field to the next field.");
         field_tab_action->bind_keys({core::key_tab});
+    }
 
+    void view::initialize() {
+        listen_for_on_host_change();
         on_initialize();
+        define_actions();
     }
 
     uint32_t view::id() const {
@@ -250,6 +257,14 @@ namespace ryu::core {
         _font_style = styles;
     }
 
+    void view::next_view(core::view* value) {
+        _next = value;
+    }
+
+    void view::prev_view(core::view* value) {
+        _prev = value;
+    }
+
     void view::add_child(core::view* child) {
         if (child == nullptr)
             return;
@@ -287,8 +302,8 @@ namespace ryu::core {
         _rect = value;
     }
 
-    void view::palette(core::palette* palette) {
-        _palette = palette;
+    void view::palette(core::palette* value) {
+        _palette = value;
     }
 
     const core::font_t* view::font_face() const {
@@ -337,8 +352,8 @@ namespace ryu::core {
         _padding = value;
     }
 
-    void view::font_family(core::font_family* font) {
-        _font = font;
+    void view::font_family(core::font_family* value) {
+        _font = value;
     }
 
     void view::draw_children(core::renderer& renderer) {
@@ -357,10 +372,6 @@ namespace ryu::core {
     }
 
     void view::on_resize(const core::rect& context_bounds) {
-    }
-
-    void view::on_tab(const view::on_tab_callable& callable) {
-        _on_tab_callable = callable;
     }
 
     void view::on_host_changed(view_host::change_reason_flags flags) {

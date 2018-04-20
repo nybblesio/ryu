@@ -129,6 +129,7 @@ namespace ryu::core {
 
         joysticks::instance()->initialize();
 
+        define_actions();
         bind_events();
 
         return true;
@@ -150,86 +151,95 @@ namespace ryu::core {
         _focused_context = id;
     }
 
-    void engine::bind_events() {
+    void engine::define_actions() {
         auto quit_action = input_action::create_no_map(
             "ryu_quit",
             "Ryu",
-            "Quit the Ryu application.");
-        quit_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                quit();
-                return true;
-            });
+            "Quit the Ryu application.",
+            input_action::type::system);
         quit_action->bind_quit();
 
         auto minimized_action = input_action::create_no_map(
             "ryu_minimized",
             "Ryu",
-            "Minimize the Ryu application window.");
-        minimized_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [](const event_data_t& data) {
-                return true;
-            });
+            "Minimize the Ryu application window.",
+            input_action::type::window);
         minimized_action->bind_minimized();
 
         auto maximized_action = input_action::create_no_map(
             "ryu_maximized",
             "Ryu",
-            "Maximize the Ryu application window.");
-        maximized_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [](const event_data_t& data) {
-                return true;
-            });
+            "Maximize the Ryu application window.",
+            input_action::type::window);
         maximized_action->bind_maximized();
 
         auto move_action = input_action::create_no_map(
             "ryu_moved",
             "Ryu",
-            "The Ryu application window was moved.");
-        move_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                _window_rect.left(data.x);
-                _window_rect.top(data.y);
-                raise_move();
-                return true;
-            });
+            "The Ryu application window was moved.",
+            input_action::type::window);
         move_action->bind_move();
 
         auto resize_action = input_action::create_no_map(
             "ryu_resized",
             "Ryu",
-            "The Ryu application window was resized.");
-        resize_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [this](const event_data_t& data) {
-                _window_rect.width(data.width);
-                _window_rect.height(data.height);
-                raise_resize();
-                return true;
-            });
+            "The Ryu application window was resized.",
+            input_action::type::window);
         resize_action->bind_resize();
 
         auto restore_action = input_action::create_no_map(
             "ryu_restore",
             "Ryu",
-            "The Ryu application window was restored from minimized or maximized.");
-        restore_action->register_handler(
-            action_sink::engine,
-            action_sink::default_filter,
-            [](const event_data_t& data) {
-                // XXX:
-                return true;
-            });
+            "The Ryu application window was restored from minimized or maximized.",
+            input_action::type::window);
         restore_action->bind_restore();
+    }
+
+    void engine::bind_events() {
+//        quit_action->register_handler(
+//            action_sink::engine,
+//            action_sink::default_filter,
+//            [this](const event_data_t& data) {
+//                quit();
+//                return true;
+//            });
+//        minimized_action->register_handler(
+//            action_sink::engine,
+//            action_sink::default_filter,
+//            [](const event_data_t& data) {
+//                return true;
+//            });
+//        maximized_action->register_handler(
+//            action_sink::engine,
+//            action_sink::default_filter,
+//            [](const event_data_t& data) {
+//                return true;
+//            });
+//        move_action->register_handler(
+//            action_sink::engine,
+//            action_sink::default_filter,
+//            [this](const event_data_t& data) {
+//                _window_rect.left(data.x);
+//                _window_rect.top(data.y);
+//                raise_move();
+//                return true;
+//            });
+//        resize_action->register_handler(
+//            action_sink::engine,
+//            action_sink::default_filter,
+//            [this](const event_data_t& data) {
+//                _window_rect.width(data.width);
+//                _window_rect.height(data.height);
+//                raise_resize();
+//                return true;
+//            });
+//        restore_action->register_handler(
+//            action_sink::engine,
+//            action_sink::default_filter,
+//            [](const event_data_t& data) {
+//                // XXX:
+//                return true;
+//            });
     }
 
     void engine::raise_resize() {
@@ -283,14 +293,18 @@ namespace ryu::core {
             if (events.empty())
                 events.push_back(SDL_Event {});
 
+            pending_event_list pending_events {};
             for (auto& e : events) {
-                for (const auto& action : input_action::catalog())
-                    if (action.process(&e) != action_sink::types::none)
-                        break;
+                for (const auto& action : input_action::catalog()) {
+                    event_data_t data {};
+                    if (action.process(&e, data)) {
+                        pending_events.push_back(pending_event_t {action.id(), data});
+                    }
+                }
             }
 
             for (auto& it : _contexts)
-                it.second->update(dt, surface);
+                it.second->update(dt, pending_events, surface);
 
             // N.B. this is an override/overlay draw so contexts
             //      can "bleed" into other contexts.

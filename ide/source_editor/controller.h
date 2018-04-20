@@ -42,6 +42,8 @@ namespace ryu::ide::source_editor {
     private:
         void bind_events();
 
+        void define_actions();
+
     private:
         metrics_t _metrics;
         core::text_editor_unique_ptr _editor;

@@ -137,333 +137,336 @@ namespace ryu::core {
         return _more;
     }
 
-    void console::bind_events() {
+    void console::define_actions() {
         auto caret_left_action = core::input_action::create(
-            "console_caret_left",
-            "IDE::Console",
-            "Move the caret left on a line.");
-        caret_left_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_left();
-                return true;
-            });
+                "console_caret_left",
+                "IDE::Console",
+                "Move the caret left on a line.");
         if (!caret_left_action->has_bindings()) {
             caret_left_action->bind_keys({core::key_left});
         }
 
         auto caret_right_action = core::input_action::create(
-            "console_caret_right",
-            "IDE::Console",
-            "Move the caret right on a line.");
-        caret_right_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_right();
-                return true;
-            });
+                "console_caret_right",
+                "IDE::Console",
+                "Move the caret right on a line.");
         if (!caret_right_action->has_bindings()) {
             caret_right_action->bind_keys({core::key_right});
         }
 
         auto caret_down_action = core::input_action::create(
-            "console_caret_down",
-            "IDE::Console",
-            "Move the caret down a line.");
-        caret_down_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_down();
-                return true;
-            });
+                "console_caret_down",
+                "IDE::Console",
+                "Move the caret down a line.");
         if (!caret_down_action->has_bindings()) {
             caret_down_action->bind_keys({core::key_down});
         }
 
         auto caret_up_action = core::input_action::create(
-            "console_caret_up",
-            "IDE::Console",
-            "Move the caret up a line.");
-        caret_up_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_up();
-                return true;
-            });
+                "console_caret_up",
+                "IDE::Console",
+                "Move the caret up a line.");
         if (!caret_up_action->has_bindings()) {
             caret_up_action->bind_keys({core::key_up});
         }
 
         auto page_up_action = core::input_action::create(
-            "console_page_up",
-            "IDE::Console",
-            "Move up one page.");
-        page_up_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                page_up();
-                return true;
-            });
+                "console_page_up",
+                "IDE::Console",
+                "Move up one page.");
         if (!page_up_action->has_bindings()) {
             page_up_action->bind_keys({core::key_page_up});
         }
 
         auto first_page_action = core::input_action::create(
-            "console_first_page",
-            "IDE::Console",
-            "Move to the first page.");
-        first_page_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                first_page();
-                return true;
-            });
+                "console_first_page",
+                "IDE::Console",
+                "Move to the first page.");
         if (!first_page_action->has_bindings()) {
             first_page_action->bind_keys({core::mod_ctrl, core::key_page_up});
         }
 
         auto page_down_action = core::input_action::create(
-            "console_page_down",
-            "IDE::Console",
-            "Move down one page.");
-        page_down_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                page_down();
-                return true;
-            });
+                "console_page_down",
+                "IDE::Console",
+                "Move down one page.");
         if (!page_down_action->has_bindings()) {
             page_down_action->bind_keys({core::key_page_down});
         }
 
         auto last_page_action = core::input_action::create(
-            "console_last_page",
-            "IDE::Console",
-            "Move to the last page.");
-        last_page_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                last_page();
-                return true;
-            });
+                "console_last_page",
+                "IDE::Console",
+                "Move to the last page.");
         if (!last_page_action->has_bindings()) {
             last_page_action->bind_keys({core::mod_ctrl, core::key_page_down});
         }
 
         auto caret_home_action = core::input_action::create(
-            "console_caret_home",
-            "IDE::Console",
-            "Move caret to home position on line.");
-        caret_home_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_home();
-                return true;
-            });
+                "console_caret_home",
+                "IDE::Console",
+                "Move caret to home position on line.");
         if (!caret_home_action->has_bindings()) {
             caret_home_action->bind_keys({core::key_home});
         }
 
         auto caret_end_action = core::input_action::create(
-            "console_caret_end",
-            "IDE::Console",
-            "Move caret to end position on line.");
-        caret_end_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_end();
-                return true;
-            });
+                "console_caret_end",
+                "IDE::Console",
+                "Move caret to end position on line.");
         if (!caret_end_action->has_bindings()) {
             caret_end_action->bind_keys({core::key_end});
         }
 
         auto delete_action = core::input_action::create(
-            "console_delete",
-            "IDE::Console",
-            "Shift line left at caret position.");
-        delete_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                _document.shift_line_left();
-                return true;
-            });
+                "console_delete",
+                "IDE::Console",
+                "Shift line left at caret position.");
         if (!delete_action->has_bindings()) {
             delete_action->bind_keys({core::key_delete});
         }
 
         auto delete_eol_action = core::input_action::create(
-            "console_delete_eol",
-            "IDE::Console",
-            "Delete from caret to end of line.");
-        delete_eol_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                _document.shift_line_left(_metrics.page_width);
-                return true;
-            });
+                "console_delete_eol",
+                "IDE::Console",
+                "Delete from caret to end of line.");
         if (!delete_eol_action->has_bindings()) {
             delete_eol_action->bind_keys({core::mod_ctrl, core::key_delete});
         }
 
         auto backspace_action = core::input_action::create(
-            "console_backspace",
-            "IDE::Console",
-            "Move the caret left and then shift the line left.");
-        backspace_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (caret_left())
-                    caret_left();
-                _document.shift_line_left();
-                return true;
-            });
+                "console_backspace",
+                "IDE::Console",
+                "Move the caret left and then shift the line left.");
         if (!backspace_action->has_bindings()) {
             backspace_action->bind_keys({core::key_backspace});
         }
 
         auto insert_action = core::input_action::create(
-            "console_insert",
-            "IDE::Console",
-            "Toggle insert/overwrite mode.");
-        insert_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (_caret.mode() == core::caret::mode::insert)
-                    _caret.overwrite();
-                else
-                    _caret.insert();
-                return true;
-            });
+                "console_insert",
+                "IDE::Console",
+                "Toggle insert/overwrite mode.");
         if (!insert_action->has_bindings()) {
             insert_action->bind_keys({core::key_insert});
         }
 
         auto insert_space_action = core::input_action::create(
-            "console_insert_space",
-            "IDE::Console",
-            "Insert space at the caret position.");
-        insert_space_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                _document.shift_line_right();
-                return true;
-            });
+                "console_insert_space",
+                "IDE::Console",
+                "Insert space at the caret position.");
         if (!insert_space_action->has_bindings()) {
             insert_space_action->bind_keys({core::mod_ctrl, core::key_insert});
         }
 
         auto soft_return_action = core::input_action::create(
-            "console_soft_return",
-            "IDE::Console",
-            "Move caret to next line without executing any commands.");
-        soft_return_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                caret_newline();
-                return true;
-            });
+                "console_soft_return",
+                "IDE::Console",
+                "Move caret to next line without executing any commands.");
         if (!soft_return_action->has_bindings()) {
             soft_return_action->bind_keys({core::mod_shift, core::key_return});
         }
 
         auto return_action = core::input_action::create(
-            "console_return",
-            "IDE::Console",
-            "Execute any valid commands on the current line and move caret to next line.");
-        return_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                core::result result;
-                auto str = find_command_string();
-                if (str.length() > 0 && _execute_command_callback != nullptr) {
-                    _execute_command_callback(result, str);
-                    _output_queue.emplace_back(result);
-                    more(result.find_code("pipe_to_more") != nullptr);
-                    _state = states::pre_processing;
-                }
-                caret_newline();
-                return true;
-            });
+                "console_return",
+                "IDE::Console",
+                "Execute any valid commands on the current line and move caret to next line.");
         if (!return_action->has_bindings()) {
             return_action->bind_keys({core::key_return});
         }
 
         auto resume_action = core::input_action::create(
-            "console_resume",
-            "IDE::Console",
-            "Resume console output if in wait state.");
-        resume_action->register_handler(
-            core::action_sink::view,
-            [this](const core::event_data_t& data) {
-                return focused() && _state == states::wait;
-            },
-            [this](const core::event_data_t& data) {
-                caret_home();
-                caret_up();
-                caret_up();
-                _state = states::resume_processing;
-                return true;
-            });
+                "console_resume",
+                "IDE::Console",
+                "Resume console output if in wait state.");
         if (!resume_action->has_bindings()) {
             resume_action->bind_keys({core::key_space});
         }
 
         auto text_input_action = core::input_action::create_no_map(
-            "console_text_input",
-            "IDE::Console",
-            "Any ASCII text input (non-mappable).");
-        text_input_action->register_handler(
-            core::action_sink::view,
-            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-            [this](const core::event_data_t& data) {
-                if (data.c == core::ascii_escape)
-                    return true;
-
-                if (_caret.mode() == core::caret::mode::insert)
-                    _document.shift_line_right();
-
-                if (data.c == core::ascii_return) {
-                    caret_newline();
-                    return true;
-                }
-
-                // XXX: need to make tab stops configurable
-                if (data.c == core::ascii_tab) {
-                    auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
-                    _document.shift_line_right(spaces);
-                    caret_right(spaces);
-                    return true;
-                }
-
-                _document.put(core::element_t {
-                    static_cast<uint8_t>(data.c),
-                    core::attr_t{_color}});
-
-                caret_right();
-
-                return true;
-            });
+                "console_text_input",
+                "IDE::Console",
+                "Any ASCII text input (non-mappable).");
         if (!text_input_action->has_bindings()) {
             text_input_action->bind_text_input();
         }
+    }
+
+    void console::bind_events() {
+//        caret_left_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_left();
+//                return true;
+//            });
+//        caret_right_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_right();
+//                return true;
+//            });
+//        caret_down_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_down();
+//                return true;
+//            });
+//        caret_up_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_up();
+//                return true;
+//            });
+//        page_up_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                page_up();
+//                return true;
+//            });
+//        first_page_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                first_page();
+//                return true;
+//            });
+//        page_down_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                page_down();
+//                return true;
+//            });
+//        last_page_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                last_page();
+//                return true;
+//            });
+//        caret_home_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_home();
+//                return true;
+//            });
+//        caret_end_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_end();
+//                return true;
+//            });
+//        delete_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                _document.shift_line_left();
+//                return true;
+//            });
+//        delete_eol_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                _document.shift_line_left(_metrics.page_width);
+//                return true;
+//            });
+//        backspace_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (caret_left())
+//                    caret_left();
+//                _document.shift_line_left();
+//                return true;
+//            });
+//        insert_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (_caret.mode() == core::caret::mode::insert)
+//                    _caret.overwrite();
+//                else
+//                    _caret.insert();
+//                return true;
+//            });
+//        insert_space_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                _document.shift_line_right();
+//                return true;
+//            });
+//        soft_return_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                caret_newline();
+//                return true;
+//            });
+//        return_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                core::result result;
+//                auto str = find_command_string();
+//                if (str.length() > 0 && _execute_command_callback != nullptr) {
+//                    _execute_command_callback(result, str);
+//                    _output_queue.emplace_back(result);
+//                    more(result.find_code("pipe_to_more") != nullptr);
+//                    _state = states::pre_processing;
+//                }
+//                caret_newline();
+//                return true;
+//            });
+//        resume_action->register_handler(
+//            core::action_sink::view,
+//            [this](const core::event_data_t& data) {
+//                return focused() && _state == states::wait;
+//            },
+//            [this](const core::event_data_t& data) {
+//                caret_home();
+//                caret_up();
+//                caret_up();
+//                _state = states::resume_processing;
+//                return true;
+//            });
+//        text_input_action->register_handler(
+//            core::action_sink::view,
+//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
+//            [this](const core::event_data_t& data) {
+//                if (data.c == core::ascii_escape)
+//                    return true;
+//
+//                if (_caret.mode() == core::caret::mode::insert)
+//                    _document.shift_line_right();
+//
+//                if (data.c == core::ascii_return) {
+//                    caret_newline();
+//                    return true;
+//                }
+//
+//                // XXX: need to make tab stops configurable
+//                if (data.c == core::ascii_tab) {
+//                    auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+//                    _document.shift_line_right(spaces);
+//                    caret_right(spaces);
+//                    return true;
+//                }
+//
+//                _document.put(core::element_t {
+//                    static_cast<uint8_t>(data.c),
+//                    core::attr_t{_color}});
+//
+//                caret_right();
+//
+//                return true;
+//            });
     }
 
     void console::caret_up_line() {

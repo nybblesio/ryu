@@ -53,6 +53,8 @@ namespace ryu::ide::machine_editor {
 
         void update_values();
 
+        void define_actions();
+
         void create_top_panel();
 
         void create_button_panel();

@@ -38,6 +38,8 @@ namespace ryu::ide::machine_list {
         void on_activate(const core::parameter_dict& params) override;
 
     private:
+        void define_actions();
+
         void bind_events();
 
         void create_views();

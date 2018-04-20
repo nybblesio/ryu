@@ -178,6 +178,8 @@ namespace ryu::core {
         caret_changed_callable _caret_changed_callback;
         state_transition_callable _transition_to_callback;
         execute_command_callable _execute_command_callback;
+
+        void define_actions();
     };
 
 };

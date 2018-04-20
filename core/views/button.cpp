@@ -29,24 +29,33 @@ namespace ryu::core {
         return _height;
     }
 
-    void button::on_initialize() {
+    void button::define_actions() {
         auto activate_action = core::input_action::create_no_map(
-            "button_activate",
-            "Internal",
-            "Activate a button view.");
-        activate_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused() && enabled();
-            },
-            [this](const event_data_t& data) {
-                if (_on_clicked) {
-                    _on_clicked();
-                    return true;
-                }
-                return false;
-            });
+                "button_activate",
+                "Internal",
+                "Activate a button view.");
         activate_action->bind_keys({core::key_space});
+    }
+
+    void button::bind_events() {
+//        activate_action->register_handler(
+//                action_sink::types::view,
+//                [this](const event_data_t& data) {
+//                    return focused() && enabled();
+//                },
+//                [this](const event_data_t& data) {
+//                    if (_on_clicked) {
+//                        _on_clicked();
+//                        return true;
+//                    }
+//                    return false;
+//                });
+    }
+
+    void button::on_initialize() {
+        tab_stop(true);
+        define_actions();
+        bind_events();
     }
 
     void button::width(int value) {

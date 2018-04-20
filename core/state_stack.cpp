@@ -8,11 +8,17 @@
 // this source code file.
 //
 
+#include <logger_factory.h>
 #include "state.h"
 #include "context.h"
 #include "state_stack.h"
+#include "input_action.h"
 
 namespace ryu::core {
+
+    static logger* s_log = logger_factory::instance()->create(
+            "state_stack",
+            logger::level::info);
 
     void state_stack::clear() {
         _stack.clear();
@@ -61,7 +67,8 @@ namespace ryu::core {
     }
 
     int state_stack::peek() const {
-        return _stack.empty() ? -1 : _stack.back();
+        auto id = _stack.empty() ? -1 : _stack.back();
+        return id;
     }
 
     bool state_stack::empty() const {
@@ -74,8 +81,13 @@ namespace ryu::core {
     }
 
     void state_stack::update_active_state() {
-        if (_active != nullptr)
+        if (_active != nullptr) {
+            s_log->info(fmt::format(
+                    "context: {}, deactivate state: {}.",
+                    _active->context()->name(),
+                    _active->name()));
             _active->deactivate();
+        }
         _active = find_state(peek());
         _active->resize(_active->context()->bounds());
         _active->activate(_pending_params);

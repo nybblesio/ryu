@@ -1600,18 +1600,6 @@ namespace ryu::core {
         auto mapper = core::project::instance()->machine()->mapper();
         auto mapper_components = mapper->components();
 
-        struct once_value_t {
-            bool show = true;
-            void add_once_column(data_table_row_t& row, const std::string& value) {
-                if (show) {
-                    row.columns.push_back(value);
-                    show = false;
-                } else {
-                    row.columns.emplace_back("");
-                }
-            }
-        };
-
         for (auto component_interval : mapper_components) {
             auto map_entries = component_interval.value->memory_map().entries();
 

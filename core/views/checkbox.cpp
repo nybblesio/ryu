@@ -30,21 +30,30 @@ namespace ryu::core {
         _value = flag;
     }
 
-    void checkbox::on_initialize() {
+    void checkbox::define_actions() {
         auto activate_action = core::input_action::create_no_map(
-            "checkbox_activate",
-            "Internal",
-            "Activate a checkbox view.");
-        activate_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused() && enabled();
-            },
-            [this](const event_data_t& data) {
-                _value = !_value;
-                return true;
-            });
+                "checkbox_activate",
+                "Internal",
+                "Activate a checkbox view.");
         activate_action->bind_keys({core::key_space});
+    }
+
+    void checkbox::bind_events() {
+//        activate_action->register_handler(
+//                action_sink::types::view,
+//                [this](const event_data_t& data) {
+//                    return focused() && enabled();
+//                },
+//                [this](const event_data_t& data) {
+//                    _value = !_value;
+//                    return true;
+//                });
+    }
+
+    void checkbox::on_initialize() {
+        tab_stop(true);
+        define_actions();
+        bind_events();
     }
 
     void checkbox::on_draw(core::renderer& surface) {

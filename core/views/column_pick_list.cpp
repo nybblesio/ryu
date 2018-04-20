@@ -87,53 +87,62 @@ namespace ryu::core {
         return true;
     }
 
-    void column_pick_list::on_initialize() {
+    void column_pick_list::define_actions() {
         auto up_action = core::input_action::create_no_map(
-            "column_pick_list_up_action",
-            "Internal",
-            "Move to the previous pick list item.");
-        up_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                if (move_up())
-                    raise_selection_changed();
-                return true;
-            });
+                "column_pick_list_up_action",
+                "Internal",
+                "Move to the previous pick list item.");
         up_action->bind_keys({core::key_up});
 
         auto down_action = core::input_action::create_no_map(
-            "column_pick_list_down_action",
-            "Internal",
-            "Move to the next pick list item.");
-        down_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                if (move_down())
-                    raise_selection_changed();
-                return true;
-            });
+                "column_pick_list_down_action",
+                "Internal",
+                "Move to the next pick list item.");
         down_action->bind_keys({core::key_down});
 
         auto select_action = core::input_action::create_no_map(
-            "column_pick_list_select_action",
-            "Internal",
-            "Make current item the selected value.");
-        select_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                raise_activated();
-                return true;
-            });
+                "column_pick_list_select_action",
+                "Internal",
+                "Make current item the selected value.");
         select_action->bind_keys({core::key_return});
+    }
+
+    void column_pick_list::bind_events() {
+//        up_action->register_handler(
+//                action_sink::types::view,
+//                [this](const event_data_t& data) {
+//                    return focused();
+//                },
+//                [this](const event_data_t& data) {
+//                    if (move_up())
+//                        raise_selection_changed();
+//                    return true;
+//                });
+//        down_action->register_handler(
+//                action_sink::types::view,
+//                [this](const event_data_t& data) {
+//                    return focused();
+//                },
+//                [this](const event_data_t& data) {
+//                    if (move_down())
+//                        raise_selection_changed();
+//                    return true;
+//                });
+//        select_action->register_handler(
+//                action_sink::types::view,
+//                [this](const event_data_t& data) {
+//                    return focused();
+//                },
+//                [this](const event_data_t& data) {
+//                    raise_activated();
+//                    return true;
+//                });
+    }
+
+    void column_pick_list::on_initialize() {
+        tab_stop(true);
+        define_actions();
+        bind_events();
     }
 
     void column_pick_list::raise_activated() {

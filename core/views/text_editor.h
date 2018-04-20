@@ -113,6 +113,8 @@ namespace ryu::core {
 
         void end_selection();
 
+        void define_actions();
+
         void delete_selection();
 
         void calculate_page_metrics();
