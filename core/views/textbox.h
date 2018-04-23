@@ -70,12 +70,12 @@ namespace ryu::core {
     private:
         void bind_events();
 
+        void define_actions();
+
     private:
         core::caret _caret;
         core::document _document;
         on_key_down_callable _on_key_down {};
-
-        void define_actions();
     };
 
 };

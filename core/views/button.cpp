@@ -34,22 +34,20 @@ namespace ryu::core {
                 "button_activate",
                 "Internal",
                 "Activate a button view.");
-        activate_action->bind_keys({core::key_space});
+        if (!activate_action->has_bindings())
+            activate_action->bind_keys({core::key_space});
     }
 
     void button::bind_events() {
-//        activate_action->register_handler(
-//                action_sink::types::view,
-//                [this](const event_data_t& data) {
-//                    return focused() && enabled();
-//                },
-//                [this](const event_data_t& data) {
-//                    if (_on_clicked) {
-//                        _on_clicked();
-//                        return true;
-//                    }
-//                    return false;
-//                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("button_activate"),
+                [this](const event_data_t& data) {
+                    if (_on_clicked) {
+                        _on_clicked();
+                        return true;
+                    }
+                    return false;
+                });
     }
 
     void button::on_initialize() {

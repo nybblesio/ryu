@@ -35,26 +35,25 @@ namespace ryu::ide {
     }
 
     void ide_context::bind_events() {
-//        toggle_context->register_handler(
-//            core::action_sink::context,
-//            core::action_sink::default_filter,
-//            [this](const core::event_data_t& data) {
-//                auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
-//                switch (_size) {
-//                    case core::context_window::split:
-//                        size(core::context_window::expanded);
-//                        emulator_context->size(core::context_window::collapsed);
-//                        break;
-//                    case core::context_window::expanded:
-//                    case core::context_window::collapsed:
-//                        size(core::context_window::split);
-//                        emulator_context->size(core::context_window::split);
-//                        break;
-//                    default:
-//                        break;
-//                }
-//                return true;
-//            });
+        action_provider().register_handler(
+                core::input_action::find_by_name("toggle_ide_context"),
+                [this](const core::event_data_t& data) {
+                    auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
+                    switch (_size) {
+                        case core::context_window::split:
+                            size(core::context_window::expanded);
+                            emulator_context->size(core::context_window::collapsed);
+                            break;
+                        case core::context_window::expanded:
+                        case core::context_window::collapsed:
+                            size(core::context_window::split);
+                            emulator_context->size(core::context_window::split);
+                            break;
+                        default:
+                            break;
+                    }
+                    return true;
+                });
     }
 
     void ide_context::configure_states() {

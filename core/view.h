@@ -178,6 +178,8 @@ namespace ryu::core {
 
         virtual void font_family(core::font_family* value);
 
+        void update(uint32_t dt, core::pending_event_list& events);
+
     protected:
         view_host* host();
 
@@ -191,11 +193,15 @@ namespace ryu::core {
 
         void listen_for_on_host_change();
 
+        core::input_action_provider& action_provider();
+
         virtual void on_draw(core::renderer& renderer);
 
         virtual void draw_children(core::renderer& renderer);
 
         virtual void on_resize(const core::rect& context_bounds);
+
+        virtual void on_update(uint32_t dt, core::pending_event_list& events);
 
     private:
         void bind_events();

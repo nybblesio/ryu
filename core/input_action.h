@@ -53,20 +53,18 @@ namespace ryu::core {
             };
         };
 
-        static void initialize();
-
         static input_action* create(
             const std::string& name,
             const std::string& category,
             const std::string& description,
-            input_action::type::values types = input_action::type::keyboard,
-            input_action::flag::values flags = input_action::flag::none);
+            action_type_flags types = input_action::type::keyboard,
+            action_flags flags = input_action::flag::none);
 
         static input_action* create_no_map(
             const std::string& name,
             const std::string& category,
             const std::string& description,
-            input_action::type::values types = input_action::type::keyboard);
+            action_type_flags types = input_action::type::keyboard);
 
         static bool exists(const std::string& name);
 
@@ -74,14 +72,13 @@ namespace ryu::core {
 
         static input_action* find_by_id(action_id id);
 
-        static input_action_ptr_list filtered_catalog(
-                input_action::type::values types);
-
         static bool load(core::result& result, YAML::Node& root);
 
         static input_action* find_by_name(const std::string& name);
 
         static bool save(core::result& result, YAML::Emitter& emitter);
+
+        static input_action_ptr_list filtered_catalog(action_type_flags types);
 
         input_action(
             action_id id,
@@ -134,7 +131,16 @@ namespace ryu::core {
         void bind_joystick_hat(int32_t id, uint8_t hat_id, hat_state state);
 
     private:
+        static input_action* inner_create(
+                uint32_t id,
+                const std::string& name,
+                const std::string& category,
+                const std::string& description,
+                action_type_flags types = input_action::type::keyboard,
+                action_flags flags = input_action::flag::none);
+
         static input_action_catalog s_catalog;
+
         static input_action_index s_catalog_index;
 
         action_id _id;

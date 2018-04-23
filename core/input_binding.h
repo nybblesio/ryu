@@ -91,8 +91,10 @@ namespace ryu::core {
         int32_t key_code;
     };
 
+    class input_action;
+
     struct pending_event_t {
-        uint32_t id;
+        input_action* action;
         event_data_t data;
     };
 

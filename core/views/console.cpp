@@ -292,181 +292,165 @@ namespace ryu::core {
     }
 
     void console::bind_events() {
-//        caret_left_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_left();
-//                return true;
-//            });
-//        caret_right_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_right();
-//                return true;
-//            });
-//        caret_down_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_down();
-//                return true;
-//            });
-//        caret_up_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_up();
-//                return true;
-//            });
-//        page_up_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                page_up();
-//                return true;
-//            });
-//        first_page_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                first_page();
-//                return true;
-//            });
-//        page_down_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                page_down();
-//                return true;
-//            });
-//        last_page_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                last_page();
-//                return true;
-//            });
-//        caret_home_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_home();
-//                return true;
-//            });
-//        caret_end_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_end();
-//                return true;
-//            });
-//        delete_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                _document.shift_line_left();
-//                return true;
-//            });
-//        delete_eol_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                _document.shift_line_left(_metrics.page_width);
-//                return true;
-//            });
-//        backspace_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (caret_left())
-//                    caret_left();
-//                _document.shift_line_left();
-//                return true;
-//            });
-//        insert_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (_caret.mode() == core::caret::mode::insert)
-//                    _caret.overwrite();
-//                else
-//                    _caret.insert();
-//                return true;
-//            });
-//        insert_space_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                _document.shift_line_right();
-//                return true;
-//            });
-//        soft_return_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_newline();
-//                return true;
-//            });
-//        return_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                core::result result;
-//                auto str = find_command_string();
-//                if (str.length() > 0 && _execute_command_callback != nullptr) {
-//                    _execute_command_callback(result, str);
-//                    _output_queue.emplace_back(result);
-//                    more(result.find_code("pipe_to_more") != nullptr);
-//                    _state = states::pre_processing;
-//                }
-//                caret_newline();
-//                return true;
-//            });
-//        resume_action->register_handler(
-//            core::action_sink::view,
-//            [this](const core::event_data_t& data) {
-//                return focused() && _state == states::wait;
-//            },
-//            [this](const core::event_data_t& data) {
-//                caret_home();
-//                caret_up();
-//                caret_up();
-//                _state = states::resume_processing;
-//                return true;
-//            });
-//        text_input_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&console::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (data.c == core::ascii_escape)
-//                    return true;
-//
-//                if (_caret.mode() == core::caret::mode::insert)
-//                    _document.shift_line_right();
-//
-//                if (data.c == core::ascii_return) {
-//                    caret_newline();
-//                    return true;
-//                }
-//
-//                // XXX: need to make tab stops configurable
-//                if (data.c == core::ascii_tab) {
-//                    auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
-//                    _document.shift_line_right(spaces);
-//                    caret_right(spaces);
-//                    return true;
-//                }
-//
-//                _document.put(core::element_t {
-//                    static_cast<uint8_t>(data.c),
-//                    core::attr_t{_color}});
-//
-//                caret_right();
-//
-//                return true;
-//            });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_caret_left"),
+                [this](const core::event_data_t& data) {
+                    caret_left();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_caret_right"),
+                [this](const core::event_data_t& data) {
+                    caret_right();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_caret_down"),
+                [this](const core::event_data_t& data) {
+                    caret_down();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_caret_up"),
+                [this](const core::event_data_t& data) {
+                    caret_up();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_page_up"),
+                [this](const core::event_data_t& data) {
+                    page_up();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_first_page"),
+                [this](const core::event_data_t& data) {
+                    first_page();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_page_down"),
+                [this](const core::event_data_t& data) {
+                    page_down();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_last_page"),
+                [this](const core::event_data_t& data) {
+                    last_page();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_caret_home"),
+                [this](const core::event_data_t& data) {
+                    caret_home();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_caret_end"),
+                [this](const core::event_data_t& data) {
+                    caret_end();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_delete"),
+            [this](const core::event_data_t& data) {
+                _document.shift_line_left();
+                return true;
+            });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_delete_eol"),
+                [this](const core::event_data_t& data) {
+                    _document.shift_line_left(_metrics.page_width);
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_backspace"),
+                [this](const core::event_data_t& data) {
+                    if (caret_left())
+                        caret_left();
+                    _document.shift_line_left();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_insert"),
+                [this](const core::event_data_t& data) {
+                    if (_caret.mode() == core::caret::mode::insert)
+                        _caret.overwrite();
+                    else
+                        _caret.insert();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_insert_space"),
+                [this](const core::event_data_t& data) {
+                    _document.shift_line_right();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_soft_return"),
+                [this](const core::event_data_t& data) {
+                    caret_newline();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_return"),
+                [this](const core::event_data_t& data) {
+                    if (_state != states::input)
+                        return false;
+
+                    core::result result;
+                    auto str = find_command_string();
+                    if (str.length() > 0 && _execute_command_callback != nullptr) {
+                        _execute_command_callback(result, str);
+                        _output_queue.emplace_back(result);
+                        more(result.find_code("pipe_to_more") != nullptr);
+                        _state = states::pre_processing;
+                    }
+                    caret_newline();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_resume"),
+                [this](const core::event_data_t& data) {
+                    if (_state != states::wait)
+                        return false;
+                    caret_home();
+                    caret_up();
+                    caret_up();
+                    _state = states::resume_processing;
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("console_text_input"),
+                [this](const core::event_data_t& data) {
+                    if (data.c == core::ascii_escape)
+                        return true;
+
+                    if (_caret.mode() == core::caret::mode::insert)
+                        _document.shift_line_right();
+
+                    if (data.c == core::ascii_return) {
+                        caret_newline();
+                        return true;
+                    }
+
+                    // XXX: need to make tab stops configurable
+                    if (data.c == core::ascii_tab) {
+                        auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+                        _document.shift_line_right(spaces);
+                        caret_right(spaces);
+                        return true;
+                    }
+
+                    _document.put(core::element_t {
+                        static_cast<uint8_t>(data.c),
+                        core::attr_t{_color}});
+
+                    caret_right();
+
+                    return true;
+                });
     }
 
     void console::caret_up_line() {
@@ -482,35 +466,6 @@ namespace ryu::core {
     void console::caret_line_end() {
         _caret.column(_metrics.page_width);
         _document.end(_metrics.page_width);
-    }
-
-    void console::update(uint32_t) {
-        switch (_state) {
-            case input: {
-                break;
-            }
-            case pre_processing: {
-                on_pre_process_command();
-                break;
-            }
-            case processing: {
-                on_process_command();
-                break;
-            }
-            case post_processing: {
-                on_post_process_command();
-                break;
-            }
-            case resume_processing: {
-                on_resume_process_command();
-                break;
-            }
-            case wait: {
-                break;
-            }
-            default:
-                break;
-        }
     }
 
     void console::more(bool flag) {
@@ -544,6 +499,7 @@ namespace ryu::core {
         add_child(&_caret);
         margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
+        define_actions();
         bind_events();
     }
 
@@ -1023,8 +979,33 @@ namespace ryu::core {
                 last_newline);
     }
 
-    bool console::input_event_filter(const core::event_data_t& data) {
-        return focused() && _state == states::input;
+    void console::on_update(uint32_t, core::pending_event_list& events) {
+        switch (_state) {
+            case input: {
+                break;
+            }
+            case pre_processing: {
+                on_pre_process_command();
+                break;
+            }
+            case processing: {
+                on_process_command();
+                break;
+            }
+            case post_processing: {
+                on_post_process_command();
+                break;
+            }
+            case resume_processing: {
+                on_resume_process_command();
+                break;
+            }
+            case wait: {
+                break;
+            }
+            default:
+                break;
+        }
     }
 
     void console::on_execute_command(const execute_command_callable& callable) {

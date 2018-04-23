@@ -16,21 +16,7 @@
 
 namespace ryu::core {
 
-    using input_action_filter = std::function<bool (const event_data_t&)>;
     using input_action_perform = std::function<bool (const event_data_t&)>;
-
-    struct input_action_handler_t {
-        input_action_filter filter;
-        input_action_perform perform;
-
-        static bool default_filter(const event_data_t& data) {
-            return true;
-        }
-
-        static bool default_perform(const event_data_t& data) {
-            return true;
-        }
-    };
 
     class input_action_provider {
     public:
@@ -38,8 +24,19 @@ namespace ryu::core {
 
         virtual ~input_action_provider();
 
+        void register_handler(
+                const input_action* action,
+                const input_action_perform& perform);
+
+        bool process(pending_event_list& events);
+
     private:
-        std::map<action_id, input_action_handler_t> _handlers {};
+        bool process_action(
+                const input_action* action,
+                const event_data_t& data) const;
+
+    private:
+        std::map<action_id, input_action_perform> _handlers {};
     };
 
 };

@@ -23,49 +23,43 @@ namespace ryu::ide::machine_list {
                 "machine_list_leave",
                 "Internal",
                 "Close the machine list and return to previous state.");
-        leave_action->bind_keys({core::key_escape});
+        if (!leave_action->has_bindings())
+            leave_action->bind_keys({core::key_escape});
 
         auto add_action = core::input_action::create_no_map(
                 "machine_list_add",
                 "Internal",
                 "Add a new machine and open the editor.");
-        add_action->bind_keys({core::key_f1});
+        if (!add_action->has_bindings())
+            add_action->bind_keys({core::key_f1});
 
         auto delete_action = core::input_action::create_no_map(
                 "machine_list_delete",
                 "Internal",
                 "Delete the selection machine from the registry.");
-        delete_action->bind_keys({core::key_delete});
+        if (!delete_action->has_bindings())
+            delete_action->bind_keys({core::key_delete});
     }
 
     void controller::bind_events() {
-//        leave_action->register_handler(
-//            core::action_sink::controller,
-//            [this](const core::event_data_t& data) {
-//                return is_focused();
-//            },
-//            [this](const core::event_data_t& data) {
-//                end_state();
-//                return true;
-//            });
-//        add_action->register_handler(
-//            core::action_sink::controller,
-//            [this](const core::event_data_t& data) {
-//                return is_focused();
-//            },
-//            [this](const core::event_data_t& data) {
-//                edit_new_machine();
-//                return true;
-//            });
-//        delete_action->register_handler(
-//            core::action_sink::controller,
-//            [this](const core::event_data_t& data) {
-//                return is_focused();
-//            },
-//            [this](const core::event_data_t& data) {
-//                delete_selected_machine();
-//                return true;
-//            });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_list_leave"),
+                [this](const core::event_data_t& data) {
+                    end_state();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_list_add"),
+                [this](const core::event_data_t& data) {
+                    edit_new_machine();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_list_delete"),
+                [this](const core::event_data_t& data) {
+                    delete_selected_machine();
+                    return true;
+                });
     }
 
     void controller::create_views() {
@@ -196,6 +190,7 @@ namespace ryu::ide::machine_list {
     }
 
     void controller::on_initialize() {
+        define_actions();
         bind_events();
         create_views();
     }
@@ -211,9 +206,6 @@ namespace ryu::ide::machine_list {
         transition_to(
             "edit_machine",
             {{"name", new_machine_name}});
-    }
-
-    void controller::on_update(uint32_t dt) {
     }
 
     void controller::edit_selected_machine() {
@@ -262,6 +254,10 @@ namespace ryu::ide::machine_list {
 
         _layout_panel->visible(true);
         context()->resize();
+    }
+
+    void controller::on_update(uint32_t dt, core::pending_event_list& events) {
+        _layout_panel->update(dt, events);
     }
 
 }

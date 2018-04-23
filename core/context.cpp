@@ -40,10 +40,10 @@ namespace ryu::core {
         renderer.set_color(fill_color);
         renderer.fill_rect(_bounds);
 
-        _stack.draw(dt, renderer);
-        _stack.update();
+        _stack.draw(dt, pending_events, renderer);
+        _stack.apply_pending_transition();
 
-        //_action_provider.process(pending_events);
+        _action_provider.process(pending_events);
 
         renderer.pop_blend_mode();
         renderer.pop_clip_rect();
@@ -132,6 +132,10 @@ namespace ryu::core {
 
     void context::font_family(core::font_family* value) {
         _family = value;
+    }
+
+    core::input_action_provider& context::action_provider() {
+        return _action_provider;
     }
 
     void context::erase_blackboard(const std::string& name) {

@@ -25,6 +25,13 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
+    void state::update(
+            uint32_t dt,
+            pending_event_list& events) {
+        on_update(dt, events);
+        _action_provider.process(events);
+    }
+
     void state::end_state() {
         _context->pop_state();
     }
@@ -52,10 +59,6 @@ namespace ryu::core {
 
     core::context* state::context() {
         return _context;
-    }
-
-    void state::update(uint32_t dt) {
-        on_update(dt);
     }
 
     std::string state::name() const {
@@ -93,6 +96,10 @@ namespace ryu::core {
             on_initialize();
             _initialized = true;
         }
+    }
+
+    core::input_action_provider& state::action_provider() {
+        return _action_provider;
     }
 
     void state::erase_blackboard(const std::string& name) {

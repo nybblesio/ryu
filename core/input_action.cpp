@@ -22,21 +22,37 @@ namespace ryu::core {
         "input_action",
         logger::level::info);
 
-    void input_action::initialize() {
-        s_catalog.reserve(1024);
-    }
-
     input_action* input_action::create(
             const std::string& name,
             const std::string& category,
             const std::string& description,
-            input_action::type::values types,
-            input_action::flag::values flags) {
+            action_type_flags types,
+            action_flags flags) {
+        return inner_create(
+                id_pool::instance()->allocate(),
+                name,
+                category,
+                description,
+                types,
+                flags);
+    }
+
+    input_action* input_action::inner_create(
+            uint32_t id,
+            const std::string& name,
+            const std::string& category,
+            const std::string& description,
+            action_type_flags types,
+            action_flags flags) {
         auto action = find_by_name(name);
         if (action != nullptr)
             return action;
+
+        if (s_catalog.capacity() < 1024)
+            s_catalog.reserve(1024);
+
         s_catalog.emplace_back(
-                id_pool::instance()->allocate(),
+                id,
                 name,
                 category,
                 description,
@@ -67,8 +83,9 @@ namespace ryu::core {
             const std::string& name,
             const std::string& category,
             const std::string& description,
-            input_action::type::values types) {
-        return create(
+            action_type_flags types) {
+        return inner_create(
+                id_pool::instance()->allocate(),
                 name,
                 category,
                 description,
@@ -82,28 +99,6 @@ namespace ryu::core {
 
     const input_action_catalog& input_action::catalog() {
         return s_catalog;
-    }
-
-    input_action_ptr_list input_action::filtered_catalog(
-            input_action::type::values types) {
-        input_action_ptr_list list {};
-
-        action_type_flags type = input_action::type::keyboard;
-        while (type != input_action::type::last) {
-            if ((types & type) == 0) {
-                type <<= 1;
-                continue;
-            }
-            auto it = s_catalog_index.find(type);
-            if (it != s_catalog_index.end()) {
-                auto& actions = it->second;
-                for (auto action_ptr : actions)
-                    list.push_back(action_ptr);
-            }
-            type <<= 1;
-        }
-
-        return list;
     }
 
     bool input_action::load(core::result& result, YAML::Node& root) {
@@ -125,15 +120,13 @@ namespace ryu::core {
             }
 
             id_pool::instance()->mark_used(action_id);
-            s_catalog.emplace_back(
-                action_id,
-                name,
-                category,
-                description);
-
-            auto action = &s_catalog.back();
-            action->_flags = flags;
-            action->_types = types;
+            auto action = inner_create(
+                    action_id,
+                    name,
+                    category,
+                    description,
+                    types,
+                    flags);
 
             auto bindings_node = action_node["bindings"];
             if (bindings_node != nullptr && bindings_node.IsSequence()) {
@@ -227,6 +220,27 @@ namespace ryu::core {
             emitter << YAML::EndMap;
         }
         return !result.is_failed();
+    }
+
+    input_action_ptr_list input_action::filtered_catalog(action_type_flags types) {
+        input_action_ptr_list list {};
+
+        action_type_flags type = input_action::type::keyboard;
+        while (type != input_action::type::last) {
+            if ((types & type) == 0) {
+                type <<= 1;
+                continue;
+            }
+            auto it = s_catalog_index.find(type);
+            if (it != s_catalog_index.end()) {
+                auto& actions = it->second;
+                for (auto action_ptr : actions)
+                    list.push_back(action_ptr);
+            }
+            type <<= 1;
+        }
+
+        return list;
     }
 
     input_action::input_action(

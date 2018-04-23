@@ -89,6 +89,8 @@ namespace ryu::core {
 
         void end_selection();
 
+        void define_actions();
+
         void calculate_page_metrics();
 
         void update_virtual_position();

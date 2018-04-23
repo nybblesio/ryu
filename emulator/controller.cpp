@@ -24,13 +24,13 @@ namespace ryu::emulator {
     void controller::on_initialize() {
     }
 
-    void controller::on_update(uint32_t dt) {
-    }
-
     void controller::on_draw(core::renderer& surface) {
     }
 
     void controller::on_resize(const core::rect& bounds) {
+    }
+
+    void controller::on_update(uint32_t dt, core::pending_event_list& events) {
     }
 
 }

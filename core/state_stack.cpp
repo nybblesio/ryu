@@ -27,36 +27,6 @@ namespace ryu::core {
         _pending_action = pending_state::action::none;
     }
 
-    void state_stack::update() {
-        if (_pending_id == -1)
-            return;
-
-        switch (_pending_action) {
-            case pending_state::action::push: {
-                _stack.push_back(_pending_id);
-                update_active_state();
-                break;
-            }
-            case pending_state::action::pop: {
-                while (!_stack.empty()) {
-                    auto top = _stack.back();
-                    _stack.pop_back();
-                    if (top == _pending_id)
-                        break;
-                }
-                update_active_state();
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-
-        _pending_action = pending_state::action::none;
-        _pending_params = {};
-        _pending_id = -1;
-    }
-
     void state_stack::add_state(
             core::state* state,
             const state_transition_callable& callback) {
@@ -103,6 +73,36 @@ namespace ryu::core {
         return state;
     }
 
+    void state_stack::apply_pending_transition() {
+        if (_pending_id == -1)
+            return;
+
+        switch (_pending_action) {
+            case pending_state::action::push: {
+                _stack.push_back(_pending_id);
+                update_active_state();
+                break;
+            }
+            case pending_state::action::pop: {
+                while (!_stack.empty()) {
+                    auto top = _stack.back();
+                    _stack.pop_back();
+                    if (top == _pending_id)
+                        break;
+                }
+                update_active_state();
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
+        _pending_action = pending_state::action::none;
+        _pending_params = {};
+        _pending_id = -1;
+    }
+
     void state_stack::add_state(core::state* state) {
         if (state == nullptr)
             return;
@@ -115,10 +115,15 @@ namespace ryu::core {
         _states.erase(state->id());
     }
 
-    void state_stack::draw(uint32_t dt, core::renderer& renderer) {
+    void state_stack::draw(
+            uint32_t dt,
+            pending_event_list& events,
+            core::renderer& renderer) {
         if (_stack.empty())
             return;
 
+        // XXX: think about how this works and revisit
+        //
         auto count = 1;
         for (auto it = _stack.rbegin(); it != _stack.rend(); ++it) {
             auto state = find_state(*it);
@@ -129,7 +134,8 @@ namespace ryu::core {
 
         for (auto i = _stack.size() - count; i < _stack.size(); i++) {
             auto state = find_state(_stack[i]);
-            state->update(dt);
+            if (_active == state)
+                state->update(dt, events);
             state->draw(renderer);
         }
     }

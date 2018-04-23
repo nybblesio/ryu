@@ -30,53 +30,69 @@ namespace ryu::ide::machine_editor {
                 "machine_editor_leave",
                 "Internal",
                 "Close the machine editor and return to previous state.");
-        leave_action->bind_keys({core::key_escape});
+        if (!leave_action->has_bindings())
+            leave_action->bind_keys({core::key_escape});
 
         auto add_action = core::input_action::create_no_map(
                 "machine_editor_add",
                 "Internal",
                 "Add a new component to the machine and open the editor.");
-        add_action->bind_keys({core::key_f1});
+        if (!add_action->has_bindings())
+            add_action->bind_keys({core::key_f1});
+
+        auto edit_action = core::input_action::create_no_map(
+                "machine_editor_edit",
+                "Internal",
+                "Edit the selected component.");
+        if (!edit_action->has_bindings())
+            edit_action->bind_keys({core::key_return});
 
         auto map_action = core::input_action::create_no_map(
                 "machine_editor_map",
                 "Internal",
                 "Show the memory map of this machine.");
-        map_action->bind_keys({core::key_f2});
+        if (!map_action->has_bindings())
+            map_action->bind_keys({core::key_f2});
 
         auto delete_action = core::input_action::create_no_map(
                 "machine_editor_delete",
                 "Internal",
                 "Remove the selected component from this machine.");
-        delete_action->bind_keys({core::key_delete});
+        if (!delete_action->has_bindings())
+            delete_action->bind_keys({core::key_delete});
     }
 
     void controller::bind_events() {
-//        leave_action->register_handler(
-//            core::action_sink::controller,
-//            core::action_sink::default_filter,
-//            [this](const core::event_data_t& data) {
-//                end_state();
-//                return true;
-//            });
-//        add_action->register_handler(
-//            core::action_sink::controller,
-//            core::action_sink::default_filter,
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        map_action->register_handler(
-//            core::action_sink::controller,
-//            core::action_sink::default_filter,
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        delete_action->register_handler(
-//            core::action_sink::controller,
-//            core::action_sink::default_filter,
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_leave"),
+                [this](const core::event_data_t& data) {
+                    end_state();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_add"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_map"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_edit"),
+                [this](const core::event_data_t& data) {
+                    if (!_component_pick_list->focused())
+                        return false;
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_delete"),
+                [this](const core::event_data_t& data) {
+                    if (!_component_pick_list->focused())
+                        return false;
+                    return true;
+                });
     }
 
     void controller::create_views() {
@@ -102,6 +118,9 @@ namespace ryu::ide::machine_editor {
 
         _display_pick_list->next_view(_description_text_editor.get());
         _display_pick_list->prev_view(_address_space_textbox.get());
+
+        _description_text_editor->next_view(_component_pick_list.get());
+        _description_text_editor->prev_view(_display_pick_list.get());
 
         _add_button->next_view(_edit_button.get());
         _add_button->prev_view(_component_pick_list.get());
@@ -169,6 +188,7 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_initialize() {
+        define_actions();
         bind_events();
         create_views();
 
@@ -384,9 +404,6 @@ namespace ryu::ide::machine_editor {
         _button_panel->add_child(_map_button.get());
     }
 
-    void controller::on_update(uint32_t dt) {
-    }
-
     hardware::machine* controller::machine() {
         return _machine;
     }
@@ -457,6 +474,10 @@ namespace ryu::ide::machine_editor {
             machine(mach);
             context()->resize();
         }
+    }
+
+    void controller::on_update(uint32_t dt, core::pending_event_list& events) {
+        _layout_panel->update(dt, events);
     }
 
 }

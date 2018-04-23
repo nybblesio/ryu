@@ -282,246 +282,223 @@ namespace ryu::core {
     }
 
     void text_editor::bind_events() {
-//        caret_left_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_left();
-//                return true;
-//            });
-//        caret_select_left_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        caret_select_right_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        caret_right_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                end_selection();
-//                caret_right();
-//                return true;
-//            });
-//        caret_select_down_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        caret_down_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                end_selection();
-//                caret_down();
-//                return true;
-//            });
-//        caret_select_up_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        caret_up_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                end_selection();
-//                caret_up();
-//                return true;
-//            });
-//        page_up_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                page_up();
-//                return true;
-//            });
-//        page_down_action->register_handler(
-//            core::action_sink::view,
-//            core::action_sink::default_filter,
-//            [this](const core::event_data_t& data) {
-//                page_down();
-//                return true;
-//            });
-//        insert_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (_caret.mode() == core::caret::mode::insert)
-//                    _caret.overwrite();
-//                else
-//                    _caret.insert();
-//                return true;
-//            });
-//        copy_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                std::stringstream stream;
-//                get_selected_text(stream);
-//                SDL_SetClipboardText(stream.str().c_str());
-//                return true;
-//            });
-//        cut_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                std::stringstream stream;
-//                get_selected_text(stream);
-//                SDL_SetClipboardText(stream.str().c_str());
-//                delete_selection();
-//                return true;
-//            });
-//        paste_action->register_handler(
-//            core::action_sink::view,
-//            [this](const core::event_data_t& data) {
-//                return focused() && SDL_HasClipboardText();
-//            },
-//            [this](const core::event_data_t& data) {
-//                auto text = SDL_GetClipboardText();
-//                insert_text(text);
-//                return true;
-//            });
-//        return_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (_caret.mode() == core::caret::mode::insert)
-//                    _document.split_line();
-//                caret_newline();
-//                return true;
-//            });
-//        shift_tab_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (tab_stop())
-//                    return false;
-//                if (_caret.column() == 0)
-//                    return true;
-//                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
-//                caret_left(spaces);
-//                _document.shift_line_left(spaces);
-//                return true;
-//            });
-//        tab_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (tab_stop())
-//                    return false;
-//                auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
-//                _document.shift_line_right(spaces);
-//                caret_right(spaces);
-//                return true;
-//            });
-//        delete_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (_document.virtual_column() == 0) {
-//                    caret_up();
-//                    _document.delete_line();
-//                } else {
-//                    if (_document.is_line_empty()) {
-//                        _document.delete_line();
-//                    } else {
-//                        _document.shift_line_left();
-//                    }
-//                }
-//                return true;
-//            });
-//        backspace_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (_document.is_line_empty()) {
-//                    _document.delete_line();
-//                } else if (_caret.column() == 0) {
-//                    caret_up();
-//                    _document.delete_line();
-//                } else {
-//                    caret_left();
-//                    _document.shift_line_left();
-//                }
-//                return true;
-//            });
-//        first_page_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                first_page();
-//                return true;
-//            });
-//        select_home_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        home_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_home();
-//                return true;
-//            });
-//        last_page_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                last_page();
-//                return true;
-//            });
-//        select_end_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [](const core::event_data_t& data) {
-//                return true;
-//            });
-//        if (!select_end_action->has_bindings()) {
-//            select_end_action->bind_keys({core::mod_shift, core::key_end});
-//        }
-//        end_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                caret_end();
-//                return true;
-//            });
-//        text_input_action->register_handler(
-//            core::action_sink::view,
-//            std::bind(&text_editor::input_event_filter, this, std::placeholders::_1),
-//            [this](const core::event_data_t& data) {
-//                if (data.c == core::ascii_escape)
-//                    return false;
-//
-//                if (data.c == core::ascii_return) {
-//                    if (_caret.mode() == core::caret::mode::insert)
-//                        _document.split_line();
-//                    caret_newline();
-//                    return true;
-//                }
-//
-//                if (_caret.mode() == core::caret::mode::insert)
-//                    _document.shift_line_right();
-//
-//                _document.put(core::element_t {
-//                    static_cast<uint8_t>(data.c),
-//                    _document.default_attr()});
-//
-//                caret_right();
-//
-//                return true;
-//            });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_left"),
+                [this](const core::event_data_t& data) {
+                    caret_left();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_select_left"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_select_right"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_right"),
+                [this](const core::event_data_t& data) {
+                    end_selection();
+                    caret_right();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_select_down"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_down"),
+                [this](const core::event_data_t& data) {
+                    end_selection();
+                    caret_down();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_select_up"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_caret_up"),
+                [this](const core::event_data_t& data) {
+                    end_selection();
+                    caret_up();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_page_up"),
+                [this](const core::event_data_t& data) {
+                    page_up();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_page_down"),
+                [this](const core::event_data_t& data) {
+                    page_down();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_insert"),
+                [this](const core::event_data_t& data) {
+                    if (_caret.mode() == core::caret::mode::insert)
+                        _caret.overwrite();
+                    else
+                        _caret.insert();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_copy"),
+                [this](const core::event_data_t& data) {
+                    std::stringstream stream;
+                    get_selected_text(stream);
+                    SDL_SetClipboardText(stream.str().c_str());
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_cut"),
+                [this](const core::event_data_t& data) {
+                    std::stringstream stream;
+                    get_selected_text(stream);
+                    SDL_SetClipboardText(stream.str().c_str());
+                    delete_selection();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_paste"),
+                [this](const core::event_data_t& data) {
+                    auto text = SDL_GetClipboardText();
+                    insert_text(text);
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_return"),
+                [this](const core::event_data_t& data) {
+                    if (_caret.mode() == core::caret::mode::insert)
+                        _document.split_line();
+                    caret_newline();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_shift_tab"),
+                [this](const core::event_data_t& data) {
+                    if (tab_stop())
+                        return false;
+                    if (_caret.column() == 0)
+                        return true;
+                    auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+                    caret_left(spaces);
+                    _document.shift_line_left(spaces);
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_tab"),
+                [this](const core::event_data_t& data) {
+                    if (tab_stop())
+                        return false;
+                    auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+                    _document.shift_line_right(spaces);
+                    caret_right(spaces);
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_delete"),
+                [this](const core::event_data_t& data) {
+                    if (_document.virtual_column() == 0) {
+                        caret_up();
+                        _document.delete_line();
+                    } else {
+                        if (_document.is_line_empty()) {
+                            _document.delete_line();
+                        } else {
+                            _document.shift_line_left();
+                        }
+                    }
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_backspace"),
+                [this](const core::event_data_t& data) {
+                    if (_document.is_line_empty()) {
+                        _document.delete_line();
+                    } else if (_caret.column() == 0) {
+                        caret_up();
+                        _document.delete_line();
+                    } else {
+                        caret_left();
+                        _document.shift_line_left();
+                    }
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_first_page"),
+                [this](const core::event_data_t& data) {
+                    first_page();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_select_home"),
+                    [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_home"),
+                    [this](const core::event_data_t& data) {
+                    caret_home();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_last_page"),
+                [this](const core::event_data_t& data) {
+                    last_page();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_select_end"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_end"),
+                [this](const core::event_data_t& data) {
+                    caret_end();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("text_editor_input"),
+                [this](const core::event_data_t& data) {
+                    if (data.c == core::ascii_escape)
+                        return false;
+
+                    if (data.c == core::ascii_tab) {
+                        if (tab_stop())
+                            return false;
+                        auto spaces = static_cast<uint8_t>(4 - (_document.virtual_column() % 4));
+                        _document.shift_line_right(spaces);
+                        caret_right(spaces);
+                    }
+
+                    if (data.c == core::ascii_return) {
+                        if (_caret.mode() == core::caret::mode::insert)
+                            _document.split_line();
+                        caret_newline();
+                        return true;
+                    }
+
+                    if (_caret.mode() == core::caret::mode::insert)
+                        _document.shift_line_right();
+
+                    _document.put(core::element_t {
+                        static_cast<uint8_t>(data.c),
+                        _document.default_attr()});
+
+                    caret_right();
+
+                    return true;
+                });
     }
 
     void text_editor::caret_newline() {
@@ -535,6 +512,7 @@ namespace ryu::core {
     }
 
     void text_editor::on_initialize() {
+        define_actions();
         bind_events();
 
         _metrics.line_number_width = font_face()->measure_chars(5) + 2;

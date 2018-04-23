@@ -35,19 +35,17 @@ namespace ryu::core {
                 "checkbox_activate",
                 "Internal",
                 "Activate a checkbox view.");
-        activate_action->bind_keys({core::key_space});
+        if (!activate_action->has_bindings())
+            activate_action->bind_keys({core::key_space});
     }
 
     void checkbox::bind_events() {
-//        activate_action->register_handler(
-//                action_sink::types::view,
-//                [this](const event_data_t& data) {
-//                    return focused() && enabled();
-//                },
-//                [this](const event_data_t& data) {
-//                    _value = !_value;
-//                    return true;
-//                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("checkbox_activate"),
+                [this](const event_data_t& data) {
+                    _value = !_value;
+                    return true;
+                });
     }
 
     void checkbox::on_initialize() {

@@ -29,20 +29,20 @@ namespace ryu::ide::machine_list {
 
         void on_deactivate() override;
 
-        void on_update(uint32_t dt) override;
-
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
 
         void on_activate(const core::parameter_dict& params) override;
 
-    private:
-        void define_actions();
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
 
+    private:
         void bind_events();
 
         void create_views();
+
+        void define_actions();
 
         void edit_new_machine();
 

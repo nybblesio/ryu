@@ -48,12 +48,12 @@ namespace ryu::ide::console_editor {
 
     void controller::on_initialize() {
         _header = core::view_factory::create_state_header(
-            this,
-            "header-panel",
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 5, 0});
+                this,
+                "header-panel",
+                ide::colors::info_text,
+                ide::colors::fill_color,
+                core::dock::styles::top,
+                {_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header->state("console");
         _header->state_color(ide::colors::white);
 
@@ -66,11 +66,11 @@ namespace ryu::ide::console_editor {
                 {_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _console = core::view_factory::create_console(
-            this,
-            "console",
-            ide::colors::text,
-            ide::colors::fill_color,
-            s_mapper);
+                this,
+                "console",
+                ide::colors::text,
+                ide::colors::fill_color,
+                s_mapper);
         _console->caret_color(ide::colors::caret);
         _console->on_transition([&](const std::string& name, const core::parameter_dict& params) {
             return transition_to(name, params);
@@ -95,17 +95,13 @@ namespace ryu::ide::console_editor {
         _console->focus(_console.get());
 
         _layout_panel = core::view_factory::create_dock_layout_panel(
-            this,
-            "layout-panel",
-            ide::colors::info_text,
-            ide::colors::fill_color);
+                this,
+                "layout-panel",
+                ide::colors::info_text,
+                ide::colors::fill_color);
         _layout_panel->add_child(_header.get());
         _layout_panel->add_child(_footer.get());
         _layout_panel->add_child(_console.get());
-    }
-
-    void controller::on_update(uint32_t dt) {
-        _console->update(dt);
     }
 
     void controller::on_draw(core::renderer& surface) {
@@ -126,5 +122,9 @@ namespace ryu::ide::console_editor {
         _console->caret_down();
         _console->write_message("Ready.");
         _show_banner = false;
+    }
+
+    void controller::on_update(uint32_t dt, core::pending_event_list& events) {
+        _layout_panel->update(dt, events);
     }
 }

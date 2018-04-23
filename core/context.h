@@ -131,6 +131,8 @@ namespace ryu::core {
     protected:
         virtual void on_draw(core::renderer& surface);
 
+        core::input_action_provider& action_provider();
+
         virtual bool on_initialize(core::result& result);
 
     private:

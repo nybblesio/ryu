@@ -32,31 +32,25 @@ namespace ryu::core {
     }
 
     void view::bind_events() {
-//        field_shift_tab_action->register_handler(
-//                action_sink::types::view,
-//                [this](const core::event_data_t& data) {
-//                    return focused() && visible();
-//                },
-//                [this](const core::event_data_t& data) {
-//                    if (_prev != nullptr) {
-//                        find_root()->focus(_prev);
-//                        return true;
-//                    }
-//                    return false;
-//                });
+        _action_provider.register_handler(
+                core::input_action::find_by_name("view_field_shift_tab"),
+                [this](const core::event_data_t& data) {
+                    if (_prev != nullptr) {
+                        find_root()->focus(_prev);
+                        return true;
+                    }
+                    return false;
+                });
 
-//        field_tab_action->register_handler(
-//            action_sink::types::view,
-//            [this](const core::event_data_t& data) {
-//                return focused() && visible();
-//            },
-//            [this](const core::event_data_t& data) {
-//                if (_next != nullptr) {
-//                    find_root()->focus(_next);
-//                    return true;
-//                }
-//                return false;
-//            });
+        _action_provider.register_handler(
+                core::input_action::find_by_name("view_field_tab"),
+                [this](const core::event_data_t& data) {
+                    if (_next != nullptr) {
+                        find_root()->focus(_next);
+                        return true;
+                    }
+                    return false;
+                });
     }
 
     void view::define_actions() {
@@ -64,19 +58,24 @@ namespace ryu::core {
                 "view_field_shift_tab",
                 "Internal",
                 "Move focus from the current field to the previous field.");
-        field_shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
+        if (!field_shift_tab_action->has_bindings()) {
+            field_shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
+        }
 
         auto field_tab_action = core::input_action::create_no_map(
                 "view_field_tab",
                 "Internal",
                 "Move focus from the current field to the next field.");
-        field_tab_action->bind_keys({core::key_tab});
+        if (!field_tab_action->has_bindings()) {
+            field_tab_action->bind_keys({core::key_tab});
+        }
     }
 
     void view::initialize() {
         listen_for_on_host_change();
         on_initialize();
         define_actions();
+        bind_events();
     }
 
     uint32_t view::id() const {
@@ -104,14 +103,11 @@ namespace ryu::core {
     }
 
     bool view::visible() const {
-        return _host->is_visible()
-               && (_flags & config::flags::visible) != 0;
+        return (_flags & config::flags::visible) != 0;
     }
 
     bool view::focused() const {
-        auto host_focus = _host->is_focused();
-        auto flag = (_flags & config::flags::focused) != 0;
-        return host_focus && flag;
+        return (_flags & config::flags::focused) != 0;
     }
 
     void view::on_initialize() {
@@ -371,11 +367,32 @@ namespace ryu::core {
             child->resize(context_bounds);
     }
 
+    core::input_action_provider& view::action_provider() {
+        return _action_provider;
+    }
+
     void view::on_resize(const core::rect& context_bounds) {
+    }
+
+    void view::update(uint32_t dt, core::pending_event_list& events) {
+        if (!visible()) {
+            return;
+        }
+
+        for (auto child : _children)
+            child->update(dt, events);
+
+        if (focused()) {
+            on_update(dt, events);
+            _action_provider.process(events);
+        }
     }
 
     void view::on_host_changed(view_host::change_reason_flags flags) {
         on_focus_changed();
+    }
+
+    void view::on_update(uint32_t dt, core::pending_event_list& events) {
     }
 
 }

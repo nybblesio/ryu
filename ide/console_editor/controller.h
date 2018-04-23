@@ -29,13 +29,13 @@ namespace ryu::ide::console_editor {
 
         void on_initialize() override;
 
-        void on_update(uint32_t dt) override;
-
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
 
         void on_activate(const core::parameter_dict& params) override;
+
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
 
     private:
         static const core::code_to_attr_dict s_mapper;

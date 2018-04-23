@@ -30,26 +30,25 @@ namespace ryu::emulator {
     }
 
     void emulator_context::bind_events() {
-//        toggle_context->register_handler(
-//            core::action_sink::context,
-//            core::action_sink::default_filter,
-//            [this](const core::event_data_t& data) {
-//                auto ide_context = dynamic_cast<ide::ide_context*>(engine()->find_context("ide"));
-//                switch (_size) {
-//                    case core::context_window::split:
-//                        size(core::context_window::expanded);
-//                        ide_context->size(core::context_window::collapsed);
-//                        break;
-//                    case core::context_window::expanded:
-//                    case core::context_window::collapsed:
-//                        size(core::context_window::split);
-//                        ide_context->size(core::context_window::split);
-//                        break;
-//                    default:
-//                        break;
-//                }
-//                return true;
-//            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("toggle_emulator_context"),
+            [this](const core::event_data_t& data) {
+                auto ide_context = dynamic_cast<ide::ide_context*>(engine()->find_context("ide"));
+                switch (_size) {
+                    case core::context_window::split:
+                        size(core::context_window::expanded);
+                        ide_context->size(core::context_window::collapsed);
+                        break;
+                    case core::context_window::expanded:
+                    case core::context_window::collapsed:
+                        size(core::context_window::split);
+                        ide_context->size(core::context_window::split);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            });
     }
 
     void emulator_context::configure_states() {

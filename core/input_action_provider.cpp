@@ -8,9 +8,14 @@
 // this source code file.
 //
 
+#include <logger_factory.h>
 #include "input_action_provider.h"
 
 namespace ryu::core {
+
+    static logger* s_log = logger_factory::instance()->create(
+            "input_action_provider",
+            logger::level::info);
 
     input_action_provider::input_action_provider() {
     }
@@ -18,28 +23,45 @@ namespace ryu::core {
     input_action_provider::~input_action_provider() {
     }
 
-    //    void input_action::register_handler(
-//            action_sink_type type,
-//            const input_action_filter& filter,
-//            const input_action_perform& perform) {
-//        _handlers.insert(std::make_pair(
-//            type,
-//            input_action_handler_t {filter, perform}));
-//    }
+    bool input_action_provider::process_action(
+            const input_action* action,
+            const event_data_t& data) const {
+        if (action == nullptr) {
+            s_log->warn(fmt::format("::process_action: null input_action"));
+            return false;
+        }
+        auto it = _handlers.find(action->id());
+        if (it == _handlers.end())
+            return false;
+        auto result = it->second(data);
+        //s_log->info(fmt::format("processed: action = {}, result = {}", action->name(), result));
+        return result;
+    }
 
-    //    action_sink_type input_action::process_action(
-//            const input_binding& binding,
-//            const event_data_t& data) const {
-//        for (uint16_t i = action_sink::last; i > action_sink::none; i--) {
-//            auto it = _handlers.find(i);
-//            if (it == _handlers.end())
-//                continue;
-//            if (!it->second.filter(data))
-//                continue;
-//            if (it->second.perform(data))
-//                return (action_sink_type) i;
-//        }
-//        return action_sink::none;
-//    }
+    void input_action_provider::register_handler(
+            const input_action* action,
+            const input_action_perform& perform) {
+        if (action == nullptr) {
+            s_log->warn(fmt::format("::register_handler: null input_action"));
+            return;
+        }
+        _handlers.insert(std::make_pair(action->id(), perform));
+    }
+
+    bool input_action_provider::process(pending_event_list& events) {
+        auto it = events.begin();
+        while (it != events.end()) {
+            auto event = *it;
+            //s_log->info(fmt::format("pending_event_t: action->name() = {}", event.action->name()));
+            bool processed = process_action(event.action, event.data);
+            if (processed) {
+                it = events.erase(it);
+                return true;
+            } else {
+                ++it;
+            }
+        }
+        return false;
+    }
 
 }
