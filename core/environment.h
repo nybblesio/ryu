@@ -86,6 +86,9 @@ namespace ryu::core {
         bool on_add_symbol(
                 const command_handler_context_t& context);
 
+        bool on_drop_symbols(
+                const command_handler_context_t& context);
+
         bool on_edit_environment(
                 const command_handler_context_t& context);
 

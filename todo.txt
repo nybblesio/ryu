@@ -24,27 +24,25 @@ Art Asset Requirements
 
 - NEW: implement ability to redirect to new or appended text file in core::console
 
-- NEW: mouse event bindings ----
-    which button?
-    bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
-
+- FIX: pick_list drop down needs to paint opaque
+    - after testing this, the issue is that the drop down portion if draw earlier than
+      other views and they're overlapping this region.
+    - possibly make the drop down part another view that's always sorted last?
+- NEW: pick_list --- add field and get/set for height of drop down portion
+        make the field an actual textbox and search list when user types
+        page up and page down key bindings
 - NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
         that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
         dock_layout_panel.
 
-- NEW: raise error dialog where applicable
-
-- FIX: pick_list drop down needs to paint opaque
-- NEW: pick_list --- add field and get/set for height of drop down portion
-        make the field an actual textbox and search list when user types
-        page up and page down key bindings
-
-- NEW: add "clear symbols" command
-
-- NEW: clproj should clear symbol table
-
 - NEW: change engine::initialize to accept core::preferences* instead of const& and store in field
         add core::preferences* preferences() accessor to context.h
+
+- NEW: mouse event bindings ----
+    which button?
+    bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
+
+- NEW: raise error dialog where applicable
 
 - FINISH: machine_editor::controller:
     - add component callback
@@ -282,3 +280,5 @@ DONE
 - NEW: SHIFT-TAB to reverse direction through fields
     - see notes in view.h
 - FIX: see notes in input_action.h to fix
+- NEW: clproj should clear symbol table
+- NEW: add "clear symbols" command

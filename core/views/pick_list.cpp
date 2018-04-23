@@ -156,7 +156,7 @@ namespace ryu::core {
 
         auto pal = *palette();
         auto fg = pal[fg_color()];
-        auto& bg = pal[bg_color()];
+        auto bg = pal[bg_color()];
 
         if (!enabled() || !focused()) {
             fg = fg - 35;

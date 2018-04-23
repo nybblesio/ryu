@@ -46,6 +46,10 @@ namespace ryu::core {
             std::bind(&environment::on_add_symbol, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::drop_symbols,
+            std::bind(&environment::on_drop_symbols, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::edit_environment,
             std::bind(&environment::on_edit_environment, std::placeholders::_1, std::placeholders::_2)
         },
@@ -787,6 +791,13 @@ namespace ryu::core {
         return !context.result.is_failed();
     }
 
+    bool environment::on_drop_symbols(
+            const command_handler_context_t& context) {
+        _symbol_table->clear();
+        context.result.add_message("C006", "Symbol table cleared.");
+        return !context.result.is_failed();
+    }
+
     bool environment::on_edit_environment(
             const command_handler_context_t& context) {
         if (!has_valid_project(context.result))
@@ -1467,7 +1478,10 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         if (!has_valid_project(context.result))
             return false;
-        return core::project::close(context.result);
+        auto result = core::project::close(context.result);
+        if (result)
+            _symbol_table->clear();
+        return result;
     }
 
     bool environment::on_clone_project(

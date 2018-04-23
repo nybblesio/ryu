@@ -862,6 +862,18 @@ namespace ryu::core {
         },
 
         {
+            "drop",
+            {
+                command::types::drop_symbols,
+                command_size_flags::none,
+                {},
+                "Remove all symbols from the table.",
+                "symbols",
+                2
+            }
+        },
+
+        {
             "symbols",
             {
                 command::types::show_symbol_table,
@@ -869,7 +881,7 @@ namespace ryu::core {
                 {},
                 "List the symbol table contents to the console.",
                 "symbols",
-                2
+                3
             }
         },
     };

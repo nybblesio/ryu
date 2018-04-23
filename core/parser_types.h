@@ -37,6 +37,7 @@ namespace ryu::core {
             clear,
 
             add_symbol,
+            drop_symbols,
             remove_symbol,
             show_symbol_table,
 
