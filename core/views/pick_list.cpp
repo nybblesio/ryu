@@ -42,51 +42,48 @@ namespace ryu::core {
         return false;
     }
 
-    void pick_list::bind_events() {
+    void pick_list::define_actions() {
         auto up_action = core::input_action::create_no_map(
-            "pick_list_up_action",
-            "Internal",
-            "Move to the previous pick list item.");
-        up_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                move_up();
-                return true;
-            });
-        up_action->bind_keys({core::key_up});
+                "pick_list_up_action",
+                "Internal",
+                "Move to the previous pick list item.");
+        if (!up_action->has_bindings())
+            up_action->bind_keys({core::key_up});
 
         auto down_action = core::input_action::create_no_map(
-            "pick_list_down_action",
-            "Internal",
-            "Move to the next pick list item.");
-        down_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                move_down();
-                return true;
-            });
-        down_action->bind_keys({core::key_down});
+                "pick_list_down_action",
+                "Internal",
+                "Move to the next pick list item.");
+        if (!down_action->has_bindings())
+            down_action->bind_keys({core::key_down});
 
         auto select_action = core::input_action::create_no_map(
-            "pick_list_select_action",
-            "Internal",
-            "Make current item the selected value.");
-        select_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                _value = _options[_row + _selection];
-                return true;
-            });
-        select_action->bind_keys({core::key_return});
+                "pick_list_select_action",
+                "Internal",
+                "Make current item the selected value.");
+        if (!select_action->has_bindings())
+            select_action->bind_keys({core::key_return});
+    }
+
+    void pick_list::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("pick_list_up_action"),
+                [this](const event_data_t& data) {
+                    move_up();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("pick_list_down_action"),
+                [this](const event_data_t& data) {
+                    move_down();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("pick_list_select_action"),
+                [this](const event_data_t& data) {
+                    _value = _options[_row + _selection];
+                    return true;
+                });
     }
 
     bool pick_list::move_row_up() {
@@ -107,6 +104,8 @@ namespace ryu::core {
     }
 
     void pick_list::on_initialize() {
+        tab_stop(true);
+        define_actions();
         bind_events();
         padding({5, 5, 5, 5});
     }

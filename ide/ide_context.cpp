@@ -24,34 +24,36 @@ namespace ryu::ide {
                                                         _machine_editor_state("machine editor") {
     }
 
-    void ide_context::bind_events() {
+    void ide_context::define_actions() {
         auto toggle_context = core::input_action::create(
-            "toggle_ide_context",
-            "IDE",
-            "Collapse, expand, and split the IDE context window.");
-        toggle_context->register_handler(
-            core::action_sink::context,
-            core::action_sink::default_filter,
-            [this](const core::event_data_t& data) {
-                auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
-                switch (_size) {
-                    case core::context_window::split:
-                        size(core::context_window::expanded);
-                        emulator_context->size(core::context_window::collapsed);
-                        break;
-                    case core::context_window::expanded:
-                    case core::context_window::collapsed:
-                        size(core::context_window::split);
-                        emulator_context->size(core::context_window::split);
-                        break;
-                    default:
-                        break;
-                }
-                return true;
-            });
+                "toggle_ide_context",
+                "IDE",
+                "Collapse, expand, and split the IDE context window.");
         if (!toggle_context->has_bindings()) {
             toggle_context->bind_keys({core::mod_alt, core::key_f1});
         }
+    }
+
+    void ide_context::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("toggle_ide_context"),
+                [this](const core::event_data_t& data) {
+                    auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
+                    switch (_size) {
+                        case core::context_window::split:
+                            size(core::context_window::expanded);
+                            emulator_context->size(core::context_window::collapsed);
+                            break;
+                        case core::context_window::expanded:
+                        case core::context_window::collapsed:
+                            size(core::context_window::split);
+                            emulator_context->size(core::context_window::split);
+                            break;
+                        default:
+                            break;
+                    }
+                    return true;
+                });
     }
 
     void ide_context::configure_states() {
@@ -235,6 +237,7 @@ namespace ryu::ide {
     }
 
     bool ide_context::on_initialize(core::result& result) {
+        define_actions();
         bind_events();
         configure_states();
         configure_palette();

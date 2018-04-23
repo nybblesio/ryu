@@ -23,13 +23,15 @@ namespace ryu::core {
 
         ~state() override;
 
+        void update(
+                uint32_t dt,
+                pending_event_list& events);
+
         void deactivate();
 
         uint32_t id() const;
 
         core::context* context();
-
-        void update(uint32_t dt);
 
         std::string name() const;
 
@@ -72,13 +74,17 @@ namespace ryu::core {
     protected:
         void end_state();
 
+        virtual void on_update(
+                uint32_t dt,
+                pending_event_list& events) = 0;
+
         virtual void on_deactivate();
 
         virtual void on_initialize() = 0;
 
-        virtual void on_update(uint32_t dt) = 0;
-
         void erase_blackboard(const std::string& name);
+
+        core::input_action_provider& action_provider();
 
         virtual void on_resize(const core::rect& bounds);
 
@@ -99,6 +105,7 @@ namespace ryu::core {
         bool _render_parent = false;
         core::context* _context = nullptr;
         state_transition_callable _callback {};
+        core::input_action_provider _action_provider;
         std::vector<state_change_callable> _listeners {};
     };
 };

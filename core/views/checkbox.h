@@ -33,6 +33,10 @@ namespace ryu::core {
 
     private:
         bool _value;
+
+        void define_actions();
+
+        void bind_events();
     };
 
 };

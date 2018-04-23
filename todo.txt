@@ -20,22 +20,13 @@ Art Asset Requirements
 --------------------------------------
 - UPDATE: README.md
 
-- CHERRY PICK: from feature/piece-table core_types.cpp
-
 - REFACTOR: use pratt parser model to completely replace shunting-yard implementation
 
 - NEW: implement ability to redirect to new or appended text file in core::console
 
-- REFACTOR: once_column_t struct to live with his table buddies and make more generic
-
-- FIX: see notes in input_action.h to fix
-
 - NEW: mouse event bindings ----
     which button?
     bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
-
-- NEW: SHIFT-TAB to reverse direction through fields
-    - see notes in view.h
 
 - NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
         that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
@@ -43,6 +34,7 @@ Art Asset Requirements
 
 - NEW: raise error dialog where applicable
 
+- FIX: pick_list drop down needs to paint opaque
 - NEW: pick_list --- add field and get/set for height of drop down portion
         make the field an actual textbox and search list when user types
         page up and page down key bindings
@@ -120,6 +112,8 @@ Art Asset Requirements
     1. need tile_selector view: how do we choose which tile banks to use?
     2. need scrolling layout view
         - core::video_generator tells us background definitions
+
+- FINISH: ide::memory_editor::controller
 
 - NEW: ide::preferences::controller
     1. create preferences.yaml view file
@@ -283,3 +277,8 @@ DONE
 -  BUG: dock_layout_panel isn't handling the machine_editor::controller layout properly, need to revisit this
     * bug: console header, project and machine fields not properly resizing
 - bug: environment::on_evaluate isn't handling negative number properly
+- REFACTOR: once_value_t struct to live with his table buddies and make more generic
+- CHERRY PICK: from feature/piece-table core_types.cpp
+- NEW: SHIFT-TAB to reverse direction through fields
+    - see notes in view.h
+- FIX: see notes in input_action.h to fix

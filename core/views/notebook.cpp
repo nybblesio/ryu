@@ -21,39 +21,43 @@ namespace ryu::core {
     notebook::~notebook() {
     }
 
-    void notebook::on_initialize() {
+    void notebook::define_actions() {
         auto prev_tab_action = core::input_action::create_no_map(
-            "notebook_previous_tab",
-            "Internal",
-            "Move to the previous notebook tab.");
-        prev_tab_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                _index--;
-                if (_index < 0)
-                    _index = 0;
-                return true;
-            });
-        prev_tab_action->bind_keys({core::key_up});
+                "notebook_previous_tab",
+                "Internal",
+                "Move to the previous notebook tab.");
+        if (!prev_tab_action->has_bindings())
+            prev_tab_action->bind_keys({core::key_up});
 
         auto next_tab_action = core::input_action::create_no_map(
-            "notebook_next_tab",
-            "Internal",
-            "Move to the next notebook tab.");
-        next_tab_action->register_handler(
-            action_sink::types::view,
-            [this](const event_data_t& data) {
-                return focused();
-            },
-            [this](const event_data_t& data) {
-                if (_index + 1 < _tabs.size())
-                    _index++;
-                return true;
-            });
-        next_tab_action->bind_keys({core::key_down});
+                "notebook_next_tab",
+                "Internal",
+                "Move to the next notebook tab.");
+        if (!next_tab_action->has_bindings())
+            next_tab_action->bind_keys({core::key_down});
+    }
+
+    void notebook::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("notebook_previous_tab"),
+                [this](const event_data_t& data) {
+                    _index--;
+                    if (_index < 0)
+                        _index = 0;
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("notebook_next_tab"),
+                [this](const event_data_t& data) {
+                    if (_index + 1 < _tabs.size())
+                        _index++;
+                    return true;
+                });
+    }
+
+    void notebook::on_initialize() {
+        define_actions();
+        bind_events();
     }
 
     int notebook::active_tab() const {

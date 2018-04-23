@@ -70,6 +70,8 @@ namespace ryu::core {
     private:
         void bind_events();
 
+        void define_actions();
+
     private:
         core::caret _caret;
         core::document _document;

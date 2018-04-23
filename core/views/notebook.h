@@ -46,6 +46,11 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
+        void bind_events();
+
+        void define_actions();
+
+    private:
         int _index = 0;
         std::vector<std::string> _tabs;
     };

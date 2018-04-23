@@ -112,6 +112,10 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
+        void bind_events();
+
+        void define_actions();
+
         void calculate_visible_and_max_rows();
 
         palette_entry adjust_color(palette_entry entry);

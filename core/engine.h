@@ -18,6 +18,7 @@
 #include "state_stack.h"
 #include "font_family.h"
 #include "preferences.h"
+#include "input_action_provider.h"
 
 namespace ryu::core {
 
@@ -98,6 +99,8 @@ namespace ryu::core {
     private:
         void bind_events();
 
+        void define_actions();
+
     private:
         // ADD: core::preferences* _prefs pointer to engine
         bool _quit = false;
@@ -112,6 +115,7 @@ namespace ryu::core {
         const core::font_t* _font = nullptr;
         hardware::machine* _machine = nullptr;
         core::font_family* _font_family = nullptr;
+        core::input_action_provider _action_provider {};
     };
 
 };

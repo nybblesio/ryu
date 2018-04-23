@@ -17,36 +17,36 @@ namespace ryu::ide::source_editor {
     controller::controller(const std::string& name) : ryu::core::state(name) {
     }
 
-    void controller::bind_events() {
+    void controller::define_actions() {
         auto leave_action = core::input_action::create_no_map(
-            "source_editor_leave",
-            "Internal",
-            "Close the source editor and return to previous state.");
-        leave_action->register_handler(
-            core::action_sink::controller,
-            [this](const core::event_data_t& data) {
-                return is_focused();
-            },
-            [this](const core::event_data_t& data) {
-                end_state();
-                return true;
-            });
-        leave_action->bind_keys({core::key_escape});
+                "source_editor_leave",
+                "Internal",
+                "Close the source editor and return to previous state.");
+        if (!leave_action->has_bindings())
+            leave_action->bind_keys({core::key_escape});
 
         auto command_bar_action = core::input_action::create_no_map(
-            "source_editor_command_bar",
-            "Internal",
-            "Activate the command bar.");
-        command_bar_action->register_handler(
-            core::action_sink::controller,
-            [this](const core::event_data_t& data) {
-                return is_focused();
-            },
-            [this](const core::event_data_t& data) {
-                _layout_panel->focus(_command_line.get());
-                return true;
-            });
-        command_bar_action->bind_keys({core::mod_ctrl, core::key_space});
+                "source_editor_command_bar",
+                "Internal",
+                "Activate the command bar.");
+        if (!command_bar_action->has_bindings())
+            command_bar_action->bind_keys({core::mod_ctrl, core::key_space});
+    }
+
+    void controller::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("source_editor_leave"),
+                [this](const core::event_data_t& data) {
+                    end_state();
+                    return true;
+                });
+
+        action_provider().register_handler(
+                core::input_action::find_by_name("source_editor_command_bar"),
+                [this](const core::event_data_t& data) {
+                    _layout_panel->focus(_command_line.get());
+                    return true;
+                });
     }
 
     void controller::on_deactivate() {
@@ -54,6 +54,7 @@ namespace ryu::ide::source_editor {
     }
 
     void controller::on_initialize() {
+        define_actions();
         bind_events();
 
         _header = core::view_factory::create_state_header(
@@ -180,9 +181,6 @@ namespace ryu::ide::source_editor {
         _layout_panel->focus(_editor.get());
     }
 
-    void controller::on_update(uint32_t dt) {
-    }
-
     void controller::on_draw(core::renderer& surface) {
         _layout_panel->draw(surface);
     }
@@ -211,6 +209,10 @@ namespace ryu::ide::source_editor {
         }
 
         _layout_panel->visible(true);
+    }
+
+    void controller::on_update(uint32_t dt, core::pending_event_list& events) {
+        _layout_panel->update(dt, events);
     }
 
 }

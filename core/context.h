@@ -17,6 +17,7 @@
 #include "palette.h"
 #include "renderer.h"
 #include "state_stack.h"
+#include "input_action_provider.h"
 
 namespace ryu::core {
 
@@ -31,6 +32,7 @@ namespace ryu::core {
 
         void update(
                 uint32_t dt,
+                pending_event_list& pending_events,
                 core::renderer& renderer);
 
         void resize();
@@ -129,6 +131,8 @@ namespace ryu::core {
     protected:
         virtual void on_draw(core::renderer& surface);
 
+        core::input_action_provider& action_provider();
+
         virtual bool on_initialize(core::result& result);
 
     private:
@@ -143,6 +147,7 @@ namespace ryu::core {
         core::engine* _engine = nullptr;
         const core::font_t* _font = nullptr;
         core::font_family* _family = nullptr;
+        core::input_action_provider _action_provider;
         std::unique_ptr<core::environment> _environment;
     };
 

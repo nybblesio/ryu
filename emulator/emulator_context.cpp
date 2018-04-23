@@ -19,14 +19,19 @@ namespace ryu::emulator {
                                                                   _emulator_state("machine-emulator") {
     }
 
-    void emulator_context::bind_events() {
+    void emulator_context::define_actions() {
         auto toggle_context = core::input_action::create(
-            "toggle_emulator_context",
-            "Emulator",
-            "Collapse, expand, and split the Emulator context window.");
-        toggle_context->register_handler(
-            core::action_sink::context,
-            core::action_sink::default_filter,
+                "toggle_emulator_context",
+                "Emulator",
+                "Collapse, expand, and split the Emulator context window.");
+        if (!toggle_context->has_bindings()) {
+            toggle_context->bind_keys({core::mod_alt, core::key_f2});
+        }
+    }
+
+    void emulator_context::bind_events() {
+        action_provider().register_handler(
+            core::input_action::find_by_name("toggle_emulator_context"),
             [this](const core::event_data_t& data) {
                 auto ide_context = dynamic_cast<ide::ide_context*>(engine()->find_context("ide"));
                 switch (_size) {
@@ -44,9 +49,6 @@ namespace ryu::emulator {
                 }
                 return true;
             });
-        if (!toggle_context->has_bindings()) {
-            toggle_context->bind_keys({core::mod_alt, core::key_f2});
-        }
     }
 
     void emulator_context::configure_states() {
@@ -117,6 +119,7 @@ namespace ryu::emulator {
     }
 
     bool emulator_context::on_initialize(core::result& result) {
+        define_actions();
         bind_events();
         configure_states();
         configure_palette();

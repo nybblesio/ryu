@@ -201,6 +201,20 @@ namespace ryu::core {
         uint8_t line_spacing = 0;
     };
 
+    struct once_value_t {
+        bool show = true;
+        void add_once_column(
+                data_table_row_t& row,
+                const std::string& value) {
+            if (show) {
+                row.columns.push_back(value);
+                show = false;
+            } else {
+                row.columns.emplace_back("");
+            }
+        }
+    };
+
     // --------------------
     // environment parameters
     // --------------------

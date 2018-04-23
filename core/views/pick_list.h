@@ -58,6 +58,8 @@ namespace ryu::core {
     private:
         void bind_events();
 
+        void define_actions();
+
     private:
         int _row = 0;
         int _length = 32;

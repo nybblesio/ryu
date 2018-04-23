@@ -25,55 +25,74 @@ namespace ryu::ide::machine_editor {
     controller::controller(const std::string& name) : core::state(name) {
     }
 
-    void controller::bind_events() {
+    void controller::define_actions() {
         auto leave_action = core::input_action::create_no_map(
-            "machine_editor_leave",
-            "Internal",
-            "Close the machine editor and return to previous state.");
-        leave_action->register_handler(
-            core::action_sink::controller,
-            core::action_sink::default_filter,
-            [this](const core::event_data_t& data) {
-                end_state();
-                return true;
-            });
-        leave_action->bind_keys({core::key_escape});
+                "machine_editor_leave",
+                "Internal",
+                "Close the machine editor and return to previous state.");
+        if (!leave_action->has_bindings())
+            leave_action->bind_keys({core::key_escape});
 
         auto add_action = core::input_action::create_no_map(
-            "machine_editor_add",
-            "Internal",
-            "Add a new component to the machine and open the editor.");
-        add_action->register_handler(
-            core::action_sink::controller,
-            core::action_sink::default_filter,
-            [](const core::event_data_t& data) {
-                return true;
-            });
-        add_action->bind_keys({core::key_f1});
+                "machine_editor_add",
+                "Internal",
+                "Add a new component to the machine and open the editor.");
+        if (!add_action->has_bindings())
+            add_action->bind_keys({core::key_f1});
+
+        auto edit_action = core::input_action::create_no_map(
+                "machine_editor_edit",
+                "Internal",
+                "Edit the selected component.");
+        if (!edit_action->has_bindings())
+            edit_action->bind_keys({core::key_return});
 
         auto map_action = core::input_action::create_no_map(
-            "machine_editor_map",
-            "Internal",
-            "Show the memory map of this machine.");
-        map_action->register_handler(
-            core::action_sink::controller,
-            core::action_sink::default_filter,
-            [](const core::event_data_t& data) {
-                return true;
-            });
-        map_action->bind_keys({core::key_f2});
+                "machine_editor_map",
+                "Internal",
+                "Show the memory map of this machine.");
+        if (!map_action->has_bindings())
+            map_action->bind_keys({core::key_f2});
 
         auto delete_action = core::input_action::create_no_map(
-            "machine_editor_delete",
-            "Internal",
-            "Remove the selected component from this machine.");
-        delete_action->register_handler(
-            core::action_sink::controller,
-            core::action_sink::default_filter,
-            [](const core::event_data_t& data) {
-                return true;
-            });
-        delete_action->bind_keys({core::key_delete});
+                "machine_editor_delete",
+                "Internal",
+                "Remove the selected component from this machine.");
+        if (!delete_action->has_bindings())
+            delete_action->bind_keys({core::key_delete});
+    }
+
+    void controller::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_leave"),
+                [this](const core::event_data_t& data) {
+                    end_state();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_add"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_map"),
+                [](const core::event_data_t& data) {
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_edit"),
+                [this](const core::event_data_t& data) {
+                    if (!_component_pick_list->focused())
+                        return false;
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("machine_editor_delete"),
+                [this](const core::event_data_t& data) {
+                    if (!_component_pick_list->focused())
+                        return false;
+                    return true;
+                });
     }
 
     void controller::create_views() {
@@ -90,6 +109,33 @@ namespace ryu::ide::machine_editor {
         create_top_panel();
         create_button_panel();
         create_component_pick_list();
+
+        _name_textbox->next_view(_address_space_textbox.get());
+        _name_textbox->prev_view(_map_button.get());
+
+        _address_space_textbox->next_view(_display_pick_list.get());
+        _address_space_textbox->prev_view(_name_textbox.get());
+
+        _display_pick_list->next_view(_description_text_editor.get());
+        _display_pick_list->prev_view(_address_space_textbox.get());
+
+        _description_text_editor->next_view(_component_pick_list.get());
+        _description_text_editor->prev_view(_display_pick_list.get());
+
+        _add_button->next_view(_edit_button.get());
+        _add_button->prev_view(_component_pick_list.get());
+
+        _edit_button->next_view(_delete_button.get());
+        _edit_button->prev_view(_add_button.get());
+
+        _delete_button->next_view(_map_button.get());
+        _delete_button->prev_view(_edit_button.get());
+
+        _map_button->next_view(_name_textbox.get());
+        _map_button->prev_view(_delete_button.get());
+
+        _component_pick_list->next_view(_add_button.get());
+        _component_pick_list->prev_view(_description_text_editor.get());
 
         _layout_panel = core::view_factory::create_dock_layout_panel(
             this,
@@ -142,6 +188,7 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_initialize() {
+        define_actions();
         bind_events();
         create_views();
 
@@ -184,9 +231,6 @@ namespace ryu::ide::machine_editor {
         _name_textbox->width(32);
         _name_textbox->length(32);
         _name_textbox->enabled(true);
-        _name_textbox->on_tab([&]() -> const core::view* {
-            return _address_space_textbox.get();
-        });
         _name_textbox->on_key_down([&](int key_code) {
             return true;
         });
@@ -212,9 +256,6 @@ namespace ryu::ide::machine_editor {
         _address_space_textbox->width(8);
         _address_space_textbox->length(8);
         _address_space_textbox->enabled(true);
-        _address_space_textbox->on_tab([&]() -> const core::view* {
-            return _display_pick_list.get();
-        });
         _address_space_textbox->on_key_down([](int key_code) {
             return isxdigit(key_code);
         });
@@ -241,10 +282,6 @@ namespace ryu::ide::machine_editor {
             display_options,
             core::dock::styles::left,
             {20, 0, 0, 0});
-        _display_pick_list->on_tab([&]() -> const core::view* {
-            //return _component_pick_list.get();
-            return _description_text_editor.get();
-        });
 
         auto row_margins = core::padding {
             _metrics.left_padding,
@@ -281,6 +318,7 @@ namespace ryu::ide::machine_editor {
             ide::colors::fill_color,
             64,
             80);
+        _description_text_editor->tab_stop(true);
         _description_text_editor->page_size(6, 60);
         _description_text_editor->caret_color(ide::colors::caret);
         _description_text_editor->selection_color(ide::colors::selection);
@@ -316,9 +354,6 @@ namespace ryu::ide::machine_editor {
             core::dock::styles::left,
             {5, 5, 5, 5});
         _add_button->width(230);
-        _add_button->on_tab([&]() -> const core::view* {
-            return _edit_button.get();
-        });
 
         _edit_button = core::view_factory::create_button(
             this,
@@ -329,9 +364,6 @@ namespace ryu::ide::machine_editor {
             core::dock::styles::left,
             {5, 5, 5, 5});
         _edit_button->width(230);
-        _edit_button->on_tab([&]() -> const core::view* {
-            return _delete_button.get();
-        });
 
         _delete_button = core::view_factory::create_button(
             this,
@@ -342,9 +374,6 @@ namespace ryu::ide::machine_editor {
             core::dock::styles::left,
             {5, 5, 5, 5});
         _delete_button->width(230);
-        _delete_button->on_tab([&]() -> const core::view* {
-            return _map_button.get();
-        });
 
         _map_button = core::view_factory::create_button(
             this,
@@ -355,9 +384,6 @@ namespace ryu::ide::machine_editor {
             core::dock::styles::right,
             {5, 5, 5, 5});
         _map_button->width(230);
-        _map_button->on_tab([&]() -> const core::view* {
-            return _name_textbox.get();
-        });
 
         auto button_panel_margin = core::padding {
             _metrics.left_padding,
@@ -376,9 +402,6 @@ namespace ryu::ide::machine_editor {
         _button_panel->add_child(_edit_button.get());
         _button_panel->add_child(_delete_button.get());
         _button_panel->add_child(_map_button.get());
-    }
-
-    void controller::on_update(uint32_t dt) {
     }
 
     hardware::machine* controller::machine() {
@@ -420,9 +443,6 @@ namespace ryu::ide::machine_editor {
             core::column_pick_list::halign_t::left);
         _component_pick_list->on_activated([](uint32_t row) {
         });
-        _component_pick_list->on_tab([&]() -> const core::view* {
-            return _add_button.get();
-        });
         _component_pick_list->on_selection_changed([](int32_t row) {
         });
     }
@@ -454,6 +474,10 @@ namespace ryu::ide::machine_editor {
             machine(mach);
             context()->resize();
         }
+    }
+
+    void controller::on_update(uint32_t dt, core::pending_event_list& events) {
+        _layout_panel->update(dt, events);
     }
 
 }

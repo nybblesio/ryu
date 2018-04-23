@@ -89,8 +89,6 @@ namespace ryu::core {
 
         void caret_newline();
 
-        void update(uint32_t dt);
-
         void caret_color(uint8_t color);
 
         void caret_up(uint8_t rows = 1);
@@ -123,10 +121,14 @@ namespace ryu::core {
 
         void on_resize(const core::rect& context_bounds) override;
 
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
+
     private:
         friend struct output_queue_entry_t;
 
         void bind_events();
+
+        void define_actions();
 
         bool transition_to(
                 const std::string& name,
@@ -158,8 +160,6 @@ namespace ryu::core {
         std::string find_command_string();
 
         void select_color(const std::string& name);
-
-        bool input_event_filter(const core::event_data_t& data);
 
         void scale_columns(std::vector<data_table_column_t>& columns);
 

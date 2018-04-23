@@ -64,6 +64,9 @@ namespace ryu::core {
         update_virtual_position();
     }
 
+    void memory_editor::define_actions() {
+    }
+
     void memory_editor::bind_events() {
     }
 
@@ -82,6 +85,9 @@ namespace ryu::core {
     }
 
     void memory_editor::on_initialize() {
+        tab_stop(true);
+
+        define_actions();
         bind_events();
 
         _metrics.line_number_width = font_face()->measure_chars(5) + 2;

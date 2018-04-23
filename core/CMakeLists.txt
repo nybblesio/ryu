@@ -52,6 +52,7 @@ add_library(
         views/state_header.cpp views/state_header.h
         views/memory_editor.cpp views/memory_editor.h
         views/loadable_view.cpp views/loadable_view.h
+        input_action_provider.cpp input_action_provider.h
         views/document_footer.cpp views/document_footer.h
         views/column_pick_list.cpp views/column_pick_list.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h

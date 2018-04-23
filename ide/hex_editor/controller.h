@@ -29,13 +29,13 @@ namespace ryu::ide::hex_editor {
 
         void on_deactivate() override;
 
-        void on_update(uint32_t dt) override;
-
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
 
         void on_activate(const core::parameter_dict& params) override;
+
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
 
     private:
         void bind_events();
@@ -48,6 +48,8 @@ namespace ryu::ide::hex_editor {
         core::memory_editor_unique_ptr _editor;
         core::dock_layout_panel_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
+
+        void define_actions();
     };
 
 };

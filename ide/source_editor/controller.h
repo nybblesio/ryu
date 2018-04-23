@@ -31,16 +31,18 @@ namespace ryu::ide::source_editor {
 
         void on_deactivate() override;
 
-        void on_update(uint32_t dt) override;
-
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
 
         void on_activate(const core::parameter_dict& params) override;
 
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
+
     private:
         void bind_events();
+
+        void define_actions();
 
     private:
         metrics_t _metrics;

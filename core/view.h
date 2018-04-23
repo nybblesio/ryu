@@ -22,6 +22,7 @@
 #include "padding.h"
 #include "renderer.h"
 #include "font_family.h"
+#include "input_action_provider.h"
 
 namespace ryu::core {
 
@@ -46,10 +47,6 @@ namespace ryu::core {
 
     class view {
     public:
-        // XXX: get rid of this callback and replace it with two fields
-        //      on view: view* _next_view and view* _prev_view
-        using on_tab_callable = std::function<const core::view* ()>;
-
         struct sizing {
             enum types {
                 content,
@@ -143,6 +140,10 @@ namespace ryu::core {
 
         void add_child(core::view* child);
 
+        void next_view(core::view* value);
+
+        void prev_view(core::view* value);
+
         view::sizing::types sizing() const;
 
         virtual core::rect client_bounds();
@@ -171,15 +172,13 @@ namespace ryu::core {
 
         void padding(const core::padding& value);
 
-        // XXX: replace this with next_view(view* value) and set _next_view
-        void on_tab(const on_tab_callable& callable);
-        // XXX: add prev_view(view* value) and set _prev_view
-
-        virtual void palette(core::palette* palette);
+        virtual void palette(core::palette* value);
 
         void resize(const core::rect& context_bounds);
 
-        virtual void font_family(core::font_family* font);
+        virtual void font_family(core::font_family* value);
+
+        void update(uint32_t dt, core::pending_event_list& events);
 
     protected:
         view_host* host();
@@ -194,13 +193,21 @@ namespace ryu::core {
 
         void listen_for_on_host_change();
 
+        core::input_action_provider& action_provider();
+
         virtual void on_draw(core::renderer& renderer);
 
         virtual void draw_children(core::renderer& renderer);
 
         virtual void on_resize(const core::rect& context_bounds);
 
+        virtual void on_update(uint32_t dt, core::pending_event_list& events);
+
     private:
+        void bind_events();
+
+        void define_actions();
+
         void on_host_changed(view_host::change_reason_flags flags);
 
     private:
@@ -213,18 +220,16 @@ namespace ryu::core {
         view_list _children {};
         core::padding _margin {};
         core::padding _padding {};
+        core::view* _prev = nullptr;
+        core::view* _next = nullptr;
         core::view* _parent = nullptr;
         types::id _type = types::control;
-
-        // XXX: replace this with view* _next_view
-        on_tab_callable _on_tab_callable;
-
-        // XXX: add view* _prev_view
         core::view_host* _host = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
         uint8_t _font_style = font::styles::normal;
         core::dock::styles _dock = dock::styles::none;
+        core::input_action_provider _action_provider {};
         view::sizing::types _sizing = view::sizing::types::content;
         uint8_t _flags = config::flags::enabled | config::flags::visible;
     };
