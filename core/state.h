@@ -53,6 +53,8 @@ namespace ryu::core {
             return _context;
         }
 
+        void remove_change_listener(uint32_t id);
+
         bool operator< (const state& rhs) const {
             return _id < rhs._id;
         }
@@ -65,7 +67,7 @@ namespace ryu::core {
 
         void activate(const core::parameter_dict& params);
 
-        void on_change(const state_change_callable& callable);
+        uint32_t add_change_listener(const state_change_callable& callable);
 
         void transition_callback(const state_transition_callable& callback);
 
@@ -106,6 +108,6 @@ namespace ryu::core {
         core::context* _context = nullptr;
         state_transition_callable _callback {};
         core::input_action_provider _action_provider;
-        std::vector<state_change_callable> _listeners {};
+        std::map<uint32_t, state_change_callable> _listeners {};
     };
 };

@@ -91,6 +91,10 @@ namespace ryu::core {
     void state::on_resize(const core::rect& bounds) {
     }
 
+    void state::remove_change_listener(uint32_t id) {
+        _listeners.erase(id);
+    }
+
     void state::initialize(const core::rect& bounds) {
         if (!_initialized) {
             on_initialize();
@@ -120,11 +124,13 @@ namespace ryu::core {
 
     void state::raise_change_event(view_host::change_reason_flags reasons) {
         for (const auto& listener : _listeners)
-            listener(reasons);
+            listener.second(reasons);
     }
 
-    void state::on_change(const view_host::state_change_callable& callable) {
-        _listeners.push_back(callable);
+    uint32_t state::add_change_listener(const view_host::state_change_callable& callable) {
+        auto id = id_pool::instance()->allocate();
+        _listeners.insert(std::make_pair(id, callable));
+        return id;
     }
 
     void state::blackboard(const std::string& name, const std::string& value) {

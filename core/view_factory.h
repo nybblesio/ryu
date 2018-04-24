@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <core/views/label.h>
+#include <core/views/panel.h>
 #include <core/views/button.h>
 #include <core/views/console.h>
 #include <core/views/textbox.h>
@@ -127,7 +128,8 @@ namespace ryu::core {
             uint8_t bg_color,
             dock::styles dock_style = dock::styles::fill,
             const padding& margin = {},
-            const padding& padding = {});
+            const padding& padding = {},
+            const core::rect& bounds = {});
 
         static document_footer_unique_ptr create_document_footer(
             core::state* state,
@@ -187,8 +189,20 @@ namespace ryu::core {
             const std::string& name,
             uint8_t fg_color,
             uint8_t bg_color,
+            dock::styles dock_style = dock::styles::fill,
             const padding& margin = {},
-            const padding& padding = {});
+            const padding& padding = {},
+            const core::rect& bounds = {});
+
+        static panel_unique_ptr create_panel(
+            core::state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style = dock::styles::fill,
+            const padding& margin = {},
+            const padding& padding = {},
+            const core::rect& bounds = {});
 
         static dock_layout_panel_unique_ptr create_dock_layout_panel(
             core::state* state,

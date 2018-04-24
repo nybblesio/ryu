@@ -8,14 +8,15 @@ constants:
       string: 4
     types:
       label: 0
-      text-box: 1
-      text-editor: 2
-      pick-list: 3
-      column-pick-list: 4
-      panel: 5
-      dock-panel: 6
-      notebook: 7
-      state-header: 8
+      button: 1
+      text-box: 2
+      text-editor: 3
+      pick-list: 4
+      column-pick-list: 5
+      panel: 6
+      dock-panel: 7
+      notebook: 8
+      state-header: 9
     border:
       none: 0
       solid: 1
@@ -52,9 +53,10 @@ constants:
         bottom: 3
 
   sources:
-    displays: 0
-    components: 1
-    circuits: 2
+    none: 0
+    displays: 1
+    components: 2
+    circuits: 3
 
   ide:
     colors:

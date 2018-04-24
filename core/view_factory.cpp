@@ -331,7 +331,8 @@ namespace ryu::core {
             uint8_t bg_color,
             dock::styles dock_style,
             const padding& margin,
-            const padding& padding) {
+            const padding& padding,
+            const core::rect& bounds) {
         auto host = dynamic_cast<view_host*>(state);
 
         auto view = std::make_unique<core::state_header>(name, host);
@@ -342,7 +343,7 @@ namespace ryu::core {
             fg_color,
             bg_color,
             dock_style,
-            {},
+            bounds,
             margin,
             padding);
         return view;
@@ -377,8 +378,10 @@ namespace ryu::core {
             const std::string& name,
             uint8_t fg_color,
             uint8_t bg_color,
+            dock::styles dock_style,
             const padding& margin,
-            const padding& padding) {
+            const padding& padding,
+            const core::rect& bounds) {
         auto host = dynamic_cast<view_host*>(state);
 
         auto view = std::make_unique<core::column_pick_list>(name, host);
@@ -388,8 +391,8 @@ namespace ryu::core {
             &state->context()->palette(),
             fg_color,
             bg_color,
-            dock::styles::fill,
-            {},
+            dock_style,
+            bounds,
             margin,
             padding);
         return view;
@@ -417,9 +420,43 @@ namespace ryu::core {
                 {},
                 margin,
                 padding);
-        if (view->load(result, path))
+        fs::path view_path = path;
+
+        if (!view_path.is_absolute()) {
+            view_path = state
+                    ->context()
+                    ->prefs()
+                    ->executable_path().append(view_path.string());
+        }
+
+        if (view->load(result, view_path))
             return view;
         return nullptr;
+    }
+
+    panel_unique_ptr view_factory::create_panel(
+            state* state,
+            const std::string& name,
+            uint8_t fg_color,
+            uint8_t bg_color,
+            dock::styles dock_style,
+            const padding& margin,
+            const padding& padding,
+            const core::rect& bounds) {
+        auto host = dynamic_cast<view_host*>(state);
+
+        auto view = std::make_unique<core::panel>(name, host);
+        configure_view(
+                view.get(),
+                state->context()->font_family(),
+                &state->context()->palette(),
+                fg_color,
+                bg_color,
+                dock_style,
+                bounds,
+                margin,
+                padding);
+        return view;
     }
 
 }

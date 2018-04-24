@@ -24,6 +24,7 @@ namespace ryu::core {
     }
 
     view::~view() {
+        _host->remove_change_listener(_host_callback_id);
         core::id_pool::instance()->release(_id);
     }
 
@@ -302,6 +303,16 @@ namespace ryu::core {
         _palette = value;
     }
 
+    void view::focus(const core::view* target) {
+        if (target == nullptr)
+            return;
+
+        for (auto child : _children)
+            child->focus(target);
+
+        inner_focus(target->_id == this->_id);
+    }
+
     const core::font_t* view::font_face() const {
         auto family = font_family();
         if (family == nullptr)
@@ -316,18 +327,11 @@ namespace ryu::core {
     void view::on_draw(core::renderer& renderer) {
     }
 
-    void view::focus(const core::view* target) {
-        if (target == nullptr)
-            return;
-
-        for (auto child : _children)
-            child->focus(target);
-
-        inner_focus(target->_id == this->_id);
-    }
-
     void view::listen_for_on_host_change() {
-        _host->on_change(std::bind(&view::on_host_changed, this, std::placeholders::_1));
+        _host_callback_id = _host->add_change_listener(std::bind(
+                &view::on_host_changed,
+                this,
+                std::placeholders::_1));
     }
 
     core::view* view::get_child_at(size_t index) {

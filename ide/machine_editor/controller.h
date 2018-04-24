@@ -49,41 +49,19 @@ namespace ryu::ide::machine_editor {
     private:
         void bind_events();
 
-        void create_views();
-
         void update_values();
 
         void define_actions();
 
-        void create_top_panel();
-
-        void create_button_panel();
-
-        void create_component_pick_list();
-
     private:
         metrics_t _metrics;
         hardware::machine* _machine;
-        core::label_unique_ptr _name_label;
-        core::button_unique_ptr _map_button;
-        core::button_unique_ptr _add_button;
-        core::button_unique_ptr _edit_button;
-        core::label_unique_ptr _display_label;
-        core::state_header_unique_ptr _header;
-        core::button_unique_ptr _delete_button;
-        core::textbox_unique_ptr _name_textbox;
-        core::label_unique_ptr _address_space_label;
-        core::dock_layout_panel_unique_ptr _top_panel;
-        core::pick_list_unique_ptr _display_pick_list;
-        core::dock_layout_panel_unique_ptr _row1_panel;
-        core::dock_layout_panel_unique_ptr _row2_panel;
-        core::dock_layout_panel_unique_ptr _row3_panel;
-        core::textbox_unique_ptr _address_space_textbox;
-        core::dock_layout_panel_unique_ptr _button_panel;
-        core::dock_layout_panel_unique_ptr _layout_panel;
-        core::dock_layout_panel_unique_ptr _components_panel;
-        core::text_editor_unique_ptr _description_text_editor;
-        core::column_pick_list_unique_ptr _component_pick_list;
+        core::textbox* _name_textbox;
+        core::pick_list* _display_pick_list;
+        core::textbox* _address_space_textbox;
+        core::text_editor* _description_text_editor;
+        core::column_pick_list* _component_pick_list;
+        core::loadable_view_unique_ptr _layout_panel;
     };
 
 };

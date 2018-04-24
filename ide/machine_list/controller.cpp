@@ -78,6 +78,7 @@ namespace ryu::ide::machine_list {
                 "pick-list",
                 ide::colors::info_text,
                 ide::colors::fill_color,
+                core::dock::styles::fill,
                 {_metrics.left_padding, _metrics.right_padding, 5, 15});
         _pick_list->border(core::border::types::solid);
         _pick_list->add_header(

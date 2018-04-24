@@ -28,6 +28,7 @@ Art Asset Requirements
     - after testing this, the issue is that the drop down portion if draw earlier than
       other views and they're overlapping this region.
     - possibly make the drop down part another view that's always sorted last?
+
 - NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
         that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
         dock_layout_panel.

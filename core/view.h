@@ -42,7 +42,9 @@ namespace ryu::core {
 
         virtual bool is_visible() const = 0;
 
-        virtual void on_change(const state_change_callable& callable) = 0;
+        virtual void remove_change_listener(uint32_t id) = 0;
+
+        virtual uint32_t add_change_listener(const state_change_callable& callable) = 0;
     };
 
     class view {
@@ -134,6 +136,18 @@ namespace ryu::core {
 
         uint8_t font_style() const;
 
+        template <typename T>
+        T* find_by_id(uint32_t id) {
+            if (_id == id)
+                return dynamic_cast<T*>(this);
+            for (auto child : _children) {
+                auto found = child->find_by_id<T>(id);
+                if (found != nullptr)
+                    return found;
+            }
+            return nullptr;
+        }
+
         void dock(dock::styles style);
 
         void font_style(uint8_t styles);
@@ -173,6 +187,18 @@ namespace ryu::core {
         void padding(const core::padding& value);
 
         virtual void palette(core::palette* value);
+
+        template <typename T>
+        T* find_by_name(const std::string& name) {
+            if (_name == name)
+                return dynamic_cast<T*>(this);
+            for (view* child : _children) {
+                auto found = child->find_by_name<T>(name);
+                if (found != nullptr)
+                    return found;
+            }
+            return nullptr;
+        }
 
         void resize(const core::rect& context_bounds);
 
@@ -220,6 +246,7 @@ namespace ryu::core {
         view_list _children {};
         core::padding _margin {};
         core::padding _padding {};
+        uint32_t _host_callback_id;
         core::view* _prev = nullptr;
         core::view* _next = nullptr;
         core::view* _parent = nullptr;
