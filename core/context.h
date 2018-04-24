@@ -23,7 +23,6 @@ namespace ryu::core {
 
     class environment;
 
-    // ADD: accessor function that grabs core::preferences* from engine
     class context {
     public:
         explicit context(const std::string& name);
@@ -65,6 +64,10 @@ namespace ryu::core {
 
         core::palette& palette() {
             return _palette;
+        }
+
+        core::preferences* prefs() {
+            return _engine->prefs();
         }
 
         void fg_color(uint8_t index) {

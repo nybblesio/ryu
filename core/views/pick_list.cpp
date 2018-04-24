@@ -42,6 +42,14 @@ namespace ryu::core {
         return false;
     }
 
+    int pick_list::width() const {
+        return _width;
+    }
+
+    int pick_list::height() const {
+        return _height;
+    }
+
     void pick_list::define_actions() {
         auto up_action = core::input_action::create_no_map(
                 "pick_list_up_action",
@@ -122,6 +130,14 @@ namespace ryu::core {
         return false;
     }
 
+    void pick_list::width(int value) {
+        _width = value;
+    }
+
+    void pick_list::height(int value) {
+        _height = value;
+    }
+
     void pick_list::length(int value) {
         _length = value;
         requires_layout();
@@ -186,11 +202,11 @@ namespace ryu::core {
         }
 
         if (focused()) {
-            core::rect box {
-                bounds.left(),
-                bounds.bottom(),
-                bounds.width() + 6,
-                (font_face()->line_height * (_visibile_items + 1))};
+            auto height = _height > 0 ?
+                _height :
+                font_face()->line_height * (_visibile_items + 1);
+            auto width = _width > 0 ? _width : bounds.width();
+            core::rect box {bounds.left(), bounds.bottom(), width + 6, height};
             surface.set_color(fg);
             surface.draw_rect(box);
 

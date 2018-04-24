@@ -46,7 +46,7 @@ namespace ryu::core {
     void text_editor::caret_end() {
         auto end_column = _document.find_line_end();
         caret_home();
-        for (auto i = 0; i < end_column; i++)
+        for (auto i = 0; i < end_column + 1; i++)
             caret_right();
     }
 
@@ -407,7 +407,8 @@ namespace ryu::core {
         action_provider().register_handler(
                 core::input_action::find_by_name("text_editor_delete"),
                 [this](const core::event_data_t& data) {
-                    if (_document.virtual_column() == 0) {
+                    if (_document.virtual_column() == 0
+                    &&  _document.is_line_empty()) {
                         caret_up();
                         _document.delete_line();
                     } else {

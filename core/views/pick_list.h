@@ -22,9 +22,17 @@ namespace ryu::core {
 
         ~pick_list() override;
 
+        int width() const;
+
+        int height() const;
+
         int length() const;
 
         std::string value();
+
+        void width(int value);
+
+        void height(int value);
 
         option_list& options();
 
@@ -62,6 +70,8 @@ namespace ryu::core {
 
     private:
         int _row = 0;
+        int _width = 0;
+        int _height = 0;
         int _length = 32;
         std::string _value;
         int _selection = 0;

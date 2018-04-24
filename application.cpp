@@ -54,7 +54,7 @@ namespace ryu {
         }
 
         _log->info("engine initialize");
-        if (!_engine.initialize(result, _prefs)) {
+        if (!_engine.initialize(result, &_prefs)) {
             _log->error("engine initialization failed:");
             show_result_messages(result);
             return false;

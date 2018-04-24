@@ -28,15 +28,9 @@ Art Asset Requirements
     - after testing this, the issue is that the drop down portion if draw earlier than
       other views and they're overlapping this region.
     - possibly make the drop down part another view that's always sorted last?
-- NEW: pick_list --- add field and get/set for height of drop down portion
-        make the field an actual textbox and search list when user types
-        page up and page down key bindings
 - NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
         that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
         dock_layout_panel.
-
-- NEW: change engine::initialize to accept core::preferences* instead of const& and store in field
-        add core::preferences* preferences() accessor to context.h
 
 - NEW: mouse event bindings ----
     which button?
@@ -166,8 +160,6 @@ Art Asset Requirements
 
 - implement console::select
 
-- rework text_editor::on_draw to use new document
-
 - implement text_editor::cut
 
 - implement text_editor::copy
@@ -176,9 +168,9 @@ Art Asset Requirements
 
 - implement text_editor::select
 
-- rework text_box::on_draw to use new document
+- rework text_editor::on_draw to use new document
 
-- fix text_box event handling
+- rework text_box::on_draw to use new document
 
 DONE
 ----
@@ -282,3 +274,9 @@ DONE
 - FIX: see notes in input_action.h to fix
 - NEW: clproj should clear symbol table
 - NEW: add "clear symbols" command
+- NEW: pick_list --- add field and get/set for height of drop down portion
+        make the field an actual textbox and search list when user types
+        page up and page down key bindings
+- NEW: change engine::initialize to accept core::preferences* instead of const& and store in field
+        add core::preferences* preferences() accessor to context.h
+- fix text_box event handling

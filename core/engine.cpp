@@ -62,7 +62,9 @@ namespace ryu::core {
 
     bool engine::initialize(
             core::result& result,
-            const core::preferences& prefs) {
+            core::preferences* prefs) {
+        _prefs = prefs;
+
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
             result.add_message(
                     "R002",
@@ -72,7 +74,7 @@ namespace ryu::core {
             return false;
         }
 
-        _window_rect = prefs.window_position();
+        _window_rect = _prefs->window_position();
         _window = SDL_CreateWindow(
                 "Ryu: The Arcade Construction Kit",
                 _window_rect.left(),
@@ -113,9 +115,9 @@ namespace ryu::core {
         }
 
         font_book::instance()->renderer(_renderer);
-        font_book::instance()->load(result, prefs.font_book_path());
+        font_book::instance()->load(result, _prefs->font_book_path());
 
-        const auto& engine_font = prefs.engine_font();
+        const auto& engine_font = _prefs->engine_font();
         auto family = font_book::instance()->find_font_family(
                 engine_font.first,
                 engine_font.second);
@@ -254,6 +256,10 @@ namespace ryu::core {
 
     core::rect engine::bounds() const {
         return {0, 0, _window_rect.width(), _window_rect.height()};
+    }
+
+    core::preferences* engine::prefs() {
+        return _prefs;
     }
 
     bool engine::run(core::result& result) {

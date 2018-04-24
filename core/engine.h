@@ -39,10 +39,9 @@ namespace ryu::core {
                 core::result& result,
                 core::preferences& prefs);
 
-        //  CHANGE: const& prefs to core::preferences* and store in _prefs field
         bool initialize(
                 result& result,
-                const core::preferences& prefs);
+                core::preferences* prefs);
 
         void blackboard(
                 const std::string& name,
@@ -59,6 +58,8 @@ namespace ryu::core {
         void raise_resize();
 
         core::rect bounds() const;
+
+        core::preferences* prefs();
 
         bool run(core::result& result);
 
@@ -102,7 +103,6 @@ namespace ryu::core {
         void define_actions();
 
     private:
-        // ADD: core::preferences* _prefs pointer to engine
         bool _quit = false;
         core::rect _window_rect;
         int _focused_context = -1;
@@ -112,6 +112,7 @@ namespace ryu::core {
         SDL_Window* _window = nullptr;
         resize_callable _resize_callback;
         SDL_Renderer* _renderer = nullptr;
+        core::preferences* _prefs = nullptr;
         const core::font_t* _font = nullptr;
         hardware::machine* _machine = nullptr;
         core::font_family* _font_family = nullptr;
