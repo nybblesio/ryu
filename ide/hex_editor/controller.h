@@ -29,6 +29,8 @@ namespace ryu::ide::hex_editor {
 
         void on_deactivate() override;
 
+        bool on_load(core::result& result) override;
+
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;

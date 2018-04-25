@@ -37,8 +37,13 @@ namespace ryu::core {
         void resize();
 
         void add_state(
+                core::result& result,
                 core::state* state,
                 const state_transition_callable& callback);
+
+        void add_state(
+                core::result& result,
+                core::state* state);
 
         void blackboard(
                 const std::string& name,
@@ -99,8 +104,6 @@ namespace ryu::core {
         void engine(core::engine* value) {
             _engine = value;
         }
-
-        void add_state(core::state* state);
 
         void draw(core::renderer& renderer);
 

@@ -56,8 +56,9 @@ namespace ryu::ide {
                 });
     }
 
-    void ide_context::configure_states() {
+    void ide_context::configure_states(core::result& result) {
         add_state(
+            result,
             &_console_state,
             [this](const std::string& command, const core::parameter_dict& params) {
                 if (command == "edit_source") {
@@ -75,8 +76,9 @@ namespace ryu::ide {
                 }
                 return false;
             });
-        add_state(&_hex_editor_state);
+        add_state(result, &_hex_editor_state);
         add_state(
+            result,
             &_machine_list_state,
             [this](const std::string& command, const core::parameter_dict& params) {
                 if (command == "edit_machine") {
@@ -85,8 +87,8 @@ namespace ryu::ide {
                 }
                 return false;
             });
-        add_state(&_source_editor_state);
-        add_state(&_machine_editor_state);
+        add_state(result, &_source_editor_state);
+        add_state(result, &_machine_editor_state);
         push_state(_console_state.id(), {});
     }
 
@@ -239,7 +241,7 @@ namespace ryu::ide {
     bool ide_context::on_initialize(core::result& result) {
         define_actions();
         bind_events();
-        configure_states();
+        configure_states(result);
         configure_palette();
         parent_resize(bounds());
         return true;

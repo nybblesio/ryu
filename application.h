@@ -35,10 +35,7 @@ namespace ryu {
 
         bool configure_emulator(core::result& result);
 
-        void show_result_messages(core::result& result);
-
     private:
-        logger* _log = nullptr;
         core::engine _engine {};
         fs::path _executable_path;
         core::preferences _prefs {};

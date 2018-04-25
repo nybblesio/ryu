@@ -1,6 +1,7 @@
 !include assets/views/view-constants.yaml
 
 name: 'hex-editor'
+focus: 'memory-editor'
 margins: &MARGINS [10, 10, 5, 5]
 views:
   - name: 'header-panel'

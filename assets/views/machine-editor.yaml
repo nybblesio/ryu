@@ -1,6 +1,7 @@
 !include assets/views/view-constants.yaml
 
 name: 'machine-editor'
+focus: 'name-textbox'
 views:
   - name: 'header-panel'
     type: view.types.state-header

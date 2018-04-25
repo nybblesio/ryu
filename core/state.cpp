@@ -25,6 +25,15 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
+    void state::initialize(
+            core::result& result,
+            const core::rect& bounds) {
+        if (!_initialized) {
+            on_initialize();
+            _initialized = load(result);
+        }
+    }
+
     void state::update(
             uint32_t dt,
             pending_event_list& events) {
@@ -73,6 +82,10 @@ namespace ryu::core {
         return _initialized;
     }
 
+    bool state::load(core::result& result) {
+        return on_load(result);
+    }
+
     void state::context(core::context* value) {
         _context = value;
     }
@@ -93,13 +106,6 @@ namespace ryu::core {
 
     void state::remove_change_listener(uint32_t id) {
         _listeners.erase(id);
-    }
-
-    void state::initialize(const core::rect& bounds) {
-        if (!_initialized) {
-            on_initialize();
-            _initialized = true;
-        }
     }
 
     core::input_action_provider& state::action_provider() {

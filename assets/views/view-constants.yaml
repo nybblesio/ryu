@@ -17,6 +17,12 @@ constants:
       dock-panel: 7
       notebook: 8
       state-header: 9
+      check-box: 10
+      caret: 11
+      console: 12
+      document-footer: 13
+      loadable-view: 14
+      memory-editor: 15
     border:
       none: 0
       solid: 1
@@ -33,13 +39,6 @@ constants:
       content: 0
       fixed: 1
       parent: 2
-    flags:
-      none:     0b00000000
-      visible:  0b00000001
-      enabled:  0b00000010
-      tab_stop: 0b00000100
-      focused:  0b00001000
-      layout:   0b00010000
     alignments:
       horizontal:
         none: 0

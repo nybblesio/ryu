@@ -51,6 +51,12 @@ namespace ryu::core {
             dock_panel,
             notebook,
             state_header,
+            check_box,
+            caret,
+            console,
+            document_footer,
+            loadable_view,
+            memory_editor,
             none
         };
 

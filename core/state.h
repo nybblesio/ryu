@@ -27,6 +27,10 @@ namespace ryu::core {
                 uint32_t dt,
                 pending_event_list& events);
 
+        void initialize(
+                core::result& result,
+                const core::rect& bounds);
+
         void deactivate();
 
         uint32_t id() const;
@@ -38,6 +42,8 @@ namespace ryu::core {
         bool render_parent() const;
 
         bool is_initialized() const;
+
+        bool load(core::result& result);
 
         bool is_focused() const override;
 
@@ -59,10 +65,12 @@ namespace ryu::core {
             return _id < rhs._id;
         }
 
-        void initialize(const core::rect& bounds);
-
         bool operator== (const state& rhs) const {
             return _id == rhs._id;
+        }
+
+        inline core::preferences* prefs() override {
+            return _context->prefs();
         }
 
         void activate(const core::parameter_dict& params);
@@ -83,6 +91,8 @@ namespace ryu::core {
         virtual void on_deactivate();
 
         virtual void on_initialize() = 0;
+
+        virtual bool on_load(core::result& result) = 0;
 
         void erase_blackboard(const std::string& name);
 

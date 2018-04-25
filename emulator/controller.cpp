@@ -24,6 +24,10 @@ namespace ryu::emulator {
     void controller::on_initialize() {
     }
 
+    bool controller::on_load(core::result& result) {
+        return true;
+    }
+
     void controller::on_draw(core::renderer& surface) {
     }
 

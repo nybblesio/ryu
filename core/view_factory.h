@@ -128,6 +128,7 @@ namespace ryu::core {
             uint8_t bg_color,
             core::result& result,
             const boost::filesystem::path& path,
+            dock::styles dock_style = dock::styles::fill,
             const padding& margin = {},
             const padding& padding = {});
     };

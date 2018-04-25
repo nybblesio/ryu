@@ -62,6 +62,13 @@ namespace ryu::core {
                 if (prev_view != nullptr)
                     tab_stop.view->prev_view(prev_view);
             }
+
+            std::string focus_view_name;
+            if (get_optional_scalar(root["focus"], focus_view_name)) {
+                auto view = find_by_name<core::view>(focus_view_name);
+                if (view != nullptr)
+                    focus(view);
+            }
         } else {
             result.add_message(
                 "P003",
@@ -89,6 +96,7 @@ namespace ryu::core {
 
             std::string name;
             std::string value;
+            bool visible = true;
             bool enabled = false;
             bool tab_stop = false;
             core::rect bounds = {};
@@ -111,6 +119,7 @@ namespace ryu::core {
             get_optional_scalar(view_node["name"], name);
             get_optional_scalar(view_node["value"], value);
             get_optional_scalar(view_node["enabled"], enabled);
+            get_optional_scalar(view_node["visible"], visible);
             get_optional_scalar(view_node["tab-stop"], tab_stop);
             get_optional_scalar(view_node["next"], next_view_name);
             get_optional_scalar(view_node["prev"], prev_view_name);
@@ -213,12 +222,20 @@ namespace ryu::core {
                 }
                 case types::text_editor: {
                     uint32_t document_columns = 40, document_rows = 25;
-                    auto document_rows_result = get_node_from_path(view_node, "document.rows");
+                    auto document_rows_result = get_node_from_path(
+                            view_node,
+                            "document.rows");
                     if (document_rows_result.found)
-                        get_optional_scalar(document_rows_result.node, document_rows);
-                    auto document_columns_result = get_node_from_path(view_node, "document.columns");
+                        get_optional_scalar(
+                                document_rows_result.node,
+                                document_rows);
+                    auto document_columns_result = get_node_from_path(
+                            view_node,
+                            "document.columns");
                     if (document_columns_result.found)
-                        get_optional_scalar(document_columns_result.node, document_columns);
+                        get_optional_scalar(
+                                document_columns_result.node,
+                                document_columns);
 
                     auto text_editor = core::view_factory::create_text_editor(
                             host(),
@@ -235,12 +252,20 @@ namespace ryu::core {
                             bounds);
 
                     uint32_t page_columns = 40, page_rows = 25;
-                    auto page_rows_result = get_node_from_path(view_node, "page-size.rows");
+                    auto page_rows_result = get_node_from_path(
+                            view_node,
+                            "page-size.rows");
                     if (page_rows_result.found)
-                        get_optional_scalar(page_rows_result.node, page_rows);
-                    auto page_columns_result = get_node_from_path(view_node, "page-size.columns");
+                        get_optional_scalar(
+                                page_rows_result.node,
+                                page_rows);
+                    auto page_columns_result = get_node_from_path(
+                            view_node,
+                            "page-size.columns");
                     if (page_columns_result.found)
-                        get_optional_scalar(page_columns_result.node, page_columns);
+                        get_optional_scalar(
+                                page_columns_result.node,
+                                page_columns);
 
                     text_editor->page_size(
                             static_cast<uint8_t>(page_rows),
@@ -366,7 +391,8 @@ namespace ryu::core {
                             value,
                             dock_style,
                             margins,
-                            pads);
+                            pads,
+                            bounds);
                     panel->border(border_type);
                     current_view = std::move(panel);
                     break;
@@ -382,7 +408,8 @@ namespace ryu::core {
                             value,
                             dock_style,
                             margins,
-                            pads);
+                            pads,
+                            bounds);
                     panel->border(border_type);
                     current_view = std::move(panel);
                     break;
@@ -398,8 +425,12 @@ namespace ryu::core {
                             value,
                             dock_style,
                             margins,
-                            pads);
-                    // XXX: finish this off later
+                            pads,
+                            bounds);
+                    // XXX: there are some issues with the way notebook works:
+                    //          each tab is a child view of the notebook, this presents an ordering problem
+                    //          should we just treat each sub-view of the notebook as a tab and the
+                    //          value is the title of the tab?
                     current_view = std::move(notebook);
                     break;
                 }
@@ -426,6 +457,106 @@ namespace ryu::core {
                     current_view = std::move(state_header);
                     break;
                 }
+                case types::check_box: {
+                    current_view = core::view_factory::create_view<core::checkbox>(
+                            host(),
+                            name,
+                            font_family(),
+                            palette(),
+                            fg_color,
+                            bg_color,
+                            value,
+                            dock_style,
+                            margins,
+                            pads,
+                            bounds);
+                    break;
+                }
+                case types::caret: {
+                    auto caret = core::view_factory::create_view<core::caret>(
+                            host(),
+                            name,
+                            font_family(),
+                            palette(),
+                            fg_color,
+                            bg_color,
+                            value,
+                            dock_style,
+                            margins,
+                            pads,
+                            bounds);
+                    // XXX: need to support page size here?
+                    current_view = std::move(caret);
+                    break;
+                }
+                case types::console: {
+                    auto console = core::view_factory::create_view<core::console>(
+                            host(),
+                            name,
+                            font_family(),
+                            palette(),
+                            fg_color,
+                            bg_color,
+                            value,
+                            dock_style,
+                            margins,
+                            pads,
+                            bounds);
+                    current_view = std::move(console);
+                    break;
+                }
+                case types::document_footer: {
+                    auto document_footer = core::view_factory::create_view<core::document_footer>(
+                            host(),
+                            name,
+                            font_family(),
+                            palette(),
+                            fg_color,
+                            bg_color,
+                            value,
+                            dock_style,
+                            margins,
+                            pads,
+                            bounds);
+                    current_view = std::move(document_footer);
+                    break;
+                }
+                case types::loadable_view: {
+                    std::string view_path;
+                    if (!get_optional_scalar(view_node["path"], view_path))
+                        return false;
+                    auto loadable = core::view_factory::create_loadable_view(
+                            host(),
+                            name,
+                            font_family(),
+                            palette(),
+                            host()->prefs(),
+                            fg_color,
+                            bg_color,
+                            result,
+                            view_path,
+                            dock_style,
+                            margins,
+                            pads);
+                    current_view = std::move(loadable);
+                    break;
+                }
+                case types::memory_editor: {
+                    auto memory_editor = core::view_factory::create_view<core::memory_editor>(
+                            host(),
+                            name,
+                            font_family(),
+                            palette(),
+                            fg_color,
+                            bg_color,
+                            value,
+                            dock_style,
+                            margins,
+                            pads,
+                            bounds);
+                    current_view = std::move(memory_editor);
+                    break;
+                }
                 default: {
                     result.add_message(
                             "P099",
@@ -445,6 +576,7 @@ namespace ryu::core {
 
             current_view->sizing(sizing);
             current_view->enabled(enabled);
+            current_view->visible(visible);
             parent_view->add_child(current_view.get());
 
             auto sub_views_node = view_node["views"];

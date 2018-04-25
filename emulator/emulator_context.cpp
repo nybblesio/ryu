@@ -51,11 +51,6 @@ namespace ryu::emulator {
             });
     }
 
-    void emulator_context::configure_states() {
-        add_state(&_emulator_state);
-        push_state(_emulator_state.id(), {});
-    }
-
     void emulator_context::configure_palette() {
         auto& pal = palette();
 
@@ -121,7 +116,7 @@ namespace ryu::emulator {
     bool emulator_context::on_initialize(core::result& result) {
         define_actions();
         bind_events();
-        configure_states();
+        configure_states(result);
         configure_palette();
         parent_resize(bounds());
         return true;
@@ -129,6 +124,11 @@ namespace ryu::emulator {
 
     core::context_window::sizes emulator_context::size() const {
         return _size;
+    }
+
+    void emulator_context::configure_states(core::result& result) {
+        add_state(result, &_emulator_state);
+        push_state(_emulator_state.id(), {});
     }
 
     void emulator_context::size(core::context_window::sizes value) {

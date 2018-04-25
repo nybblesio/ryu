@@ -134,36 +134,32 @@ namespace ryu::ide::machine_editor {
     void controller::on_initialize() {
         define_actions();
         bind_events();
-
-        core::result result;
-        _layout_panel = core::view_factory::create_loadable_view(
-            this,
-            "loadable-view",
-            context()->font_family(),
-            &context()->palette(),
-            context()->prefs(),
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            result,
-            "assets/views/machine-editor.yaml");
-
-        for (auto& message : result.messages()) {
-            s_log->error(fmt::format("{}: {}", message.code(), message.message()));
-            if (!message.details().empty())
-                s_log->error(message.details());
-        }
-
-        _name_textbox = _layout_panel->find_by_name<core::textbox>("name-textbox");
-        _component_pick_list = _layout_panel->find_by_name<core::column_pick_list>("pick-list");
-        _display_pick_list = _layout_panel->find_by_name<core::pick_list>("display-pick-list");
-        _address_space_textbox = _layout_panel->find_by_name<core::textbox>("address-space-textbox");
-        _description_text_editor = _layout_panel->find_by_name<core::text_editor>("description-text-editor");
-
-        _layout_panel->focus(_name_textbox);
     }
 
     hardware::machine* controller::machine() {
         return _machine;
+    }
+
+    bool controller::on_load(core::result& result) {
+        _layout_panel = core::view_factory::create_loadable_view(
+                this,
+                "loadable-view",
+                context()->font_family(),
+                &context()->palette(),
+                context()->prefs(),
+                ide::colors::info_text,
+                ide::colors::fill_color,
+                result,
+                "assets/views/machine-editor.yaml");
+        s_log->result(result);
+
+        _name_textbox = _layout_panel->find_by_name<core::textbox>("name-textbox");
+        _display_pick_list = _layout_panel->find_by_name<core::pick_list>("display-pick-list");
+        _component_pick_list = _layout_panel->find_by_name<core::column_pick_list>("pick-list");
+        _address_space_textbox = _layout_panel->find_by_name<core::textbox>("address-space-textbox");
+        _description_text_editor = _layout_panel->find_by_name<core::text_editor>("description-text-editor");
+
+        return !result.is_failed();
     }
 
     void controller::on_draw(core::renderer& surface) {

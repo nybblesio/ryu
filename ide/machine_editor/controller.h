@@ -25,18 +25,11 @@ namespace ryu::ide::machine_editor {
         void machine(hardware::machine* value);
 
     protected:
-        struct metrics_t {
-            const int row_panel_margin = 15;
-            const int button_panel_margin_top = 5;
-            const int button_panel_margin_bottom = 5;
-
-            const int left_padding = 10;
-            const int right_padding = 50;
-        };
-
         void on_deactivate() override;
 
         void on_initialize() override;
+
+        bool on_load(core::result& result) override;
 
         void on_draw(core::renderer& surface) override;
 
@@ -54,7 +47,6 @@ namespace ryu::ide::machine_editor {
         void define_actions();
 
     private:
-        metrics_t _metrics;
         hardware::machine* _machine;
         core::textbox* _name_textbox;
         core::pick_list* _display_pick_list;

@@ -47,6 +47,11 @@ namespace ryu::ide::console_editor {
     }
 
     void controller::on_initialize() {
+    }
+
+    bool controller::on_load(core::result& result) {
+        // XXX: not really meant for hot reloading, need to swap in loadable_view
+
         _header = core::view_factory::create_view<core::state_header>(
                 this,
                 "header-panel",
@@ -112,6 +117,8 @@ namespace ryu::ide::console_editor {
         _layout_panel->add_child(_header.get());
         _layout_panel->add_child(_footer.get());
         _layout_panel->add_child(_console.get());
+
+        return !result.is_failed();
     }
 
     void controller::on_draw(core::renderer& surface) {
@@ -137,4 +144,5 @@ namespace ryu::ide::console_editor {
     void controller::on_update(uint32_t dt, core::pending_event_list& events) {
         _layout_panel->update(dt, events);
     }
+
 }

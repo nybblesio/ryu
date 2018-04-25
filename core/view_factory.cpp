@@ -112,6 +112,7 @@ namespace ryu::core {
             uint8_t bg_color,
             core::result& result,
             const boost::filesystem::path& path,
+            dock::styles dock_style,
             const padding& margin,
             const padding& padding) {
         auto view = create_view<loadable_view>(
@@ -122,7 +123,7 @@ namespace ryu::core {
                 fg_color,
                 bg_color,
                 "",
-                dock::styles::fill,
+                dock_style,
                 margin,
                 padding,
                 {});

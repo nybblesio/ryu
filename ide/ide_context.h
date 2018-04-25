@@ -41,9 +41,9 @@ namespace ryu::ide {
 
         void define_actions();
 
-        void configure_states();
-
         void configure_palette();
+
+        void configure_states(core::result& result);
 
     private:
         hex_editor::controller _hex_editor_state;

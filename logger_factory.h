@@ -13,6 +13,7 @@
 #include <any>
 #include <string>
 #include <vector>
+#include <core/result.h>
 
 namespace ryu {
 
@@ -39,6 +40,8 @@ namespace ryu {
         void error(const std::string& msg);
 
         void fatal(const std::string& msg);
+
+        void result(const core::result& result);
 
     private:
         friend class logger_factory;

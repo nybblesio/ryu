@@ -92,4 +92,20 @@ namespace ryu {
         category->fatal(msg);
     }
 
+    void logger::result(const core::result& result) {
+        auto category = std::any_cast<log4cpp::Category*>(_category);
+
+        for (auto& message : result.messages()) {
+            if (message.is_error()) {
+                category->error(fmt::format("{}: {}", message.code(), message.message()));
+                if (!message.details().empty())
+                    category->error(message.details());
+            } else {
+                category->warn(fmt::format("{}: {}", message.code(), message.message()));
+                if (!message.details().empty())
+                    category->warn(message.details());
+            }
+        }
+    }
+
 }

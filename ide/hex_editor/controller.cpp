@@ -58,51 +58,55 @@ namespace ryu::ide::hex_editor {
     void controller::on_initialize() {
         define_actions();
         bind_events();
+    }
+
+    bool controller::on_load(core::result& result) {
+        // XXX: not meant for hot reloading, swap in loadable_view
 
         _header = core::view_factory::create_view<core::state_header>(
-            this,
-            "header-panel",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "",
-            core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 5, 0});
+                this,
+                "header-panel",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::info_text,
+                ide::colors::fill_color,
+                "",
+                core::dock::styles::top,
+                {_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header->state("memory editor");
         _header->state_color(ide::colors::white);
 
         _caret_status = core::view_factory::create_view<core::label>(
-            this,
-            "caret-status-label",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::info_text,
-            ide::colors::fill_color);
+                this,
+                "caret-status-label",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::info_text,
+                ide::colors::fill_color);
 
         _footer = core::view_factory::create_view<core::dock_layout_panel>(
-            this,
-            "footer-panel",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "",
-            core::dock::styles::bottom,
-            {_metrics.left_padding, _metrics.right_padding, 5, 5});
+                this,
+                "footer-panel",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::info_text,
+                ide::colors::fill_color,
+                "",
+                core::dock::styles::bottom,
+                {_metrics.left_padding, _metrics.right_padding, 5, 5});
         _footer->bounds().height(context()->font_face()->line_height);
         _footer->add_child(_caret_status.get());
 
         _command_line = core::view_factory::create_view<core::textbox>(
-            this,
-            "command-line-textbox",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::text,
-            ide::colors::fill_color,
-            "",
-            core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
+                this,
+                "command-line-textbox",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::text,
+                ide::colors::fill_color,
+                "",
+                core::dock::styles::top,
+                {_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
         _command_line->width(60);
         _command_line->length(255);
         _command_line->sizing(core::view::sizing::types::parent);
@@ -154,12 +158,12 @@ namespace ryu::ide::hex_editor {
         });
 
         _editor = core::view_factory::create_view<core::memory_editor>(
-            this,
-            "memory-editor",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::text,
-            ide::colors::fill_color);
+                this,
+                "memory-editor",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::text,
+                ide::colors::fill_color);
         _editor->caret_color(ide::colors::caret);
         _editor->selection_color(ide::colors::selection);
         _editor->address_color(ide::colors::info_text);
@@ -172,16 +176,18 @@ namespace ryu::ide::hex_editor {
         });
 
         _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
-            this,
-            "layout-panel",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::info_text,
-            ide::colors::fill_color);
+                this,
+                "layout-panel",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::info_text,
+                ide::colors::fill_color);
         _layout_panel->add_child(_header.get());
         _layout_panel->add_child(_command_line.get());
         _layout_panel->add_child(_footer.get());
         _layout_panel->add_child(_editor.get());
+
+        return !result.is_failed();
     }
 
     void controller::on_draw(core::renderer& surface) {

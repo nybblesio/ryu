@@ -50,13 +50,23 @@ namespace ryu::core {
     }
 
     void context::add_state(
+            core::result& result,
             core::state* state,
             const state_transition_callable& callback) {
         if (state == nullptr)
             return;
         state->context(this);
-        _stack.add_state(state, callback);
-        state->initialize(bounds());
+        if (callback != nullptr)
+            _stack.add_state(state, callback);
+        else
+            _stack.add_state(state);
+        state->initialize(result, bounds());
+    }
+
+    void context::add_state(
+            core::result& result,
+            core::state* state) {
+        add_state(result, state, nullptr);
     }
 
     void context::push_state(
@@ -98,14 +108,6 @@ namespace ryu::core {
 
     core::font_family* context::font_family() {
         return _family;
-    }
-
-    void context::add_state(core::state* state) {
-        if (state == nullptr)
-            return;
-        state->context(this);
-        _stack.add_state(state);
-        state->initialize(bounds());
     }
 
     void context::draw(core::renderer& renderer) {

@@ -18,59 +18,53 @@
 
 namespace ryu {
 
-    void application::show_result_messages(core::result& result) {
-        for (auto& message : result.messages()) {
-            _log->error(fmt::format("{}: {}", message.code(), message.message()));
-            if (!message.details().empty())
-                _log->error(message.details());
-        }
-    }
+    static logger* s_log;
 
     bool application::init(int argc, char** argv) {
         core::result result;
 
         logger_factory::instance()->initialize("ryu.properties");
-        _log = logger_factory::instance()->create("ryu", logger::level::info);
-        _log->info("init start.");
+        s_log = logger_factory::instance()->create("ryu", logger::level::info);
+        s_log->info("init start.");
 
         _executable_path = boost::filesystem::system_complete(argv[0]);
         _executable_path = _executable_path.parent_path();
         _prefs.executable_path(_executable_path);
 
-        _log->info(fmt::format("executable path: {}", _executable_path.string()));
+        s_log->info(fmt::format("executable path: {}", _executable_path.string()));
 
-        _log->info("preferences load");
+        s_log->info("preferences load");
         if (!_prefs.load(result)) {
-            _log->error("unable to load preferences");
-            show_result_messages(result);
+            s_log->error("unable to load preferences");
+            s_log->result(result);
             return false;
         }
 
-        _log->info("hardware initialize");
+        s_log->info("hardware initialize");
         if (!hardware::initialize(result, _executable_path)) {
-            _log->error("hardware initialization failed:");
-            show_result_messages(result);
+            s_log->error("hardware initialization failed:");
+            s_log->result(result);
             return false;
         }
 
-        _log->info("engine initialize");
+        s_log->info("engine initialize");
         if (!_engine.initialize(result, &_prefs)) {
-            _log->error("engine initialization failed:");
-            show_result_messages(result);
+            s_log->error("engine initialization failed:");
+            s_log->result(result);
             return false;
         }
 
-        _log->info("ide configuration");
+        s_log->info("ide configuration");
         if (!configure_ide(result)) {
-            _log->error("ide configuration failed:");
-            show_result_messages(result);
+            s_log->error("ide configuration failed:");
+            s_log->result(result);
             return false;
         }
 
-        _log->info("emulator configuration");
+        s_log->info("emulator configuration");
         if (!configure_emulator(result)) {
-            _log->error("emulator initialization failed:");
-            show_result_messages(result);
+            s_log->error("emulator initialization failed:");
+            s_log->result(result);
             return false;
         }
 
@@ -85,18 +79,17 @@ namespace ryu {
     bool application::shutdown() {
         core::result result;
 
-        _log->info("shutdown start");
-
+        s_log->info("shutdown start");
 
         _prefs.default_path(boost::filesystem::current_path());
-        _log->info(fmt::format(
+        s_log->info(fmt::format(
             "preferences default path: {}",
             _prefs.default_path().string()));
 
-        _log->info("engine shutdown");
+        s_log->info("engine shutdown");
         if (!_engine.shutdown(result, _prefs)) {
-            _log->error("engine shutdown failed:");
-            show_result_messages(result);
+            s_log->error("engine shutdown failed:");
+            s_log->result(result);
             return false;
         }
 
@@ -117,10 +110,10 @@ namespace ryu {
         _prefs.ide_window_size(_ide_context.size());
         _prefs.emulator_window_size(_emulator_context.size());
 
-        _log->info("save preferences");
+        s_log->info("save preferences");
         if (!_prefs.save(result)) {
-            _log->error("preferences save failed:");
-            show_result_messages(result);
+            s_log->error("preferences save failed:");
+            s_log->result(result);
             return false;
         }
 
@@ -135,10 +128,10 @@ namespace ryu {
 
         core::result result;
 
-        _log->info("engine run");
+        s_log->info("engine run");
         if (!_engine.run(result)) {
-            _log->error("engine run failed:");
-            show_result_messages(result);
+            s_log->error("engine run failed:");
+            s_log->result(result);
             return 1;
         }
 

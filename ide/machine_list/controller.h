@@ -29,6 +29,8 @@ namespace ryu::ide::machine_list {
 
         void on_deactivate() override;
 
+        bool on_load(core::result& result) override;
+
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
@@ -39,8 +41,6 @@ namespace ryu::ide::machine_list {
 
     private:
         void bind_events();
-
-        void create_views();
 
         void define_actions();
 

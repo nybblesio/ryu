@@ -24,6 +24,8 @@ namespace ryu::emulator {
     protected:
         void on_initialize() override;
 
+        bool on_load(core::result& result) override;
+
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;

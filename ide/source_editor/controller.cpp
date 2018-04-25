@@ -56,31 +56,35 @@ namespace ryu::ide::source_editor {
     void controller::on_initialize() {
         define_actions();
         bind_events();
+    }
+
+    bool controller::on_load(core::result& result) {
+        // XXX: not meant for hot reloading, swap in loadable_view
 
         _header = core::view_factory::create_view<core::state_header>(
-            this,
-            "header-panel",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::info_text,
-            ide::colors::fill_color,
-            "",
-            core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding, 5, 0});
+                this,
+                "header-panel",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::info_text,
+                ide::colors::fill_color,
+                "",
+                core::dock::styles::top,
+                {_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header->state("source editor");
         _header->state_color(ide::colors::white);
         _header->custom("| file: (none)");
 
         _command_line = core::view_factory::create_view<core::textbox>(
-            this,
-            "command-line-textbox",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::text,
-            ide::colors::fill_color,
-            "",
-            core::dock::styles::top,
-            {_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
+                this,
+                "command-line-textbox",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::text,
+                ide::colors::fill_color,
+                "",
+                core::dock::styles::top,
+                {_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
         _command_line->width(60);
         _command_line->length(255);
         _command_line->sizing(core::view::sizing::types::parent);
@@ -91,11 +95,11 @@ namespace ryu::ide::source_editor {
                     return true;
                 }
                 case core::ascii_return: {
-                    core::result result;
+                    core::result command_result;
                     auto input = _command_line->value();
-                    auto success = context()->environment()->execute(result, input);
+                    auto success = context()->environment()->execute(command_result, input);
                     if (success) {
-                        auto command_action_msg = result.find_code("command_action");
+                        auto command_action_msg = command_result.find_code("command_action");
                         if (command_action_msg == nullptr)
                             return success;
 
@@ -104,18 +108,18 @@ namespace ryu::ide::source_editor {
                         if (command == "quit") {
                             context()->engine()->quit();
                         } else if (command == "save_project_file") {
-                            _editor->save(result);
+                            _editor->save(command_result);
                         } else if (command == "read_text") {
                             auto name = command_action_msg->get_parameter<std::string>("name");
                             if (!name.empty()) {
-                                _editor->load(result, name);
+                                _editor->load(command_result, name);
                             } else {
                                 // XXX: handle errors
                             }
                         } else if (command == "write_text") {
                             auto name = command_action_msg->get_parameter<std::string>("name");
                             if (!name.empty()) {
-                                _editor->save(result, name);
+                                _editor->save(command_result, name);
                             } else {
                                 // XXX: handle errors
                             }
@@ -159,14 +163,14 @@ namespace ryu::ide::source_editor {
                 {_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _editor = core::view_factory::create_text_editor(
-            this,
-            "text-editor",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::text,
-            ide::colors::fill_color,
-            rows,
-            columns);
+                this,
+                "text-editor",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::text,
+                ide::colors::fill_color,
+                rows,
+                columns);
         _editor->caret_color(ide::colors::caret);
         _editor->selection_color(ide::colors::selection);
         _editor->line_number_color(ide::colors::info_text);
@@ -180,17 +184,19 @@ namespace ryu::ide::source_editor {
         });
 
         _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
-            this,
-            "layout-panel",
-            context()->font_family(),
-            &context()->palette(),
-            ide::colors::info_text,
-            ide::colors::fill_color);
+                this,
+                "layout-panel",
+                context()->font_family(),
+                &context()->palette(),
+                ide::colors::info_text,
+                ide::colors::fill_color);
         _layout_panel->add_child(_header.get());
         _layout_panel->add_child(_command_line.get());
         _layout_panel->add_child(_footer.get());
         _layout_panel->add_child(_editor.get());
         _layout_panel->focus(_editor.get());
+
+        return !result.is_failed();
     }
 
     void controller::on_draw(core::renderer& surface) {

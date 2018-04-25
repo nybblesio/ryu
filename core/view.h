@@ -42,6 +42,8 @@ namespace ryu::core {
 
         virtual bool is_visible() const = 0;
 
+        virtual core::preferences* prefs() = 0;
+
         virtual void remove_change_listener(uint32_t id) = 0;
 
         virtual uint32_t add_change_listener(const state_change_callable& callable) = 0;

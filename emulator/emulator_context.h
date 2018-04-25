@@ -36,9 +36,9 @@ namespace ryu::emulator {
 
         void define_actions();
 
-        void configure_states();
-
         void configure_palette();
+
+        void configure_states(core::result& result);
 
     private:
         controller _emulator_state;
