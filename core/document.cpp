@@ -145,6 +145,7 @@ namespace ryu::core {
 
     void document::delete_line() {
         _lines.delete_at(virtual_row());
+        raise_document_changed();
     }
 
     bool document::scroll_down() {
@@ -181,7 +182,9 @@ namespace ryu::core {
     }
 
     line_t* document::insert_line() {
-        return _lines.insert_at(virtual_row());
+        auto line = _lines.insert_at(virtual_row());
+        raise_document_changed();
+        return line;
     }
 
     attr_t& document::default_attr() {
@@ -204,6 +207,7 @@ namespace ryu::core {
         if (line == nullptr)
             return;
         line->clear_selection();
+        raise_document_changed();
     }
 
     uint16_t document::columns() const {
@@ -278,6 +282,7 @@ namespace ryu::core {
             line = insert_line();
         }
         line->put(virtual_column(), value);
+        raise_document_changed();
     }
 
     void document::path(const fs::path& value) {
@@ -289,6 +294,7 @@ namespace ryu::core {
         if (line == nullptr)
             return;
         line->shift_left(virtual_column(), times);
+        raise_document_changed();
     }
 
     void document::shift_line_right(uint16_t times) {
@@ -296,6 +302,7 @@ namespace ryu::core {
         if (line == nullptr)
             return;
         line->shift_right(virtual_column(), times);
+        raise_document_changed();
     }
 
     void document::page_size(uint8_t height, uint8_t width) {

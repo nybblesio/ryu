@@ -28,8 +28,6 @@ namespace ryu::core {
 
         int length() const;
 
-        std::string value();
-
         void width(int value);
 
         void height(int value);
@@ -45,8 +43,6 @@ namespace ryu::core {
         void visible_items(int value);
 
         void border(border::types value);
-
-        void value(const std::string& value);
 
     protected:
         bool move_up();
@@ -73,7 +69,6 @@ namespace ryu::core {
         int _width = 0;
         int _height = 0;
         int _length = 32;
-        std::string _value;
         int _selection = 0;
         option_list _options {};
         int _visibile_items = 10;

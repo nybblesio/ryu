@@ -49,70 +49,40 @@ namespace ryu::core {
 
     class view_factory {
     public:
-        static caret_unique_ptr create_caret(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const core::rect& bounds = {});
-
-        static label_unique_ptr create_label(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const std::string& value = "",
-            core::dock::styles dock_style = dock::styles::left,
-            const core::padding& margin = {},
-            const core::padding& padding = {},
-            const core::rect& bounds = {});
-
-        static button_unique_ptr create_button(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const std::string& value = "",
-            core::dock::styles dock_style = dock::styles::left,
-            const core::padding& margin = {},
-            const core::padding& padding = {},
-            const core::rect& bounds = {});
-
-        static textbox_unique_ptr create_textbox(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const std::string& value = "",
-            core::dock::styles dock_style = dock::styles::left,
-            const core::padding& margin = {},
-            const core::padding& padding = {},
-            const core::rect& bounds = {});
-
-        static notebook_unique_ptr create_notebook(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            core::dock::styles dock_style = dock::styles::fill,
-            const core::padding& margin = {},
-            const core::padding& padding = {},
-            const core::rect& bounds = {});
-
-        static checkbox_unique_ptr create_checkbox(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            bool value = false,
-            dock::styles dock_style = dock::styles::left,
-            const padding& margin = {},
-            const padding& padding = {},
-            const core::rect& bounds = {});
+        template <
+                typename T,
+                typename = std::enable_if<std::is_base_of<core::view, T>::value>>
+        static std::unique_ptr<T> create_view(
+                core::view_host* host,
+                const std::string& name,
+                core::font_family* family,
+                core::palette* pal,
+                uint8_t fg_color,
+                uint8_t bg_color,
+                const std::string& value = "",
+                core::dock::styles dock_style = dock::styles::fill,
+                const core::padding& margin = {},
+                const core::padding& padding = {},
+                const core::rect& bounds = {}) {
+            auto view = std::make_unique<T>(name, host);
+            view->font_family(family);
+            view->palette(pal);
+            view->dock(dock_style);
+            view->fg_color(fg_color);
+            view->bg_color(bg_color);
+            view->margin(margin);
+            view->padding(padding);
+            view->bounds(bounds);
+            view->value(value);
+            view->initialize();
+            return view;
+        }
 
         static pick_list_unique_ptr create_pick_list(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
             uint8_t fg_color,
             uint8_t bg_color,
             const option_list& options = {},
@@ -121,28 +91,11 @@ namespace ryu::core {
             const padding& padding = {},
             const core::rect& bounds = {});
 
-        static state_header_unique_ptr create_state_header(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {},
-            const core::rect& bounds = {});
-
-        static document_footer_unique_ptr create_document_footer(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {});
-
         static console_unique_ptr create_console(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
             uint8_t fg_color,
             uint8_t bg_color,
             const core::code_to_attr_dict& mapper,
@@ -152,8 +105,10 @@ namespace ryu::core {
             const core::rect& bounds = {});
 
         static text_editor_unique_ptr create_text_editor(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
             uint8_t fg_color,
             uint8_t bg_color,
             uint32_t rows,
@@ -163,68 +118,18 @@ namespace ryu::core {
             const padding& padding = {},
             const core::rect& bounds = {});
 
-        static memory_editor_unique_ptr create_memory_editor(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {},
-            const core::rect& bounds = {});
-
         static loadable_view_unique_ptr create_loadable_view(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
+            core::preferences* prefs,
             uint8_t fg_color,
             uint8_t bg_color,
             core::result& result,
             const boost::filesystem::path& path,
             const padding& margin = {},
             const padding& padding = {});
-
-
-        static column_pick_list_unique_ptr create_column_pick_list(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {},
-            const core::rect& bounds = {});
-
-        static panel_unique_ptr create_panel(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {},
-            const core::rect& bounds = {});
-
-        static dock_layout_panel_unique_ptr create_dock_layout_panel(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style = dock::styles::fill,
-            const padding& margin = {},
-            const padding& padding = {});
-
-    private:
-        static void configure_view(
-            core::view* view,
-            core::font_family* font_family,
-            core::palette* palette,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            core::dock::styles dock_style,
-            const core::rect& bounds,
-            const core::padding& margin,
-            const core::padding& padding);
     };
 
 };
-

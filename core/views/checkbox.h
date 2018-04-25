@@ -22,21 +22,15 @@ namespace ryu::core {
 
         ~checkbox() override;
 
-        bool value() const;
-
-        void value(bool flag);
-
     protected:
         void on_initialize() override;
 
         void on_draw(core::renderer& surface) override;
 
     private:
-        bool _value;
+        void bind_events();
 
         void define_actions();
-
-        void bind_events();
     };
 
 };

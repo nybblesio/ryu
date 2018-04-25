@@ -23,17 +23,17 @@ namespace ryu::core {
 
         ~label() override;
 
-        std::string value() const;
-
         border::types border() const;
 
         void border(border::types value);
 
-        void value(const std::string& value);
+        std::string value() const override;
 
         alignment::vertical::types valign() const;
 
         alignment::horizontal::types halign() const;
+
+        void value(const std::string& text) override;
 
         void valign(alignment::vertical::types value);
 
@@ -48,7 +48,6 @@ namespace ryu::core {
         void update_content_bounds();
 
     private:
-        std::string _value;
         border::types _border = border::types::none;
         alignment::vertical::types _valign = alignment::vertical::middle;
         alignment::horizontal::types _halign = alignment::horizontal::none;

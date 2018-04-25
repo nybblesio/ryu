@@ -32,13 +32,9 @@ namespace ryu::core {
 
         void height(int value);
 
-        std::string value() const;
-
         border::types border() const;
 
         void border(border::types value);
-
-        void value(const std::string& value);
 
         alignment::vertical::types valign() const;
 
@@ -64,7 +60,6 @@ namespace ryu::core {
     private:
         int _width = 120;
         int _height = 50;
-        std::string _value;
         on_clicked_callable _on_clicked {};
         border::types _border = border::types::solid;
         alignment::vertical::types _valign = alignment::vertical::middle;

@@ -89,7 +89,7 @@ namespace ryu::core {
         action_provider().register_handler(
                 core::input_action::find_by_name("pick_list_select_action"),
                 [this](const event_data_t& data) {
-                    _value = _options[_row + _selection];
+                    value(_options[_row + _selection]);
                     return true;
                 });
     }
@@ -105,10 +105,6 @@ namespace ryu::core {
 
     int pick_list::length() const {
         return _length;
-    }
-
-    std::string pick_list::value() {
-        return _value;
     }
 
     void pick_list::on_initialize() {
@@ -163,10 +159,6 @@ namespace ryu::core {
         _border = value;
     }
 
-    void pick_list::value(const std::string& value) {
-        _value = value;
-    }
-
     void pick_list::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
 
@@ -186,7 +178,7 @@ namespace ryu::core {
 
         surface.draw_text_aligned(
             font_face(),
-            _value,
+            value(),
             bounds,
             alignment::horizontal::left,
             alignment::vertical::middle);

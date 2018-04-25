@@ -59,35 +59,45 @@ namespace ryu::ide::hex_editor {
         define_actions();
         bind_events();
 
-        _header = core::view_factory::create_state_header(
+        _header = core::view_factory::create_view<core::state_header>(
             this,
             "header-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color,
+            "",
             core::dock::styles::top,
             {_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header->state("memory editor");
         _header->state_color(ide::colors::white);
 
-        _caret_status = core::view_factory::create_label(
+        _caret_status = core::view_factory::create_view<core::label>(
             this,
             "caret-status-label",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color);
 
-        _footer = core::view_factory::create_dock_layout_panel(
+        _footer = core::view_factory::create_view<core::dock_layout_panel>(
             this,
             "footer-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color,
+            "",
             core::dock::styles::bottom,
             {_metrics.left_padding, _metrics.right_padding, 5, 5});
         _footer->bounds().height(context()->font_face()->line_height);
         _footer->add_child(_caret_status.get());
 
-        _command_line = core::view_factory::create_textbox(
+        _command_line = core::view_factory::create_view<core::textbox>(
             this,
             "command-line-textbox",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::text,
             ide::colors::fill_color,
             "",
@@ -143,9 +153,11 @@ namespace ryu::ide::hex_editor {
             return true;
         });
 
-        _editor = core::view_factory::create_memory_editor(
+        _editor = core::view_factory::create_view<core::memory_editor>(
             this,
             "memory-editor",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::text,
             ide::colors::fill_color);
         _editor->caret_color(ide::colors::caret);
@@ -159,9 +171,11 @@ namespace ryu::ide::hex_editor {
                     caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
         });
 
-        _layout_panel = core::view_factory::create_dock_layout_panel(
+        _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
             this,
             "layout-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color);
         _layout_panel->add_child(_header.get());

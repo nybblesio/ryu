@@ -130,13 +130,13 @@ namespace ryu::core {
             if (bg_result.found)
                 get_constant(result, root, bg_result.node, bg_color);
 
-            // XXX: fix the signatures on the view_factory after this is done
-            //          so we don't have to cast back and forth
             switch (type) {
                 case types::label: {
-                    current_view = core::view_factory::create_label(
-                            dynamic_cast<core::state*>(host()),
+                    current_view = core::view_factory::create_view<core::label>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
                             value,
@@ -147,9 +147,11 @@ namespace ryu::core {
                     break;
                 }
                 case types::button: {
-                    auto button = core::view_factory::create_button(
-                            dynamic_cast<core::state*>(host()),
+                    auto button = core::view_factory::create_view<core::button>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
                             value,
@@ -167,9 +169,11 @@ namespace ryu::core {
                     break;
                 }
                 case types::text_box: {
-                    auto text_box = core::view_factory::create_textbox(
-                            dynamic_cast<core::state*>(host()),
+                    auto text_box = core::view_factory::create_view<core::textbox>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
                             value,
@@ -182,13 +186,13 @@ namespace ryu::core {
                     auto size_result = get_node_from_path(view_node, "size.width");
                     if (size_result.found) {
                         if (get_optional_scalar(size_result.node, size))
-                            text_box->width(size);
+                            text_box->width(static_cast<uint8_t>(size));
                     }
 
                     size_result = get_node_from_path(view_node, "size.length");
                     if (size_result.found) {
                         if (get_optional_scalar(size_result.node, size))
-                            text_box->length(size);
+                            text_box->length(static_cast<uint16_t>(size));
                     }
 
                     input_filters filter = input_filters::none;
@@ -217,8 +221,10 @@ namespace ryu::core {
                         get_optional_scalar(document_columns_result.node, document_columns);
 
                     auto text_editor = core::view_factory::create_text_editor(
-                            dynamic_cast<core::state*>(host()),
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
                             document_rows,
@@ -276,8 +282,10 @@ namespace ryu::core {
                         }
                     }
                     auto pick_list = core::view_factory::create_pick_list(
-                            dynamic_cast<core::state*>(host()),
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
                             options,
@@ -289,11 +297,14 @@ namespace ryu::core {
                     break;
                 }
                 case types::column_pick_list: {
-                    auto column_pick_list = core::view_factory::create_column_pick_list(
-                            dynamic_cast<core::state*>(host()),
+                    auto column_pick_list = core::view_factory::create_view<core::column_pick_list>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
+                            value,
                             dock_style,
                             margins,
                             pads,
@@ -345,11 +356,14 @@ namespace ryu::core {
                     break;
                 }
                 case types::panel: {
-                    auto panel = core::view_factory::create_panel(
-                            dynamic_cast<core::state*>(host()),
+                    auto panel = core::view_factory::create_view<core::panel>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
+                            value,
                             dock_style,
                             margins,
                             pads);
@@ -358,11 +372,14 @@ namespace ryu::core {
                     break;
                 }
                 case types::dock_panel: {
-                    auto panel = core::view_factory::create_dock_layout_panel(
-                            dynamic_cast<core::state*>(host()),
+                    auto panel = core::view_factory::create_view<core::dock_layout_panel>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
+                            value,
                             dock_style,
                             margins,
                             pads);
@@ -371,11 +388,14 @@ namespace ryu::core {
                     break;
                 }
                 case types::notebook: {
-                    auto notebook = core::view_factory::create_notebook(
-                            dynamic_cast<core::state*>(host()),
+                    auto notebook = core::view_factory::create_view<core::notebook>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
+                            value,
                             dock_style,
                             margins,
                             pads);
@@ -389,11 +409,14 @@ namespace ryu::core {
                     get_optional_scalar(view_node["state"], state_name);
                     if (!get_constant(result, root, view_node["state_color"], state_color))
                         return false;
-                    auto state_header = core::view_factory::create_state_header(
-                            dynamic_cast<core::state*>(host()),
+                    auto state_header = core::view_factory::create_view<core::state_header>(
+                            host(),
                             name,
+                            font_family(),
+                            palette(),
                             fg_color,
                             bg_color,
+                            value,
                             dock_style,
                             margins,
                             pads,

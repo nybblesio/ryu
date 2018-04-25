@@ -22,7 +22,7 @@ namespace ryu::core {
     document_footer::~document_footer() {
     }
 
-    void document_footer::value(
+    void document_footer::update_state(
             const core::caret& caret,
             const core::document& document) {
         _document_status.value(fmt::format(

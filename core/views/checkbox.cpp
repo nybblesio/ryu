@@ -22,14 +22,6 @@ namespace ryu::core {
     checkbox::~checkbox() {
     }
 
-    bool checkbox::value() const {
-        return _value;
-    }
-
-    void checkbox::value(bool flag) {
-        _value = flag;
-    }
-
     void checkbox::define_actions() {
         auto activate_action = core::input_action::create_no_map(
                 "checkbox_activate",
@@ -43,7 +35,10 @@ namespace ryu::core {
         action_provider().register_handler(
                 core::input_action::find_by_name("checkbox_activate"),
                 [this](const event_data_t& data) {
-                    _value = !_value;
+                    if (value() == "true")
+                        value("false");
+                    else
+                        value("true");
                     return true;
                 });
     }
@@ -52,6 +47,7 @@ namespace ryu::core {
         tab_stop(true);
         define_actions();
         bind_events();
+        value("false");
     }
 
     void checkbox::on_draw(core::renderer& surface) {
@@ -67,7 +63,7 @@ namespace ryu::core {
         surface.set_color(fg);
         surface.draw_rect(bounds);
 
-        if (_value) {
+        if (value() == "true") {
             surface.draw_line(bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
         }
     }

@@ -13,30 +13,11 @@
 
 namespace ryu::core {
 
-    void view_factory::configure_view(
-            core::view* view,
-            core::font_family* font_family,
-            core::palette* palette,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const rect& bounds,
-            const padding& margin,
-            const padding& padding) {
-        view->font_family(font_family);
-        view->palette(palette);
-        view->dock(dock_style);
-        view->fg_color(fg_color);
-        view->bg_color(bg_color);
-        view->margin(margin);
-        view->padding(padding);
-        view->bounds(bounds);
-        view->initialize();
-    }
-
     pick_list_unique_ptr view_factory::create_pick_list(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
             uint8_t fg_color,
             uint8_t bg_color,
             const option_list& options,
@@ -44,19 +25,18 @@ namespace ryu::core {
             const core::padding& margin,
             const core::padding& padding,
             const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::pick_list>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
+        auto view = create_view<pick_list>(
+                host,
+                name,
+                family,
+                pal,
+                fg_color,
+                bg_color,
+                "",
+                dock_style,
+                margin,
+                padding,
+                bounds);
 
         auto& list_options = view->options();
         for (const auto& option : options)
@@ -65,90 +45,11 @@ namespace ryu::core {
         return view;
     }
 
-    label_unique_ptr view_factory::create_label(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const std::string& value,
-            core::dock::styles dock_style,
-            const core::padding& margin,
-            const core::padding& padding,
-            const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::label>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        view->value(value);
-        return view;
-    }
-
-    button_unique_ptr view_factory::create_button(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const std::string& value,
-            core::dock::styles dock_style,
-            const core::padding& margin,
-            const core::padding& padding,
-            const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::button>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        view->value(value);
-        return view;
-    }
-
-    checkbox_unique_ptr view_factory::create_checkbox(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            bool value,
-            core::dock::styles dock_style,
-            const core::padding& margin,
-            const core::padding& padding,
-            const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::checkbox>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        view->value(value);
-        return view;
-    }
-
     console_unique_ptr view_factory::create_console(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
             uint8_t fg_color,
             uint8_t bg_color,
             const core::code_to_attr_dict& mapper,
@@ -156,127 +57,27 @@ namespace ryu::core {
             const core::padding& margin,
             const core::padding& padding,
             const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::console>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
+        auto view = create_view<console>(
+                host,
+                name,
+                family,
+                pal,
+                fg_color,
+                bg_color,
+                "",
+                dock_style,
+                margin,
+                padding,
+                bounds);
         view->code_mapper(mapper);
         return view;
     }
 
-    dock_layout_panel_unique_ptr view_factory::create_dock_layout_panel(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const core::padding& margin,
-            const core::padding& padding) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::dock_layout_panel>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            {},
-            margin,
-            padding);
-        return view;
-    }
-
-    notebook_unique_ptr view_factory::create_notebook(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const padding& margin,
-            const padding& padding,
-            const rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::notebook>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        return view;
-    }
-
-    textbox_unique_ptr view_factory::create_textbox(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const std::string& value,
-            dock::styles dock_style,
-            const padding& margin,
-            const padding& padding,
-            const rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::textbox>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        view->value(value);
-        return view;
-    }
-
-    memory_editor_unique_ptr view_factory::create_memory_editor(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const padding& margin,
-            const padding& padding,
-            const rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::memory_editor>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        return view;
-    }
-
     text_editor_unique_ptr view_factory::create_text_editor(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
             uint8_t fg_color,
             uint8_t bg_color,
             uint32_t rows,
@@ -285,178 +86,54 @@ namespace ryu::core {
             const padding& margin,
             const padding& padding,
             const rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::text_editor>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
+        auto view = create_view<text_editor>(
+                host,
+                name,
+                family,
+                pal,
+                fg_color,
+                bg_color,
+                "",
+                dock_style,
+                margin,
+                padding,
+                bounds);
         view->size(rows, columns);
         return view;
     }
 
-    caret_unique_ptr view_factory::create_caret(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            const rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::caret>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock::styles::none,
-            bounds,
-            {},
-            {});
-        return view;
-    }
-
-    state_header_unique_ptr view_factory::create_state_header(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const padding& margin,
-            const padding& padding,
-            const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::state_header>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        return view;
-    }
-
-    document_footer_unique_ptr view_factory::create_document_footer(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const padding& margin,
-            const padding& padding) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::document_footer>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            {},
-            margin,
-            padding);
-        return view;
-    }
-
-    column_pick_list_unique_ptr view_factory::create_column_pick_list(
-            core::state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const padding& margin,
-            const padding& padding,
-            const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::column_pick_list>(name, host);
-        configure_view(
-            view.get(),
-            state->context()->font_family(),
-            &state->context()->palette(),
-            fg_color,
-            bg_color,
-            dock_style,
-            bounds,
-            margin,
-            padding);
-        return view;
-    }
-
     loadable_view_unique_ptr view_factory::create_loadable_view(
-            core::state* state,
+            core::view_host* host,
             const std::string& name,
+            core::font_family* family,
+            core::palette* pal,
+            core::preferences* prefs,
             uint8_t fg_color,
             uint8_t bg_color,
             core::result& result,
             const boost::filesystem::path& path,
             const padding& margin,
             const padding& padding) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::loadable_view>(name, host);
-        configure_view(
-                view.get(),
-                state->context()->font_family(),
-                &state->context()->palette(),
+        auto view = create_view<loadable_view>(
+                host,
+                name,
+                family,
+                pal,
                 fg_color,
                 bg_color,
+                "",
                 dock::styles::fill,
-                {},
                 margin,
-                padding);
-        fs::path view_path = path;
+                padding,
+                {});
 
-        if (!view_path.is_absolute()) {
-            view_path = state
-                    ->context()
-                    ->prefs()
-                    ->executable_path().append(view_path.string());
-        }
+        fs::path view_path = path;
+        if (!view_path.is_absolute())
+            view_path = prefs->executable_path().append(view_path.string());
 
         if (view->load(result, view_path))
             return view;
         return nullptr;
-    }
-
-    panel_unique_ptr view_factory::create_panel(
-            state* state,
-            const std::string& name,
-            uint8_t fg_color,
-            uint8_t bg_color,
-            dock::styles dock_style,
-            const padding& margin,
-            const padding& padding,
-            const core::rect& bounds) {
-        auto host = dynamic_cast<view_host*>(state);
-
-        auto view = std::make_unique<core::panel>(name, host);
-        configure_view(
-                view.get(),
-                state->context()->font_family(),
-                &state->context()->palette(),
-                fg_color,
-                bg_color,
-                dock_style,
-                bounds,
-                margin,
-                padding);
-        return view;
     }
 
 }

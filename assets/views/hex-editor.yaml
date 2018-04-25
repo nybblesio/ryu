@@ -1,0 +1,41 @@
+!include assets/views/view-constants.yaml
+
+name: 'hex-editor'
+margins: &MARGINS [10, 10, 5, 5]
+views:
+  - name: 'header-panel'
+    type: view.types.state-header
+    dock: view.dock.top
+    margin: *MARGINS
+    state: 'memory editor'
+    state_color: ide.colors.white
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+  - name: 'command-line-textbox'
+    type: view.types.text-box
+    dock: view.dock.top
+    value: ''
+    enabled: true
+    margin: *MARGINS
+    size:
+      width: 60
+      length: 255
+    enabled: true
+    sizing: view.sizing.parent
+    colors:
+      fg: ide.colors.text
+      bg: ide.colors.fill-color
+  - name: 'footer-panel'
+    type: view.types.caret-footer
+    dock: view.dock.bottom
+    margin: *MARGINS
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+  - name: 'memory-editor'
+    type: view.types.memory-editor
+    dock: view.dock.fill
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color

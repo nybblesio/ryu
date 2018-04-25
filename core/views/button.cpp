@@ -64,20 +64,12 @@ namespace ryu::core {
         _height = value;
     }
 
-    std::string button::value() const {
-        return _value;
-    }
-
     border::types button::border() const {
         return _border;
     }
 
     void button::border(border::types value) {
         _border = value;
-    }
-
-    void button::value(const std::string& value) {
-        _value = value;
     }
 
     void button::on_draw(core::renderer& surface) {
@@ -101,7 +93,7 @@ namespace ryu::core {
         surface.fill_rect(bounds);
 
         surface.set_font_color(font_face(), fg);
-        surface.draw_text_aligned(font_face(), _value, bounds, _halign, _valign);
+        surface.draw_text_aligned(font_face(), value(), bounds, _halign, _valign);
 
         if (_border == border::types::solid) {
             surface.set_color(fg);

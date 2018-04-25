@@ -57,20 +57,25 @@ namespace ryu::ide::source_editor {
         define_actions();
         bind_events();
 
-        _header = core::view_factory::create_state_header(
+        _header = core::view_factory::create_view<core::state_header>(
             this,
             "header-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color,
+            "",
             core::dock::styles::top,
             {_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header->state("source editor");
         _header->state_color(ide::colors::white);
         _header->custom("| file: (none)");
 
-        _command_line = core::view_factory::create_textbox(
+        _command_line = core::view_factory::create_view<core::textbox>(
             this,
             "command-line-textbox",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::text,
             ide::colors::fill_color,
             "",
@@ -142,17 +147,22 @@ namespace ryu::ide::source_editor {
             }
         });
 
-        _footer = core::view_factory::create_document_footer(
+        _footer = core::view_factory::create_view<core::document_footer>(
                 this,
                 "footer-panel",
+                context()->font_family(),
+                &context()->palette(),
                 ide::colors::info_text,
                 ide::colors::fill_color,
+                "",
                 core::dock::styles::bottom,
                 {_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _editor = core::view_factory::create_text_editor(
             this,
             "text-editor",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::text,
             ide::colors::fill_color,
             rows,
@@ -166,12 +176,14 @@ namespace ryu::ide::source_editor {
                 file_name = "(none)";
             }
             _header->custom(fmt::format("| file: {}", file_name));
-            _footer->value(caret, document);
+            _footer->update_state(caret, document);
         });
 
-        _layout_panel = core::view_factory::create_dock_layout_panel(
+        _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
             this,
             "layout-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color);
         _layout_panel->add_child(_header.get());

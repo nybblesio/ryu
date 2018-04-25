@@ -25,7 +25,7 @@ namespace ryu::core {
 
         ~document_footer() override;
 
-        void value(
+        void update_state(
             const core::caret& caret,
             const core::document& document);
 

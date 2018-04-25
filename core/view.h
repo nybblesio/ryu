@@ -158,6 +158,8 @@ namespace ryu::core {
 
         void prev_view(core::view* value);
 
+        virtual std::string value() const;
+
         view::sizing::types sizing() const;
 
         virtual core::rect client_bounds();
@@ -200,6 +202,8 @@ namespace ryu::core {
             return nullptr;
         }
 
+        virtual void value(const std::string& value);
+
         void resize(const core::rect& context_bounds);
 
         virtual void font_family(core::font_family* value);
@@ -240,6 +244,7 @@ namespace ryu::core {
         uint32_t _id;
         short _index = 0;
         std::string _name;
+        std::string _value;
         core::rect _rect {};
         uint8_t _bg_color = 0;
         uint8_t _fg_color = 0;

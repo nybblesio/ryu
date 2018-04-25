@@ -160,12 +160,6 @@ namespace ryu::core {
                 });
     }
 
-    std::string textbox::value() {
-        std::stringstream stream;
-        _document.write_line(stream, 0, 0, _document.columns());
-        return stream.str();
-    }
-
     void textbox::on_initialize() {
         tab_stop(true);
         define_actions();
@@ -181,7 +175,11 @@ namespace ryu::core {
         _document.document_size(1, 100);
         _document.page_size(1, 16);
         _document.clear();
-
+        _document.on_document_changed([this]() {
+            std::stringstream stream;
+            _document.write_line(stream, 0, 0, _document.columns());
+            view::value(stream.str());
+        });
         padding({5, 5, 5, 5});
     }
 
@@ -201,6 +199,10 @@ namespace ryu::core {
         _document.page_size(1, value);
         _caret.page_size(1, value);
         requires_layout();
+    }
+
+    std::string textbox::value() const {
+        return view::value();
     }
 
     void textbox::length(uint16_t value) {
@@ -239,7 +241,6 @@ namespace ryu::core {
         std::stringstream stream(value);
         core::result result;
         if (!_document.load(result, stream)) {
-            // XXX: what should we do here?
             _document.clear();
         }
     }
@@ -261,16 +262,9 @@ namespace ryu::core {
         surface.set_color(fg);
         surface.set_font_color(font_face(), fg);
 
-        std::stringstream stream;
-        _document.write_line(
-            stream,
-            0,
-            static_cast<uint16_t>(_document.column()),
-            _document.columns());
-
         surface.draw_text_aligned(
             font_face(),
-            stream.str(),
+            value(),
             bounds,
             alignment::horizontal::left,
             alignment::vertical::middle);

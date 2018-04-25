@@ -63,21 +63,27 @@ namespace ryu::ide::machine_list {
     }
 
     void controller::create_views() {
-        _header = core::view_factory::create_state_header(
+        _header = core::view_factory::create_view<core::state_header>(
             this,
             "header-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color,
+            "",
             core::dock::styles::top,
             {_metrics.left_padding, _metrics.right_padding, 5, 15});
         _header->state("machine list");
         _header->state_color(ide::colors::white);
 
-        _pick_list = core::view_factory::create_column_pick_list(
+        _pick_list = core::view_factory::create_view<core::column_pick_list>(
                 this,
                 "pick-list",
+                context()->font_family(),
+                &context()->palette(),
                 ide::colors::info_text,
                 ide::colors::fill_color,
+                "",
                 core::dock::styles::fill,
                 {_metrics.left_padding, _metrics.right_padding, 5, 15});
         _pick_list->border(core::border::types::solid);
@@ -113,9 +119,11 @@ namespace ryu::ide::machine_list {
             _delete_button->enabled(row != -1);
         });
 
-        _add_button = core::view_factory::create_button(
+        _add_button = core::view_factory::create_view<core::button>(
             this,
             "add-button",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::light_grey,
             ide::colors::light_blue,
             "Add (F1)",
@@ -126,9 +134,11 @@ namespace ryu::ide::machine_list {
             edit_new_machine();
         });
 
-        _edit_button = core::view_factory::create_button(
+        _edit_button = core::view_factory::create_view<core::button>(
             this,
             "edit-button",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::light_grey,
             ide::colors::light_blue,
             "Edit (RETURN)",
@@ -140,9 +150,11 @@ namespace ryu::ide::machine_list {
             edit_selected_machine();
         });
 
-        _delete_button = core::view_factory::create_button(
+        _delete_button = core::view_factory::create_view<core::button>(
             this,
             "delete-button",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::light_grey,
             ide::colors::light_blue,
             "Delete (DEL)",
@@ -154,11 +166,14 @@ namespace ryu::ide::machine_list {
             delete_selected_machine();
         });
 
-        _buttons_panel = core::view_factory::create_dock_layout_panel(
+        _buttons_panel = core::view_factory::create_view<core::dock_layout_panel>(
             this,
             "buttons-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color,
+            "",
             core::dock::styles::bottom,
             {_metrics.left_padding, _metrics.right_padding, 10, 10});
         _buttons_panel->bounds().height(_add_button->height());
@@ -166,9 +181,11 @@ namespace ryu::ide::machine_list {
         _buttons_panel->add_child(_edit_button.get());
         _buttons_panel->add_child(_delete_button.get());
 
-        _layout_panel = core::view_factory::create_dock_layout_panel(
+        _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
             this,
             "layout-panel",
+            context()->font_family(),
+            &context()->palette(),
             ide::colors::info_text,
             ide::colors::fill_color);
         _layout_panel->add_child(_header.get());

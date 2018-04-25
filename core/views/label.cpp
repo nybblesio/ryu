@@ -25,16 +25,16 @@ namespace ryu::core {
     label::~label() {
     }
 
+    std::string label::value() const {
+        return view::value();
+    }
+
     void label::update_content_bounds() {
         auto face = font_face();
         if (face != nullptr) {
-            auto width = face->measure_text(_value);
+            auto width = face->measure_text(value());
             bounds().size(width, face->line_height);
         }
-    }
-
-    std::string label::value() const {
-        return _value;
     }
 
     border::types label::border() const {
@@ -45,9 +45,9 @@ namespace ryu::core {
         _border = value;
     }
 
-    void label::value(const std::string& value) {
-        if (_value != value) {
-            _value = value;
+    void label::value(const std::string& text) {
+        if (view::value() != text) {
+            view::value(text);
             update_content_bounds();
             requires_layout();
         }
@@ -55,18 +55,6 @@ namespace ryu::core {
 
     void label::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
-
-//        if (name() == "name-label" || name() == "display-label") {
-//            s_log->info(fmt::format(
-//                "name: {} = [left: {}, right: {}, width: {}], [top: {}, bottom: {}, height: {}]",
-//                name(),
-//                bounds.left(),
-//                bounds.right(),
-//                bounds.width(),
-//                bounds.top(),
-//                bounds.bottom(),
-//                bounds.height()));
-//        }
 
         auto current_palette = palette();
         if (current_palette == nullptr)
@@ -80,7 +68,7 @@ namespace ryu::core {
         surface.set_font_color(font_face(), fg);
         surface.draw_text_aligned(
             font_face(),
-            _value,
+            value(),
             bounds,
             _halign,
             _valign);

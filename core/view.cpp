@@ -190,6 +190,10 @@ namespace ryu::core {
             child->visible(value);
     }
 
+    std::string view::value() const {
+        return _value;
+    }
+
     void view::tab_stop(bool value) {
         if (value)
             _flags |= config::flags::tab_stop;
@@ -287,6 +291,10 @@ namespace ryu::core {
 
         on_draw(renderer);
         draw_children(renderer);
+    }
+
+    void view::value(const std::string& value) {
+        _value = value;
     }
 
     void view::remove_child(core::view* child) {

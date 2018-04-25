@@ -28,8 +28,6 @@ namespace ryu::core {
 
         void clear();
 
-        std::string value();
-
         uint16_t width() const;
 
         uint16_t length() const;
@@ -38,13 +36,15 @@ namespace ryu::core {
 
         void length(uint16_t value);
 
-        void value(const std::string& value);
+        std::string value() const override;
 
         void bg_color(uint8_t value) override;
 
         void fg_color(uint8_t value) override;
 
         void palette(core::palette* value) override;
+
+        void value(const std::string& value) override;
 
         void font_family(core::font_family* value) override;
 

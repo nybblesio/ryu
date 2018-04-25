@@ -40,6 +40,8 @@ namespace ryu::ide::hex_editor {
     private:
         void bind_events();
 
+        void define_actions();
+
     private:
         metrics_t _metrics;
         core::label_unique_ptr _caret_status;
@@ -48,8 +50,6 @@ namespace ryu::ide::hex_editor {
         core::memory_editor_unique_ptr _editor;
         core::dock_layout_panel_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
-
-        void define_actions();
     };
 
 };

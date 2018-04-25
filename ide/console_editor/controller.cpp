@@ -47,27 +47,35 @@ namespace ryu::ide::console_editor {
     }
 
     void controller::on_initialize() {
-        _header = core::view_factory::create_state_header(
+        _header = core::view_factory::create_view<core::state_header>(
                 this,
                 "header-panel",
+                context()->font_family(),
+                &context()->palette(),
                 ide::colors::info_text,
                 ide::colors::fill_color,
+                "",
                 core::dock::styles::top,
                 {_metrics.left_padding, _metrics.right_padding, 5, 0});
         _header->state("console");
         _header->state_color(ide::colors::white);
 
-        _footer = core::view_factory::create_document_footer(
+        _footer = core::view_factory::create_view<core::document_footer>(
                 this,
                 "footer-panel",
+                context()->font_family(),
+                &context()->palette(),
                 ide::colors::info_text,
                 ide::colors::fill_color,
+                "",
                 core::dock::styles::bottom,
                 {_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         _console = core::view_factory::create_console(
                 this,
                 "console",
+                context()->font_family(),
+                &context()->palette(),
                 ide::colors::text,
                 ide::colors::fill_color,
                 s_mapper);
@@ -76,7 +84,7 @@ namespace ryu::ide::console_editor {
             return transition_to(name, params);
         });
         _console->on_caret_changed([&](const core::caret& caret, const core::document& document) {
-            _footer->value(caret, document);
+            _footer->update_state(caret, document);
         });
         _console->on_execute_command([&](core::result& result, const std::string& input) {
             auto success = context()->environment()->execute(result, input);
@@ -94,9 +102,11 @@ namespace ryu::ide::console_editor {
         });
         _console->focus(_console.get());
 
-        _layout_panel = core::view_factory::create_dock_layout_panel(
+        _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
                 this,
                 "layout-panel",
+                context()->font_family(),
+                &context()->palette(),
                 ide::colors::info_text,
                 ide::colors::fill_color);
         _layout_panel->add_child(_header.get());

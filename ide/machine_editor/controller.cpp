@@ -139,6 +139,9 @@ namespace ryu::ide::machine_editor {
         _layout_panel = core::view_factory::create_loadable_view(
             this,
             "loadable-view",
+            context()->font_family(),
+            &context()->palette(),
+            context()->prefs(),
             ide::colors::info_text,
             ide::colors::fill_color,
             result,

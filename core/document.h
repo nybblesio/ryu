@@ -30,7 +30,7 @@ namespace ryu::core {
         line_t(
                 uint16_t width,
                 const attr_t& attr) : _default_attr(attr) {
-            _elements.resize(width);
+            _elements.reserve(width);
         }
 
         void copy(
