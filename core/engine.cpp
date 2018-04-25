@@ -270,7 +270,12 @@ namespace ryu::core {
         auto last_time = SDL_GetTicks();
         auto last_fps_time = last_time;
 
+        SDL_Event dummy_joystick_event {};
+        dummy_joystick_event.type = SDL_JOYBALLMOTION;
+
         core::renderer surface {_renderer};
+        pending_event_list pending_events {};
+        event_list events {};
 
         while (!_quit) {
             timer_pool::instance()->update();
@@ -288,7 +293,6 @@ namespace ryu::core {
             surface.set_color({0x00, 0x00, 0x00, 0xff});
             surface.clear();
 
-            event_list events {};
             while (true) {
                 SDL_Event e {};
                 if (!SDL_PollEvent(&e))
@@ -299,9 +303,6 @@ namespace ryu::core {
             // N.B. push back a dummy event so certain kinds of events
             //      are processed even though we don't have something from SDL.
             if (events.empty()) {
-                // XXX: come back and review this for a better way
-                SDL_Event dummy_joystick_event {};
-                dummy_joystick_event.type = SDL_JOYBALLMOTION;
                 events.push_back(dummy_joystick_event);
             }
 
@@ -335,10 +336,9 @@ namespace ryu::core {
                 }
             }
 
-            pending_event_list pending_events {};
             auto filtered_actions = input_action::filtered_catalog(types);
             for (auto& e : events) {
-                for (const auto action : filtered_actions) {
+                for (auto action : filtered_actions) {
                     event_data_t data {};
                     if (action->process(&e, data)) {
                         pending_events.push_back(pending_event_t {action, data});
@@ -370,6 +370,9 @@ namespace ryu::core {
             }
 
             surface.present();
+
+            pending_events.clear();
+            events.clear();
 
             ++frame_count;
             last_time = current_time;

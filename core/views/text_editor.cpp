@@ -131,7 +131,7 @@ namespace ryu::core {
         auto caret_up_action = core::input_action::create(
                 "text_editor_caret_up",
                 "IDE::Text Editor",
-                "Move the caret left up a line.");
+                "Move the caret up a line.");
         if (!caret_up_action->has_bindings()) {
             caret_up_action->bind_keys({core::key_up});
         }
@@ -274,7 +274,7 @@ namespace ryu::core {
 
         auto text_input_action = core::input_action::create_no_map(
                 "text_editor_input",
-                "IDE::Console",
+                "IDE::Text Editor",
                 "Any ASCII text input (non-mappable).");
         if (!text_input_action->has_bindings()) {
             text_input_action->bind_text_input();

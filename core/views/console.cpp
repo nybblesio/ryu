@@ -668,13 +668,15 @@ namespace ryu::core {
     void console::on_process_command() {
         auto& entry = _output_queue.front();
 
+        auto max_item_count = 8;
         auto more_to_process = true;
-        while (_remaining_lines > 0) {
+        while (_remaining_lines > 0 && max_item_count > 0) {
             auto output_result = entry.process(this);
             more_to_process = output_result.more_to_process;
             if (!more_to_process)
                 break;
             _remaining_lines -= output_result.line_count;
+            --max_item_count;
         }
 
         if (more_to_process) {
