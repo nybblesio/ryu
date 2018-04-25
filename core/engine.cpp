@@ -182,7 +182,8 @@ namespace ryu::core {
             "ryu_moved",
             "Ryu",
             "The Ryu application window was moved.",
-            input_action::type::window);
+            input_action::type::window,
+            input_action::flag::bubble);
         if (!move_action->has_bindings())
            move_action->bind_move();
 
@@ -190,7 +191,8 @@ namespace ryu::core {
             "ryu_resized",
             "Ryu",
             "The Ryu application window was resized.",
-            input_action::type::window);
+            input_action::type::window,
+            input_action::flag::bubble);
         if (!resize_action->has_bindings())
            resize_action->bind_resize();
 

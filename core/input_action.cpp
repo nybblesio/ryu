@@ -83,14 +83,15 @@ namespace ryu::core {
             const std::string& name,
             const std::string& category,
             const std::string& description,
-            action_type_flags types) {
+            action_type_flags types,
+            action_flags flags) {
         return inner_create(
                 id_pool::instance()->allocate(),
                 name,
                 category,
                 description,
                 types,
-                input_action::flag::no_map);
+                flags | input_action::flag::no_map);
     }
 
     bool input_action::exists(const std::string& name) {

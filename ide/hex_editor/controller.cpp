@@ -17,6 +17,10 @@
 
 namespace ryu::ide::hex_editor {
 
+    static logger* s_log = logger_factory::instance()->create(
+            "hex_editor::controller",
+            logger::level::info);
+
     controller::controller(const std::string& name) : core::state(name) {
     }
 
@@ -46,7 +50,7 @@ namespace ryu::ide::hex_editor {
         action_provider().register_handler(
             core::input_action::find_by_name("memory_editor_command_bar"),
             [this](const core::event_data_t& data) {
-                _layout_panel->focus(_command_line.get());
+                _layout_panel->focus(_command_line);
                 return true;
             });
     }
@@ -61,131 +65,20 @@ namespace ryu::ide::hex_editor {
     }
 
     bool controller::on_load(core::result& result) {
-        // XXX: not meant for hot reloading, swap in loadable_view
-
-        _header = core::view_factory::create_view<core::state_header>(
+        _layout_panel = core::view_factory::create_loadable_view(
                 this,
-                "header-panel",
+                "loadable-view",
                 context()->font_family(),
                 &context()->palette(),
+                context()->prefs(),
                 ide::colors::info_text,
                 ide::colors::fill_color,
-                "",
-                core::dock::styles::top,
-                {_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header->state("memory editor");
-        _header->state_color(ide::colors::white);
+                result,
+                "assets/views/hex-editor.yaml");
+        s_log->result(result);
 
-        _caret_status = core::view_factory::create_view<core::label>(
-                this,
-                "caret-status-label",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color);
-
-        _footer = core::view_factory::create_view<core::dock_layout_panel>(
-                this,
-                "footer-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color,
-                "",
-                core::dock::styles::bottom,
-                {_metrics.left_padding, _metrics.right_padding, 5, 5});
-        _footer->bounds().height(context()->font_face()->line_height);
-        _footer->add_child(_caret_status.get());
-
-        _command_line = core::view_factory::create_view<core::text_box>(
-                this,
-                "command-line-text-box",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::text,
-                ide::colors::fill_color,
-                "",
-                core::dock::styles::top,
-                {_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
-        _command_line->width(60);
-        _command_line->length(255);
-        _command_line->sizing(core::view::sizing::types::parent);
-        _command_line->on_key_down([&](int key_code) {
-            if (key_code == core::ascii_escape) {
-                _layout_panel->focus(_editor.get());
-                return true;
-            }
-            if (key_code == core::ascii_return) {
-                core::result command_result;
-                auto input = _command_line->value();
-                auto success = context()->environment()->execute(command_result, input);
-                if (success) {
-                    auto command_action_msg = command_result.find_code("command_action");
-                    if (command_action_msg == nullptr)
-                        return success;
-
-                    // XXX: need to refactor this, it makes my head hurt
-                    auto command = command_action_msg->get_parameter<std::string>("action");
-                    if (command == "quit") {
-                        context()->engine()->quit();
-                    } else if (command == "read_text") {
-                        auto name = command_action_msg->get_parameter<std::string>("name");
-                        if (!name.empty()) {
-                            //_editor.load(command_result, boost::get<std::string>(name_it->second));
-                        } else {
-                            // XXX: handle errors
-                        }
-                    } else if (command == "write_text") {
-                        auto name = command_action_msg->get_parameter<std::string>("name");
-                        if (!name.empty()) {
-                            //_editor.save(command_result, boost::get<std::string>(name_it->second));
-                        } else {
-                            // XXX: handle errors
-                        }
-                    } else if (command == "goto_line") {
-                        auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
-                        _editor->goto_address(line_number);
-                    } else {
-                        // XXX: unknown command, error!
-                    }
-                }
-
-                _command_line->clear();
-                _layout_panel->focus(_editor.get());
-                return true;
-            }
-            return true;
-        });
-
-        _editor = core::view_factory::create_view<core::memory_editor>(
-                this,
-                "memory-editor",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::text,
-                ide::colors::fill_color);
-        _editor->caret_color(ide::colors::caret);
-        _editor->selection_color(ide::colors::selection);
-        _editor->address_color(ide::colors::info_text);
-        _editor->on_caret_changed([&](const core::caret& caret) {
-            _caret_status->value(fmt::format(
-                    "| X:{:03d} Y:{:02d} | {}",
-                    caret.column() + 1,
-                    caret.row() + 1,
-                    caret.mode() == core::caret::mode::overwrite ? "OVR" : "INS"));
-        });
-
-        _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
-                this,
-                "layout-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color);
-        _layout_panel->add_child(_header.get());
-        _layout_panel->add_child(_command_line.get());
-        _layout_panel->add_child(_footer.get());
-        _layout_panel->add_child(_editor.get());
+        _memory_editor = _layout_panel->find_by_name<core::memory_editor>("memory-editor");
+        _command_line = _layout_panel->find_by_name<core::text_box>("command-line-text-box");
 
         return !result.is_failed();
     }
@@ -200,6 +93,11 @@ namespace ryu::ide::hex_editor {
 
     void controller::on_activate(const core::parameter_dict& params) {
         _layout_panel->visible(true);
+
+        auto it = params.find("addr");
+        if (it != params.end()) {
+            _memory_editor->address(boost::get<uint32_t>(it->second));
+        }
     }
 
     void controller::on_update(uint32_t dt, core::pending_event_list& events) {

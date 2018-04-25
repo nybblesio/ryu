@@ -1206,7 +1206,14 @@ namespace ryu::core {
         if (!has_valid_project_machine_and_target(context.result))
             return false;
 
-        context.result.add_data("command_action", {{"action", std::string("edit_memory")}});
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+
+        context.result.add_data(
+                "command_action",
+                {
+                    {"action", std::string("edit_memory")},
+                    {"addr", addr.value}
+                });
         return true;
     }
 

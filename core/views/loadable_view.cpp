@@ -554,6 +554,17 @@ namespace ryu::core {
                             margins,
                             pads,
                             bounds);
+
+                    uint8_t editor_color;
+                    if (get_constant(result, root, view_node["caret-color"], editor_color))
+                        memory_editor->caret_color(editor_color);
+
+                    if (get_constant(result, root, view_node["selection-color"], editor_color))
+                        memory_editor->selection_color(editor_color);
+
+                    if (get_constant(result, root, view_node["address-color"], editor_color))
+                        memory_editor->address_color(editor_color);
+
                     current_view = std::move(memory_editor);
                     break;
                 }

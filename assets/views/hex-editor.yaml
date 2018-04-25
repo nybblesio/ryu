@@ -28,15 +28,30 @@ views:
       fg: ide.colors.text
       bg: ide.colors.fill-color
   - name: 'footer-panel'
-    type: view.types.caret-footer
+    type: view.types.dock-panel
     dock: view.dock.bottom
     margin: *MARGINS
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
+    bounds: [0, 0, 0, 32]
+    views:
+      - name: 'temp-label'
+        type: view.types.label
+        dock: view.dock.left
+        margin: *MARGINS
+        value: 'footer place holder'
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.fill-color
   - name: 'memory-editor'
     type: view.types.memory-editor
     dock: view.dock.fill
     colors:
-      fg: ide.colors.info-text
+      fg: ide.colors.text
       bg: ide.colors.fill-color
+    enabled: true
+    margin: *MARGINS
+    caret-color: ide.colors.caret
+    selection-color: ide.colors.selection
+    address-color: ide.colors.info-text

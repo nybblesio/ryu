@@ -49,6 +49,10 @@ namespace ryu::core {
     }
 
     bool input_action_provider::process(pending_event_list& events) {
+        if (_handlers.empty() || events.empty())
+            return false;
+
+        auto result = false;
         auto it = events.begin();
         while (it != events.end()) {
             auto event = *it;
@@ -56,12 +60,16 @@ namespace ryu::core {
             bool processed = process_action(event.action, event.data);
             if (processed) {
                 it = events.erase(it);
-                return true;
+                if (!event.action->should_bubble())
+                    return true;
+                else
+                    result = true;
             } else {
                 ++it;
             }
         }
-        return false;
+
+        return result;
     }
 
 }

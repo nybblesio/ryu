@@ -20,11 +20,6 @@ namespace ryu::ide::hex_editor {
         explicit controller(const std::string& name);
 
     protected:
-        struct metrics_t {
-            const int left_padding = 10;
-            const int right_padding = 10;
-        };
-
         void on_initialize() override;
 
         void on_deactivate() override;
@@ -45,13 +40,9 @@ namespace ryu::ide::hex_editor {
         void define_actions();
 
     private:
-        metrics_t _metrics;
-        core::label_unique_ptr _caret_status;
-        core::state_header_unique_ptr _header;
-        core::text_box_unique_ptr _command_line;
-        core::memory_editor_unique_ptr _editor;
-        core::dock_layout_panel_unique_ptr _footer;
-        core::dock_layout_panel_unique_ptr _layout_panel;
+        core::text_box* _command_line;
+        core::memory_editor* _memory_editor;
+        core::loadable_view_unique_ptr _layout_panel;
     };
 
 };

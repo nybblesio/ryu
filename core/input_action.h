@@ -37,6 +37,7 @@ namespace ryu::core {
             enum values : uint8_t {
                 none   = 0b00000000,
                 no_map = 0b00000001,
+                bubble = 0b00000010,
             };
         };
 
@@ -64,7 +65,8 @@ namespace ryu::core {
             const std::string& name,
             const std::string& category,
             const std::string& description,
-            action_type_flags types = input_action::type::keyboard);
+            action_type_flags types = input_action::type::keyboard,
+            action_flags flags = input_action::flag::none);
 
         static bool exists(const std::string& name);
 
@@ -123,6 +125,10 @@ namespace ryu::core {
         action_type_flags types() const;
 
         void bind_keys(input_keys keys);
+
+        inline bool should_bubble() const {
+            return (_flags & flag::bubble) != 0;
+        }
 
         void types(input_action::flag::values flags);
 

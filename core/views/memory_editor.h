@@ -35,23 +35,21 @@ namespace ryu::core {
             return _metrics.page_height;
         }
 
+        void address(uint32_t address);
+
         void caret_color(uint8_t value);
 
         void address_color(uint8_t value);
 
-        void goto_address(uint32_t address);
-
         void selection_color(uint8_t value);
-
-        void find(const std::string& needle);
 
         void on_caret_changed(const caret_changed_callable& callable);
 
     protected:
         struct metrics_t {
+            int address_width {};
             uint8_t page_width {};
             uint8_t page_height {};
-            int line_number_width {};
             const int left_padding = 10;
             const int right_padding = 10;
         };
@@ -65,53 +63,20 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
-        void page_up();
-
-        void last_page();
-
-        void page_down();
-
-        void caret_end();
-
-        void scroll_up();
-
-        void caret_home();
-
-        void first_page();
-
         void bind_events();
-
-        void scroll_left();
-
-        void scroll_down();
-
-        bool scroll_right();
-
-        void end_selection();
 
         void define_actions();
 
         void calculate_page_metrics();
 
-        void update_virtual_position();
-
-        void caret_up(uint8_t rows = 1);
-
         void on_focus_changed() override;
 
-        void caret_down(uint8_t rows = 1);
-
-        void caret_left(uint8_t columns = 1);
-
-        bool caret_right(uint8_t columns = 1);
-
     private:
-        uint16_t _vcol;
-        uint32_t _vrow;
+        uint32_t _address;
         core::caret _caret;
         metrics_t _metrics;
+        uint8_t _address_color;
         uint8_t _selection_color;
-        uint8_t _line_number_color;
         caret_changed_callable _caret_changed_callback;
     };
 
