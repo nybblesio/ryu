@@ -1,7 +1,7 @@
 !include assets/views/view-constants.yaml
 
 name: 'machine-editor'
-focus: 'name-textbox'
+focus: 'name-text-box'
 views:
   - name: 'header-panel'
     type: view.types.state-header
@@ -40,7 +40,7 @@ views:
             alignment:
               horizontal: view.alignments.horizontal.right
               vertical: view.alignments.vertical.middle
-          - name: 'name-textbox'
+          - name: 'name-text-box'
             type: view.types.text-box
             dock: view.dock.left
             colors:
@@ -49,7 +49,7 @@ views:
             value: ''
             tab-stop: true
             enabled: true
-            next: 'address-space-textbox'
+            next: 'address-space-text-box'
             prev: 'map-button'
             margin: [20, 0, 0, 0]
             size:
@@ -66,10 +66,10 @@ views:
             margin: [20, 0, 0, 0]
             alignment:
               vertical: view.alignments.middle
-          - name: 'address-space-textbox'
+          - name: 'address-space-text-box'
             type: view.types.text-box
             dock: view.dock.left
-            prev: 'name-textbox'
+            prev: 'name-text-box'
             next: 'display-pick-list'
             colors:
               fg: ide.colors.text
@@ -78,7 +78,7 @@ views:
             tab-stop: true
             enabled: true
             next: 'display-pick-list'
-            prev: 'name-textbox'
+            prev: 'name-text-box'
             margin: [20, 0, 0, 0]
             size:
               width: 8
@@ -111,7 +111,7 @@ views:
             tab-stop: true
             enabled: true
             next: 'description-text-editor'
-            prev: 'address-space-textbox'
+            prev: 'address-space-text-box'
       - name: 'row3'
         type: view.types.dock-panel
         margin: *ROW-MARGINS
@@ -193,7 +193,7 @@ views:
         value: 'Map (F2)'
         tab-stop: true
         enabled: true
-        next: 'name-textbox'
+        next: 'name-text-box'
         prev: 'delete-button'
         dock: view.dock.right
         margin: *BUTTON-MARGINS

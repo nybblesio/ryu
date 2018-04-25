@@ -36,13 +36,13 @@ add_library(
         symbol_table.cpp symbol_table.h
         views/button.cpp views/button.h
         views/console.cpp views/console.h
-        views/textbox.cpp views/textbox.h
+        views/text_box.cpp views/text_box.h
         palette_entry.cpp palette_entry.h
         hex_formatter.cpp hex_formatter.h
         input_binding.cpp input_binding.h
-        views/checkbox.cpp views/checkbox.h
+        views/check_box.cpp views/check_box.h
         command_parser.cpp command_parser.h
-        views/notebook.cpp views/notebook.h
+        views/note_book.cpp views/note_book.h
         text_formatter.cpp text_formatter.h
         views/pick_list.cpp views/pick_list.h
         assembler_parser.cpp assembler_parser.h

@@ -75,9 +75,9 @@ namespace ryu::ide::source_editor {
         _header->state_color(ide::colors::white);
         _header->custom("| file: (none)");
 
-        _command_line = core::view_factory::create_view<core::textbox>(
+        _command_line = core::view_factory::create_view<core::text_box>(
                 this,
-                "command-line-textbox",
+                "command-line-text-box",
                 context()->font_family(),
                 &context()->palette(),
                 ide::colors::text,

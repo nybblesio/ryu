@@ -97,9 +97,9 @@ namespace ryu::ide::hex_editor {
         _footer->bounds().height(context()->font_face()->line_height);
         _footer->add_child(_caret_status.get());
 
-        _command_line = core::view_factory::create_view<core::textbox>(
+        _command_line = core::view_factory::create_view<core::text_box>(
                 this,
-                "command-line-textbox",
+                "command-line-text-box",
                 context()->font_family(),
                 &context()->palette(),
                 ide::colors::text,
@@ -116,11 +116,11 @@ namespace ryu::ide::hex_editor {
                 return true;
             }
             if (key_code == core::ascii_return) {
-                core::result result;
+                core::result command_result;
                 auto input = _command_line->value();
-                auto success = context()->environment()->execute(result, input);
+                auto success = context()->environment()->execute(command_result, input);
                 if (success) {
-                    auto command_action_msg = result.find_code("command_action");
+                    auto command_action_msg = command_result.find_code("command_action");
                     if (command_action_msg == nullptr)
                         return success;
 
@@ -131,14 +131,14 @@ namespace ryu::ide::hex_editor {
                     } else if (command == "read_text") {
                         auto name = command_action_msg->get_parameter<std::string>("name");
                         if (!name.empty()) {
-                            //_editor.load(result, boost::get<std::string>(name_it->second));
+                            //_editor.load(command_result, boost::get<std::string>(name_it->second));
                         } else {
                             // XXX: handle errors
                         }
                     } else if (command == "write_text") {
                         auto name = command_action_msg->get_parameter<std::string>("name");
                         if (!name.empty()) {
-                            //_editor.save(result, boost::get<std::string>(name_it->second));
+                            //_editor.save(command_result, boost::get<std::string>(name_it->second));
                         } else {
                             // XXX: handle errors
                         }

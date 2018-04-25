@@ -9,35 +9,35 @@
 //
 
 #include <core/input_action.h>
-#include "notebook.h"
+#include "note_book.h"
 
 namespace ryu::core {
 
-    notebook::notebook(
+    note_book::note_book(
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host) {
     }
 
-    notebook::~notebook() {
+    note_book::~note_book() {
     }
 
-    void notebook::define_actions() {
+    void note_book::define_actions() {
         auto prev_tab_action = core::input_action::create_no_map(
                 "notebook_previous_tab",
                 "Internal",
-                "Move to the previous notebook tab.");
+                "Move to the previous note book tab.");
         if (!prev_tab_action->has_bindings())
             prev_tab_action->bind_keys({core::key_up});
 
         auto next_tab_action = core::input_action::create_no_map(
                 "notebook_next_tab",
                 "Internal",
-                "Move to the next notebook tab.");
+                "Move to the next note book tab.");
         if (!next_tab_action->has_bindings())
             next_tab_action->bind_keys({core::key_down});
     }
 
-    void notebook::bind_events() {
+    void note_book::bind_events() {
         action_provider().register_handler(
                 core::input_action::find_by_name("notebook_previous_tab"),
                 [this](const event_data_t& data) {
@@ -55,24 +55,24 @@ namespace ryu::core {
                 });
     }
 
-    void notebook::on_initialize() {
+    void note_book::on_initialize() {
         define_actions();
         bind_events();
     }
 
-    int notebook::active_tab() const {
+    int note_book::active_tab() const {
         return _index;
     }
 
-    void notebook::active_tab(int index) {
+    void note_book::active_tab(int index) {
         _index = index;
     }
 
-    void notebook::remove_tab(int index) {
+    void note_book::remove_tab(int index) {
         _tabs.erase(_tabs.begin() + index);
     }
 
-    core::rect notebook::client_bounds() {
+    core::rect note_book::client_bounds() {
         auto& rect = bounds();
         auto& margins = margin();
         return {rect.left() + (tab_width + 1),
@@ -81,7 +81,7 @@ namespace ryu::core {
                 rect.height() - 2};
     }
 
-    void notebook::on_draw(core::renderer& surface) {
+    void note_book::on_draw(core::renderer& surface) {
         auto& rect = bounds();
         auto& pads = padding();
 
@@ -129,13 +129,13 @@ namespace ryu::core {
         surface.draw_rect(content_rect);
     }
 
-    void notebook::draw_children(core::renderer& surface) {
+    void note_book::draw_children(core::renderer& surface) {
         surface.push_clip_rect(client_bounds());
         view::draw_children(surface);
         surface.pop_clip_rect();
     }
 
-    void notebook::on_resize(const core::rect& context_bounds) {
+    void note_book::on_resize(const core::rect& context_bounds) {
         core::view::on_resize(context_bounds);
 
         auto rect = bounds();
@@ -145,7 +145,7 @@ namespace ryu::core {
                 rect.height()});
     }
 
-    void notebook::add_tab(const std::string& title, core::view* content) {
+    void note_book::add_tab(const std::string& title, core::view* content) {
         _tabs.push_back(title);
         if (content != nullptr) {
             content->visible(false);

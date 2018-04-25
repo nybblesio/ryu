@@ -50,7 +50,7 @@ namespace ryu::ide::source_editor {
         metrics_t _metrics;
         core::text_editor_unique_ptr _editor;
         core::state_header_unique_ptr _header;
-        core::textbox_unique_ptr _command_line;
+        core::text_box_unique_ptr _command_line;
         core::document_footer_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
     };

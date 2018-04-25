@@ -13,7 +13,7 @@ views:
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
-  - name: 'command-line-textbox'
+  - name: 'command-line-text-box'
     type: view.types.text-box
     dock: view.dock.top
     value: ''

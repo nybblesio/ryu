@@ -178,7 +178,7 @@ namespace ryu::core {
                     break;
                 }
                 case types::text_box: {
-                    auto text_box = core::view_factory::create_view<core::textbox>(
+                    auto text_box = core::view_factory::create_view<core::text_box>(
                             host(),
                             name,
                             font_family(),
@@ -415,7 +415,7 @@ namespace ryu::core {
                     break;
                 }
                 case types::notebook: {
-                    auto notebook = core::view_factory::create_view<core::notebook>(
+                    auto notebook = core::view_factory::create_view<core::note_book>(
                             host(),
                             name,
                             font_family(),
@@ -427,9 +427,9 @@ namespace ryu::core {
                             margins,
                             pads,
                             bounds);
-                    // XXX: there are some issues with the way notebook works:
-                    //          each tab is a child view of the notebook, this presents an ordering problem
-                    //          should we just treat each sub-view of the notebook as a tab and the
+                    // XXX: there are some issues with the way note_book works:
+                    //          each tab is a child view of the note_book, this presents an ordering problem
+                    //          should we just treat each sub-view of the note_book as a tab and the
                     //          value is the title of the tab?
                     current_view = std::move(notebook);
                     break;
@@ -458,7 +458,7 @@ namespace ryu::core {
                     break;
                 }
                 case types::check_box: {
-                    current_view = core::view_factory::create_view<core::checkbox>(
+                    current_view = core::view_factory::create_view<core::check_box>(
                             host(),
                             name,
                             font_family(),

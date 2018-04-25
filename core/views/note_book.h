@@ -14,13 +14,13 @@
 
 namespace ryu::core {
 
-    class notebook : public core::view {
+    class note_book : public core::view {
     public:
-        notebook(
+        note_book(
             const std::string& name,
             core::view_host* host);
 
-        ~notebook() override;
+        ~note_book() override;
 
         int active_tab() const;
 

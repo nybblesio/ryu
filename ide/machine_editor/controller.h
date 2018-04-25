@@ -48,9 +48,9 @@ namespace ryu::ide::machine_editor {
 
     private:
         hardware::machine* _machine;
-        core::textbox* _name_textbox;
+        core::text_box* _name_textbox;
         core::pick_list* _display_pick_list;
-        core::textbox* _address_space_textbox;
+        core::text_box* _address_space_textbox;
         core::text_editor* _description_text_editor;
         core::column_pick_list* _component_pick_list;
         core::loadable_view_unique_ptr _layout_panel;

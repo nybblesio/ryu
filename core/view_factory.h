@@ -15,9 +15,9 @@
 #include <core/views/panel.h>
 #include <core/views/button.h>
 #include <core/views/console.h>
-#include <core/views/textbox.h>
-#include <core/views/notebook.h>
-#include <core/views/checkbox.h>
+#include <core/views/text_box.h>
+#include <core/views/note_book.h>
+#include <core/views/check_box.h>
 #include <core/views/pick_list.h>
 #include <core/views/text_editor.h>
 #include <core/views/state_header.h>
@@ -35,15 +35,15 @@ namespace ryu::core {
     using document_footer_unique_ptr = std::unique_ptr<core::document_footer>;
     using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
     using console_unique_ptr = std::unique_ptr<core::console>;
-    using checkbox_unique_ptr = std::unique_ptr<core::checkbox>;
+    using check_box_unique_ptr = std::unique_ptr<core::check_box>;
     using dock_layout_panel_unique_ptr = std::unique_ptr<core::dock_layout_panel>;
     using label_unique_ptr = std::unique_ptr<core::label>;
     using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
-    using notebook_unique_ptr = std::unique_ptr<core::notebook>;
+    using note_book_unique_ptr = std::unique_ptr<core::note_book>;
     using panel_unique_ptr = std::unique_ptr<core::panel>;
     using pick_list_unique_ptr = std::unique_ptr<core::pick_list>;
     using text_editor_unique_ptr = std::unique_ptr<core::text_editor>;
-    using textbox_unique_ptr = std::unique_ptr<core::textbox>;
+    using text_box_unique_ptr = std::unique_ptr<core::text_box>;
     using column_pick_list_unique_ptr = std::unique_ptr<core::column_pick_list>;
     using loadable_view_unique_ptr = std::unique_ptr<core::loadable_view>;
 

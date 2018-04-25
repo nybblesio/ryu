@@ -16,15 +16,15 @@
 
 namespace ryu::core {
 
-    class textbox : public core::view {
+    class text_box : public core::view {
     public:
         using on_key_down_callable = std::function<bool (int)>;
 
-        textbox(
+        text_box(
             const std::string& name,
             core::view_host* host);
 
-        ~textbox() override;
+        ~text_box() override;
 
         void clear();
 

@@ -153,10 +153,10 @@ namespace ryu::ide::machine_editor {
                 "assets/views/machine-editor.yaml");
         s_log->result(result);
 
-        _name_textbox = _layout_panel->find_by_name<core::textbox>("name-textbox");
+        _name_textbox = _layout_panel->find_by_name<core::text_box>("name-text-box");
         _display_pick_list = _layout_panel->find_by_name<core::pick_list>("display-pick-list");
         _component_pick_list = _layout_panel->find_by_name<core::column_pick_list>("pick-list");
-        _address_space_textbox = _layout_panel->find_by_name<core::textbox>("address-space-textbox");
+        _address_space_textbox = _layout_panel->find_by_name<core::text_box>("address-space-text-box");
         _description_text_editor = _layout_panel->find_by_name<core::text_editor>("description-text-editor");
 
         return !result.is_failed();

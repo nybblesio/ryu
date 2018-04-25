@@ -48,7 +48,7 @@ namespace ryu::ide::hex_editor {
         metrics_t _metrics;
         core::label_unique_ptr _caret_status;
         core::state_header_unique_ptr _header;
-        core::textbox_unique_ptr _command_line;
+        core::text_box_unique_ptr _command_line;
         core::memory_editor_unique_ptr _editor;
         core::dock_layout_panel_unique_ptr _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;

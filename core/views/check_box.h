@@ -14,13 +14,13 @@
 
 namespace ryu::core {
 
-    class checkbox : public core::view {
+    class check_box : public core::view {
     public:
-        checkbox(
+        check_box(
             const std::string& name,
             core::view_host* host);
 
-        ~checkbox() override;
+        ~check_box() override;
 
     protected:
         void on_initialize() override;
