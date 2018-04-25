@@ -57,6 +57,9 @@ namespace ryu::ide::hex_editor {
 
     void controller::on_deactivate() {
         _layout_panel->visible(false);
+        core::project::instance()
+                ->machine()
+                ->set_write_latches(false);
     }
 
     void controller::on_initialize() {
@@ -93,6 +96,9 @@ namespace ryu::ide::hex_editor {
 
     void controller::on_activate(const core::parameter_dict& params) {
         _layout_panel->visible(true);
+        core::project::instance()
+                ->machine()
+                ->set_write_latches(true);
 
         auto it = params.find("addr");
         if (it != params.end()) {

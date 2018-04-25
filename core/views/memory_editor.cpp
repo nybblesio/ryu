@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 #include <core/document.h>
 #include <core/project.h>
+#include <common/bytes.h>
 #include "memory_editor.h"
 
 namespace ryu::core {
@@ -30,7 +31,55 @@ namespace ryu::core {
         _caret.column(0);
     }
 
+    void memory_editor::caret_left() {
+        if (_caret.left(1)) {
+            _caret.column(static_cast<uint8_t>((_metrics.page_width * 3) + _metrics.page_width + 1));
+            _caret.up(1);
+            _nybble = 1;
+        } else {
+            auto column = _caret.column() + 1;
+            if (column < (_metrics.page_width * 3) + 1 && column % 3 == 0) {
+                _caret.left(1);
+                _nybble = 1;
+            } else {
+                _nybble = 0;
+            }
+        }
+    }
+
+    void memory_editor::caret_right(uint8_t overflow_column) {
+        if (_caret.right(1)) {
+            _caret.column(overflow_column);
+            _caret.down(1);
+            _nybble = 0;
+        } else {
+            auto column = _caret.column() + 1;
+            if (column < (_metrics.page_width * 3) + 1 && column % 3 == 0) {
+                _caret.right(1);
+                _nybble = 0;
+            } else {
+                _nybble = 1;
+            }
+        }
+    }
+
     void memory_editor::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_tab"),
+                [this](const core::event_data_t& data) {
+                    auto ascii_column_start = _metrics.page_width * 3;
+                    if (_caret.column() < ascii_column_start)
+                        _caret.column(static_cast<uint8_t>(ascii_column_start));
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_shift_tab"),
+                [this](const core::event_data_t& data) {
+                    auto ascii_column_start = _metrics.page_width * 3;
+                    if (_caret.column() >= ascii_column_start)
+                        _caret.column(0);
+                    return true;
+                });
         action_provider().register_handler(
                 core::input_action::find_by_name("memory_editor_home"),
                 [this](const core::event_data_t& data) {
@@ -46,29 +95,13 @@ namespace ryu::core {
         action_provider().register_handler(
                 core::input_action::find_by_name("memory_editor_caret_left"),
                 [this](const core::event_data_t& data) {
-                    if (_caret.left(1)) {
-                        _caret.column(static_cast<uint8_t>((_metrics.page_width * 3) + _metrics.page_width + 1));
-                        _caret.up(1);
-                    } else {
-                        auto column = _caret.column() + 1;
-                        if (column < (_metrics.page_width * 3) + 1 && column % 3 == 0) {
-                            _caret.left(1);
-                        }
-                    }
+                    caret_left();
                     return true;
                 });
         action_provider().register_handler(
                 core::input_action::find_by_name("memory_editor_caret_right"),
                 [this](const core::event_data_t& data) {
-                    if (_caret.right(1)) {
-                        _caret.column(0);
-                        _caret.down(1);
-                    } else {
-                        auto column = _caret.column() + 1;
-                        if (column < (_metrics.page_width * 3) + 1 && column % 3 == 0) {
-                            _caret.right(1);
-                        }
-                    }
+                    caret_right();
                     return true;
                 });
         action_provider().register_handler(
@@ -86,7 +119,7 @@ namespace ryu::core {
                     if (_caret.down(1)) {
                         auto machine = core::project::instance()->machine();
                         if (_address < machine->mapper()->address_space() - _metrics.page_width)
-                        _address += _metrics.page_width;
+                            _address += _metrics.page_width;
                     }
                     return true;
                 });
@@ -110,6 +143,52 @@ namespace ryu::core {
                         _address += remaining_memory;
                     else
                         _address += page_size;
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_input"),
+                [this](const core::event_data_t& data) {
+                    auto machine = core::project::instance()->machine();
+
+                    if (data.c == core::ascii_escape)
+                        return false;
+
+                    auto ascii_column_start = _metrics.page_width * 3;
+
+                    if (_caret.column() < ascii_column_start) {
+                        if (!isxdigit(data.c))
+                            return false;
+
+                        auto offset = (_caret.row() * _metrics.page_width) +
+                                      _caret.column() / 3;
+
+                        auto nybble = static_cast<uint8_t>(data.c > '9' ?
+                            (data.c & ~0x20) - 'A' + 10 :
+                            data.c - '0');
+
+                        auto value = machine
+                                ->mapper()
+                                ->read_byte(static_cast<uint32_t>(_address + offset));
+                        if (_nybble == 0) {
+                            value = set_upper_nybble(value, nybble);
+                        } else {
+                            value = set_lower_nybble(value, nybble);
+                        }
+
+                        machine->mapper()->write_byte(_address + offset, value);
+                        caret_right();
+                    } else {
+                        if (!isprint(data.c))
+                            return false;
+
+                        auto offset = (_caret.row() * _metrics.page_width) +
+                                      (_caret.column() - ascii_column_start);
+                        machine->mapper()->write_byte(
+                                _address + offset,
+                                static_cast<uint8_t>(data.c));
+                        caret_right(static_cast<uint8_t>(ascii_column_start));
+                    }
+
                     return true;
                 });
     }
@@ -142,6 +221,7 @@ namespace ryu::core {
                 "Move the caret left.");
         if (!caret_left_action->has_bindings()) {
             caret_left_action->bind_keys({core::key_left});
+            caret_left_action->bind_keys({core::key_backspace});
         }
 
         auto caret_select_left_action = core::input_action::create(
@@ -222,6 +302,22 @@ namespace ryu::core {
                 "Move the caret to the home position in selection mode.");
         if (!select_home_action->has_bindings()) {
             select_home_action->bind_keys({core::mod_shift, core::key_home});
+        }
+
+        auto tab_action = core::input_action::create(
+                "memory_editor_tab",
+                "IDE::Memory Editor",
+                "Move caret to the ASCII area.");
+        if (!tab_action->has_bindings()) {
+            tab_action->bind_keys({core::key_tab});
+        }
+
+        auto shift_tab_action = core::input_action::create(
+                "memory_editor_shift_tab",
+                "IDE::Memory Editor",
+                "Move caret to the byte area.");
+        if (!shift_tab_action->has_bindings()) {
+            shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
         }
 
         auto home_action = core::input_action::create(

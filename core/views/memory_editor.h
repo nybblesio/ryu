@@ -63,6 +63,8 @@ namespace ryu::core {
         void on_resize(const core::rect& context_bounds) override;
 
     private:
+        void caret_left();
+
         void bind_events();
 
         void define_actions();
@@ -71,10 +73,13 @@ namespace ryu::core {
 
         void on_focus_changed() override;
 
+        void caret_right(uint8_t overflow_column = 0);
+
     private:
         uint32_t _address;
         core::caret _caret;
         metrics_t _metrics;
+        uint8_t _nybble = 0;
         uint8_t _address_color;
         uint8_t _selection_color;
         caret_changed_callable _caret_changed_callback;
