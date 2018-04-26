@@ -82,8 +82,15 @@ namespace ryu::ide::machine_editor {
         action_provider().register_handler(
                 core::input_action::find_by_name("machine_editor_edit"),
                 [this](const core::event_data_t& data) {
-                    if (!_component_pick_list->focused())
+                    if (!_component_pick_list->focused() || _machine == nullptr)
                         return false;
+                    auto key = _component_pick_list->rows()[_component_pick_list->selected()].key;
+                    transition_to(
+                        "edit_component",
+                        {
+                            {"machine-id", _machine->id()},
+                            {"component-id", key}
+                        });
                     return true;
                 });
         action_provider().register_handler(
@@ -96,7 +103,6 @@ namespace ryu::ide::machine_editor {
     }
 
     void controller::on_deactivate() {
-        _machine = nullptr;
         _layout_panel->visible(false);
     }
 

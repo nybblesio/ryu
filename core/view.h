@@ -8,14 +8,11 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <SDL_events.h>
-#include <SDL_render.h>
 #include "rect.h"
 #include "palette.h"
 #include "context.h"

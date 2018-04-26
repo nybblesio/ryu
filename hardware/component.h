@@ -19,8 +19,8 @@ namespace ryu::hardware {
     class component {
     public:
         component(
-                uint32_t id,
-                hardware::integrated_circuit* ic);
+            uint32_t id,
+            hardware::integrated_circuit* ic);
 
         uint32_t id() const;
 

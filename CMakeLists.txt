@@ -41,7 +41,6 @@ find_package(SDL2_ttf REQUIRED)
 find_package(RTTR CONFIG REQUIRED Core)
 
 include_directories(
-    /usr/local/opt/llvm/include/include/c++/v1
     ${PROJECT_BINARY_DIR}
     ${PROJECT_SOURCE_DIR}
     ${Boost_INCLUDE_DIRS}

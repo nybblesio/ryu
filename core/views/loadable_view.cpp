@@ -294,14 +294,25 @@ namespace ryu::core {
                         }
                     } else {
                         switch (source) {
-                            case sources::displays:
+                            case sources::displays: {
                                 for (auto& display : hardware::display::catalog())
                                     options.push_back(display.name());
                                 break;
-                            case sources::components:
+                            }
+                            case sources::components: {
                                 break;
-                            case sources::circuits:
+                            }
+                            case sources::circuits: {
+                                auto base_type = rttr::type::get<ryu::hardware::integrated_circuit>();
+                                auto ic_types = base_type.get_derived_classes();
+                                for (const auto& rttr_type : ic_types) {
+                                    auto ic_type_name = rttr_type
+                                        .get_metadata(ryu::hardware::meta_data_key::type_name)
+                                        .to_string();
+                                    options.push_back(ic_type_name);
+                                }
                                 break;
+                            }
                             default:
                                 break;
                         }

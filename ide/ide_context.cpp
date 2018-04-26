@@ -21,7 +21,8 @@ namespace ryu::ide {
                                                         _console_state("console"),
                                                         _machine_list_state("machine list"),
                                                         _source_editor_state("text editor"),
-                                                        _machine_editor_state("machine editor") {
+                                                        _machine_editor_state("machine editor"),
+                                                        _component_editor_state("component editor") {
     }
 
     void ide_context::define_actions() {
@@ -88,7 +89,17 @@ namespace ryu::ide {
                 return false;
             });
         add_state(result, &_source_editor_state);
-        add_state(result, &_machine_editor_state);
+        add_state(
+            result,
+            &_machine_editor_state,
+            [this](const std::string& command, const core::parameter_dict& params) {
+                if (command == "edit_component") {
+                    push_state(_component_editor_state.id(), params);
+                    return true;
+                }
+                return false;
+            });
+        add_state(result, &_component_editor_state);
         push_state(_console_state.id(), {});
     }
 

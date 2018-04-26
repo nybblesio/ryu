@@ -6,16 +6,17 @@ views:
   - name: 'header-panel'
     type: view.types.state-header
     dock: view.dock.top
-    margin: [10, 50, 5, 15]
-    state: 'machine editor'
+    margin: [10, 50, 5, 5]
+    state: 'component editor'
     state_color: ide.colors.white
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
-  - name: 'top-panel'
+
+  - name: 'editor-panel'
     type: view.types.dock-panel
     dock: view.dock.top
-    margin: [10, 50, 5, 15]
+    margin: [10, 50, 5, 5]
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent
@@ -36,9 +37,8 @@ views:
               fg: ide.colors.text
               bg: ide.colors.fill-color
             value: 'name:'
-            margin: [52, 0, 0, 0]
+            margin: [230, 0, 8, 0]
             alignment:
-              horizontal: view.alignments.horizontal.right
               vertical: view.alignments.vertical.middle
           - name: 'name-text-box'
             type: view.types.text-box
@@ -49,67 +49,46 @@ views:
             value: ''
             tab-stop: true
             enabled: true
-            next: 'address-space-text-box'
-            prev: 'map-button'
-            margin: [20, 0, 0, 0]
+            next: 'address-text-box'
+            prev: 'description-text-editor'
             size:
               width: 32
               length: 32
             enabled: true
-          - name: 'address-space-label'
+      - name: 'row2'
+        type: view.types.dock-panel
+        dock: view.dock.top
+        margin: *ROW-MARGINS
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.transparent
+        views:
+          - name: 'address-label'
             type: view.types.label
             dock: view.dock.left
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
-            value: 'address space: $'
-            margin: [20, 0, 0, 0]
+            value: 'address: $'
+            margin: [150, 0, 8, 0]
             alignment:
               vertical: view.alignments.middle
-          - name: 'address-space-text-box'
+          - name: 'address-text-box'
             type: view.types.text-box
             dock: view.dock.left
             prev: 'name-text-box'
-            next: 'display-pick-list'
+            next: 'ic-pick-list'
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
             value: ''
             tab-stop: true
             enabled: true
-            margin: [20, 0, 0, 0]
             size:
               width: 8
               length: 8
             enabled: true
             input-filter: view.input-filters.hex
-      - name: 'row2'
-        type: view.types.dock-panel
-        margin: *ROW-MARGINS
-        dock: view.dock.top
-        colors:
-          fg: ide.colors.info-text
-          bg: ide.colors.transparent
-        views:
-          - name: 'display-label'
-            type: view.types.label
-            dock: view.dock.left
-            value: 'display:'
-            colors:
-              fg: ide.colors.text
-              bg: ide.colors.fill-color
-          - name: 'display-pick-list'
-            type: view.types.pick-list
-            dock: view.dock.left
-            source: sources.displays
-            colors:
-              fg: ide.colors.text
-              bg: ide.colors.fill-color
-            margin: [20, 0, 0, 0]
-            tab-stop: true
-            enabled: true
-            next: 'description-text-editor'
-            prev: 'address-space-text-box'
       - name: 'row3'
         type: view.types.dock-panel
         margin: *ROW-MARGINS
@@ -118,6 +97,43 @@ views:
           fg: ide.colors.info-text
           bg: ide.colors.transparent
         views:
+          - name: 'ic-label'
+            type: view.types.label
+            dock: view.dock.left
+            value: 'integrated circuit:'
+            margin: [0, 0, 8, 0]
+            colors:
+              fg: ide.colors.text
+              bg: ide.colors.fill-color
+          - name: 'ic-pick-list'
+            type: view.types.pick-list
+            dock: view.dock.left
+            source: sources.circuits
+            colors:
+              fg: ide.colors.text
+              bg: ide.colors.fill-color
+            tab-stop: true
+            enabled: true
+            next: 'description-text-editor'
+            prev: 'address-text-box'
+      - name: 'row4'
+        type: view.types.dock-panel
+        dock: view.dock.top
+        margin: *ROW-MARGINS
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.transparent
+        views:
+          - name: 'description-label'
+            type: view.types.label
+            dock: view.dock.top
+            colors:
+              fg: ide.colors.text
+              bg: ide.colors.fill-color
+            value: 'description:'
+            margin: [0, 0, 5, 5]
+            alignment:
+              vertical: view.alignments.middle
           - name: 'description-text-editor'
             type: view.types.text-editor
             dock: view.dock.fill
@@ -125,117 +141,38 @@ views:
               rows: 64
               columns: 80
             page-size:
-              rows: 6
-              columns: 10
+              rows: 10
+              columns: 40
             tab-stop: true
             enabled: true
-            next: 'pick-list'
-            prev: 'display-pick-list'
+            next: 'close-button'
+            prev: 'ic-pick-list'
             caret-color: ide.colors.caret
             selection-color: ide.colors.selection
             line-number-color: ide.colors.info-text
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
+
   - name: 'button-panel'
     type: view.types.dock-panel
     dock: view.dock.bottom
-    margin: [10, 50, 5, 15]
+    margin: [10, 50, 5, 5]
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent
     row-margins: &BUTTON-MARGINS [5, 5, 5, 5]
     views:
-      - name: 'add-button'
+      - name: 'close-button'
         type: view.types.button
         width: 230
-        value: 'Add (F1)'
+        value: 'Close (ESC)'
         dock: view.dock.left
-        tab-stop: true
         enabled: true
-        next: 'edit-button'
-        prev: 'pick-list'
-        margin: *BUTTON-MARGINS
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-      - name: 'edit-button'
-        type: view.types.button
-        width: 230
-        value: 'Edit (RETURN)'
-        margin: *BUTTON-MARGINS
-        dock: view.dock.left
         tab-stop: true
-        enabled: true
-        next: 'delete-button'
-        prev: 'add-button'
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-      - name: 'delete-button'
-        type: view.types.button
-        width: 230
-        value: 'Delete (DEL)'
-        dock: view.dock.left
-        tab-stop: true
-        enabled: true
-        next: 'map-button'
-        prev: 'edit-button'
-        margin: *BUTTON-MARGINS
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-      - name: 'map-button'
-        type: view.types.button
-        width: 230
-        value: 'Map (F2)'
-        tab-stop: true
-        enabled: true
         next: 'name-text-box'
-        prev: 'delete-button'
-        dock: view.dock.right
+        prev: 'description-text-editor'
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey
           bg: ide.colors.light-blue
-  - name: 'pick-list'
-    type: view.types.column-pick-list
-    dock: view.dock.fill
-    tab-stop: true
-    enabled: true
-    next: 'add-button'
-    prev: 'description-text-editor'
-    margin: [10, 50, 5, 15]
-    border: view.border.solid
-    sizing: view.sizing.parent
-    colors:
-      fg: ide.colors.info-text
-      bg: ide.colors.fill-color
-    column-colors: &COLUMN-COLORS
-      fg: ide.colors.white
-      bg: ide.colors.light-blue
-    headers:
-      - title: 'ID'
-        colors: *COLUMN-COLORS
-        width: 100
-        alignment:
-          horizontal: view.alignments.horizontal.left
-          vertical: view.alignments.vertical.middle
-      - title: 'Name'
-        colors: *COLUMN-COLORS
-        width: 600
-        alignment:
-          horizontal: view.alignments.horizontal.left
-          vertical: view.alignments.vertical.middle
-      - title: 'Address'
-        colors: *COLUMN-COLORS
-        width: 150
-        alignment:
-          horizontal: view.alignments.horizontal.center
-          vertical: view.alignments.vertical.middle
-      - title: 'Integrated Circuit'
-        colors: *COLUMN-COLORS
-        width: 325
-        alignment:
-          horizontal: view.alignments.horizontal.left
-          vertical: view.alignments.vertical.middle

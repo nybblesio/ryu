@@ -258,6 +258,10 @@ namespace ryu::core {
         _font_style = styles;
     }
 
+    void view::palette(core::palette* value) {
+        _palette = value;
+    }
+
     void view::next_view(core::view* value) {
         _next = value;
     }
@@ -305,10 +309,6 @@ namespace ryu::core {
 
     void view::bounds(const core::rect& value) {
         _rect = value;
-    }
-
-    void view::palette(core::palette* value) {
-        _palette = value;
     }
 
     void view::focus(const core::view* target) {

@@ -59,8 +59,12 @@ namespace ryu::core {
             _active->deactivate();
         }
         _active = find_state(peek());
+
+        // XXX: not sure why resize logic requires both calls here
+        //      at some point, figure out why this is so shit
         _active->resize(_active->context()->bounds());
         _active->activate(_pending_params);
+        _active->context()->resize();
     }
 
     core::state* state_stack::find_state(int id) {
