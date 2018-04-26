@@ -134,6 +134,7 @@ views:
             margin: [0, 0, 5, 5]
             alignment:
               vertical: view.alignments.middle
+
           - name: 'description-text-editor'
             type: view.types.text-editor
             dock: view.dock.fill
@@ -165,8 +166,10 @@ views:
     views:
       - name: 'close-button'
         type: view.types.button
-        width: 230
-        value: 'Close (ESC)'
+        width: 150
+        value: 'Close'
+        shortcut: 'ESC'
+        shortcut-color: ide.colors.light-green
         dock: view.dock.left
         enabled: true
         tab-stop: true

@@ -4,6 +4,7 @@ add_subdirectory(component_editor)
 add_subdirectory(source_editor)
 add_subdirectory(machine_list)
 add_subdirectory(machine_editor)
+add_subdirectory(project_editor)
 
 add_library(
         ide
@@ -11,6 +12,7 @@ add_library(
         source_editor
         console_editor
         component_editor
+        project_editor
         machine_list
         machine_editor
         ide_types.h
@@ -22,4 +24,5 @@ target_link_libraries(
         component_editor
         source_editor
         machine_list
-        machine_editor)
+        machine_editor
+        project_editor)

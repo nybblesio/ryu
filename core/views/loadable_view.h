@@ -64,7 +64,8 @@ namespace ryu::core {
             none,
             displays,
             components,
-            circuits
+            circuits,
+            machines
         };
 
         enum class input_filters {

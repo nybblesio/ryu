@@ -199,9 +199,9 @@ namespace ryu::core {
         auto header_x = bounds.left();
         for (const auto& header : _headers) {
             core::rect header_rect {
-                header_x,
-                bounds.top(),
-                header.width,
+                header_x + 1,
+                bounds.top() + 1,
+                header.width - 1,
                 row_height};
             surface.set_color(adjust_color(pal[header.bg_color]));
             surface.fill_rect(header_rect);

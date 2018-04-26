@@ -36,6 +36,22 @@ namespace ryu::core {
                 value.c_str());
     }
 
+    void renderer::draw_text_scaled(
+            const font_t* font_face,
+            int x,
+            int y,
+            const std::string& value,
+            float sx,
+            float sy) {
+        FC_DrawScale(
+            font_face->glyph,
+            _surface,
+            x,
+            y,
+            FC_MakeScale(sx, sy),
+            value.c_str());
+    }
+
     void renderer::present() {
         SDL_RenderPresent(_surface);
     }

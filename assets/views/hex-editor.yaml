@@ -13,6 +13,7 @@ views:
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
+
   - name: 'command-line-text-box'
     type: view.types.text-box
     dock: view.dock.top
@@ -27,6 +28,7 @@ views:
     colors:
       fg: ide.colors.text
       bg: ide.colors.fill-color
+
   - name: 'footer-panel'
     type: view.types.dock-panel
     dock: view.dock.bottom
@@ -44,6 +46,7 @@ views:
         colors:
           fg: ide.colors.info-text
           bg: ide.colors.fill-color
+
   - name: 'memory-editor'
     type: view.types.memory-editor
     dock: view.dock.fill

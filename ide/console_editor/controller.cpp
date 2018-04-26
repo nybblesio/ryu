@@ -74,7 +74,7 @@ namespace ryu::ide::console_editor {
                 ide::colors::fill_color,
                 "",
                 core::dock::styles::bottom,
-                {_metrics.left_padding, _metrics.right_padding, 5, 5});
+                {_metrics.left_padding, _metrics.right_padding, 10, 5});
 
         _console = core::view_factory::create_console(
                 this,

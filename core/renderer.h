@@ -33,6 +33,14 @@ namespace ryu::core {
                 const std::string& value,
                 const core::palette_entry& color);
 
+        void draw_text_scaled(
+                const font_t* font_face,
+                int x,
+                int y,
+                const std::string& value,
+                float sx,
+                float sy);
+
         int measure_text(
                 const font_t* font_face,
                 const std::string& value);

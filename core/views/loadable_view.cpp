@@ -12,6 +12,7 @@
 #include <yaml-cpp/yaml.h>
 #include <logger_factory.h>
 #include <core/view_factory.h>
+#include <hardware/registry.h>
 #include "loadable_view.h"
 
 namespace ryu::core {
@@ -169,6 +170,17 @@ namespace ryu::core {
                             pads,
                             bounds);
 
+                    uint32_t sc_color;
+                    auto sc_result = get_node_from_path(view_node, "shortcut-color");
+                    if (sc_result.found)
+                        if (get_constant(result, root, sc_result.node, sc_color))
+                            button->shortcut_color(static_cast<uint8_t>(sc_color));
+
+                    std::string shortcut;
+                    if (get_optional_scalar(view_node["shortcut"], shortcut)) {
+                        button->shortcut(shortcut);
+                    }
+
                     uint32_t width;
                     if (get_optional_scalar(view_node["width"], width)) {
                         button->width(width);
@@ -310,6 +322,12 @@ namespace ryu::core {
                                         .get_metadata(ryu::hardware::meta_data_key::type_name)
                                         .to_string();
                                     options.push_back(ic_type_name);
+                                }
+                                break;
+                            }
+                            case sources::machines: {
+                                for (const auto machine : hardware::registry::instance()->machines()) {
+                                    options.push_back(machine->name());
                                 }
                                 break;
                             }

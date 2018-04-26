@@ -64,8 +64,16 @@ namespace ryu::core {
         _height = value;
     }
 
+    std::string button::shortcut() const {
+        return _shortcut;
+    }
+
     border::types button::border() const {
         return _border;
+    }
+
+    uint8_t button::shortcut_color() const {
+        return _shortcut_color;
     }
 
     void button::border(border::types value) {
@@ -80,20 +88,45 @@ namespace ryu::core {
         auto pal = *palette();
         auto fg = pal[fg_color()];
         auto bg = pal[bg_color()];
+        auto shortcut_color = pal[_shortcut_color];
 
         if (!enabled()) {
             fg = fg - 45;
             bg = bg - 45;
+            shortcut_color = shortcut_color - 45;
         } else if (!focused()) {
             fg = fg - 35;
             bg = bg - 35;
+            shortcut_color = shortcut_color - 35;
         }
 
         surface.set_color(bg);
         surface.fill_rect(bounds);
 
         surface.set_font_color(font_face(), fg);
-        surface.draw_text_aligned(font_face(), value(), bounds, _halign, _valign);
+        core::rect label_bounds {
+            bounds.left(),
+            bounds.top() + 6,
+            bounds.width(),
+            bounds.height() - 6
+        };
+        surface.draw_text_aligned(
+            font_face(),
+            value(),
+            label_bounds,
+            _halign,
+            _valign);
+
+        if (!_shortcut.empty()) {
+            surface.set_font_color(font_face(), shortcut_color);
+            surface.draw_text_scaled(
+                font_face(),
+                bounds.right() - _shortcut_text_width,
+                bounds.top() + 2,
+                _shortcut,
+                .5,
+                .5);
+        }
 
         if (_border == border::types::solid) {
             surface.set_color(fg);
@@ -101,6 +134,15 @@ namespace ryu::core {
         }
 
         surface.pop_blend_mode();
+    }
+
+    void button::shortcut_color(uint8_t value) {
+        _shortcut_color = value;
+    }
+
+    void button::shortcut(const std::string& value) {
+        _shortcut = value;
+        _shortcut_text_width = (font_face()->measure_text(_shortcut) / 2) + 2;
     }
 
     alignment::vertical::types button::valign() const {

@@ -22,6 +22,7 @@ namespace ryu::ide {
                                                         _machine_list_state("machine list"),
                                                         _source_editor_state("text editor"),
                                                         _machine_editor_state("machine editor"),
+                                                        _project_editor_state("project editor"),
                                                         _component_editor_state("component editor") {
     }
 
@@ -71,6 +72,9 @@ namespace ryu::ide {
                 } else if (command == "edit_machine") {
                     push_state(_machine_editor_state.id(), params);
                     return true;
+                } else if (command == "edit_project") {
+                    push_state(_project_editor_state.id(), params);
+                    return true;
                 } else if (command == "list_machine") {
                     push_state(_machine_list_state.id(), params);
                     return true;
@@ -100,6 +104,7 @@ namespace ryu::ide {
                 return false;
             });
         add_state(result, &_component_editor_state);
+        add_state(result, &_project_editor_state);
         push_state(_console_state.id(), {});
     }
 

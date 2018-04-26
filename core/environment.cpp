@@ -1456,6 +1456,9 @@ namespace ryu::core {
 
     bool environment::on_edit_project(
             const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
+
         context.result.add_data(
                 "command_action",
                 {{"action", std::string("edit_project")}});
