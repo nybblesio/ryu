@@ -5,19 +5,24 @@
 // All Rights Reserved.
 //
 
+#include <SDL.h>
 #include <algorithm>
+#include <SDL_image.h>
 #include <fmt/format.h>
+#include <common/SDL_FontCache.h>
 #include <common/string_support.h>
 #include "state.h"
 #include "engine.h"
 #include "context.h"
 #include "font_book.h"
+#include "joysticks.h"
 #include "timer_pool.h"
 #include "preferences.h"
 #include "input_action.h"
-#include "joysticks.h"
 
 namespace ryu::core {
+
+    using event_list = std::vector<SDL_Event>;
 
     std::vector<rect> engine::displays() {
         std::vector<rect> displays;
@@ -75,6 +80,8 @@ namespace ryu::core {
         }
 
         _window_rect = _prefs->window_position();
+        _clip_rect = {0, 0, _window_rect.width(), _window_rect.height()};
+
         _window = SDL_CreateWindow(
                 "Ryu: The Arcade Construction Kit",
                 _window_rect.left(),
@@ -104,6 +111,8 @@ namespace ryu::core {
                     true);
             return false;
         }
+
+        _surface.sdl_renderer(_renderer);
 
         if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
             result.add_message(
@@ -135,12 +144,6 @@ namespace ryu::core {
         bind_events();
 
         return true;
-    }
-
-    void engine::blackboard(
-            const std::string& name,
-            const std::string& value) {
-        _blackboard[name] = value;
     }
 
     void engine::raise_move() {
@@ -234,7 +237,9 @@ namespace ryu::core {
                 input_action::find_by_name("ryu_resized"),
                 [this](const event_data_t& data) {
                     _window_rect.width(data.width);
+                    _clip_rect.width(data.width);
                     _window_rect.height(data.height);
+                    _clip_rect.height(data.height);
                     raise_resize();
                     return true;
                 });
@@ -247,17 +252,9 @@ namespace ryu::core {
     }
 
     void engine::raise_resize() {
-        if (_resize_callback != nullptr) {
-            _resize_callback(core::rect{
-                0,
-                0,
-                _window_rect.width(),
-                _window_rect.height()});
-        }
-    }
-
-    core::rect engine::bounds() const {
-        return {0, 0, _window_rect.width(), _window_rect.height()};
+        _surface.set_clip_rect(_clip_rect);
+        if (_resize_callback != nullptr)
+            _resize_callback(_clip_rect);
     }
 
     core::preferences* engine::prefs() {
@@ -270,10 +267,6 @@ namespace ryu::core {
         auto last_time = SDL_GetTicks();
         auto last_fps_time = last_time;
 
-        SDL_Event dummy_joystick_event {};
-        dummy_joystick_event.type = SDL_JOYBALLMOTION;
-
-        core::renderer surface {_renderer};
         pending_event_list pending_events {};
         event_list events {};
 
@@ -290,8 +283,8 @@ namespace ryu::core {
                 last_fps_time = last_time;
             }
 
-            surface.set_color({0x00, 0x00, 0x00, 0xff});
-            surface.clear();
+            _surface.set_color({0x00, 0x00, 0x00, 0xff});
+            _surface.clear();
 
             while (true) {
                 SDL_Event e {};
@@ -300,68 +293,65 @@ namespace ryu::core {
                 events.push_back(e);
             }
 
-            // N.B. push back a dummy event so certain kinds of events
-            //      are processed even though we don't have something from SDL.
-            if (events.empty()) {
-                events.push_back(dummy_joystick_event);
-            }
-
-            action_type_flags types = input_action::type::none;
-            for (auto& e : events) {
-                switch (e.type) {
-                    case SDL_QUIT:
-                        types |= input_action::type::system;
-                        break;
-                    case SDL_WINDOWEVENT:
-                        types |= input_action::type::window;
-                        break;
-                    case SDL_KEYUP:
-                    case SDL_KEYDOWN:
-                        types |= input_action::type::keyboard;
-                        break;
-                    case SDL_JOYBUTTONUP:
-                    case SDL_JOYHATMOTION:
-                    case SDL_JOYBUTTONDOWN:
-                    case SDL_JOYBALLMOTION:
-                        types |= input_action::type::joystick;
-                        break;
-                    case SDL_MOUSEWHEEL:
-                    case SDL_MOUSEMOTION:
-                    case SDL_MOUSEBUTTONUP:
-                    case SDL_MOUSEBUTTONDOWN:
-                        types |= input_action::type::mouse;
-                        break;
-                    default:
-                        break;
+            // XXX: need to fix joystick repeat functionality
+            //          right now the binding code has to be called per some unit of
+            //          time to ensure it works properly.
+            if (!events.empty()) {
+                action_type_flags types = input_action::type::none;
+                for (auto& e : events) {
+                    switch (e.type) {
+                        case SDL_QUIT:
+                            types |= input_action::type::system;
+                            break;
+                        case SDL_WINDOWEVENT:
+                            types |= input_action::type::window;
+                            break;
+                        case SDL_KEYUP:
+                        case SDL_KEYDOWN:
+                            types |= input_action::type::keyboard;
+                            break;
+                        case SDL_JOYBUTTONUP:
+                        case SDL_JOYHATMOTION:
+                        case SDL_JOYBUTTONDOWN:
+                        case SDL_JOYBALLMOTION:
+                            types |= input_action::type::joystick;
+                            break;
+                        case SDL_MOUSEWHEEL:
+                        case SDL_MOUSEMOTION:
+                        case SDL_MOUSEBUTTONUP:
+                        case SDL_MOUSEBUTTONDOWN:
+                            types |= input_action::type::mouse;
+                            break;
+                        default:
+                            break;
+                    }
                 }
-            }
 
-            auto filtered_actions = input_action::filtered_catalog(types);
-            for (auto& e : events) {
-                for (auto action : filtered_actions) {
-                    event_data_t data {};
-                    if (action->process(&e, data)) {
-                        pending_events.push_back(pending_event_t {action, data});
+                auto filtered_actions = input_action::filtered_catalog(types);
+                for (auto& e : events) {
+                    for (auto action : filtered_actions) {
+                        event_data_t data{};
+                        if (action->process(&e, data)) {
+                            pending_events.push_back(pending_event_t{action, data});
+                        }
                     }
                 }
             }
 
             for (auto& it : _contexts)
-                it.second->update(dt, pending_events, surface);
+                it.second->update(dt, pending_events, _surface);
 
             _action_provider.process(pending_events);
 
             // N.B. this is an override/overlay draw so contexts
             //      can "bleed" into other contexts.
             for (auto& it : _contexts)
-                it.second->draw(surface);
-
-            surface.set_clip_rect(bounds());
+                it.second->draw(_surface);
 
             if (_font != nullptr) {
                 auto fps = fmt::format("FPS: {}", (int) average_fps);
-                auto fps_width = surface.measure_text(_font, fps);
-                surface.draw_text(
+                auto fps_width = _surface.measure_text(_font, fps);
+                _surface.draw_text(
                         _font,
                         _window_rect.width() - (fps_width + 5),
                         _window_rect.height() - (_font->line_height + 4),
@@ -369,7 +359,7 @@ namespace ryu::core {
                         {0xff, 0xff, 0xff, 0xff});
             }
 
-            surface.present();
+            _surface.present();
 
             pending_events.clear();
             events.clear();
@@ -391,14 +381,6 @@ namespace ryu::core {
 
     core::rect engine::window_position() const {
         return _window_rect;
-    }
-
-    hardware::machine* engine::machine() const {
-        return _machine;
-    }
-
-    void engine::machine(hardware::machine* machine) {
-        _machine = machine;
     }
 
     void engine::add_context(core::context* context) {
@@ -428,10 +410,6 @@ namespace ryu::core {
         SDL_SetWindowSize(_window, value.width(), value.height());
     }
 
-    void engine::erase_blackboard(const std::string& name) {
-        _blackboard.erase(name);
-    }
-
     void engine::on_move(const engine::move_callable& callback) {
         _move_callback = callback;
     }
@@ -444,14 +422,6 @@ namespace ryu::core {
                 return it->second;
         }
         return nullptr;
-    }
-
-    std::string engine::blackboard(const std::string& name) const {
-        auto it = _blackboard.find(name);
-        if (it != _blackboard.end()) {
-            return it->second;
-        }
-        return "";
     }
 
     void engine::on_resize(const engine::resize_callable& callback) {

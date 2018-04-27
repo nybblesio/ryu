@@ -20,7 +20,7 @@ namespace ryu::core {
 
     class renderer {
     public:
-        explicit renderer(SDL_Renderer* surface);
+        renderer() = default;
 
         void clear();
 
@@ -61,6 +61,8 @@ namespace ryu::core {
         core::rect pop_clip_rect();
 
         const core::rect& bounds() const;
+
+        void sdl_renderer(SDL_Renderer* value);
 
         void draw_rect(const core::rect& bounds);
 

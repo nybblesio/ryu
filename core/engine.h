@@ -7,10 +7,7 @@
 
 #pragma once
 
-#include <SDL.h>
-#include <SDL_image.h>
 #include <hardware/machine.h>
-#include <common/SDL_FontCache.h>
 #include "rect.h"
 #include "timer.h"
 #include "result.h"
@@ -19,6 +16,9 @@
 #include "font_family.h"
 #include "preferences.h"
 #include "input_action_provider.h"
+
+struct SDL_Window;
+struct SDL_Renderer;
 
 namespace ryu::core {
 
@@ -43,10 +43,6 @@ namespace ryu::core {
                 result& result,
                 core::preferences* prefs);
 
-        void blackboard(
-                const std::string& name,
-                const std::string& value);
-
         void raise_move();
 
         int focus() const {
@@ -56,8 +52,6 @@ namespace ryu::core {
         void focus(int id);
 
         void raise_resize();
-
-        core::rect bounds() const;
 
         core::preferences* prefs();
 
@@ -69,15 +63,11 @@ namespace ryu::core {
 
         core::rect window_position() const;
 
-        hardware::machine* machine() const;
-
-        inline SDL_Renderer* renderer() const {
-            return _renderer;
-        }
-
         void add_context(core::context* context);
 
-        void machine(hardware::machine* machine);
+        inline const core::rect& bounds() const {
+            return _window_rect;
+        }
 
         void font_face(const core::font_t* value);
 
@@ -87,15 +77,15 @@ namespace ryu::core {
 
         void on_move(const move_callable& callback);
 
-        void window_position(const core::rect& value);
+        inline const core::rect& clip_rect() const {
+            return _clip_rect;
+        }
 
-        void erase_blackboard(const std::string& name);
+        void window_position(const core::rect& value);
 
         void on_resize(const resize_callable& callback);
 
         core::context* find_context(const std::string& name);
-
-        std::string blackboard(const std::string& name) const;
 
     private:
         void bind_events();
@@ -104,17 +94,17 @@ namespace ryu::core {
 
     private:
         bool _quit = false;
+        core::rect _clip_rect;
         core::rect _window_rect;
+        core::renderer _surface;
         int _focused_context = -1;
         move_callable _move_callback;
-        core::blackboard _blackboard;
         core::context_dict _contexts;
         SDL_Window* _window = nullptr;
         resize_callable _resize_callback;
         SDL_Renderer* _renderer = nullptr;
         core::preferences* _prefs = nullptr;
         const core::font_t* _font = nullptr;
-        hardware::machine* _machine = nullptr;
         core::font_family* _font_family = nullptr;
         core::input_action_provider _action_provider {};
     };

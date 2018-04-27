@@ -24,7 +24,7 @@ namespace ryu::core {
 
     class project_file {
     public:
-        static project_file load(
+        static project_file_shared_ptr load(
             core::result& result,
             YAML::Node& node);
 

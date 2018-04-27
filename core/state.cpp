@@ -120,10 +120,6 @@ namespace ryu::core {
         return _action_provider;
     }
 
-    void state::erase_blackboard(const std::string& name) {
-        _context->erase_blackboard(name);
-    }
-
     void state::activate(const core::parameter_dict& params) {
         on_activate(params);
         raise_change_event(change_reasons::focus | change_reasons::visibility);
@@ -132,17 +128,9 @@ namespace ryu::core {
     void state::on_activate(const core::parameter_dict& params) {
     }
 
-    std::string state::blackboard(const std::string& name) const {
-        return _context->blackboard(name);
-    }
-
     void state::raise_change_event(view_host::change_reason_flags reasons) {
         for (const auto& listener : _listeners)
             listener.second(reasons);
-    }
-
-    void state::blackboard(const std::string& name, const std::string& value) {
-        _context->blackboard(name, value);
     }
 
     void state::transition_callback(const state_transition_callable& callback) {

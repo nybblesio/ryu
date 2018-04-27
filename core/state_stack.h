@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <SDL.h>
 #include <vector>
 #include "core_types.h"
 #include "renderer.h"

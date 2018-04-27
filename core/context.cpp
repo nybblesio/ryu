@@ -82,16 +82,10 @@ namespace ryu::core {
         return on_initialize(result);
     }
 
-    void context::blackboard(
-            const std::string& name,
-            const std::string& value) {
-        _blackboard[name] = value;
-    }
-
     void context::resize() {
         auto active = _stack.find_state(_stack.peek());
         if (active != nullptr)
-            active->resize(bounds());
+            active->resize(_bounds);
     }
 
     uint32_t context::id() const {
@@ -138,18 +132,6 @@ namespace ryu::core {
 
     core::input_action_provider& context::action_provider() {
         return _action_provider;
-    }
-
-    void context::erase_blackboard(const std::string& name) {
-        _blackboard.erase(name);
-    }
-
-    std::string context::blackboard(const std::string& name) const {
-        auto it = _blackboard.find(name);
-        if (it != _blackboard.end()) {
-            return it->second;
-        }
-        return "";
     }
 
 }

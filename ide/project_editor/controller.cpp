@@ -57,12 +57,12 @@ namespace ryu::ide::project_editor {
 
         for (const auto& file : project->files()) {
             _file_pick_list->add_row({
-                    file.id(),
+                    file->id(),
                     {
-                        fmt::format("{}", file.id()),
-                        file.name(),
-                        boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file.type())),
-                        file.should_assemble() ? "X" : ""
+                        fmt::format("{}", file->id()),
+                        file->name(),
+                        boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file->type())),
+                        file->should_assemble() ? "X" : ""
                     }
                 });
         }

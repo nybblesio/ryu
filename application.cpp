@@ -168,7 +168,7 @@ namespace ryu {
         _ide_context.font_face(face);
         _ide_context.bg_color(ide::colors::fill_color);
         _ide_context.size(_prefs.ide_window_size());
-        return _ide_context.initialize(result, _engine.bounds());
+        return _ide_context.initialize(result, _engine.clip_rect());
     }
 
     bool application::configure_emulator(core::result& result) {
@@ -202,7 +202,7 @@ namespace ryu {
         _emulator_context.font_face(face);
         _emulator_context.bg_color(ide::colors::fill_color);
         _emulator_context.size(_prefs.emulator_window_size());
-        return _emulator_context.initialize(result, _engine.bounds());
+        return _emulator_context.initialize(result, _engine.clip_rect());
     }
 
 }

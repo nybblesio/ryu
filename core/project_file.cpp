@@ -17,7 +17,7 @@
 
 namespace ryu::core {
 
-    project_file project_file::load(
+    project_file_shared_ptr project_file::load(
             core::result& result,
             YAML::Node& node) {
         auto id = node["id"];
@@ -47,19 +47,19 @@ namespace ryu::core {
             return {};
         }
 
-        project_file file(
-                id.as<uint32_t>(),
-                fs::path(path.as<std::string>()),
-                project_file_type::code_to_type(type.as<std::string>()));
+        auto file = std::make_shared<project_file>(
+            id.as<uint32_t>(),
+            fs::path(path.as<std::string>()),
+            project_file_type::code_to_type(type.as<std::string>()));
 
         auto sequence_node = node["sequence"];
         if (sequence_node != nullptr && sequence_node.IsScalar()) {
-            file.sequence(sequence_node.as<uint16_t>());
+            file->sequence(sequence_node.as<uint16_t>());
         }
 
         auto should_assemble_node = node["should_assemble"];
         if (should_assemble_node != nullptr && should_assemble_node.IsScalar()) {
-            file.should_assemble(should_assemble_node.as<bool>());
+            file->should_assemble(should_assemble_node.as<bool>());
         }
 
         return file;
@@ -183,18 +183,6 @@ namespace ryu::core {
         return _id;
     }
 
-    fs::path project_file::full_path() const {
-        if (_type == project_file_type::environment) {
-            return project::find_project_root()
-                    .append(".ryu")
-                    .append(_path.string())
-                    .replace_extension(".env");
-        } else {
-            return project::find_project_root()
-                    .append(_path.string());
-        }
-    }
-
     fs::path project_file::path() const {
         return _path;
     }
@@ -209,6 +197,18 @@ namespace ryu::core {
 
     uint16_t project_file::sequence() const {
         return _sequence;
+    }
+
+    fs::path project_file::full_path() const {
+        if (_type == project_file_type::environment) {
+            return project::find_project_root()
+                .append(".ryu")
+                .append(_path.string())
+                .replace_extension(".env");
+        } else {
+            return project::find_project_root()
+                .append(_path.string());
+        }
     }
 
     bool project_file::should_assemble() const {

@@ -126,10 +126,6 @@ Art Asset Requirements
 
 - FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
 
-- FIX: project should store project_file as collection of heap objects
-
-- FIX: nasty, nasty, nasty string-based command interfaces between console, context, etc.
-
 [feature/tools] Emulator IDE
 ----------------------------
 - NEW: emulator::service::controller
@@ -297,3 +293,5 @@ DONE
 - NEW: change engine::initialize to accept core::preferences* instead of const& and store in field
         add core::preferences* preferences() accessor to context.h
 - fix text_box event handling
+- FIX: nasty, nasty, nasty string-based command interfaces between console, context, etc.
+- FIX: project should store project_file as collection of heap objects

@@ -562,8 +562,8 @@ namespace ryu::core {
             return false;
 
         auto files = core::project::instance()->files();
-        for (auto& file : files) {
-            assemble(result, &file);
+        for (const auto& file : files) {
+            assemble(result, file.get());
         }
 
         auto listing_table = _assembler->listing().table();
@@ -1534,12 +1534,12 @@ namespace ryu::core {
             type.value = "TEXT";
         auto path = context.get_parameter<core::string_literal_t>("path");
 
-        core::project_file file(
+        auto file = std::make_shared<core::project_file>(
                 core::id_pool::instance()->allocate(),
                 path,
                 core::project_file_type::code_to_type(type));
         core::project::instance()->add_file(file);
-        file.create_stub_file(context.result, path);
+        file->create_stub_file(context.result, path);
 
         return !context.result.is_failed();
     }
@@ -1577,12 +1577,12 @@ namespace ryu::core {
 
         auto project_files = core::project::instance()->files();
         for (const auto& file : project_files) {
-            if (file.type() == project_file_type::environment)
+            if (file->type() == project_file_type::environment)
                 continue;
             data_table_row_t row {};
-            row.columns.push_back(std::to_string(file.id()));
-            row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
-            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file.type())));
+            row.columns.push_back(std::to_string(file->id()));
+            row.columns.push_back(fmt::format("\"{}\"", file->path().string()));
+            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file->type())));
             table.rows.push_back(row);
         }
 
@@ -1952,12 +1952,12 @@ namespace ryu::core {
             return false;
         }
 
-        core::project_file file(
+        auto file = std::make_shared<core::project_file>(
                 core::id_pool::instance()->allocate(),
                 name.value,
                 core::project_file_type::environment);
         core::project::instance()->add_file(file);
-        file.create_stub_file(context.result, environment_file_path);
+        file->create_stub_file(context.result, environment_file_path);
         core::project::instance()->save(context.result);
 
         return !context.result.is_failed();
@@ -1985,12 +1985,12 @@ namespace ryu::core {
 
         auto project_files = core::project::instance()->files();
         for (const auto& file : project_files) {
-            if (file.type() != project_file_type::environment)
+            if (file->type() != project_file_type::environment)
                 continue;
             data_table_row_t row {};
-            row.columns.push_back(std::to_string(file.id()));
-            row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
-            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file.type())));
+            row.columns.push_back(std::to_string(file->id()));
+            row.columns.push_back(fmt::format("\"{}\"", file->path().string()));
+            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file->type())));
             table.rows.push_back(row);
         }
 

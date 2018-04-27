@@ -39,7 +39,8 @@ namespace ryu::core {
 
     class project_file;
 
-    typedef std::vector<project_file> project_file_list;
+    using project_file_shared_ptr = std::shared_ptr<project_file>;
+    typedef std::vector<project_file_shared_ptr> project_file_list;
 
     // --------------------
     // context
@@ -48,7 +49,6 @@ namespace ryu::core {
     class context;
 
     typedef std::map<int, context*> context_dict;
-    typedef std::vector<SDL_Event> event_list;
 
     struct context_window {
         enum sizes {

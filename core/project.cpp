@@ -138,7 +138,7 @@ namespace ryu::core {
             for (auto it = files.begin(); it != files.end(); ++it) {
                 auto file_node = *it;
                 auto file = core::project_file::load(result, file_node);
-                if (file.type() != core::project_file_type::uninitialized) {
+                if (file->type() != core::project_file_type::uninitialized) {
                     _instance->add_file(file);
                 }
             }
@@ -271,8 +271,8 @@ namespace ryu::core {
         emitter << YAML::Key << "active_environment" << YAML::Value << active_environment_id;
 
         emitter << YAML::Key << "files" << YAML::BeginSeq;
-        for (auto& file : _files)
-            file.save(result, emitter);
+        for (const auto& file : _files)
+            file->save(result, emitter);
         emitter << YAML::EndSeq;
 
         emitter << YAML::Key << "props" << YAML::BeginSeq;
@@ -310,8 +310,8 @@ namespace ryu::core {
 
     void project::remove_file(uint32_t id) {
         for (size_t i = 0; i < _files.size(); i++) {
-            auto& file = _files[i];
-            if (file.id() == id) {
+            const auto& file = _files[i];
+            if (file->id() == id) {
                 _files.erase(_files.begin() + i);
                 _dirty = true;
                 notify_listeners();
@@ -321,8 +321,8 @@ namespace ryu::core {
         std::sort(
                 _files.begin(),
                 _files.end(),
-                [](project_file& left, project_file& right) {
-                    return left.sequence() < right.sequence();
+                [](const project_file_shared_ptr& left, project_file_shared_ptr& right) {
+                    return left->sequence() < right->sequence();
                 });
     }
 
@@ -344,9 +344,9 @@ namespace ryu::core {
 
     project_file* project::find_file(uint32_t id) {
         for (size_t i = 0; i < _files.size(); i++) {
-            if (_files[i].id() == id) {
-                return &_files[i];
-            }
+            const auto& file = _files[i];
+            if (file->id() == id)
+                return file.get();
         }
         return nullptr;
     }
@@ -363,16 +363,13 @@ namespace ryu::core {
         }
     }
 
-    void project::add_file(const project_file& value) {
-        if (_files.capacity() < 256)
-            _files.reserve(256);
-
+    void project::add_file(const project_file_shared_ptr& value) {
         _files.push_back(value);
         std::sort(
                 _files.begin(),
                 _files.end(),
-                [](project_file& left, project_file& right) {
-                    return left.sequence() < right.sequence();
+                [](const project_file_shared_ptr& left, const project_file_shared_ptr& right) {
+                    return left->sequence() < right->sequence();
                 });
         _dirty = true;
         notify_listeners();
@@ -396,9 +393,9 @@ namespace ryu::core {
 
     project_file* project::find_file(const fs::path& path) {
         for (size_t i = 0; i < _files.size(); i++) {
-            if (_files[i].path() == path) {
-                return &_files[i];
-            }
+            const auto& file = _files[i];
+            if (file->path() == path)
+                return file.get();
         }
         return nullptr;
     }

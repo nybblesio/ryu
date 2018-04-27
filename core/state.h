@@ -9,8 +9,6 @@
 
 #include <map>
 #include <string>
-#include <SDL_events.h>
-#include <SDL_render.h>
 #include "view.h"
 #include "renderer.h"
 #include "core_types.h"
@@ -96,8 +94,6 @@ namespace ryu::core {
 
         virtual bool on_load(core::result& result) = 0;
 
-        void erase_blackboard(const std::string& name);
-
         core::input_action_provider& action_provider();
 
         virtual void on_resize(const core::rect& bounds);
@@ -106,11 +102,7 @@ namespace ryu::core {
 
         void raise_change_event(change_reason_flags reasons);
 
-        std::string blackboard(const std::string& name) const;
-
         virtual void on_activate(const core::parameter_dict& params);
-
-        void blackboard(const std::string& name, const std::string& value);
 
     private:
         uint32_t _id = 0;

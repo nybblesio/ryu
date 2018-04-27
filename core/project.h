@@ -70,8 +70,6 @@ namespace ryu::core {
 
         const project_file_list& files() const;
 
-        void add_file(const project_file& value);
-
         void machine(hardware::machine* machine);
 
         void description(const std::string& value);
@@ -81,6 +79,8 @@ namespace ryu::core {
         project_file* find_file(const fs::path& path);
 
         std::string prop(const std::string& key) const;
+
+        void add_file(const project_file_shared_ptr& value);
 
         void prop(const std::string& key, const std::string& value);
 

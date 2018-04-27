@@ -13,10 +13,6 @@
 
 namespace ryu::core {
 
-    renderer::renderer(SDL_Renderer* surface) {
-        _surface = surface;
-    }
-
     void renderer::clear() {
         SDL_RenderClear(_surface);
     }
@@ -109,6 +105,10 @@ namespace ryu::core {
 
     const core::rect& renderer::bounds() const {
         return _bounds;
+    }
+
+    void renderer::sdl_renderer(SDL_Renderer* value) {
+        _surface = value;
     }
 
     void renderer::draw_rect(const core::rect& bounds) {

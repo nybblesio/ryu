@@ -45,10 +45,6 @@ namespace ryu::core {
                 core::result& result,
                 core::state* state);
 
-        void blackboard(
-                const std::string& name,
-                const std::string& value);
-
         void push_state(
                 int id,
                 const core::parameter_dict& params);
@@ -97,10 +93,6 @@ namespace ryu::core {
             return _name;
         }
 
-        inline core::rect bounds() const {
-            return _bounds;
-        }
-
         void engine(core::engine* value) {
             _engine = value;
         }
@@ -125,14 +117,14 @@ namespace ryu::core {
 
         void font_family(core::font_family* value);
 
+        inline const core::rect& bounds() const {
+            return _bounds;
+        }
+
         inline void bounds(const core::rect& value) {
             _bounds = value;
             resize();
         }
-
-        void erase_blackboard(const std::string& name);
-
-        std::string blackboard(const std::string& name) const;
 
     protected:
         virtual void on_draw(core::renderer& surface);
@@ -149,7 +141,6 @@ namespace ryu::core {
         core::rect _bounds {};
         core::palette _palette {};
         core::state_stack _stack {};
-        core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
         const core::font_t* _font = nullptr;
         core::font_family* _family = nullptr;
