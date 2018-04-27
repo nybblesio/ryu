@@ -95,6 +95,8 @@ namespace ryu::core {
 
         void caret_down(uint8_t rows = 1);
 
+        void selection_color(uint8_t value);
+
         bool caret_left(uint8_t columns = 1);
 
         bool caret_right(uint8_t columns = 1);
@@ -171,6 +173,7 @@ namespace ryu::core {
         uint8_t _color;
         metrics_t _metrics;
         document _document;
+        uint8_t _selection_color;
         int16_t _remaining_lines = 0;
         states _state = states::input;
         code_to_attr_dict _code_mapper;

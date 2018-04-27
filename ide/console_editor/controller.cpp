@@ -20,6 +20,10 @@
 
 namespace ryu::ide::console_editor {
 
+    static logger* s_log = logger_factory::instance()->create(
+        "console::controller",
+        logger::level::info);
+
     const core::code_to_attr_dict controller::s_mapper = {
         {"bold",        [](core::attr_t& attr) { attr.style |= core::font::styles::bold; }},
         {"italic",      [](core::attr_t& attr) { attr.style |= core::font::styles::italic; }},
@@ -50,41 +54,22 @@ namespace ryu::ide::console_editor {
     }
 
     bool controller::on_load(core::result& result) {
-        // XXX: not really meant for hot reloading, need to swap in loadable_view
+        _layout_panel = core::view_factory::create_loadable_view(
+            this,
+            "loadable-view",
+            context()->font_family(),
+            &context()->palette(),
+            context()->prefs(),
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            result,
+            "assets/views/console.yaml");
+        s_log->result(result);
 
-        _header = core::view_factory::create_view<core::state_header>(
-                this,
-                "header-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color,
-                "",
-                core::dock::styles::top,
-                {_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header->state("console");
-        _header->state_color(ide::colors::white);
+        _console = _layout_panel->find_by_name<core::console>("console-view");
+        _footer = _layout_panel->find_by_name<core::document_footer>("footer-panel");
 
-        _footer = core::view_factory::create_view<core::document_footer>(
-                this,
-                "footer-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color,
-                "",
-                core::dock::styles::bottom,
-                {_metrics.left_padding, _metrics.right_padding, 10, 5});
-
-        _console = core::view_factory::create_console(
-                this,
-                "console",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::text,
-                ide::colors::fill_color,
-                s_mapper);
-        _console->caret_color(ide::colors::caret);
+        _console->code_mapper(s_mapper);
         _console->on_transition([&](const std::string& name, const core::parameter_dict& params) {
             return transition_to(name, params);
         });
@@ -105,18 +90,6 @@ namespace ryu::ide::console_editor {
             }
             return success;
         });
-        _console->focus(_console.get());
-
-        _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
-                this,
-                "layout-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color);
-        _layout_panel->add_child(_header.get());
-        _layout_panel->add_child(_footer.get());
-        _layout_panel->add_child(_console.get());
 
         return !result.is_failed();
     }

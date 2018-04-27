@@ -557,6 +557,10 @@ namespace ryu::core {
         return overflow;
     }
 
+    void console::selection_color(uint8_t value) {
+        _selection_color = value;
+    }
+
     // XXX: need to put CTRL-0 - CTRL-9 back in but
     //      should they map to names or palette indexes?
     void console::select_color(const std::string& name) {
