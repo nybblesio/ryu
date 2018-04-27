@@ -14,6 +14,10 @@
 
 namespace ryu::ide::source_editor {
 
+    static logger* s_log = logger_factory::instance()->create(
+        "source_editor::controller",
+        logger::level::info);
+
     controller::controller(const std::string& name) : ryu::core::state(name) {
     }
 
@@ -44,7 +48,7 @@ namespace ryu::ide::source_editor {
         action_provider().register_handler(
                 core::input_action::find_by_name("source_editor_command_bar"),
                 [this](const core::event_data_t& data) {
-                    _layout_panel->focus(_command_line.get());
+                    _layout_panel->focus(_command_line);
                     return true;
                 });
     }
@@ -59,39 +63,29 @@ namespace ryu::ide::source_editor {
     }
 
     bool controller::on_load(core::result& result) {
-        // XXX: not meant for hot reloading, swap in loadable_view
+        _layout_panel = core::view_factory::create_loadable_view(
+            this,
+            "loadable-view",
+            context()->font_family(),
+            &context()->palette(),
+            context()->prefs(),
+            ide::colors::info_text,
+            ide::colors::fill_color,
+            result,
+            "assets/views/source-editor.yaml");
+        s_log->result(result);
 
-        _header = core::view_factory::create_view<core::state_header>(
-                this,
-                "header-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color,
-                "",
-                core::dock::styles::top,
-                {_metrics.left_padding, _metrics.right_padding, 5, 0});
-        _header->state("source editor");
-        _header->state_color(ide::colors::white);
+        _editor = _layout_panel->find_by_name<core::text_editor>("text-editor");
+        _header = _layout_panel->find_by_name<core::state_header>("header-panel");
+        _footer = _layout_panel->find_by_name<core::document_footer>("footer-panel");
+        _command_line = _layout_panel->find_by_name<core::text_box>("command-line-text-box");
+
         _header->custom("| file: (none)");
 
-        _command_line = core::view_factory::create_view<core::text_box>(
-                this,
-                "command-line-text-box",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::text,
-                ide::colors::fill_color,
-                "",
-                core::dock::styles::top,
-                {_metrics.left_padding, _metrics.right_padding * 3, 0, 10});
-        _command_line->width(60);
-        _command_line->length(255);
-        _command_line->sizing(core::view::sizing::types::parent);
         _command_line->on_key_down([&](int key_code) {
             switch (key_code) {
                 case core::ascii_escape: {
-                    _layout_panel->focus(_editor.get());
+                    _layout_panel->focus(_editor);
                     return true;
                 }
                 case core::ascii_return: {
@@ -141,7 +135,7 @@ namespace ryu::ide::source_editor {
                     }
 
                     _command_line->clear();
-                    _layout_panel->focus(_editor.get());
+                    _layout_panel->focus(_editor);
 
                     return true;
                 }
@@ -151,29 +145,6 @@ namespace ryu::ide::source_editor {
             }
         });
 
-        _footer = core::view_factory::create_view<core::document_footer>(
-                this,
-                "footer-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color,
-                "",
-                core::dock::styles::bottom,
-                {_metrics.left_padding, _metrics.right_padding, 5, 5});
-
-        _editor = core::view_factory::create_text_editor(
-                this,
-                "text-editor",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::text,
-                ide::colors::fill_color,
-                rows,
-                columns);
-        _editor->caret_color(ide::colors::caret);
-        _editor->selection_color(ide::colors::selection);
-        _editor->line_number_color(ide::colors::info_text);
         _editor->on_caret_changed([&](const core::caret& caret, const core::document& document) {
             std::string file_name = document.path().filename().string();
             if (file_name.empty()) {
@@ -182,19 +153,6 @@ namespace ryu::ide::source_editor {
             _header->custom(fmt::format("| file: {}", file_name));
             _footer->update_state(caret, document);
         });
-
-        _layout_panel = core::view_factory::create_view<core::dock_layout_panel>(
-                this,
-                "layout-panel",
-                context()->font_family(),
-                &context()->palette(),
-                ide::colors::info_text,
-                ide::colors::fill_color);
-        _layout_panel->add_child(_header.get());
-        _layout_panel->add_child(_command_line.get());
-        _layout_panel->add_child(_footer.get());
-        _layout_panel->add_child(_editor.get());
-        _layout_panel->focus(_editor.get());
 
         return !result.is_failed();
     }

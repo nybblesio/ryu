@@ -22,11 +22,6 @@ namespace ryu::ide::source_editor {
         explicit controller(const std::string& name);
 
     protected:
-        struct metrics_t {
-            const int left_padding = 10;
-            const int right_padding = 10;
-        };
-
         void on_initialize() override;
 
         void on_deactivate() override;
@@ -47,11 +42,10 @@ namespace ryu::ide::source_editor {
         void define_actions();
 
     private:
-        metrics_t _metrics;
-        core::text_editor_unique_ptr _editor;
-        core::state_header_unique_ptr _header;
-        core::text_box_unique_ptr _command_line;
-        core::document_footer_unique_ptr _footer;
+        core::text_editor* _editor;
+        core::state_header* _header;
+        core::text_box* _command_line;
+        core::document_footer* _footer;
         core::dock_layout_panel_unique_ptr _layout_panel;
     };
 

@@ -1,0 +1,57 @@
+!include assets/views/view-constants.yaml
+
+name: 'source-editor'
+focus: 'text-editor'
+views:
+  - name: 'header-panel'
+    type: view.types.state-header
+    dock: view.dock.top
+    margin: [10, 50, 5, 5]
+    state: 'source editor'
+    state_color: ide.colors.white
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+
+  - name: 'command-line-text-box'
+    type: view.types.text-box
+    dock: view.dock.top
+    value: ''
+    enabled: true
+    margin: [10, 150, 0, 10]
+    size:
+      width: 60
+      length: 255
+    enabled: true
+    sizing: view.sizing.parent
+    colors:
+      fg: ide.colors.text
+      bg: ide.colors.fill-color
+
+  - name: 'footer-panel'
+    type: view.types.document-footer
+    dock: view.dock.bottom
+    margin: [10, 50, 5, 5]
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+
+  - name: 'text-editor'
+    type: view.types.text-editor
+    dock: view.dock.fill
+    padding: [0, 50, 5, 5]
+    document:
+      rows: 4096
+      columns: 128
+    page-size:
+      rows: 25
+      columns: 40
+    tab-stop: true
+    enabled: true
+    sizing: view.sizing.parent
+    caret-color: ide.colors.caret
+    selection-color: ide.colors.selection
+    line-number-color: ide.colors.info-text
+    colors:
+      fg: ide.colors.text
+      bg: ide.colors.fill-color

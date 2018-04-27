@@ -124,6 +124,8 @@ Art Asset Requirements
 
 - FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
 
+- FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
+
 [feature/tools] Emulator IDE
 ----------------------------
 - NEW: emulator::service::controller

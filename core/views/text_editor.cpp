@@ -721,15 +721,23 @@ namespace ryu::core {
         switch(sizing()) {
             case sizing::content: {
                 auto face = font_face();
-                auto height = bounds().height();
+                auto width = bounds().width() - margin().horizontal();
+                auto height = std::max<int32_t>(
+                    bounds().height(),
+                    (face->line_height * _metrics.page_height) - margin().vertical());
+                bounds().size(width, height);
+                break;
+            }
+            case sizing::parent: {
+                auto container = parent();
+                auto rect = container != nullptr ? container->bounds() : context_bounds;
+                auto& margins = margin();
                 bounds().size(
-                        context_bounds.width() + margin().horizontal(),
-                        std::max<int32_t>(height, (face->line_height * _metrics.page_height) + margin().vertical()));
+                    rect.width() - margins.horizontal(),
+                    rect.height() - margins.vertical());
                 break;
             }
             case sizing::fixed:
-                break;
-            case sizing::parent:
                 break;
         }
     }
