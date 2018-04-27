@@ -106,13 +106,13 @@ Art Asset Requirements
     2. need scrolling layout view
         - core::video_generator tells us background definitions
 
-- FINISH: ide::memory_editor::controller
-
 - NEW: ide::preferences::controller
     1. create preferences.yaml view file
         - maybe use core::notebook to break up sections
         - reuse palette editor views to allow customization of IDE and emu palettes
     2. input bindings
+
+- FINISH: ide::memory_editor::controller
 
 - IDEA: memory_editor view should support rendering different background colors per component with
         component name/id on the right-hand side of the display.  plus, the footer should show which

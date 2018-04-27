@@ -1,0 +1,111 @@
+!include assets/views/view-constants.yaml
+
+name: 'machine-list'
+focus: 'pick-list'
+views:
+  - name: 'header-panel'
+    type: view.types.state-header
+    dock: view.dock.top
+    margin: [10, 50, 5, 5]
+    state: 'machine list'
+    state_color: ide.colors.white
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+
+  - name: 'button-panel'
+    type: view.types.dock-panel
+    dock: view.dock.bottom
+    margin: [10, 50, 5, 15]
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.transparent
+    row-margins: &BUTTON-MARGINS [5, 5, 5, 5]
+    views:
+      - name: 'add-button'
+        type: view.types.button
+        width: 150
+        value: 'Add'
+        shortcut: 'F1'
+        shortcut-color: ide.colors.light-green
+        dock: view.dock.left
+        tab-stop: true
+        enabled: true
+        next: 'edit-button'
+        prev: 'pick-list'
+        margin: *BUTTON-MARGINS
+        colors:
+          fg: ide.colors.light-grey
+          bg: ide.colors.light-blue
+      - name: 'edit-button'
+        type: view.types.button
+        width: 150
+        value: 'Edit'
+        shortcut: 'RET'
+        shortcut-color: ide.colors.light-green
+        margin: *BUTTON-MARGINS
+        dock: view.dock.left
+        tab-stop: true
+        enabled: true
+        next: 'delete-button'
+        prev: 'add-button'
+        colors:
+          fg: ide.colors.light-grey
+          bg: ide.colors.light-blue
+      - name: 'delete-button'
+        type: view.types.button
+        width: 150
+        value: 'Delete'
+        shortcut: 'DEL'
+        shortcut-color: ide.colors.light-green
+        dock: view.dock.left
+        tab-stop: true
+        enabled: true
+        next: 'pick-list'
+        prev: 'edit-button'
+        margin: *BUTTON-MARGINS
+        colors:
+          fg: ide.colors.light-grey
+          bg: ide.colors.light-blue
+
+  - name: 'pick-list'
+    type: view.types.column-pick-list
+    dock: view.dock.fill
+    tab-stop: true
+    enabled: true
+    next: 'add-button'
+    prev: 'delete-button'
+    margin: [10, 50, 10, 10]
+    border: view.border.solid
+    sizing: view.sizing.parent
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+    column-colors: &COLUMN-COLORS
+      fg: ide.colors.white
+      bg: ide.colors.light-blue
+    headers:
+      - title: 'ID'
+        colors: *COLUMN-COLORS
+        width: 125
+        alignment:
+          horizontal: view.alignments.horizontal.left
+          vertical: view.alignments.vertical.middle
+      - title: 'Name'
+        colors: *COLUMN-COLORS
+        width: 525
+        alignment:
+          horizontal: view.alignments.horizontal.left
+          vertical: view.alignments.vertical.middle
+      - title: 'Address Space'
+        colors: *COLUMN-COLORS
+        width: 250
+        alignment:
+          horizontal: view.alignments.horizontal.left
+          vertical: view.alignments.vertical.middle
+      - title: 'Display'
+        colors: *COLUMN-COLORS
+        width: 525
+        alignment:
+          horizontal: view.alignments.horizontal.left
+          vertical: view.alignments.vertical.middle
