@@ -42,7 +42,7 @@ namespace ryu::core {
     public:
         using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
         using execute_command_callable = std::function<bool(core::result&, const std::string&)>;
-        using command_action_dict = std::map<std::string, std::function<bool (core::console&, const parameter_dict&)>>;
+        using command_action_dict = std::map<core::system_commands::types, std::function<bool (core::console&, const parameter_dict&)>>;
 
         enum states {
             input,

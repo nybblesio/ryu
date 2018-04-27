@@ -83,9 +83,14 @@ namespace ryu::ide::console_editor {
                 if (command_action_msg == nullptr)
                     return success;
 
-                auto command = command_action_msg->get_parameter<std::string>("action");
-                if (command == "quit") {
-                    context()->engine()->quit();
+                auto command = command_action_msg->get_parameter<core::system_commands::types>("action");
+                switch (command) {
+                    case core::system_commands::quit:
+                        context()->engine()->quit();
+                        break;
+                    default:
+                        // XXX: handle this error case
+                        break;
                 }
             }
             return success;

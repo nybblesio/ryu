@@ -587,7 +587,7 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("quit")}});
+                {{"action", core::system_commands::quit}});
         return true;
     }
 
@@ -746,7 +746,7 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("clear")}});
+                {{"action", core::system_commands::clear}});
         return true;
     }
 
@@ -1219,7 +1219,7 @@ namespace ryu::core {
         context.result.add_data(
                 "command_action",
                 {
-                    {"action", std::string("edit_memory")},
+                    {"action", core::system_commands::edit_memory},
                     {"addr", addr.value}
                 });
         return true;
@@ -1435,7 +1435,7 @@ namespace ryu::core {
         context.result.add_data(
                 "command_action",
                 {
-                    {"action", std::string("update_working_directory")},
+                    {"action", core::system_commands::update_working_directory},
                 });
 
         return true;
@@ -1469,7 +1469,7 @@ namespace ryu::core {
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_project")}});
+                {{"action", core::system_commands::edit_project}});
         return true;
     }
 
@@ -1519,7 +1519,7 @@ namespace ryu::core {
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("save_project_file")}});
+                {{"action", core::system_commands::save_project_file}});
 
         return true;
     }
@@ -1696,10 +1696,10 @@ namespace ryu::core {
 
     bool environment::on_edit_machine(
             const command_handler_context_t& context) {
-        std::string action("edit_machine");
+        auto action = core::system_commands::edit_machine;
         auto name = context.get_parameter<core::string_literal_t>("name");
         if (name.empty())
-            action = "list_machine";
+            action = core::system_commands::list_machine;
         context.result.add_data(
                 "command_action",
                 {
@@ -1760,7 +1760,7 @@ namespace ryu::core {
         }
 
         context.result.add_data("command_action", {
-                {"action", std::string("read_text")},
+                {"action", core::system_commands::read_text},
                 {"name", path}
         });
 
@@ -1771,7 +1771,7 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         auto line_number = context.get_parameter<core::numeric_literal_t>("line");
         context.result.add_data("command_action", {
-                {"action", std::string("goto_line")},
+                {"action", core::system_commands::goto_line},
                 {"line_number", line_number}
         });
 
@@ -1781,7 +1781,7 @@ namespace ryu::core {
     bool environment::on_find_text(
             const command_handler_context_t& context) {
         context.result.add_data("command_action", {
-                {"action", std::string("find_text")},
+                {"action", core::system_commands::find_text},
                 {"needle", context.get_parameter<core::string_literal_t>("needle")}
         });
 
@@ -1802,7 +1802,7 @@ namespace ryu::core {
         }
 
         context.result.add_data("command_action", {
-                {"action", std::string("write_text")},
+                {"action", core::system_commands::write_text},
                 {"name", path}
         });
 
@@ -1816,7 +1816,7 @@ namespace ryu::core {
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_tiles")}});
+                {{"action", core::system_commands::edit_tiles}});
         return true;
     }
 
@@ -1827,7 +1827,7 @@ namespace ryu::core {
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_music")}});
+                {{"action", core::system_commands::edit_music}});
         return true;
     }
 
@@ -1840,7 +1840,7 @@ namespace ryu::core {
         context.result.add_data(
                 "command_action",
                 {
-                    {"action", std::string("edit_source")},
+                    {"action", core::system_commands::edit_source},
                     {"name", path}
                 });
         return true;
@@ -1853,7 +1853,7 @@ namespace ryu::core {
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_sprites")}});
+                {{"action", core::system_commands::edit_sprites}});
         return true;
     }
 
@@ -1864,7 +1864,7 @@ namespace ryu::core {
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_sounds")}});
+                {{"action", core::system_commands::edit_sounds}});
         return true;
     }
 
@@ -1875,7 +1875,7 @@ namespace ryu::core {
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_cpu")}});
+                {{"action", core::system_commands::edit_cpu}});
         return true;
     }
 
@@ -1885,7 +1885,7 @@ namespace ryu::core {
             return false;
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_backgrounds")}});
+                {{"action", core::system_commands::edit_backgrounds}});
         return true;
     }
 
@@ -1895,7 +1895,7 @@ namespace ryu::core {
             return false;
         context.result.add_data(
             "command_action",
-            {{"action", std::string("edit_actor")}});
+            {{"action", core::system_commands::edit_actor}});
         return false;
     }
 
@@ -1905,7 +1905,7 @@ namespace ryu::core {
             return false;
         context.result.add_data(
             "command_action",
-            {{"action", std::string("edit_palette")}});
+            {{"action", core::system_commands::edit_palette}});
         return false;
     }
 

@@ -10,7 +10,6 @@
 
 #include <sstream>
 #include <fmt/format.h>
-#include <ide/ide_types.h>
 #include <core/joysticks.h>
 #include <common/string_support.h>
 #include "console.h"
@@ -19,7 +18,7 @@ namespace ryu::core {
 
     console::command_action_dict console::s_handlers = {
         {
-            "clear",
+            core::system_commands::clear,
             [](core::console& console, auto params) {
                 console._document.clear();
                 console._caret.row(0);
@@ -28,86 +27,86 @@ namespace ryu::core {
             }
         },
         {
-            "edit_machine",
+            core::system_commands::edit_machine,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_machine, params);
+                console.transition_to(system_commands::edit_machine, params);
                 return true;
             }
         },
         {
-            "edit_project",
+            core::system_commands::edit_project,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_project, params);
+                console.transition_to(system_commands::edit_project, params);
                 return true;
             }
         },
         {
-            "list_machine",
+            core::system_commands::list_machine,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::list_machine, params);
+                console.transition_to(system_commands::list_machine, params);
                 return true;
             }
         },
         {
-            "edit_source",
+            core::system_commands::edit_source,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_source, params);
+                console.transition_to(system_commands::edit_source, params);
                 return true;
             }
         },
         {
-            "edit_memory",
+            core::system_commands::edit_memory,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_memory, params);
+                console.transition_to(system_commands::edit_memory, params);
                 return true;
             }
         },
         {
-            "edit_tiles",
+            core::system_commands::edit_tiles,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_tiles, params);
+                console.transition_to(system_commands::edit_tiles, params);
                 return true;
             }
         },
         {
-            "edit_sprites",
+            core::system_commands::edit_sprites,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_sprites, params);
+                console.transition_to(system_commands::edit_sprites, params);
                 return true;
             }
         },
         {
-            "edit_backgrounds",
+            core::system_commands::edit_backgrounds,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_backgrounds, params);
+                console.transition_to(system_commands::edit_backgrounds, params);
                 return true;
             }
         },
         {
-            "edit_music",
+            core::system_commands::edit_music,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_music, params);
+                console.transition_to(system_commands::edit_music, params);
                 return true;
             }
         },
         {
-            "edit_sounds",
+            core::system_commands::edit_sounds,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_sounds, params);
+                console.transition_to(system_commands::edit_sounds, params);
                 return true;
             }
         },
         {
-            "edit_palette",
+            core::system_commands::edit_palette,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_palette, params);
+                console.transition_to(system_commands::edit_palette, params);
                 return true;
             }
         },
         {
-            "edit_actor",
+            core::system_commands::edit_actor,
             [](core::console& console, auto params) {
-                console.transition_to(ide::commands::edit_actor, params);
+                console.transition_to(system_commands::edit_actor, params);
                 return true;
             }
         },
@@ -959,6 +958,10 @@ namespace ryu::core {
                 lines.push_back(line);
                 break;
             }
+            case parameter_dict_types::system_command: {
+                // XXX: not handled
+                break;
+            }
             default: {
                 break;
             }
@@ -974,7 +977,7 @@ namespace ryu::core {
 
         auto command_action_msg = entry.result.find_code("command_action");
         if (command_action_msg != nullptr) {
-            auto command = command_action_msg->get_parameter<std::string>("action");
+            auto command = command_action_msg->get_parameter<core::system_commands::types>("action");
             auto handler_it = s_handlers.find(command);
             if (handler_it != s_handlers.end()) {
                 handler_it->second(*this, command_action_msg->params());

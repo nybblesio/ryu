@@ -245,19 +245,19 @@ namespace ryu::ide {
 
     bool ide_context::on_initialize(core::result& result) {
         s_state_transitions = {
-            {commands::edit_source, _source_editor_state.id()},
-            {commands::edit_memory, _hex_editor_state.id()},
-            {commands::list_machine, _machine_list_state.id()},
-            {commands::edit_tiles, _tile_editor_state.id()},
-            {commands::edit_sprites, _sprite_editor_state.id()},
-            {commands::edit_backgrounds, _background_editor_state.id()},
-            {commands::edit_music, _module_editor_state.id()},
-            {commands::edit_sounds, _sample_editor_state.id()},
-            {commands::edit_palette, _palette_editor_state.id()},
-            {commands::edit_actor, _actor_editor_state.id()},
-            {commands::edit_component, _component_editor_state.id()},
-            {commands::edit_machine, _machine_editor_state.id()},
-            {commands::edit_project, _project_editor_state.id()},
+            {core::system_commands::edit_source, _source_editor_state.id()},
+            {core::system_commands::edit_memory, _hex_editor_state.id()},
+            {core::system_commands::list_machine, _machine_list_state.id()},
+            {core::system_commands::edit_tiles, _tile_editor_state.id()},
+            {core::system_commands::edit_sprites, _sprite_editor_state.id()},
+            {core::system_commands::edit_backgrounds, _background_editor_state.id()},
+            {core::system_commands::edit_music, _module_editor_state.id()},
+            {core::system_commands::edit_sounds, _sample_editor_state.id()},
+            {core::system_commands::edit_palette, _palette_editor_state.id()},
+            {core::system_commands::edit_actor, _actor_editor_state.id()},
+            {core::system_commands::edit_component, _component_editor_state.id()},
+            {core::system_commands::edit_machine, _machine_editor_state.id()},
+            {core::system_commands::edit_project, _project_editor_state.id()},
         };
 
         define_actions();

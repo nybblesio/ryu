@@ -86,7 +86,7 @@ namespace ryu::ide::machine_editor {
                         return false;
                     auto key = _component_pick_list->rows()[_component_pick_list->selected()].key;
                     transition_to(
-                        commands::edit_component,
+                        core::system_commands::edit_component,
                         {
                             {"machine-id", _machine->id()},
                             {"component-id", key}

@@ -216,15 +216,49 @@ namespace ryu::core {
     };
 
     // --------------------
+    // ide
+    // --------------------
+    struct system_commands {
+        enum types {
+            unknown,
+
+            quit,
+            clear,
+            edit_source,
+            edit_memory,
+            list_machine,
+            edit_project,
+            edit_machine,
+            edit_component,
+            edit_tiles,
+            edit_sprites,
+            edit_backgrounds,
+            edit_music,
+            edit_sounds,
+            edit_palette,
+            edit_actor,
+            edit_cpu,
+
+            read_text,
+            write_text,
+            find_text,
+            goto_line,
+            save_project_file,
+            update_working_directory
+        };
+    };
+
+    // --------------------
     // environment parameters
     // --------------------
-    using parameter_variant_t = boost::variant<data_table_t, std::string, uint32_t, bool>;
+    using parameter_variant_t = boost::variant<data_table_t, std::string, uint32_t, bool, system_commands::types>;
 
     enum parameter_dict_types {
         table = 0,
         string,
         integer32,
-        boolean
+        boolean,
+        system_command
     };
 
     using state_transition_command = uint32_t;
@@ -234,4 +268,5 @@ namespace ryu::core {
 
     using byte_list = std::vector<uint8_t>;
     using address_list = std::vector<uint32_t>;
+
 };

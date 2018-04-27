@@ -97,40 +97,54 @@ namespace ryu::ide::source_editor {
                         if (command_action_msg == nullptr)
                             return success;
 
-                        // XXX: need to refactor this, it makes my head hurt
-                        auto command = command_action_msg->get_parameter<std::string>("action");
-                        if (command == "quit") {
-                            context()->engine()->quit();
-                        } else if (command == "save_project_file") {
-                            _editor->save(command_result);
-                        } else if (command == "read_text") {
-                            auto name = command_action_msg->get_parameter<std::string>("name");
-                            if (!name.empty()) {
-                                _editor->load(command_result, name);
-                            } else {
-                                // XXX: handle errors
+                        auto command = command_action_msg->get_parameter<core::system_commands::types>("action");
+                        switch (command) {
+                            case core::system_commands::quit: {
+                                context()->engine()->quit();
+                                break;
                             }
-                        } else if (command == "write_text") {
-                            auto name = command_action_msg->get_parameter<std::string>("name");
-                            if (!name.empty()) {
-                                _editor->save(command_result, name);
-                            } else {
-                                // XXX: handle errors
+                            case core::system_commands::save_project_file: {
+                                _editor->save(command_result);
+                                break;
                             }
-                        } else if (command == "clear") {
-                            _editor->clear();
-                        } else if (command == "goto_line") {
-                            auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
-                            _editor->goto_line(line_number);
-                        } else if (command == "find_text") {
-                            auto needle = command_action_msg->get_parameter<std::string>("needle");
-                            if (!needle.empty()) {
-                                _editor->find(needle);
-                            } else {
-                                // XXX: handle errors
+                            case core::system_commands::read_text: {
+                                auto name = command_action_msg->get_parameter<std::string>("name");
+                                if (!name.empty()) {
+                                    _editor->load(command_result, name);
+                                } else {
+                                    // XXX: handle errors
+                                }
+                                break;
                             }
-                        } else {
-                            // XXX: unknown command, error!
+                            case core::system_commands::write_text: {
+                                auto name = command_action_msg->get_parameter<std::string>("name");
+                                if (!name.empty()) {
+                                    _editor->save(command_result, name);
+                                } else {
+                                    // XXX: handle errors
+                                }
+                                break;
+                            }
+                            case core::system_commands::clear: {
+                                _editor->clear();
+                                break;
+                            }
+                            case core::system_commands::goto_line: {
+                                auto line_number = command_action_msg->get_parameter<uint32_t>("line_number");
+                                _editor->goto_line(line_number);
+                                break;
+                            }
+                            case core::system_commands::find_text: {
+                                auto needle = command_action_msg->get_parameter<std::string>("needle");
+                                if (!needle.empty()) {
+                                    _editor->find(needle);
+                                } else {
+                                    // XXX: handle errors
+                                }
+                                break;
+                            }
+                            default:
+                                break;
                         }
                     }
 

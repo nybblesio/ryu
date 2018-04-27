@@ -40,24 +40,24 @@ namespace ryu::core {
             {"palette", project_file_type::palette}
     };
 
-    static std::map<std::string, std::string> s_code_to_action = {
-            {"mach",    "edit_machine"},
-            {"text",    "edit_source"},
-            {"environ", "edit_source"},
-            {"data",    "edit_memory"},
-            {"tiles",   "edit_tiles"},
-            {"sprites", "edit_sprites"},
-            {"bg",      "edit_backgrounds"},
-            {"module",  "edit_music"},
-            {"sample",  "edit_sounds"},
-            {"palette", "edit_palette"},
-            {"actor",   "edit_actor"}
+    static std::map<std::string, core::system_commands::types> s_code_to_action = {
+            {"mach",    core::system_commands::edit_machine},
+            {"text",    core::system_commands::edit_source},
+            {"environ", core::system_commands::edit_source},
+            {"data",    core::system_commands::edit_memory},
+            {"tiles",   core::system_commands::edit_tiles},
+            {"sprites", core::system_commands::edit_sprites},
+            {"bg",      core::system_commands::edit_backgrounds},
+            {"module",  core::system_commands::edit_music},
+            {"sample",  core::system_commands::edit_sounds},
+            {"palette", core::system_commands::edit_palette},
+            {"actor",   core::system_commands::edit_actor}
     };
 
-    std::string project_file_type::code_to_action(const std::string& code) {
+    core::system_commands::types project_file_type::code_to_action(const std::string& code) {
         auto it = s_code_to_action.find(boost::to_lower_copy<std::string>(code));
         if (it == s_code_to_action.end())
-            return "";
+            return core::system_commands::unknown;
         return it->second;
     }
 
