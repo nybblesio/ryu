@@ -94,6 +94,8 @@ namespace ryu::core {
             background_editor,
             module_editor,
             sample_editor,
+            actor_editor,
+            palette_editor,
 
             read_binary_to_memory,
             write_memory_to_binary,

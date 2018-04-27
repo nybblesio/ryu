@@ -78,9 +78,11 @@ namespace ryu::core {
                 break;
             case project_file_type::data:
             case project_file_type::tiles:
-            case project_file_type::sprites:
+            case project_file_type::actor:
             case project_file_type::module:
             case project_file_type::sample:
+            case project_file_type::sprites:
+            case project_file_type::palette:
             case project_file_type::background:
                 _sequence = 2;
                 _should_assemble = true;

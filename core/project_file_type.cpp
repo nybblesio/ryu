@@ -22,7 +22,9 @@ namespace ryu::core {
             {project_file_type::module,      "module"},
             {project_file_type::sample,      "sample"},
             {project_file_type::environment, "environ"},
-            {project_file_type::background,  "bg"}
+            {project_file_type::background,  "bg"},
+            {project_file_type::actor,       "actor"},
+            {project_file_type::palette,     "palette"}
     };
 
     static std::map<std::string, uint8_t> s_code_to_type = {
@@ -33,7 +35,9 @@ namespace ryu::core {
             {"module",  project_file_type::module},
             {"sample",  project_file_type::sample},
             {"bg",      project_file_type::background},
-            {"environ", project_file_type::environment}
+            {"environ", project_file_type::environment},
+            {"actor",   project_file_type::actor},
+            {"palette", project_file_type::palette}
     };
 
     static std::map<std::string, std::string> s_code_to_action = {
@@ -43,9 +47,11 @@ namespace ryu::core {
             {"data",    "edit_memory"},
             {"tiles",   "edit_tiles"},
             {"sprites", "edit_sprites"},
-            {"bg",      "edit_background"},
-            {"module",  "edit_module"},
-            {"sample",  "edit_sample"}
+            {"bg",      "edit_backgrounds"},
+            {"module",  "edit_music"},
+            {"sample",  "edit_sounds"},
+            {"palette", "edit_palette"},
+            {"actor",   "edit_actor"}
     };
 
     std::string project_file_type::code_to_action(const std::string& code) {

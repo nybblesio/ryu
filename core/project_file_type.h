@@ -26,6 +26,8 @@ namespace ryu::core {
             sample,
             background,
             environment,
+            palette,
+            actor
         };
 
         static std::string code_to_action(const std::string& code);

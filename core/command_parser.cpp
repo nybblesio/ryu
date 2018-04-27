@@ -692,8 +692,8 @@ namespace ryu::core {
                 command_size_flags::none,
                 {},
                 "Open the sample editor.",
-                "sample editor",
-                0
+                "editors",
+                1
             }
         },
 
@@ -704,8 +704,8 @@ namespace ryu::core {
                 command_size_flags::none,
                 {},
                 "Open the module editor.",
-                "module editor",
-                0
+                "editors",
+                2
             }
         },
 
@@ -716,8 +716,8 @@ namespace ryu::core {
                 command_size_flags::none,
                 {},
                 "Open the tile editor.",
-                "tile editor",
-                0
+                "editors",
+                3
             }
         },
 
@@ -728,8 +728,8 @@ namespace ryu::core {
                 command_size_flags::none,
                 {},
                 "Open the sprite editor.",
-                "sprite editor",
-                0
+                "editors",
+                4
             }
         },
 
@@ -740,8 +740,32 @@ namespace ryu::core {
                 command_size_flags::none,
                 {},
                 "Open the backgrounds editor.",
-                "background editor",
-                0
+                "editors",
+                5
+            }
+        },
+
+        {
+            "edpal",
+            {
+                command::types::palette_editor,
+                command_size_flags::none,
+                {},
+                "Open the palette editor.",
+                "editors",
+                6
+            }
+        },
+
+        {
+            "edactor",
+            {
+                command::types::actor_editor,
+                command_size_flags::none,
+                {},
+                "Open the actor editor.",
+                "editors",
+                7
             }
         },
 

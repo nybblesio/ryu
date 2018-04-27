@@ -19,11 +19,19 @@ namespace ryu::ide {
     ide_context::ide_context(const std::string& name) : core::context(name),
                                                         _hex_editor_state("hex editor"),
                                                         _console_state("console"),
+                                                        _tile_editor_state("tile editor"),
                                                         _machine_list_state("machine list"),
+                                                        _actor_editor_state("actor editor"),
+                                                        _sprite_editor_state("sprite editor"),
                                                         _source_editor_state("text editor"),
+                                                        _module_editor_state("module editor"),
+                                                        _sample_editor_state("sample editor"),
+                                                        _palette_editor_state("palette editor"),
                                                         _machine_editor_state("machine editor"),
                                                         _project_editor_state("project editor"),
-                                                        _component_editor_state("component editor") {
+                                                        _component_editor_state("component editor"),
+                                                        _background_editor_state("background editor"),
+                                                        _preferences_editor_state("preferences editor") {
     }
 
     void ide_context::define_actions() {
@@ -78,6 +86,27 @@ namespace ryu::ide {
                 } else if (command == "list_machine") {
                     push_state(_machine_list_state.id(), params);
                     return true;
+                } else if (command == "edit_tiles") {
+                    push_state(_tile_editor_state.id(), params);
+                    return true;
+                } else if (command == "edit_sprites") {
+                    push_state(_sprite_editor_state.id(), params);
+                    return true;
+                } else if (command == "edit_backgrounds") {
+                    push_state(_background_editor_state.id(), params);
+                    return true;
+                } else if (command == "edit_music") {
+                    push_state(_module_editor_state.id(), params);
+                    return true;
+                } else if (command == "edit_sounds") {
+                    push_state(_sample_editor_state.id(), params);
+                    return true;
+                } else if (command == "edit_palette") {
+                    push_state(_palette_editor_state.id(), params);
+                    return true;
+                } else if (command == "edit_actor") {
+                    push_state(_actor_editor_state.id(), params);
+                    return true;
                 }
                 return false;
             });
@@ -103,8 +132,16 @@ namespace ryu::ide {
                 }
                 return false;
             });
-        add_state(result, &_component_editor_state);
+        add_state(result, &_tile_editor_state);
+        add_state(result, &_actor_editor_state);
+        add_state(result, &_module_editor_state);
+        add_state(result, &_sample_editor_state);
+        add_state(result, &_sprite_editor_state);
         add_state(result, &_project_editor_state);
+        add_state(result, &_palette_editor_state);
+        add_state(result, &_component_editor_state);
+        add_state(result, &_background_editor_state);
+        add_state(result, &_preferences_editor_state);
         push_state(_console_state.id(), {});
     }
 

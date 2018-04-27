@@ -364,6 +364,9 @@ namespace ryu::core {
     }
 
     void project::add_file(const project_file& value) {
+        if (_files.capacity() < 256)
+            _files.reserve(256);
+
         _files.push_back(value);
         std::sort(
                 _files.begin(),

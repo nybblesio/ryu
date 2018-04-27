@@ -254,6 +254,12 @@ namespace ryu::core {
         bool on_sprite_editor(
                 const command_handler_context_t& context);
 
+        bool on_palette_editor(
+                const command_handler_context_t& context);
+
+        bool on_actor_editor(
+                const command_handler_context_t& context);
+
         bool on_source_editor(
                 const command_handler_context_t& context);
 

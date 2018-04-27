@@ -5,6 +5,14 @@ add_subdirectory(source_editor)
 add_subdirectory(machine_list)
 add_subdirectory(machine_editor)
 add_subdirectory(project_editor)
+add_subdirectory(actor_editor)
+add_subdirectory(background_editor)
+add_subdirectory(module_editor)
+add_subdirectory(palette_editor)
+add_subdirectory(preferences_editor)
+add_subdirectory(sample_editor)
+add_subdirectory(tile_editor)
+add_subdirectory(sprite_editor)
 
 add_library(
         ide
@@ -15,6 +23,14 @@ add_library(
         project_editor
         machine_list
         machine_editor
+        actor_editor
+        background_editor
+        module_editor
+        palette_editor
+        preferences_editor
+        sample_editor
+        tile_editor
+        sprite_editor
         ide_types.h
         ide_context.cpp ide_context.h)
 target_link_libraries(
@@ -25,4 +41,12 @@ target_link_libraries(
         source_editor
         machine_list
         machine_editor
-        project_editor)
+        project_editor
+        actor_editor
+        background_editor
+        module_editor
+        palette_editor
+        preferences_editor
+        sample_editor
+        tile_editor
+        sprite_editor)

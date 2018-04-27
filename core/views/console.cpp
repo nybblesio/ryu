@@ -61,6 +61,55 @@ namespace ryu::core {
                 return true;
             }
         },
+        {
+            "edit_tiles",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_tiles", params);
+                return true;
+            }
+        },
+        {
+            "edit_sprites",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_sprites", params);
+                return true;
+            }
+        },
+        {
+            "edit_backgrounds",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_backgrounds", params);
+                return true;
+            }
+        },
+        {
+            "edit_music",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_music", params);
+                return true;
+            }
+        },
+        {
+            "edit_sounds",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_sounds", params);
+                return true;
+            }
+        },
+        {
+            "edit_palette",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_palette", params);
+                return true;
+            }
+        },
+        {
+            "edit_actor",
+            [](core::console& console, auto params) {
+                console.transition_to("edit_actor", params);
+                return true;
+            }
+        },
     };
 
     ///////////////////////////////////////////////////////////////////////////

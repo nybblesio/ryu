@@ -1,0 +1,14 @@
+!include assets/views/view-constants.yaml
+
+name: 'sample-editor'
+views:
+  - name: 'header-panel'
+    type: view.types.state-header
+    dock: view.dock.top
+    margin: [10, 50, 5, 5]
+    state: 'sample editor'
+    state_color: ide.colors.white
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+

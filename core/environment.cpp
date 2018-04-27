@@ -250,6 +250,14 @@ namespace ryu::core {
             std::bind(&environment::on_sample_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::actor_editor,
+            std::bind(&environment::on_actor_editor, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
+            core::command::types::palette_editor,
+            std::bind(&environment::on_palette_editor, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::read_binary_to_memory,
             std::bind(&environment::on_read_binary_to_memory, std::placeholders::_1, std::placeholders::_2)
         },
@@ -1879,6 +1887,26 @@ namespace ryu::core {
                 "command_action",
                 {{"action", std::string("edit_backgrounds")}});
         return true;
+    }
+
+    bool environment::on_actor_editor(
+            const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+        context.result.add_data(
+            "command_action",
+            {{"action", std::string("edit_actor")}});
+        return false;
+    }
+
+    bool environment::on_palette_editor(
+            const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+        context.result.add_data(
+            "command_action",
+            {{"action", std::string("edit_palette")}});
+        return false;
     }
 
     // ----------------------------------------------------------
