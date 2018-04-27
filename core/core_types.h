@@ -218,11 +218,7 @@ namespace ryu::core {
     // --------------------
     // environment parameters
     // --------------------
-    typedef boost::variant<
-            data_table_t,
-            std::string,
-            uint32_t,
-            bool> parameter_variant_t;
+    using parameter_variant_t = boost::variant<data_table_t, std::string, uint32_t, bool>;
 
     enum parameter_dict_types {
         table = 0,
@@ -231,9 +227,11 @@ namespace ryu::core {
         boolean
     };
 
-    typedef std::map<std::string, parameter_variant_t> parameter_dict;
-    typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
+    using state_transition_command = uint32_t;
 
-    typedef std::vector<uint8_t> byte_list;
-    typedef std::vector<uint32_t> address_list;
+    using parameter_dict = std::map<std::string, parameter_variant_t>;
+    using state_transition_callable = std::function<bool (state_transition_command, const parameter_dict&)>;
+
+    using byte_list = std::vector<uint8_t>;
+    using address_list = std::vector<uint32_t>;
 };

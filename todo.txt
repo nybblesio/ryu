@@ -126,6 +126,10 @@ Art Asset Requirements
 
 - FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
 
+- FIX: project should store project_file as collection of heap objects
+
+- FIX: nasty, nasty, nasty string-based command interfaces between console, context, etc.
+
 [feature/tools] Emulator IDE
 ----------------------------
 - NEW: emulator::service::controller

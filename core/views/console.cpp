@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <fmt/format.h>
+#include <ide/ide_types.h>
 #include <core/joysticks.h>
 #include <common/string_support.h>
 #include "console.h"
@@ -29,84 +30,84 @@ namespace ryu::core {
         {
             "edit_machine",
             [](core::console& console, auto params) {
-                console.transition_to("edit_machine", params);
+                console.transition_to(ide::commands::edit_machine, params);
                 return true;
             }
         },
         {
             "edit_project",
             [](core::console& console, auto params) {
-                console.transition_to("edit_project", params);
+                console.transition_to(ide::commands::edit_project, params);
                 return true;
             }
         },
         {
             "list_machine",
             [](core::console& console, auto params) {
-                console.transition_to("list_machine", params);
+                console.transition_to(ide::commands::list_machine, params);
                 return true;
             }
         },
         {
             "edit_source",
             [](core::console& console, auto params) {
-                console.transition_to("edit_source", params);
+                console.transition_to(ide::commands::edit_source, params);
                 return true;
             }
         },
         {
             "edit_memory",
             [](core::console& console, auto params) {
-                console.transition_to("edit_memory", params);
+                console.transition_to(ide::commands::edit_memory, params);
                 return true;
             }
         },
         {
             "edit_tiles",
             [](core::console& console, auto params) {
-                console.transition_to("edit_tiles", params);
+                console.transition_to(ide::commands::edit_tiles, params);
                 return true;
             }
         },
         {
             "edit_sprites",
             [](core::console& console, auto params) {
-                console.transition_to("edit_sprites", params);
+                console.transition_to(ide::commands::edit_sprites, params);
                 return true;
             }
         },
         {
             "edit_backgrounds",
             [](core::console& console, auto params) {
-                console.transition_to("edit_backgrounds", params);
+                console.transition_to(ide::commands::edit_backgrounds, params);
                 return true;
             }
         },
         {
             "edit_music",
             [](core::console& console, auto params) {
-                console.transition_to("edit_music", params);
+                console.transition_to(ide::commands::edit_music, params);
                 return true;
             }
         },
         {
             "edit_sounds",
             [](core::console& console, auto params) {
-                console.transition_to("edit_sounds", params);
+                console.transition_to(ide::commands::edit_sounds, params);
                 return true;
             }
         },
         {
             "edit_palette",
             [](core::console& console, auto params) {
-                console.transition_to("edit_palette", params);
+                console.transition_to(ide::commands::edit_palette, params);
                 return true;
             }
         },
         {
             "edit_actor",
             [](core::console& console, auto params) {
-                console.transition_to("edit_actor", params);
+                console.transition_to(ide::commands::edit_actor, params);
                 return true;
             }
         },
@@ -191,6 +192,16 @@ namespace ryu::core {
 
     bool console::more() const {
         return _more;
+    }
+
+    bool console::transition_to(
+            core::state_transition_command command,
+            const core::parameter_dict& params) {
+        bool consumed = false;
+        if (_transition_to_callback) {
+            consumed = _transition_to_callback(command, params);
+        }
+        return consumed;
     }
 
     void console::define_actions() {
@@ -1080,14 +1091,6 @@ namespace ryu::core {
 
     void console::on_caret_changed(const console::caret_changed_callable& callable) {
         _caret_changed_callback = callable;
-    }
-
-    bool console::transition_to(const std::string& name, const core::parameter_dict& params) {
-        bool consumed = false;
-        if (_transition_to_callback) {
-            consumed = _transition_to_callback(name, params);
-        }
-        return consumed;
     }
 
 }

@@ -53,9 +53,15 @@ namespace ryu::ide {
 
         void configure_palette();
 
+        bool execute_transition_command(
+            core::state_transition_command command,
+            const core::parameter_dict& params);
+
         void configure_states(core::result& result);
 
     private:
+        static std::map<core::state_transition_command, uint32_t> s_state_transitions;
+
         hex_editor::controller _hex_editor_state;
         console_editor::controller _console_state;
         tile_editor::controller _tile_editor_state;

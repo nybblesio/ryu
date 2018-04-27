@@ -16,6 +16,8 @@
 
 namespace ryu::ide {
 
+    std::map<core::state_transition_command, uint32_t> ide_context::s_state_transitions;
+
     ide_context::ide_context(const std::string& name) : core::context(name),
                                                         _hex_editor_state("hex editor"),
                                                         _console_state("console"),
@@ -70,68 +72,18 @@ namespace ryu::ide {
         add_state(
             result,
             &_console_state,
-            [this](const std::string& command, const core::parameter_dict& params) {
-                if (command == "edit_source") {
-                    push_state(_source_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_memory") {
-                    push_state(_hex_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_machine") {
-                    push_state(_machine_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_project") {
-                    push_state(_project_editor_state.id(), params);
-                    return true;
-                } else if (command == "list_machine") {
-                    push_state(_machine_list_state.id(), params);
-                    return true;
-                } else if (command == "edit_tiles") {
-                    push_state(_tile_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_sprites") {
-                    push_state(_sprite_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_backgrounds") {
-                    push_state(_background_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_music") {
-                    push_state(_module_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_sounds") {
-                    push_state(_sample_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_palette") {
-                    push_state(_palette_editor_state.id(), params);
-                    return true;
-                } else if (command == "edit_actor") {
-                    push_state(_actor_editor_state.id(), params);
-                    return true;
-                }
-                return false;
-            });
-        add_state(result, &_hex_editor_state);
+            std::bind(&ide_context::execute_transition_command, this, std::placeholders::_1, std::placeholders::_2));
         add_state(
             result,
             &_machine_list_state,
-            [this](const std::string& command, const core::parameter_dict& params) {
-                if (command == "edit_machine") {
-                    push_state(_machine_editor_state.id(), params);
-                    return true;
-                }
-                return false;
-            });
+            std::bind(&ide_context::execute_transition_command, this, std::placeholders::_1, std::placeholders::_2));
         add_state(result, &_source_editor_state);
         add_state(
             result,
             &_machine_editor_state,
-            [this](const std::string& command, const core::parameter_dict& params) {
-                if (command == "edit_component") {
-                    push_state(_component_editor_state.id(), params);
-                    return true;
-                }
-                return false;
-            });
+            std::bind(&ide_context::execute_transition_command, this, std::placeholders::_1, std::placeholders::_2));
+        add_state(result, &_source_editor_state);
+        add_state(result, &_hex_editor_state);
         add_state(result, &_tile_editor_state);
         add_state(result, &_actor_editor_state);
         add_state(result, &_module_editor_state);
@@ -292,6 +244,22 @@ namespace ryu::ide {
     }
 
     bool ide_context::on_initialize(core::result& result) {
+        s_state_transitions = {
+            {commands::edit_source, _source_editor_state.id()},
+            {commands::edit_memory, _hex_editor_state.id()},
+            {commands::list_machine, _machine_list_state.id()},
+            {commands::edit_tiles, _tile_editor_state.id()},
+            {commands::edit_sprites, _sprite_editor_state.id()},
+            {commands::edit_backgrounds, _background_editor_state.id()},
+            {commands::edit_music, _module_editor_state.id()},
+            {commands::edit_sounds, _sample_editor_state.id()},
+            {commands::edit_palette, _palette_editor_state.id()},
+            {commands::edit_actor, _actor_editor_state.id()},
+            {commands::edit_component, _component_editor_state.id()},
+            {commands::edit_machine, _machine_editor_state.id()},
+            {commands::edit_project, _project_editor_state.id()},
+        };
+
         define_actions();
         bind_events();
         configure_states(result);
@@ -315,29 +283,39 @@ namespace ryu::ide {
         switch (_size) {
             case core::context_window::split:
                 bounds({
-                               0,
-                               0,
-                               (parent_bounds.width() / 2) - 1,
-                               parent_bounds.height()
-                       });
+                    0,
+                    0,
+                    (parent_bounds.width() / 2) - 1,
+                    parent_bounds.height()
+                });
                 break;
             case core::context_window::expanded:
                 bounds({
-                               0,
-                               0,
-                               parent_bounds.width() - 16,
-                               parent_bounds.height()
-                       });
+                    0,
+                    0,
+                    parent_bounds.width() - 16,
+                    parent_bounds.height()
+                });
                 break;
             case core::context_window::collapsed:
                 bounds({
-                               0,
-                               0,
-                               16,
-                               parent_bounds.height()
-                       });
+                    0,
+                    0,
+                    16,
+                    parent_bounds.height()
+                });
                 break;
         }
+    }
+
+    bool ide_context::execute_transition_command(
+            core::state_transition_command command,
+            const core::parameter_dict& params) {
+        auto it = s_state_transitions.find(command);
+        if (it == s_state_transitions.end())
+            return false;
+        push_state(it->second, params);
+        return true;
     }
 
 }

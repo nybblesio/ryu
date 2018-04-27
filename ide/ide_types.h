@@ -12,6 +12,24 @@
 
 namespace ryu::ide {
 
+    struct commands {
+        enum types {
+            edit_source,
+            edit_memory,
+            list_machine,
+            edit_project,
+            edit_machine,
+            edit_component,
+            edit_tiles,
+            edit_sprites,
+            edit_backgrounds,
+            edit_music,
+            edit_sounds,
+            edit_palette,
+            edit_actor
+        };
+    };
+
     struct colors {
         enum indexes {
             black = 0,

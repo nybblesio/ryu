@@ -70,8 +70,8 @@ namespace ryu::ide::console_editor {
         _footer = _layout_panel->find_by_name<core::document_footer>("footer-panel");
 
         _console->code_mapper(s_mapper);
-        _console->on_transition([&](const std::string& name, const core::parameter_dict& params) {
-            return transition_to(name, params);
+        _console->on_transition([&](core::state_transition_command command, const core::parameter_dict& params) {
+            return transition_to(command, params);
         });
         _console->on_caret_changed([&](const core::caret& caret, const core::document& document) {
             _footer->update_state(caret, document);

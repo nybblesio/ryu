@@ -33,6 +33,10 @@ namespace ryu::core {
 
         void deactivate();
 
+        bool transition_to(
+            core::state_transition_command command,
+            const parameter_dict& params);
+
         uint32_t id() const;
 
         core::context* context();
@@ -78,8 +82,6 @@ namespace ryu::core {
         uint32_t add_change_listener(const state_change_callable& callable);
 
         void transition_callback(const state_transition_callable& callback);
-
-        bool transition_to(const std::string& name, const parameter_dict& params);
 
     protected:
         void end_state();

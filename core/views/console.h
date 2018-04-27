@@ -133,7 +133,7 @@ namespace ryu::core {
         void define_actions();
 
         bool transition_to(
-                const std::string& name,
+                core::state_transition_command command,
                 const core::parameter_dict& params);
 
         void format_data_table(

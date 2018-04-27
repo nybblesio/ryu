@@ -80,7 +80,7 @@ namespace ryu::ide::machine_list {
             "Machine {}",
             hardware::registry::instance()->machines().size());
         transition_to(
-            "edit_machine",
+            commands::edit_machine,
             {{"name", new_machine_name}});
     }
 
@@ -90,7 +90,7 @@ namespace ryu::ide::machine_list {
         if (machine == nullptr)
             return;
         transition_to(
-            "edit_machine",
+            commands::edit_machine,
             {{"name", machine->name()}});
     }
 

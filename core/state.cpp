@@ -45,6 +45,14 @@ namespace ryu::core {
         _context->pop_state();
     }
 
+    bool state::transition_to(
+            core::state_transition_command command,
+            const parameter_dict& params) {
+        if (_callback)
+            return _callback(command, params);
+        return false;
+    }
+
     void state::deactivate() {
         on_deactivate();
         raise_change_event(change_reasons::focus | change_reasons::visibility);
@@ -133,12 +141,6 @@ namespace ryu::core {
             listener.second(reasons);
     }
 
-    uint32_t state::add_change_listener(const view_host::state_change_callable& callable) {
-        auto id = id_pool::instance()->allocate();
-        _listeners.insert(std::make_pair(id, callable));
-        return id;
-    }
-
     void state::blackboard(const std::string& name, const std::string& value) {
         _context->blackboard(name, value);
     }
@@ -147,10 +149,10 @@ namespace ryu::core {
         _callback = callback;
     }
 
-    bool state::transition_to(const std::string& name, const parameter_dict& params) {
-        if (_callback)
-            return _callback(name, params);
-        return false;
+    uint32_t state::add_change_listener(const view_host::state_change_callable& callable) {
+        auto id = id_pool::instance()->allocate();
+        _listeners.insert(std::make_pair(id, callable));
+        return id;
     }
 
 }
