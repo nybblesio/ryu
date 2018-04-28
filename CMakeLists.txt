@@ -92,8 +92,9 @@ add_executable(
         todo.txt
         machines.yaml
         .gitignore
-        catch2.hpp
         main.cpp
+        layout.h
+        catch2.hpp
         ryu_types.h
         ryu.properties
         ryu_config.in.h

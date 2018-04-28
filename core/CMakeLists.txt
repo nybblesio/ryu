@@ -2,6 +2,7 @@ add_library(
         core
         result.h
         palette.h
+        size.cpp size.h
         rect.cpp rect.h
         view.cpp view.h
         result_message.h
