@@ -42,7 +42,13 @@ namespace ryu::core {
 
         void visible_items(int value);
 
+        void selected_key(uint32_t key);
+
         void border(border::types value);
+
+        std::string value() const override;
+
+        void value(const std::string& text) override;
 
     protected:
         bool move_up();

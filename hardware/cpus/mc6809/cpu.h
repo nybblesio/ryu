@@ -23,6 +23,10 @@ namespace ryu::hardware::mc6809 {
 
         cpu();
 
+        uint32_t type_id() const override {
+            return ryu::hardware::cpu_id;
+        }
+
         endianness::types endianess() const override;
 
         core::assembly_language_parser* assembler() override;

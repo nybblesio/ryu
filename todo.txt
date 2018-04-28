@@ -119,9 +119,6 @@ Art Asset Requirements
         component you're currently accessing and maybe show the description for the memory map entry
         that matches?
 
-- FIX: hardware::integrated_circuit's type metadata needs to match up (somehow) with the instance id data
-        e.g. the instance name() isn't the same as the metadata
-
 - FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
 
 - FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
@@ -295,3 +292,5 @@ DONE
 - fix text_box event handling
 - FIX: nasty, nasty, nasty string-based command interfaces between console, context, etc.
 - FIX: project should store project_file as collection of heap objects
+- FIX: hardware::integrated_circuit's type metadata needs to match up (somehow) with the instance id data
+        e.g. the instance name() isn't the same as the metadata

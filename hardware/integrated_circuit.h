@@ -60,6 +60,8 @@ namespace ryu::hardware {
 
         virtual void fill(uint8_t value);
 
+        virtual uint32_t type_id() const;
+
         std::string component_name() const;
 
         void address_space(uint32_t value);
@@ -76,9 +78,9 @@ namespace ryu::hardware {
 
         virtual endianness::types endianess() const;
 
-        virtual access_type_flags access_type() const;
-
         void component_name(const std::string& name);
+
+        virtual access_type_flags access_type() const;
 
         const hardware::memory_map& memory_map() const;
 

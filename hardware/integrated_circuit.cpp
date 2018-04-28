@@ -96,6 +96,10 @@ namespace ryu::hardware {
         _memory_map.add(offset, size, name, description, reader, writer);
     }
 
+    uint32_t integrated_circuit::type_id() const {
+        return 0;
+    }
+
     uint32_t integrated_circuit::address_space() const {
         return _address_space;
     }

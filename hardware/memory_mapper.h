@@ -31,6 +31,10 @@ namespace ryu::hardware {
 
         void fill(uint8_t value) override;
 
+        uint32_t type_id() const override {
+            return ryu::hardware::memory_mapper_id;
+        }
+
         const ic_interval_list& components() const;
 
         access_type_flags access_type() const override;

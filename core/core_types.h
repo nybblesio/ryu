@@ -74,7 +74,12 @@ namespace ryu::core {
 
     using view_list = std::vector<view*>;
 
-    using option_list = std::vector<std::string>;
+    struct pick_list_option_t {
+        uint32_t key;
+        std::string text;
+    };
+
+    using option_list = std::vector<pick_list_option_t>;
 
     struct alignment {
         struct horizontal {

@@ -49,6 +49,10 @@ namespace ryu::hardware {
 
         void fill(uint8_t value) override;
 
+        uint32_t type_id() const override {
+            return ryu::hardware::rom_id;
+        }
+
         access_type_flags access_type() const override;
 
         uint8_t read_byte(uint32_t address) const override;

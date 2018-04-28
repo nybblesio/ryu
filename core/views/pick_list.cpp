@@ -89,7 +89,7 @@ namespace ryu::core {
         action_provider().register_handler(
                 core::input_action::find_by_name("pick_list_select_action"),
                 [this](const event_data_t& data) {
-                    value(_options[_row + _selection]);
+                    value(_options[_row + _selection].text);
                     return true;
                 });
     }
@@ -143,6 +143,10 @@ namespace ryu::core {
         return _options;
     }
 
+    std::string pick_list::value() const {
+        return view::value();
+    }
+
     int pick_list::visible_items() const {
         return _visibile_items;
     }
@@ -155,8 +159,32 @@ namespace ryu::core {
         _visibile_items = value;
     }
 
+    void pick_list::selected_key(uint32_t key) {
+        auto it = std::find_if(
+            _options.begin(),
+            _options.end(),
+            [&key](const pick_list_option_t& o) { return o.key == key; });
+        if (it != _options.end()) {
+            _selection = static_cast<int>(std::distance(_options.begin(), it));
+            view::value((*it).text);
+        }
+    }
+
     void pick_list::border(border::types value) {
         _border = value;
+    }
+
+    void pick_list::value(const std::string& text) {
+        view::value(text);
+
+        if (!text.empty()) {
+            auto it = std::find_if(
+                _options.begin(),
+                _options.end(),
+                [&text](const pick_list_option_t& o) { return o.text == text; });
+            if (it != _options.end())
+                _selection = static_cast<int>(std::distance(_options.begin(), it));
+        }
     }
 
     void pick_list::on_draw(core::renderer& surface) {
@@ -224,7 +252,7 @@ namespace ryu::core {
                 }
                 surface.draw_text_aligned(
                     font_face(),
-                    _options[row],
+                    _options[row].text,
                     line,
                     alignment::horizontal::left,
                     alignment::vertical::middle);

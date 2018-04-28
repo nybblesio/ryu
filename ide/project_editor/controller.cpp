@@ -53,7 +53,7 @@ namespace ryu::ide::project_editor {
         _name_text_box->value(project->name());
         auto machine_instance = project->machine();
         if (machine_instance != nullptr)
-            _machine_pick_list->value(machine_instance->name());
+            _machine_pick_list->selected_key(machine_instance->id());
 
         for (const auto& file : project->files()) {
             _file_pick_list->add_row({

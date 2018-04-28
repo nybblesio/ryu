@@ -54,7 +54,7 @@ namespace ryu::ide::component_editor {
             _component->address()));
         auto ic_instance = _component->ic();
         if (ic_instance != nullptr)
-            _circuit_pick_list->value(ic_instance->name());
+            _circuit_pick_list->selected_key(ic_instance->type_id());
     }
 
     void controller::define_actions() {

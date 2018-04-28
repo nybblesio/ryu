@@ -90,15 +90,6 @@ namespace ryu::core {
         void on_initialize() override;
 
         template <typename T>
-        bool get_optional_scalar(YAML::Node node, T& var) {
-            if (!node.IsNull() && node.IsScalar()) {
-                var = node.as<T>();
-                return true;
-            }
-            return false;
-        }
-
-        template <typename T>
         bool get_constant(
                 core::result& result,
                 YAML::Node root,
@@ -119,11 +110,19 @@ namespace ryu::core {
             return true;
         }
 
+        template <typename T>
+        bool get_optional(YAML::Node node, T& var) {
+            if (node == nullptr)
+                return false;
+            var = node.as<T>();
+            return true;
+        }
+
     private:
         bool create_views(
                 core::result& result,
-                YAML::Node root,
-                YAML::Node views_node,
+                const YAML::Node& root,
+                const YAML::Node& views_node,
                 core::view* parent_view);
 
         bool expand_includes(
@@ -131,17 +130,13 @@ namespace ryu::core {
                 std::stringstream& stream,
                 const boost::filesystem::path& path);
 
-        constant_result_t get_constant_int(
-                YAML::Node constants_node,
-                const std::string& path);
-
         node_result_t get_node_from_path(
-                YAML::Node root,
+                const YAML::Node& root,
                 const std::string& path);
 
-        bool get_padding(core::result& result, YAML::Node node, core::padding& pads);
-
-        bool get_bounds(core::result& result, YAML::Node node, core::rect& bounds);
+        constant_result_t get_constant_int(
+                const YAML::Node& constants_node,
+                const std::string& path);
 
     private:
         std::string _meta_name;

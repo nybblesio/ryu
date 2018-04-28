@@ -9,10 +9,10 @@
 //
 
 #include <core/state.h>
-#include <yaml-cpp/yaml.h>
 #include <logger_factory.h>
 #include <core/view_factory.h>
 #include <hardware/registry.h>
+#include <core/yaml_converters.h>
 #include "loadable_view.h"
 
 namespace ryu::core {
@@ -65,7 +65,7 @@ namespace ryu::core {
             }
 
             std::string focus_view_name;
-            if (get_optional_scalar(root["focus"], focus_view_name)) {
+            if (get_optional(root["focus"], focus_view_name)) {
                 auto view = find_by_name<core::view>(focus_view_name);
                 if (view != nullptr)
                     focus(view);
@@ -82,8 +82,8 @@ namespace ryu::core {
 
     bool loadable_view::create_views(
             core::result& result,
-            YAML::Node root,
-            YAML::Node views_node,
+            const YAML::Node& root,
+            const YAML::Node& views_node,
             core::view* parent_view) {
         if (views_node.IsNull() || !views_node.IsSequence())
             return true;
@@ -117,20 +117,20 @@ namespace ryu::core {
             if (!get_constant(result, root, view_node["type"], type))
                 return false;
 
-            get_optional_scalar(view_node["name"], name);
-            get_optional_scalar(view_node["value"], value);
-            get_optional_scalar(view_node["enabled"], enabled);
-            get_optional_scalar(view_node["visible"], visible);
-            get_optional_scalar(view_node["tab-stop"], tab_stop);
-            get_optional_scalar(view_node["next"], next_view_name);
-            get_optional_scalar(view_node["prev"], prev_view_name);
+            get_optional(view_node["name"], name);
+            get_optional(view_node["value"], value);
+            get_optional(view_node["enabled"], enabled);
+            get_optional(view_node["visible"], visible);
+            get_optional(view_node["tab-stop"], tab_stop);
+            get_optional(view_node["next"], next_view_name);
+            get_optional(view_node["prev"], prev_view_name);
 
             get_constant(result, root, view_node["dock"], dock_style);
             get_constant(result, root, view_node["sizing"], sizing);
             get_constant(result, root, view_node["border"], border_type);
-            get_padding(result, view_node["margin"], margins);
-            get_padding(result, view_node["padding"], pads);
-            get_bounds(result, view_node["bounds"], bounds);
+            get_optional(view_node["margin"], margins);
+            get_optional(view_node["padding"], pads);
+            get_optional(view_node["bounds"], bounds);
 
             auto fg_result = get_node_from_path(view_node, "colors.fg");
             if (fg_result.found)
@@ -177,12 +177,12 @@ namespace ryu::core {
                             button->shortcut_color(static_cast<uint8_t>(sc_color));
 
                     std::string shortcut;
-                    if (get_optional_scalar(view_node["shortcut"], shortcut)) {
+                    if (get_optional(view_node["shortcut"], shortcut)) {
                         button->shortcut(shortcut);
                     }
 
                     uint32_t width;
-                    if (get_optional_scalar(view_node["width"], width)) {
+                    if (get_optional(view_node["width"], width)) {
                         button->width(width);
                     }
 
@@ -206,13 +206,13 @@ namespace ryu::core {
                     uint32_t size;
                     auto size_result = get_node_from_path(view_node, "size.width");
                     if (size_result.found) {
-                        if (get_optional_scalar(size_result.node, size))
+                        if (get_optional(size_result.node, size))
                             text_box->width(static_cast<uint8_t>(size));
                     }
 
                     size_result = get_node_from_path(view_node, "size.length");
                     if (size_result.found) {
-                        if (get_optional_scalar(size_result.node, size))
+                        if (get_optional(size_result.node, size))
                             text_box->length(static_cast<uint16_t>(size));
                     }
 
@@ -238,16 +238,16 @@ namespace ryu::core {
                             view_node,
                             "document.rows");
                     if (document_rows_result.found)
-                        get_optional_scalar(
-                                document_rows_result.node,
-                                document_rows);
+                        get_optional(
+                            document_rows_result.node,
+                            document_rows);
                     auto document_columns_result = get_node_from_path(
                             view_node,
                             "document.columns");
                     if (document_columns_result.found)
-                        get_optional_scalar(
-                                document_columns_result.node,
-                                document_columns);
+                        get_optional(
+                            document_columns_result.node,
+                            document_columns);
 
                     auto text_editor = core::view_factory::create_text_editor(
                             host(),
@@ -268,16 +268,16 @@ namespace ryu::core {
                             view_node,
                             "page-size.rows");
                     if (page_rows_result.found)
-                        get_optional_scalar(
-                                page_rows_result.node,
-                                page_rows);
+                        get_optional(
+                            page_rows_result.node,
+                            page_rows);
                     auto page_columns_result = get_node_from_path(
                             view_node,
                             "page-size.columns");
                     if (page_columns_result.found)
-                        get_optional_scalar(
-                                page_columns_result.node,
-                                page_columns);
+                        get_optional(
+                            page_columns_result.node,
+                            page_columns);
 
                     text_editor->page_size(
                             static_cast<uint8_t>(page_rows),
@@ -308,7 +308,7 @@ namespace ryu::core {
                         switch (source) {
                             case sources::displays: {
                                 for (auto& display : hardware::display::catalog())
-                                    options.push_back(display.name());
+                                    options.push_back(pick_list_option_t { display.id(), display.name() });
                                 break;
                             }
                             case sources::components: {
@@ -318,16 +318,19 @@ namespace ryu::core {
                                 auto base_type = rttr::type::get<ryu::hardware::integrated_circuit>();
                                 auto ic_types = base_type.get_derived_classes();
                                 for (const auto& rttr_type : ic_types) {
+                                    auto ic_type_id = rttr_type
+                                        .get_metadata(ryu::hardware::meta_data_key::type_id)
+                                        .to_uint32();
                                     auto ic_type_name = rttr_type
                                         .get_metadata(ryu::hardware::meta_data_key::type_name)
                                         .to_string();
-                                    options.push_back(ic_type_name);
+                                    options.push_back(pick_list_option_t { ic_type_id, ic_type_name });
                                 }
                                 break;
                             }
                             case sources::machines: {
                                 for (const auto machine : hardware::registry::instance()->machines()) {
-                                    options.push_back(machine->name());
+                                    options.push_back(pick_list_option_t { machine->id(), machine->name() });
                                 }
                                 break;
                             }
@@ -347,6 +350,20 @@ namespace ryu::core {
                             margins,
                             pads,
                             bounds);
+
+                    int size;
+                    auto size_result = get_node_from_path(view_node, "size.width");
+                    if (size_result.found) {
+                        if (get_optional(size_result.node, size))
+                            pick_list->width(size);
+                    }
+
+                    size_result = get_node_from_path(view_node, "size.length");
+                    if (size_result.found) {
+                        if (get_optional(size_result.node, size))
+                            pick_list->length(size);
+                    }
+
                     current_view = std::move(pick_list);
                     break;
                 }
@@ -378,8 +395,8 @@ namespace ryu::core {
                             column_pick_list::valign_t valign = column_pick_list::valign_t::none;
                             column_pick_list::halign_t halign = column_pick_list::halign_t::none;
 
-                            get_optional_scalar(header_node["title"], title);
-                            get_optional_scalar(header_node["width"], width);
+                            get_optional(header_node["title"], title);
+                            get_optional(header_node["width"], width);
 
                             auto col_fg_result = get_node_from_path(header_node, "colors.fg");
                             if (col_fg_result.found)
@@ -466,7 +483,7 @@ namespace ryu::core {
                 case types::state_header: {
                     std::string state_name;
                     uint8_t state_color = fg_color;
-                    get_optional_scalar(view_node["state"], state_name);
+                    get_optional(view_node["state"], state_name);
                     if (!get_constant(result, root, view_node["state_color"], state_color))
                         return false;
                     auto state_header = core::view_factory::create_view<core::state_header>(
@@ -560,7 +577,7 @@ namespace ryu::core {
                 }
                 case types::loadable_view: {
                     std::string view_path;
-                    if (!get_optional_scalar(view_node["path"], view_path))
+                    if (!get_optional(view_node["path"], view_path))
                         return false;
                     auto loadable = core::view_factory::create_loadable_view(
                             host(),
@@ -685,65 +702,8 @@ namespace ryu::core {
         return true;
     }
 
-    bool loadable_view::get_padding(
-            core::result& result,
-            YAML::Node node,
-            core::padding& pads) {
-        if (!node.IsNull() && node.IsSequence()) {
-            auto values = node.as<std::vector<int32_t>>();
-            if (values.size() < 4) {
-                result.add_message(
-                        "P010",
-                        "pad/margin require four values: [<left>, <right>, <top>, <bottom>].",
-                        true);
-                return false;
-            }
-            pads.left(values[0]);
-            pads.right(values[1]);
-            pads.top(values[2]);
-            pads.bottom(values[3]);
-        }
-        return true;
-    }
-
-    bool loadable_view::get_bounds(
-            core::result& result,
-            YAML::Node node,
-            core::rect& bounds) {
-        if (!node.IsNull() && node.IsSequence()) {
-            auto values = node.as<std::vector<int32_t>>();
-            if (values.size() < 4) {
-                result.add_message(
-                        "P010",
-                        "bounds require four values: [<left>, <top>, <width>, <height>].",
-                        true);
-                return false;
-            }
-            bounds.left(values[0]);
-            bounds.top(values[1]);
-            bounds.width(values[2]);
-            bounds.height(values[3]);
-        }
-        return true;
-    }
-
-    constant_result_t loadable_view::get_constant_int(
-            YAML::Node constants_node,
-            const std::string& path) {
-        constant_result_t result {};
-        auto node_result = get_node_from_path(constants_node, path);
-        if (node_result.found) {
-            result.found = true;
-            result.value = node_result.node.as<int32_t>();
-
-        } else {
-            result.error_message = node_result.error_message;
-        }
-        return result;
-    }
-
     node_result_t loadable_view::get_node_from_path(
-            YAML::Node root,
+            const YAML::Node& root,
             const std::string& path) {
         auto parts = string_to_list(path, '.');
         std::vector<YAML::Node> nodes {root};
@@ -760,6 +720,21 @@ namespace ryu::core {
             nodes.push_back(next_node);
         }
         return node_result_t {true, nodes.back()};
+    }
+
+    constant_result_t loadable_view::get_constant_int(
+            const YAML::Node& constants_node,
+            const std::string& path) {
+        constant_result_t result {};
+        auto node_result = get_node_from_path(constants_node, path);
+        if (node_result.found) {
+            result.found = true;
+            result.value = node_result.node.as<int32_t>();
+
+        } else {
+            result.error_message = node_result.error_message;
+        }
+        return result;
     }
 
 }
