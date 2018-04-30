@@ -22,8 +22,6 @@ Art Asset Requirements
 
 - REFACTOR: use pratt parser model to completely replace shunting-yard implementation
 
-- FIX: project find_project_root needs to be properly implemented.
-
 - NEW: implement ability to redirect to new or appended text file in core::console
 
 - FIX: pick_list drop down needs to paint opaque
@@ -289,3 +287,4 @@ DONE
         - refactor core::project into this model
         - helpers to send notifications
         NOTE: inspiration here was from NSNotificationCenter in Cocoa
+- FIX: project find_project_root needs to be properly implemented.

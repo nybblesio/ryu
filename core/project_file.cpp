@@ -19,6 +19,7 @@ namespace ryu::core {
 
     project_file_shared_ptr project_file::load(
             core::result& result,
+            core::project* project,
             YAML::Node& node) {
         auto id = node["id"];
         if (id == nullptr) {
@@ -49,6 +50,7 @@ namespace ryu::core {
 
         auto file = std::make_shared<project_file>(
             id.as<uint32_t>(),
+            project,
             fs::path(path.as<std::string>()),
             project_file_type::code_to_type(type.as<std::string>()));
 
@@ -67,16 +69,22 @@ namespace ryu::core {
 
     project_file::project_file(
             uint32_t id,
+            core::project* project,
             const fs::path& path,
             project_file_type::codes type) : _id(id),
                                              _path(path),
+                                             _project(project),
                                              _type(type) {
         core::id_pool::instance()->mark_used(_id);
         switch (_type) {
             case project_file_type::source:
-                _sequence = 3;
+                _sequence = 4;
+                _should_assemble = false;
                 break;
             case project_file_type::data:
+                _sequence = 3;
+                _should_assemble = false;
+                break;
             case project_file_type::tiles:
             case project_file_type::actor:
             case project_file_type::module:
@@ -141,12 +149,11 @@ namespace ryu::core {
 
         if (!file_path.is_absolute()) {
             if (_type == project_file_type::environment) {
-                file_path = project::find_project_root()
+                file_path = _project->path()
                         .append(".ryu")
                         .append(file_path.string());
             } else {
-                file_path = project::find_project_root()
-                        .append(file_path.string());
+                file_path = _project->path().append(file_path.string());
             }
         }
 
@@ -201,13 +208,12 @@ namespace ryu::core {
 
     fs::path project_file::full_path() const {
         if (_type == project_file_type::environment) {
-            return project::find_project_root()
+            return _project->path()
                 .append(".ryu")
                 .append(_path.string())
                 .replace_extension(".env");
         } else {
-            return project::find_project_root()
-                .append(_path.string());
+            return _project->path().append(_path.string());
         }
     }
 

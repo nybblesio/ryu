@@ -1534,11 +1534,13 @@ namespace ryu::core {
             type.value = "TEXT";
         auto path = context.get_parameter<core::string_literal_t>("path");
 
+        auto project = core::project::instance();
         auto file = std::make_shared<core::project_file>(
                 core::id_pool::instance()->allocate(),
+                project,
                 path,
                 core::project_file_type::code_to_type(type));
-        core::project::instance()->add_file(file);
+        project->add_file(file);
         file->create_stub_file(context.result, path);
 
         return !context.result.is_failed();
@@ -1952,13 +1954,15 @@ namespace ryu::core {
             return false;
         }
 
+        auto project = core::project::instance();
         auto file = std::make_shared<core::project_file>(
                 core::id_pool::instance()->allocate(),
+                project,
                 name.value,
                 core::project_file_type::environment);
-        core::project::instance()->add_file(file);
+        project->add_file(file);
         file->create_stub_file(context.result, environment_file_path);
-        core::project::instance()->save(context.result);
+        project->save(context.result);
 
         return !context.result.is_failed();
     }

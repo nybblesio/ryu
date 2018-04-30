@@ -67,30 +67,13 @@ namespace ryu::core {
     bool project::load(
             core::result& result,
             const fs::path& path) {
-        fs::path project_path = path;
-
-        if (!project_path.is_absolute()) {
-            project_path = fs::current_path().append(project_path.string());
-        }
-
-        if (!fs::exists(project_path)) {
+        auto project_path = find_project_root(path);
+        auto project_file = project_path;
+        if (!does_project_file_exist(project_file)) {
             result.add_message(
-                    "C031",
-                    fmt::format("project does not exist: {}", project_path.string()),
-                    true);
-            return false;
-        }
-
-        fs::path project_file(path);
-        project_file
-                .append(".ryu")
-                .append("arcade.rproj");
-
-        if (!fs::exists(project_file)) {
-            result.add_message(
-                    "C031",
-                    fmt::format("project file does not exist: {}", project_file.string()),
-                    true);
+                "C031",
+                fmt::format("project file does not exist: {}", project_file.string()),
+                true);
             return false;
         }
 
@@ -105,7 +88,7 @@ namespace ryu::core {
         }
 
         auto name = root["name"];
-        _instance = core::project_shared_ptr(new core::project(path));
+        _instance = core::project_shared_ptr(new core::project(project_path));
         _instance->suspend_notify();
         _instance->name(name.as<std::string>());
 
@@ -135,7 +118,10 @@ namespace ryu::core {
         if (files != nullptr && files.IsSequence()) {
             for (auto it = files.begin(); it != files.end(); ++it) {
                 auto file_node = *it;
-                auto file = core::project_file::load(result, file_node);
+                auto file = core::project_file::load(
+                    result,
+                    _instance.get(),
+                    file_node);
                 if (file->type() != core::project_file_type::uninitialized) {
                     _instance->add_file(file);
                 }
@@ -206,6 +192,13 @@ namespace ryu::core {
         return true;
     }
 
+    bool project::does_project_file_exist(fs::path& path) {
+        if (!fs::exists(path))
+            return false;
+        path.append(".ryu").append("arcade.rproj");
+        return fs::exists(path);
+    }
+
     void project::notify() {
         if (!_notify_enabled)
             return;
@@ -236,7 +229,8 @@ namespace ryu::core {
     }
 
     project::~project() {
-        core::notification_center::instance()->remove_observable(this);
+        // static init/destroy issues
+        //core::notification_center::instance()->remove_observable(this);
     }
 
     bool project::dirty() const {
@@ -265,8 +259,17 @@ namespace ryu::core {
         return _machine;
     }
 
-    fs::path project::find_project_root() {
-        return fs::current_path();
+    fs::path project::find_project_root(const fs::path& current_path) {
+        auto path = current_path.empty() ? fs::current_path() : current_path;
+        while (true) {
+            auto project_file_path = path;
+            if (does_project_file_exist(project_file_path))
+                break;
+            if (!path.has_parent_path())
+                break;
+            path = path.parent_path();
+        }
+        return path;
     }
 
     observable_type project::type_id() const {

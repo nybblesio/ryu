@@ -26,12 +26,14 @@ namespace ryu::core {
     public:
         static project_file_shared_ptr load(
             core::result& result,
+            core::project* project,
             YAML::Node& node);
 
         project_file() = default;
 
         project_file(
                 uint32_t id,
+                core::project* project,
                 const fs::path& path,
                 project_file_type::codes type);
 
@@ -81,6 +83,7 @@ namespace ryu::core {
         bool _dirty = false;
         uint16_t _sequence = 0;
         bool _should_assemble = false;
+        core::project* _project = nullptr;
         project_file_type::codes _type = project_file_type::codes::uninitialized;
     };
 

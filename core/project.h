@@ -39,9 +39,11 @@ namespace ryu::core {
 
         static core::project* instance();
 
-        static fs::path find_project_root();
-
         static bool close(core::result& result);
+
+        static bool does_project_file_exist(fs::path& path);
+
+        static fs::path find_project_root(const fs::path& current_path);
 
         virtual ~project();
 
@@ -103,7 +105,7 @@ namespace ryu::core {
         static core::project_shared_ptr _instance;
 
         uint32_t _id;
-        fs::path _path;
+        fs::path _path {};
         bool _open = false;
         bool _dirty = false;
         std::string _name {};

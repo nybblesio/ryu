@@ -527,14 +527,21 @@ namespace ryu::core {
                 if (variant.which() != variant::types::string_literal) {
                     listing.annotate_line_error(
                             node->line,
-                            "binary directive requires a string constant for the path");
-                    error(result, "E004", "binary directive requires a string constant for the path");
+                            "include directive requires a string constant for the path");
+                    error(result, "E004", "include directive requires a string constant for the path");
                     break;
                 }
 
                 auto path = boost::get<string_literal_t>(variant).value;
                 auto project = core::project::instance();
                 auto project_file = project->find_file(path);
+                if (project_file == nullptr) {
+                    listing.annotate_line_error(
+                        node->line,
+                        "include directive specifies invalid path");
+                    error(result, "E004", "include directive specifies invalid path");
+                    break;
+                }
 
                 std::stringstream source;
                 if (!project_file->read(result, source)) {
@@ -569,10 +576,24 @@ namespace ryu::core {
                 }
 
                 auto start_location_counter = _assembler->location_counter();
-                auto path = boost::get<string_literal_t>(variant).value;
+                auto project = core::project::instance();
+                auto project_file = project->find_file(boost::get<string_literal_t>(variant).value);
+                if (project_file == nullptr) {
+                    listing.annotate_line_error(
+                        node->line,
+                        "binary directive specifies invalid path");
+                    error(result, "E004", "binary directive specifies invalid path");
+                    break;
+                }
 
+                // XXX: refactor project_file to support read_binary and read_text
+                //      rework load_binary_to_location_counter to accept an input stream instead of a path
                 byte_list data_bytes {};
-                _assembler->load_binary_to_location_counter(result, data_bytes, path, 0);
+                _assembler->load_binary_to_location_counter(
+                    result,
+                    data_bytes,
+                    project_file->full_path(),
+                    0);
 
                 if (!result.is_failed()) {
                     listing.annotate_line(

@@ -43,16 +43,16 @@ namespace ryu::core {
         return handled;
     }
 
-    void notification_center::add_observer(uint32_t id, observer* instance) {
-        _observers.insert(std::make_pair(id, instance));
-    }
-
     void notification_center::add_observable(observable* instance) {
         _observables.insert(std::make_pair(instance->id(), instance));
     }
 
     void notification_center::remove_observable(observable* instance) {
         _observables.erase(instance->id());
+    }
+
+    void notification_center::add_observer(uint32_t id, observer* instance) {
+        _observers.insert(std::make_pair(id, instance));
     }
 
 }
