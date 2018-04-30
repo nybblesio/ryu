@@ -106,6 +106,14 @@ namespace ryu::core {
             "Make current item the selected value.");
         if (!select_action->has_bindings())
             select_action->bind_keys({core::key_return});
+
+        auto text_input_action = core::input_action::create_no_map(
+            "pick_list_text_input",
+            "Internal",
+            "Any ASCII text input (non-mappable).");
+        if (!text_input_action->has_bindings()) {
+            text_input_action->bind_text_input();
+        }
     }
 
     void pick_list::bind_events() {
@@ -136,7 +144,37 @@ namespace ryu::core {
         action_provider().register_handler(
             core::input_action::find_by_name("pick_list_select_action"),
             [this](const event_data_t& data) {
-                value(_options[_row + _selection].text);
+                value(_options[_selection].text);
+                return true;
+            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("pick_list_text_input"),
+            [this](const core::event_data_t& data) {
+                if (data.c == core::ascii_escape) {
+                    _search.clear();
+                    _selection = 0;
+                    return true;
+                }
+
+                // XXX: review this
+                if (_search.length() < 32) {
+                    _search += data.c;
+
+                    _selection = 0;
+                    for (const auto& option : _options) {
+                        if (option.text.substr(0, _search.length()) == _search)
+                            goto _match;
+                        ++_selection;
+                    }
+                    _selection = 0;
+                _match:
+                    auto half_visible_items = _visibile_items / 2;
+                    if (_selection < half_visible_items)
+                        _row = 0;
+                    else
+                        _row = _selection - half_visible_items;
+                }
+
                 return true;
             });
     }
@@ -291,7 +329,7 @@ namespace ryu::core {
                     y,
                     bounds.width() - 2,
                     font_face()->line_height};
-                if (row == _row + _selection) {
+                if (row == _selection) {
                     surface.push_blend_mode(SDL_BLENDMODE_BLEND);
                     auto selection_color = pal[fg_color()];
                     selection_color.alpha(0x5f);

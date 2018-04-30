@@ -80,6 +80,7 @@ namespace ryu::core {
         int _height = 0;
         int _length = 32;
         int _selection = 0;
+        std::string _search;
         option_list _options {};
         int _visibile_items = 10;
         border::types _border = border::types::none;
