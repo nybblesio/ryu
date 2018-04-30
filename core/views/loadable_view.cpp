@@ -13,6 +13,7 @@
 #include <core/view_factory.h>
 #include <hardware/registry.h>
 #include <core/yaml_converters.h>
+#include <common/stream_support.h>
 #include "loadable_view.h"
 
 namespace ryu::core {
@@ -662,19 +663,9 @@ namespace ryu::core {
             std::stringstream& stream,
             const boost::filesystem::path& path) {
         std::stringstream temp_stream;
-        try {
-            std::ifstream file(path.string(), std::ios::in);
-            if (file.is_open()) {
-                temp_stream << file.rdbuf();
-                file.close();
-            }
-        } catch (std::exception& e) {
-            result.add_message(
-                "P001",
-                fmt::format("unable to read view file: {}", e.what()),
-                true);
+        if (!ryu::read_text(result, path, temp_stream))
             return false;
-        }
+
         std::string line;
         while (std::getline(temp_stream, line)) {
             if (line[0] == '!') {

@@ -288,3 +288,4 @@ DONE
         - helpers to send notifications
         NOTE: inspiration here was from NSNotificationCenter in Cocoa
 - FIX: project find_project_root needs to be properly implemented.
+- FIX: project_file::read -> project_file::read_text and add project_file::read_binary

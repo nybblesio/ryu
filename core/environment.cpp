@@ -17,6 +17,7 @@
 #include <boost/filesystem.hpp>
 #include <core/command_parser.h>
 #include <common/string_support.h>
+#include <common/stream_support.h>
 #include <boost/algorithm/string.hpp>
 #include "assembler.h"
 #include "environment.h"
@@ -516,7 +517,7 @@ namespace ryu::core {
             return false;
 
         std::stringstream source;
-        if (!file->read(result, source))
+        if (!file->read_text(result, source))
             return false;
 
         auto source_text = source.str();
@@ -1078,7 +1079,7 @@ namespace ryu::core {
         auto addr = context.get_parameter<core::numeric_literal_t>("addr");
         auto bytes = context.get_parameter<core::numeric_literal_t>("bytes");
 
-        auto byte_count = std::max<uint32_t>(bytes, 128);
+        auto byte_count = std::max<uint32_t>(bytes.value, 128);
         auto buffer = new uint8_t[byte_count];
 
         auto machine = core::project::instance()->machine();
@@ -1249,17 +1250,25 @@ namespace ryu::core {
         if (!has_valid_project_machine_and_target(context.result))
             return false;
 
-        auto path = context.get_parameter<core::string_literal_t>("path");
+        auto project = core::project::instance();
+        fs::path path(context.get_parameter<core::string_literal_t>("path").value);
+        if (!path.is_absolute())
+            path = project->path().append(path.string());
+
         auto start = context.get_parameter<core::numeric_literal_t>("start");
         auto end = context.get_parameter<core::numeric_literal_t>("end");
 
         _assembler->location_counter(start);
 
+        std::stringstream stream;
+        if (!ryu::read_binary(context.result, path, stream))
+            return false;
+
         byte_list data_bytes {};
         _assembler->load_binary_to_location_counter(
                 context.result,
                 data_bytes,
-                path,
+                stream,
                 end);
 
         context.result.add_data(
@@ -1282,15 +1291,22 @@ namespace ryu::core {
         if (!has_valid_project_machine_and_target(context.result))
             return false;
 
-        auto path = context.get_parameter<core::string_literal_t>("path");
+        auto project = core::project::instance();
+        fs::path path(context.get_parameter<core::string_literal_t>("path").value);
+        if (!path.is_absolute())
+            path = project->path().append(path.string());
+
         auto start = context.get_parameter<core::numeric_literal_t>("start");
         auto end = context.get_parameter<core::numeric_literal_t>("end");
 
+        std::stringstream stream;
         _assembler->location_counter(start);
         _assembler->read_location_counter_to_binary(
                 context.result,
-                path,
+                stream,
                 end);
+        if (!ryu::write_binary(context.result, path, stream))
+            return false;
 
         context.result.add_message(
                 "M001",

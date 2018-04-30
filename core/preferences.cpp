@@ -9,6 +9,7 @@
 //
 
 #include <yaml-cpp/yaml.h>
+#include <common/stream_support.h>
 #include "preferences.h"
 #include "input_action.h"
 
@@ -73,19 +74,7 @@ namespace ryu::core {
 
         emitter << YAML::EndSeq;
 
-        auto file_path = preferences_file_path();
-
-        try {
-            std::ofstream file;
-            file.open(file_path.string());
-            file << emitter.c_str();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "P001",
-                    fmt::format("unable to preferences: {}", e.what()),
-                    true);
-        }
+        ryu::write_text(result, preferences_file_path(), emitter.c_str());
 
         return !result.is_failed();
     }

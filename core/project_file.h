@@ -32,22 +32,26 @@ namespace ryu::core {
         project_file() = default;
 
         project_file(
-                uint32_t id,
-                core::project* project,
-                const fs::path& path,
-                project_file_type::codes type);
+            uint32_t id,
+            core::project* project,
+            const fs::path& path,
+            project_file_type::codes type);
 
-        bool read(
-                core::result& result,
-                std::iostream& stream);
+        bool read_binary(
+            core::result& result,
+            std::iostream& stream);
 
-        bool write(
-                core::result& result,
-                std::iostream& stream);
+        bool read_text(
+            core::result& result,
+            std::iostream& stream);
+
+        bool write_text(
+            core::result& result,
+            std::iostream& stream);
 
         bool create_stub_file(
-                core::result& result,
-                const fs::path& path);
+            core::result& result,
+            const fs::path& path);
 
         bool dirty() const;
 

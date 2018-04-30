@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <common/string_support.h>
+#include <common/stream_support.h>
 #include "document.h"
 
 namespace ryu::core {
@@ -335,16 +336,9 @@ namespace ryu::core {
             return false;
         }
 
-        try {
-            std::fstream file;
-            file.open(_path.string());
-            load(result, file);
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "D001",
-                    fmt::format("unable to load document: {}", e.what()),
-                    true);
+        std::stringstream stream;
+        if (ryu::read_text(result, _path, stream)) {
+            load(result, stream);
         }
 
         return !result.is_failed();
@@ -389,18 +383,9 @@ namespace ryu::core {
         if (target_path.empty())
             target_path = _path;
 
-        try {
-            std::ofstream file(target_path.string());
-            if (file.is_open()) {
-                save(result, file);
-                file.close();
-            }
-        } catch (std::exception& e) {
-            result.add_message(
-                    "D001",
-                    fmt::format("unable to save document: {}", e.what()),
-                    true);
-        }
+        std::stringstream stream;
+        save(result, stream);
+        ryu::write_text(result, target_path, stream);
 
         return !result.is_failed();
     }

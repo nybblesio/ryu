@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <hardware/machine.h>
 #include <common/string_support.h>
+#include <common/stream_support.h>
 #include <boost/algorithm/string.hpp>
 #include "project.h"
 #include "project_file.h"
@@ -104,40 +105,22 @@ namespace ryu::core {
         }
     }
 
-    bool project_file::read(
+    bool project_file::read_binary(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path = full_path();
-        try {
-            std::ifstream file;
-            file.open(file_path.string());
-            stream << file.rdbuf();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "P001",
-                    fmt::format("unable to read project_file: {}", e.what()),
-                    true);
-        }
-        return true;
+        return ryu::read_binary(result, full_path(), stream);
     }
 
-    bool project_file::write(
+    bool project_file::read_text(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path = full_path();
-        try {
-            std::ofstream file;
-            file.open(file_path.string());
-            file << stream.rdbuf();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "P001",
-                    fmt::format("unable to write project_file: {}", e.what()),
-                    true);
-        }
-        return true;
+        return ryu::read_text(result, full_path(), stream);
+    }
+
+    bool project_file::write_text(
+            core::result& result,
+            std::iostream& stream) {
+        return ryu::write_text(result, full_path(), stream);
     }
 
     // XXX: consider using ctemplate and assets/templates/*.tmpl
@@ -177,7 +160,7 @@ namespace ryu::core {
         stream << "* " << file_path.filename() << "\n";
         stream << "*\n\n";
 
-        write(result, stream);
+        write_text(result, stream);
 
         return !result.is_failed();
     }

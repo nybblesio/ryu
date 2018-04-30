@@ -544,11 +544,14 @@ namespace ryu::core {
                 }
 
                 std::stringstream source;
-                if (!project_file->read(result, source)) {
+                if (!project_file->read_text(result, source)) {
                     listing.annotate_line_error(
                             node->line,
-                            fmt::format("include failed for path: {}", path));
-                    error(result, "E004", fmt::format("include failed for path: {}", path));
+                            fmt::format("include failed for path: {}", project_file->full_path()));
+                    error(
+                        result,
+                        "E004",
+                        fmt::format("include failed for path: {}", project_file->full_path()));
                     break;
                 }
 
@@ -586,13 +589,23 @@ namespace ryu::core {
                     break;
                 }
 
-                // XXX: refactor project_file to support read_binary and read_text
-                //      rework load_binary_to_location_counter to accept an input stream instead of a path
                 byte_list data_bytes {};
+                std::stringstream source;
+                if (!project_file->read_binary(result, source)) {
+                    listing.annotate_line_error(
+                        node->line,
+                        fmt::format("binary include failed for path: {}", project_file->full_path()));
+                    error(
+                        result,
+                        "E004",
+                        fmt::format("binary include failed for path: {}", project_file->full_path()));
+                    break;
+                }
+
                 _assembler->load_binary_to_location_counter(
                     result,
                     data_bytes,
-                    project_file->full_path(),
+                    source,
                     0);
 
                 if (!result.is_failed()) {

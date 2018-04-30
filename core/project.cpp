@@ -11,6 +11,7 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <hardware/registry.h>
+#include <common/stream_support.h>
 #include <boost/filesystem/operations.hpp>
 #include "project.h"
 #include "project_file.h"
@@ -303,22 +304,11 @@ namespace ryu::core {
         }
         emitter << YAML::EndSeq;
 
-        try {
-            fs::path project_file(_path);
-            project_file
-                    .append(".ryu")
-                    .append("arcade.rproj");
-
-            std::ofstream file;
-            file.open(project_file.string());
-            file << emitter.c_str();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "C031",
-                    fmt::format("unable to save project: {}", e.what()),
-                    true);
-        }
+        fs::path project_file(_path);
+        project_file
+            .append(".ryu")
+            .append("arcade.rproj");
+        ryu::write_text(result, project_file, emitter.c_str());
 
         _dirty = false;
         if (!result.is_failed())

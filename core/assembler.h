@@ -56,12 +56,12 @@ namespace ryu::core {
         bool load_binary_to_location_counter(
                 core::result& result,
                 byte_list& data_bytes,
-                const fs::path& path,
+                std::iostream& stream,
                 uint32_t end_address);
 
         bool read_location_counter_to_binary(
                 core::result& result,
-                const fs::path& path,
+                std::iostream& stream,
                 uint32_t end_address);
 
         void symbol_table(core::symbol_table* value);
