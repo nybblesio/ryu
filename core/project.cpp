@@ -17,9 +17,7 @@
 
 namespace ryu::core {
 
-    bool core::project::_notify_enabled = true;
     core::project_shared_ptr core::project::_instance = nullptr;
-    std::vector<core::project::project_changed_callable> core::project::_listeners;
 
     bool project::create(
             core::result& result,
@@ -58,6 +56,7 @@ namespace ryu::core {
         }
 
         _instance = core::project_shared_ptr(new core::project(project_path));
+        _instance->_open = true;
         _instance->save(result);
 
         return !result.is_failed();
@@ -95,8 +94,6 @@ namespace ryu::core {
             return false;
         }
 
-        suspend_notify();
-
         auto root = YAML::LoadFile(project_file.string());
 
         if (root["name"] == nullptr) {
@@ -109,6 +106,7 @@ namespace ryu::core {
 
         auto name = root["name"];
         _instance = core::project_shared_ptr(new core::project(path));
+        _instance->suspend_notify();
         _instance->name(name.as<std::string>());
 
         auto description = root["description"];
@@ -171,8 +169,8 @@ namespace ryu::core {
         }
 
         _instance->_dirty = false;
-
-        resume_notify();
+        _instance->_open = true;
+        _instance->resume_notify();
 
         return true;
     }
@@ -201,42 +199,52 @@ namespace ryu::core {
             return false;
         }
 
+        _instance->_open = false;
+        _instance->notify();
         _instance = nullptr;
-        notify_listeners();
 
         return true;
     }
 
-    fs::path project::find_project_root() {
-        return fs::current_path();
+    void project::notify() {
+        if (!_notify_enabled)
+            return;
+        core::notification_center::instance()->notify(this);
+    }
+
+    bool project::open() const {
+        return _open;
     }
 
     void project::resume_notify() {
         _notify_enabled = true;
-        notify_listeners();
+        notify();
     }
 
     void project::suspend_notify() {
         _notify_enabled = false;
     }
 
-    void project::notify_listeners() {
-        if (!_notify_enabled)
-            return;
-        for (const auto& listener : _listeners)
-            listener();
-    }
-
     core::project* project::instance() {
         return _instance.get();
     }
 
-    project::project(const fs::path& project_path) : _path(project_path),
+    project::project(const fs::path& project_path) : _id(id_pool::instance()->allocate()),
+                                                     _path(project_path),
                                                      _name(project_path.filename().string()) {
+        core::notification_center::instance()->add_observable(this);
+    }
+
+    project::~project() {
+        core::notification_center::instance()->remove_observable(this);
     }
 
     bool project::dirty() const {
         return _dirty;
+    }
+
+    uint32_t project::id() const {
+        return _id;
     }
 
     fs::path project::path() const {
@@ -246,7 +254,7 @@ namespace ryu::core {
     void project::remove_all_files() {
         _files.clear();
         _dirty = true;
-        notify_listeners();
+        notify();
     }
 
     std::string project::name() const {
@@ -255,6 +263,14 @@ namespace ryu::core {
 
     hardware::machine* project::machine() {
         return _machine;
+    }
+
+    fs::path project::find_project_root() {
+        return fs::current_path();
+    }
+
+    observable_type project::type_id() const {
+        return observables::types::project;
     }
 
     bool project::save(core::result& result) {
@@ -303,7 +319,7 @@ namespace ryu::core {
 
         _dirty = false;
         if (!result.is_failed())
-            notify_listeners();
+            notify();
 
         return !result.is_failed();
     }
@@ -314,7 +330,7 @@ namespace ryu::core {
             if (file->id() == id) {
                 _files.erase(_files.begin() + i);
                 _dirty = true;
-                notify_listeners();
+                notify();
                 break;
             }
         }
@@ -338,7 +354,7 @@ namespace ryu::core {
         if (value != _name) {
             _name = value;
             _dirty = true;
-            notify_listeners();
+            notify();
         }
     }
 
@@ -359,7 +375,7 @@ namespace ryu::core {
         if (machine != _machine) {
             _machine = machine;
             _dirty = true;
-            notify_listeners();
+            notify();
         }
     }
 
@@ -372,14 +388,14 @@ namespace ryu::core {
                     return left->sequence() < right->sequence();
                 });
         _dirty = true;
-        notify_listeners();
+        notify();
     }
 
     void project::description(const std::string& value) {
         if (value != _description) {
             _description = value;
             _dirty = true;
-            notify_listeners();
+            notify();
         }
     }
 
@@ -387,7 +403,7 @@ namespace ryu::core {
         if (value != _active_environment) {
             _active_environment = value;
             _dirty = true;
-            notify_listeners();
+            notify();
         }
     }
 
@@ -410,11 +426,7 @@ namespace ryu::core {
     void project::prop(const std::string& key, const std::string& value) {
         _props[key] = value;
         _dirty = true;
-        notify_listeners();
-    }
-
-    void project::add_listener(const project::project_changed_callable& callable) {
-        _listeners.push_back(callable);
+        notify();
     }
 
 }

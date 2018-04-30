@@ -22,6 +22,8 @@ Art Asset Requirements
 
 - REFACTOR: use pratt parser model to completely replace shunting-yard implementation
 
+- FIX: project find_project_root needs to be properly implemented.
+
 - NEW: implement ability to redirect to new or appended text file in core::console
 
 - FIX: pick_list drop down needs to paint opaque
@@ -40,25 +42,21 @@ Art Asset Requirements
 - NEW: raise error dialog where applicable
 
 - FINISH: machine_editor::controller:
-    - add component callback
-    - edit component callback
-    - delete component callback
+    - callbacks
 
-- NEW: component_editor::controller
-    - create a view YAML file for the layout
-    - implement button callbacks
+- FINISH: create new ide::project_editor::controller
+    - callbacks
 
-- NEW: create new core::notification_center that encapsulates observers and the observed
-        - refactor core::project into this model
-        - helpers to send notifications
-        NOTE: inspiration here was from NSNotificationCenter in Cocoa
+- FINISH: component_editor::controller
+    - callbacks
 
-- NEW: create new ide::project_editor::controller
-    - create project_editor.yaml view file
-        - state_header
-        - project header information
-        - project files (column_pick_list)
-        - button panel for add/edit/remove/clear files
+- FINISH: ide::memory_editor::controller
+    - custom footer
+    - background color/label by component
+        memory_editor view should support rendering different background colors per component with
+        component name/id on the right-hand side of the display.  plus, the footer should show which
+        component you're currently accessing and maybe show the description for the memory map entry
+        that matches?
 
 - NEW: using new dialog system, create ide::project_jump::controller
     - create project_jump.yaml view file
@@ -111,13 +109,6 @@ Art Asset Requirements
         - maybe use core::notebook to break up sections
         - reuse palette editor views to allow customization of IDE and emu palettes
     2. input bindings
-
-- FINISH: ide::memory_editor::controller
-
-- IDEA: memory_editor view should support rendering different background colors per component with
-        component name/id on the right-hand side of the display.  plus, the footer should show which
-        component you're currently accessing and maybe show the description for the memory map entry
-        that matches?
 
 - FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
 
@@ -294,3 +285,7 @@ DONE
 - FIX: project should store project_file as collection of heap objects
 - FIX: hardware::integrated_circuit's type metadata needs to match up (somehow) with the instance id data
         e.g. the instance name() isn't the same as the metadata
+- NEW: create new core::notification_center that encapsulates observers and the observed
+        - refactor core::project into this model
+        - helpers to send notifications
+        NOTE: inspiration here was from NSNotificationCenter in Cocoa

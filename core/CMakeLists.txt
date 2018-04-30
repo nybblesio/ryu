@@ -52,6 +52,7 @@ add_library(
         views/text_editor.cpp views/text_editor.h
         project_file_type.cpp project_file_type.h
         views/state_header.cpp views/state_header.h
+        notification_center.cpp notification_center.h
         views/memory_editor.cpp views/memory_editor.h
         views/loadable_view.cpp views/loadable_view.h
         input_action_provider.cpp input_action_provider.h

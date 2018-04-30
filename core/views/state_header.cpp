@@ -25,6 +25,7 @@ namespace ryu::core {
     }
 
     state_header::~state_header() {
+        core::notification_center::instance()->remove_observer(id());
     }
 
     void state_header::on_initialize() {
@@ -70,30 +71,6 @@ namespace ryu::core {
         _custom_status.font_family(font_family());
         _custom_status.margin({0, font_face()->width, 0, 0 });
 
-        core::project::add_listener([&]() {
-            std::string project_name = "(none)";
-            std::string machine_name = "(none)";
-            std::string environment_name = "(none)";
-
-            auto project = core::project::instance();
-            if (project != nullptr) {
-                project_name = project->name();
-                if (project->dirty())
-                    project_name += "*";
-                if (project->machine() != nullptr) {
-                    machine_name = core::project::instance()->machine()->name();
-                }
-                auto active_environment = project->active_environment();
-                if (active_environment != nullptr) {
-                    environment_name = active_environment->name();
-                }
-            }
-
-            _project_status.value(fmt::format("| project: {}", project_name));
-            _machine_status.value(fmt::format("| machine: {}", machine_name));
-            _environment_status.value(fmt::format("| env: {}", environment_name));
-        });
-
         add_child(&_state_label);
         add_child(&_project_status);
         add_child(&_environment_status);
@@ -101,6 +78,8 @@ namespace ryu::core {
         add_child(&_custom_status);
 
         bounds().height(font_face()->line_height);
+
+        core::notification_center::instance()->add_observer(id(), this);
     }
 
     std::string state_header::state() const {
@@ -129,6 +108,35 @@ namespace ryu::core {
 
     void state_header::on_resize(const core::rect& context_bounds) {
         dock_layout_panel::on_resize(context_bounds);
+    }
+
+    void state_header::on_notification(core::observable* instance) {
+        auto project = dynamic_cast<core::project*>(instance);
+
+        std::string project_name = "(none)";
+        std::string machine_name = "(none)";
+        std::string environment_name = "(none)";
+
+        if (project->open()) {
+            project_name = project->name();
+            if (project->dirty())
+                project_name += "*";
+            if (project->machine() != nullptr) {
+                machine_name = core::project::instance()->machine()->name();
+            }
+            auto active_environment = project->active_environment();
+            if (active_environment != nullptr) {
+                environment_name = active_environment->name();
+            }
+        }
+
+        _project_status.value(fmt::format("| project: {}", project_name));
+        _machine_status.value(fmt::format("| machine: {}", machine_name));
+        _environment_status.value(fmt::format("| env: {}", environment_name));
+    }
+
+    bool state_header::on_notification_filter(core::observable* instance) {
+        return instance->type_id() == observables::types::project;
     }
 
 }

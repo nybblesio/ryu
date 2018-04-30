@@ -10,12 +10,14 @@
 
 #pragma once
 
+#include <core/notification_center.h>
 #include "label.h"
 #include "dock_layout_panel.h"
 
 namespace ryu::core {
 
-    class state_header : public core::dock_layout_panel {
+    class state_header : public core::dock_layout_panel,
+                         public core::observer {
     public:
         state_header(
             const std::string& name,
@@ -39,6 +41,10 @@ namespace ryu::core {
         void on_initialize() override;
 
         void on_resize(const core::rect& context_bounds) override;
+
+        void on_notification(core::observable* instance) override;
+
+        bool on_notification_filter(core::observable* instance) override;
 
     private:
         core::label _state_label;

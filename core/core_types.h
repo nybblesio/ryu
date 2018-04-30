@@ -274,4 +274,14 @@ namespace ryu::core {
     using byte_list = std::vector<uint8_t>;
     using address_list = std::vector<uint32_t>;
 
+    // --------------------
+    // observable types
+    // --------------------
+    struct observables {
+        enum types : uint32_t {
+            unknown = 0,
+            project
+        };
+    };
+
 };
