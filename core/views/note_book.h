@@ -41,8 +41,6 @@ namespace ryu::core {
 
         void on_draw(core::renderer& surface) override;
 
-        void draw_children(core::renderer& surface) override;
-
         void on_resize(const core::rect& context_bounds) override;
 
     private:

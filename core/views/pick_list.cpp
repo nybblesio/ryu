@@ -222,11 +222,14 @@ namespace ryu::core {
         }
 
         if (focused()) {
+            index(1000);
             auto height = _height > 0 ?
                 _height :
                 font_face()->line_height * (_visibile_items + 1);
             auto width = _width > 0 ? _width : bounds.width();
             core::rect box {bounds.left(), bounds.bottom(), width + 6, height};
+            surface.set_color(bg);
+            surface.fill_rect(box);
             surface.set_color(fg);
             surface.draw_rect(box);
 
@@ -258,6 +261,8 @@ namespace ryu::core {
                     alignment::vertical::middle);
                 y += font_face()->line_height + 1;
             }
+        } else {
+            index(0);
         }
     }
 

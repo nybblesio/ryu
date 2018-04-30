@@ -148,7 +148,36 @@ namespace ryu::core {
     }
 
     void view::index(short value) {
-        _index = value;
+        if (value != _index) {
+            _index = value;
+            auto root = find_root();
+            if (root != nullptr)
+                root->render_list_sort();
+        }
+    }
+
+    void view::render_list_sort() {
+        std::sort(
+            _render_list.begin(),
+            _render_list.end(),
+            [](const view* left, const view* right) {
+                return left->index() < right->index();
+            });
+    }
+
+    void view::render_list_build() {
+        if (!_render_list.empty())
+            return;
+
+        std::function<void (view*)> collect_child_views = [&](view* parent) {
+            if (parent == nullptr)
+                return;
+            _render_list.push_back(parent);
+            for (auto child : parent->children())
+                collect_child_views(child);
+        };
+        collect_child_views(this);
+        render_list_sort();
     }
 
     void view::on_focus_changed() {
@@ -250,6 +279,12 @@ namespace ryu::core {
         on_focus_changed();
     }
 
+    void view::render_list_root_reset() {
+        auto root = find_root();
+        if (root != nullptr)
+            root->_render_list.clear();
+    }
+
     core::dock::styles view::dock() const {
         return _dock;
     }
@@ -275,6 +310,7 @@ namespace ryu::core {
             return;
         child->_parent = this;
         _children.push_back(child);
+        render_list_root_reset();
     }
 
     view::sizing::types view::sizing() const {
@@ -289,12 +325,15 @@ namespace ryu::core {
         if (!visible())
             return;
 
-        if (layout()) {
-            resize(renderer.bounds());
-        }
+        render_list_build();
 
-        on_draw(renderer);
-        draw_children(renderer);
+        for (auto view : _render_list) {
+            if (view->layout()) {
+                view->layout(false);
+                view->on_resize(renderer.bounds());
+            }
+            view->on_draw(renderer);
+        }
     }
 
     void view::value(const std::string& value) {
@@ -304,7 +343,11 @@ namespace ryu::core {
     void view::remove_child(core::view* child) {
         if (child == nullptr)
             return;
-        _children.erase(std::find(_children.begin(), _children.end(), child));
+        _children.erase(std::find(
+            _children.begin(),
+            _children.end(),
+            child));
+        render_list_root_reset();
     }
 
     void view::bounds(const core::rect& value) {
@@ -364,11 +407,6 @@ namespace ryu::core {
         _font = value;
     }
 
-    void view::draw_children(core::renderer& renderer) {
-        for (auto child : _children)
-            child->draw(renderer);
-    }
-
     void view::resize(const core::rect& context_bounds) {
         if (!visible())
             return;
@@ -387,9 +425,8 @@ namespace ryu::core {
     }
 
     void view::update(uint32_t dt, core::pending_event_list& events) {
-        if (!visible()) {
+        if (!visible())
             return;
-        }
 
         for (auto child : _children)
             child->update(dt, events);

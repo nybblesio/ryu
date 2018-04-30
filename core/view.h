@@ -226,8 +226,6 @@ namespace ryu::core {
 
         virtual void on_draw(core::renderer& renderer);
 
-        virtual void draw_children(core::renderer& renderer);
-
         virtual void on_resize(const core::rect& context_bounds);
 
         virtual void on_update(uint32_t dt, core::pending_event_list& events);
@@ -236,6 +234,12 @@ namespace ryu::core {
         void bind_events();
 
         void define_actions();
+
+        void render_list_sort();
+
+        void render_list_build();
+
+        void render_list_root_reset();
 
         void on_host_changed(view_host::change_reason_flags flags);
 
@@ -258,6 +262,7 @@ namespace ryu::core {
         core::view_host* _host = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
+        std::vector<view*> _render_list {};
         uint8_t _font_style = font::styles::normal;
         core::dock::styles _dock = dock::styles::none;
         core::input_action_provider _action_provider {};

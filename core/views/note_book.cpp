@@ -129,12 +129,6 @@ namespace ryu::core {
         surface.draw_rect(content_rect);
     }
 
-    void note_book::draw_children(core::renderer& surface) {
-        surface.push_clip_rect(client_bounds());
-        view::draw_children(surface);
-        surface.pop_clip_rect();
-    }
-
     void note_book::on_resize(const core::rect& context_bounds) {
         core::view::on_resize(context_bounds);
 
