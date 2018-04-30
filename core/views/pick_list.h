@@ -11,6 +11,7 @@
 #pragma once
 
 #include <core/view.h>
+#include "caret.h"
 
 namespace ryu::core {
 
@@ -55,6 +56,8 @@ namespace ryu::core {
 
         bool move_up();
 
+        void move_top();
+
         bool move_down();
 
         bool page_down();
@@ -65,6 +68,8 @@ namespace ryu::core {
 
         void on_initialize() override;
 
+        void on_focus_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const rect& context_bounds) override;
@@ -74,13 +79,18 @@ namespace ryu::core {
 
         void define_actions();
 
+        bool find_matching_text(const std::string& text);
+
     private:
+        bool _found;
         int _row = 0;
         int _width = 0;
         int _height = 0;
         int _length = 32;
         int _selection = 0;
+        core::caret _caret;
         std::string _search;
+        int _selected_item = 0;
         option_list _options {};
         int _visibile_items = 10;
         border::types _border = border::types::none;

@@ -18,7 +18,7 @@ namespace ryu::core {
     text_box::text_box(
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host),
-                                               _caret("text-box-caret", host) {
+                                    _caret("text-box-caret", host) {
     }
 
     text_box::~text_box() {

@@ -15,7 +15,8 @@ namespace ryu::core {
 
     pick_list::pick_list(
             const std::string& name,
-            core::view_host* host) : core::view(types::control, name, host) {
+            core::view_host* host) : core::view(types::control, name, host),
+                                     _caret("text-box-caret", host) {
     }
 
     pick_list::~pick_list() {
@@ -32,21 +33,23 @@ namespace ryu::core {
     }
 
     bool pick_list::move_up() {
-        _selection--;
-        if (_selection < 0) {
-            _selection = 0;
+        _selected_item--;
+        if (_selected_item < 0) {
+            _selected_item = 0;
             return move_row_up();
         }
         return false;
     }
 
+    void pick_list::move_top() {
+        _row = 0;
+        _selected_item = 0;
+    }
+
     bool pick_list::move_down() {
-        _selection++;
-        auto max = std::min(
-            _visibile_items,
-            static_cast<const int&>(_options.size())) - 1;
-        if (_selection > max) {
-            _selection = max;
+        _selected_item++;
+        if (_selected_item > _visibile_items - 1) {
+            _selected_item = _visibile_items - 1;
             return move_row_down();
         }
         return false;
@@ -107,6 +110,22 @@ namespace ryu::core {
         if (!select_action->has_bindings())
             select_action->bind_keys({core::key_return});
 
+        auto backspace_action = core::input_action::create_no_map(
+            "pick_list_backspace_action",
+            "Internal",
+            "Delete a character from the typeahead search.");
+        if (!backspace_action->has_bindings()) {
+            backspace_action->bind_keys({core::key_backspace});
+        }
+
+        auto delete_action = core::input_action::create_no_map(
+            "pick_list_delete_action",
+            "Internal",
+            "Reset the typeahead search.");
+        if (!delete_action->has_bindings()) {
+            delete_action->bind_keys({core::key_delete});
+        }
+
         auto text_input_action = core::input_action::create_no_map(
             "pick_list_text_input",
             "Internal",
@@ -144,35 +163,43 @@ namespace ryu::core {
         action_provider().register_handler(
             core::input_action::find_by_name("pick_list_select_action"),
             [this](const event_data_t& data) {
+                _search.clear();
+                _caret.column(0);
+                _selection = _row + _selected_item;
                 value(_options[_selection].text);
+                return true;
+            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("pick_list_backspace_action"),
+            [this](const event_data_t& data) {
+                move_top();
+                _search = _search.substr(0, _search.length() - 1);
+                _caret.column(static_cast<uint8_t>(_search.length()));
+                _found = find_matching_text(_search);
+                return true;
+            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("pick_list_delete_action"),
+            [this](const event_data_t& data) {
+                move_top();
+                _search.clear();
+                _caret.column(0);
+                _found = false;
                 return true;
             });
         action_provider().register_handler(
             core::input_action::find_by_name("pick_list_text_input"),
             [this](const core::event_data_t& data) {
-                if (data.c == core::ascii_escape) {
-                    _search.clear();
-                    _selection = 0;
-                    return true;
+                if (data.c == core::ascii_tab
+                ||  data.c == core::ascii_return
+                ||  data.c == core::ascii_escape) {
+                    return false;
                 }
 
-                // XXX: review this
                 if (_search.length() < 32) {
                     _search += data.c;
-
-                    _selection = 0;
-                    for (const auto& option : _options) {
-                        if (option.text.substr(0, _search.length()) == _search)
-                            goto _match;
-                        ++_selection;
-                    }
-                    _selection = 0;
-                _match:
-                    auto half_visible_items = _visibile_items / 2;
-                    if (_selection < half_visible_items)
-                        _row = 0;
-                    else
-                        _row = _selection - half_visible_items;
+                    _caret.column(static_cast<uint8_t>(_search.length()));
+                    _found = find_matching_text(_search);
                 }
 
                 return true;
@@ -196,6 +223,17 @@ namespace ryu::core {
         tab_stop(true);
         define_actions();
         bind_events();
+
+        _caret.index(1001);
+        _caret.enabled(false);
+        _caret.position(0, 0);
+        _caret.page_size(1, 128);
+        _caret.fg_color(fg_color());
+        _caret.bg_color(bg_color());
+        _caret.font_family(font_family());
+        _caret.initialize();
+        add_child(&_caret);
+
         padding({5, 5, 5, 5});
     }
 
@@ -228,6 +266,15 @@ namespace ryu::core {
         return _options;
     }
 
+    void pick_list::on_focus_changed() {
+        _caret.enabled(focused());
+        if (focused()) {
+            index(1000);
+        } else {
+            index(0);
+        }
+    }
+
     std::string pick_list::value() const {
         return view::value();
     }
@@ -250,8 +297,9 @@ namespace ryu::core {
             _options.end(),
             [&key](const pick_list_option_t& o) { return o.key == key; });
         if (it != _options.end()) {
-            _selection = static_cast<int>(std::distance(_options.begin(), it));
             view::value((*it).text);
+            _selection = static_cast<int>(std::distance(_options.begin(), it));
+            find_matching_text(value());
         }
     }
 
@@ -267,8 +315,10 @@ namespace ryu::core {
                 _options.begin(),
                 _options.end(),
                 [&text](const pick_list_option_t& o) { return o.text == text; });
-            if (it != _options.end())
+            if (it != _options.end()) {
                 _selection = static_cast<int>(std::distance(_options.begin(), it));
+                find_matching_text(value());
+            }
         }
     }
 
@@ -289,12 +339,26 @@ namespace ryu::core {
         surface.set_font_color(font_face(), fg);
         surface.set_color(fg);
 
-        surface.draw_text_aligned(
-            font_face(),
-            value(),
-            bounds,
-            alignment::horizontal::left,
-            alignment::vertical::middle);
+        if (_search.empty()) {
+            surface.draw_text_aligned(
+                font_face(),
+                value(),
+                bounds,
+                alignment::horizontal::left,
+                alignment::vertical::middle);
+        } else {
+            // XXX: this shouldn't be hard coded
+            if (!_found)
+                surface.set_font_color(font_face(), pal[4]);
+            surface.draw_text_aligned(
+                font_face(),
+                _search,
+                bounds,
+                alignment::horizontal::left,
+                alignment::vertical::middle);
+            surface.set_font_color(font_face(), fg);
+        }
+
         if (_border == border::types::solid) {
             surface.set_color(fg);
             surface.draw_rect(bounds);
@@ -306,47 +370,52 @@ namespace ryu::core {
                 bounds.bottom());
         }
 
-        if (focused()) {
-            index(1000);
-            auto height = _height > 0 ?
-                _height :
-                font_face()->line_height * (_visibile_items + 1);
-            auto width = _width > 0 ? _width : bounds.width();
-            core::rect box {bounds.left(), bounds.bottom(), width + 6, height};
-            surface.set_color(bg);
-            surface.fill_rect(box);
-            surface.set_color(fg);
-            surface.draw_rect(box);
+        if (!focused())
+            return;
 
-            auto y = box.top() + 4;
-            auto start = _row;
-            auto stop = start + _visibile_items;
-            if (stop > _options.size())
-                stop = static_cast<int>(_options.size());
-            for (auto row = start; row < stop; ++row) {
-                core::rect line = {
-                    bounds.left() + 4,
-                    y,
-                    bounds.width() - 2,
-                    font_face()->line_height};
-                if (row == _selection) {
-                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                    auto selection_color = pal[fg_color()];
-                    selection_color.alpha(0x5f);
-                    surface.set_color(selection_color);
-                    surface.fill_rect(line);
-                    surface.pop_blend_mode();
-                }
-                surface.draw_text_aligned(
-                    font_face(),
-                    _options[row].text,
-                    line,
-                    alignment::horizontal::left,
-                    alignment::vertical::middle);
-                y += font_face()->line_height + 1;
+        auto height = _height > 0 ?
+                      _height :
+                      font_face()->line_height * (_visibile_items + 1);
+        auto width = _width > 0 ? _width : bounds.width();
+        core::rect box {bounds.left(), bounds.bottom(), width + 6, height};
+        surface.set_color(bg);
+        surface.fill_rect(box);
+        surface.set_color(fg);
+        surface.draw_rect(box);
+
+        auto y = box.top() + 4;
+        auto start = _row;
+        auto stop = start + _visibile_items;
+        if (stop > _options.size())
+            stop = static_cast<int>(_options.size());
+        for (auto row = start; row < stop; ++row) {
+            core::rect line = {
+                bounds.left() + 4,
+                y,
+                bounds.width() - 2,
+                font_face()->line_height};
+            if (row == _selection) {
+                surface.push_blend_mode(SDL_BLENDMODE_BLEND);
+                auto selection_color = pal[fg_color()];
+                selection_color.alpha(0x8f);
+                surface.set_color(selection_color);
+                surface.fill_rect(line);
+                surface.pop_blend_mode();
+            } else if (row == _row + _selected_item) {
+                surface.push_blend_mode(SDL_BLENDMODE_BLEND);
+                auto selection_color = pal[fg_color()];
+                selection_color.alpha(0x5f);
+                surface.set_color(selection_color);
+                surface.fill_rect(line);
+                surface.pop_blend_mode();
             }
-        } else {
-            index(0);
+            surface.draw_text_aligned(
+                font_face(),
+                _options[row].text,
+                line,
+                alignment::horizontal::left,
+                alignment::vertical::middle);
+            y += font_face()->line_height + 1;
         }
     }
 
@@ -354,6 +423,18 @@ namespace ryu::core {
         bounds().size(
             font_face()->width * (_length + 1),
             font_face()->line_height + 10);
+    }
+
+    bool pick_list::find_matching_text(const std::string& text) {
+        move_top();
+        auto text_length = text.length();
+        for (const auto& option : _options) {
+            if (option.text.substr(0, text_length) == text) {
+                return true;
+            }
+            move_down();
+        }
+        return false;
     }
 
 }

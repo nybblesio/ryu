@@ -253,6 +253,7 @@ namespace ryu::core {
         uint8_t _fg_color = 0;
         view_list _children {};
         core::padding _margin {};
+        view_list _render_list {};
         core::padding _padding {};
         uint32_t _host_callback_id;
         core::view* _prev = nullptr;
@@ -262,7 +263,6 @@ namespace ryu::core {
         core::view_host* _host = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
-        std::vector<view*> _render_list {};
         uint8_t _font_style = font::styles::normal;
         core::dock::styles _dock = dock::styles::none;
         core::input_action_provider _action_provider {};
