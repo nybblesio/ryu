@@ -51,9 +51,13 @@ namespace ryu::core {
         void value(const std::string& text) override;
 
     protected:
+        bool page_up();
+
         bool move_up();
 
         bool move_down();
+
+        bool page_down();
 
         bool move_row_up();
 

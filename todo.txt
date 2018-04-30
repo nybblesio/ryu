@@ -288,3 +288,4 @@ DONE
     - after testing this, the issue is that the drop down portion if draw earlier than
       other views and they're overlapping this region.
     - possibly make the drop down part another view that's always sorted last?
+- NEW: add page up/page down support to pick_list

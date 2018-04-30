@@ -21,6 +21,16 @@ namespace ryu::core {
     pick_list::~pick_list() {
     }
 
+    bool pick_list::page_up() {
+        if (_visibile_items > _row) {
+            _row = 0;
+            return true;
+        }
+        else
+            _row -= _visibile_items;
+        return false;
+    }
+
     bool pick_list::move_up() {
         _selection--;
         if (_selection < 0) {
@@ -42,6 +52,17 @@ namespace ryu::core {
         return false;
     }
 
+    bool pick_list::page_down() {
+        auto next_stop_row = _row + _visibile_items;
+        if (next_stop_row > _options.size() - 1) {
+            _row = static_cast<int>(_options.size() - _visibile_items);
+            return true;
+        }
+        else
+            _row += _visibile_items;
+        return false;
+    }
+
     int pick_list::width() const {
         return _width;
     }
@@ -52,46 +73,72 @@ namespace ryu::core {
 
     void pick_list::define_actions() {
         auto up_action = core::input_action::create_no_map(
-                "pick_list_up_action",
-                "Internal",
-                "Move to the previous pick list item.");
+            "pick_list_up_action",
+            "Internal",
+            "Move to the previous pick list item.");
         if (!up_action->has_bindings())
             up_action->bind_keys({core::key_up});
 
+        auto page_up_action = core::input_action::create_no_map(
+            "pick_list_page_up_action",
+            "Internal",
+            "Move to the previous item page.");
+        if (!page_up_action->has_bindings())
+            page_up_action->bind_keys({core::key_page_up});
+
         auto down_action = core::input_action::create_no_map(
-                "pick_list_down_action",
-                "Internal",
-                "Move to the next pick list item.");
+            "pick_list_down_action",
+            "Internal",
+            "Move to the next pick list item.");
         if (!down_action->has_bindings())
             down_action->bind_keys({core::key_down});
 
+        auto page_down_action = core::input_action::create_no_map(
+            "pick_list_page_down_action",
+            "Internal",
+            "Move to the next item page.");
+        if (!page_down_action->has_bindings())
+            page_down_action->bind_keys({core::key_page_down});
+
         auto select_action = core::input_action::create_no_map(
-                "pick_list_select_action",
-                "Internal",
-                "Make current item the selected value.");
+            "pick_list_select_action",
+            "Internal",
+            "Make current item the selected value.");
         if (!select_action->has_bindings())
             select_action->bind_keys({core::key_return});
     }
 
     void pick_list::bind_events() {
         action_provider().register_handler(
-                core::input_action::find_by_name("pick_list_up_action"),
-                [this](const event_data_t& data) {
-                    move_up();
-                    return true;
-                });
+            core::input_action::find_by_name("pick_list_up_action"),
+            [this](const event_data_t& data) {
+                move_up();
+                return true;
+            });
         action_provider().register_handler(
-                core::input_action::find_by_name("pick_list_down_action"),
-                [this](const event_data_t& data) {
-                    move_down();
-                    return true;
-                });
+            core::input_action::find_by_name("pick_list_page_up_action"),
+            [this](const event_data_t& data) {
+                page_up();
+                return true;
+            });
         action_provider().register_handler(
-                core::input_action::find_by_name("pick_list_select_action"),
-                [this](const event_data_t& data) {
-                    value(_options[_row + _selection].text);
-                    return true;
-                });
+            core::input_action::find_by_name("pick_list_down_action"),
+            [this](const event_data_t& data) {
+                move_down();
+                return true;
+            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("pick_list_page_down_action"),
+            [this](const event_data_t& data) {
+                page_down();
+                return true;
+            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("pick_list_select_action"),
+            [this](const event_data_t& data) {
+                value(_options[_row + _selection].text);
+                return true;
+            });
     }
 
     bool pick_list::move_row_up() {
@@ -235,10 +282,9 @@ namespace ryu::core {
 
             auto y = box.top() + 4;
             auto start = _row;
-            auto max = std::min(
-                _visibile_items,
-                static_cast<int32_t>(_options.size()));
-            auto stop = _row + max;
+            auto stop = start + _visibile_items;
+            if (stop > _options.size())
+                stop = static_cast<int>(_options.size());
             for (auto row = start; row < stop; ++row) {
                 core::rect line = {
                     bounds.left() + 4,
