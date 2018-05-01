@@ -38,39 +38,39 @@ namespace ryu::core {
 
     void view::bind_events() {
         _action_provider.register_handler(
-                core::input_action::find_by_name("view_field_shift_tab"),
-                [this](const core::event_data_t& data) {
-                    if (_prev != nullptr) {
-                        find_root()->focus(_prev);
-                        return true;
-                    }
-                    return false;
-                });
+            core::input_action::find_by_name("view_field_shift_tab"),
+            [this](const core::event_data_t& data) {
+                if (_prev != nullptr) {
+                    find_root()->focus(_prev);
+                    return true;
+                }
+                return false;
+            });
 
         _action_provider.register_handler(
-                core::input_action::find_by_name("view_field_tab"),
-                [this](const core::event_data_t& data) {
-                    if (_next != nullptr) {
-                        find_root()->focus(_next);
-                        return true;
-                    }
-                    return false;
-                });
+            core::input_action::find_by_name("view_field_tab"),
+            [this](const core::event_data_t& data) {
+                if (_next != nullptr) {
+                    find_root()->focus(_next);
+                    return true;
+                }
+                return false;
+            });
     }
 
     void view::define_actions() {
         auto field_shift_tab_action = core::input_action::create_no_map(
-                "view_field_shift_tab",
-                "Internal",
-                "Move focus from the current field to the previous field.");
+            "view_field_shift_tab",
+            "Internal",
+            "Move focus from the current field to the previous field.");
         if (!field_shift_tab_action->has_bindings()) {
             field_shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
         }
 
         auto field_tab_action = core::input_action::create_no_map(
-                "view_field_tab",
-                "Internal",
-                "Move focus from the current field to the next field.");
+            "view_field_tab",
+            "Internal",
+            "Move focus from the current field to the next field.");
         if (!field_tab_action->has_bindings()) {
             field_tab_action->bind_keys({core::key_tab});
         }
@@ -147,7 +147,7 @@ namespace ryu::core {
         return _margin;
     }
 
-    void view::index(short value) {
+    void view::index(uint16_t value) {
         if (value != _index) {
             _index = value;
             auto root = find_root();

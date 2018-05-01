@@ -56,12 +56,6 @@ Art Asset Requirements
     - new data structure needed here, MRU for files on project
     - might be new views required here, not sure
 
-- NEW: column_pick_list enhancements ---
-    1. fix whitespace/padding issues
-    2. render footer with size indicators, e.g. page x of y, row z, etc.
-    3. add support for type-ahead search
-    4. page up/page down input_actions
-
 - NEW: ide::palette_editor::controller
     1. need new palette_entry_view:
 
@@ -283,3 +277,8 @@ DONE
     - possibly make the drop down part another view that's always sorted last?
 - NEW: add page up/page down support to pick_list
 - NEW: use an interface?  core::video_generator, IC implements this interface
+- NEW: column_pick_list enhancements ---
+    1. fix whitespace/padding issues
+    2. render footer with size indicators, e.g. page x of y, row z, etc.
+    3. add support for type-ahead search
+    4. page up/page down input_actions

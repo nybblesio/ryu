@@ -98,7 +98,7 @@ namespace ryu::core {
         std::string _search;
         int _selected_item = 0;
         option_list _options {};
-        int _visibile_items = 10;
+        int _visible_items = 10;
         palette_index _row_color;
         palette_index _selection_color;
         palette_index _not_found_color;

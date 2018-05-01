@@ -113,8 +113,6 @@ namespace ryu::core {
 
         core::padding& margin();
 
-        void index(short value);
-
         core::padding& padding();
 
         void enabled(bool value);
@@ -132,6 +130,8 @@ namespace ryu::core {
         dock::styles dock() const;
 
         void tab_stop(bool value);
+
+        void index(uint16_t value);
 
         uint8_t font_style() const;
 

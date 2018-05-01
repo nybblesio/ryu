@@ -27,11 +27,17 @@ namespace ryu::core {
     }
 
     bool column_pick_list::move_up() {
+        auto result = true;
         if (_selected == 0) {
-            return move_row_up();
+            result = move_row_up();
+        } else {
+            if (_selected > _rows.size() - 1)
+                _selected = static_cast<uint32_t>(_rows.size() - 1);
+            else
+                _selected--;
         }
-        _selected--;
-        return true;
+        _page = (_selected + _row) / _visible_rows;
+        return result;
     }
 
     void column_pick_list::add_header(
@@ -50,16 +56,51 @@ namespace ryu::core {
             halign);
     }
 
-    bool column_pick_list::move_down() {
-        _selected++;
-        auto max = std::min<uint32_t>(
-            _visible_rows,
-            static_cast<const uint32_t&>(_rows.size())) - 1;
-        if (_selected > max) {
-            _selected = max;
-            return move_row_down();
+    bool column_pick_list::page_up() {
+        auto result = false;
+        if (_visible_rows > _row) {
+            _row = 0;
+            result = true;
         }
-        return true;
+        else {
+            _row -= _visible_rows;
+        }
+        _page = (_selected + _row) / _visible_rows;
+        return result;
+    }
+
+    bool column_pick_list::move_top() {
+        _row = 0;
+        _selected = 0;
+        return false;
+    }
+
+    bool column_pick_list::page_down() {
+        auto result = false;
+        auto next_start_row = _row + _visible_rows;
+        if (next_start_row + _max_rows > _rows.size() - 1) {
+            if (_visible_rows > _rows.size())
+                _row = 0;
+            else
+                _row = static_cast<uint32_t>(_rows.size() - _visible_rows);
+            result = true;
+        } else {
+            _row += _visible_rows;
+        }
+        _page = (_selected + _row) / _visible_rows;
+        return result;
+    }
+
+    bool column_pick_list::move_down() {
+        auto result = false;
+        if (_selected < _visible_rows - 1
+        &&  (_row + _selected) < _rows.size() - 1) {
+            _selected++;
+        }
+        else
+            result = move_row_down();
+        _page = (_selected + _row) / _visible_rows;
+        return result;
     }
 
     void column_pick_list::clear_rows() {
@@ -78,10 +119,9 @@ namespace ryu::core {
     bool column_pick_list::move_row_down() {
         if (_rows.size() < _visible_rows)
             return false;
-        _row++;
-        auto max = _rows.size() - _visible_rows;
-        if (_row > max) {
-            _row = static_cast<int>(max);
+        auto max_start = _rows.size() - _visible_rows;
+        if (_row < max_start) {
+            _row++;
             return false;
         }
         return true;
@@ -89,48 +129,74 @@ namespace ryu::core {
 
     void column_pick_list::define_actions() {
         auto up_action = core::input_action::create_no_map(
-                "column_pick_list_up_action",
-                "Internal",
-                "Move to the previous pick list item.");
+            "column_pick_list_up_action",
+            "Internal",
+            "Move to the previous pick list item.");
         if (!up_action->has_bindings())
             up_action->bind_keys({core::key_up});
 
+        auto page_up_action = core::input_action::create_no_map(
+            "column_pick_list_page_up_action",
+            "Internal",
+            "Move to the previous page of the pick list.");
+        if (!page_up_action->has_bindings())
+            page_up_action->bind_keys({core::key_page_up});
+
         auto down_action = core::input_action::create_no_map(
-                "column_pick_list_down_action",
-                "Internal",
-                "Move to the next pick list item.");
+            "column_pick_list_down_action",
+            "Internal",
+            "Move to the next pick list item.");
         if (!down_action->has_bindings())
             down_action->bind_keys({core::key_down});
 
+        auto page_down_action = core::input_action::create_no_map(
+            "column_pick_list_page_down_action",
+            "Internal",
+            "Move to the next page of the pick list.");
+        if (!page_down_action->has_bindings())
+            page_down_action->bind_keys({core::key_page_down});
+
         auto select_action = core::input_action::create_no_map(
-                "column_pick_list_select_action",
-                "Internal",
-                "Make current item the selected value.");
+            "column_pick_list_select_action",
+            "Internal",
+            "Make current item the selected value.");
         if (!select_action->has_bindings())
             select_action->bind_keys({core::key_return});
     }
 
     void column_pick_list::bind_events() {
         action_provider().register_handler(
-                core::input_action::find_by_name("column_pick_list_up_action"),
-                [this](const event_data_t& data) {
-                    if (move_up())
-                        raise_selection_changed();
-                    return true;
-                });
+            core::input_action::find_by_name("column_pick_list_up_action"),
+            [this](const event_data_t& data) {
+                if (move_up())
+                    raise_selection_changed();
+                return true;
+            });
         action_provider().register_handler(
-                core::input_action::find_by_name("column_pick_list_down_action"),
-                [this](const event_data_t& data) {
-                    if (move_down())
-                        raise_selection_changed();
-                    return true;
-                });
+            core::input_action::find_by_name("column_pick_list_page_up_action"),
+            [this](const event_data_t& data) {
+                page_up();
+                return true;
+            });
         action_provider().register_handler(
-                core::input_action::find_by_name("column_pick_list_select_action"),
-                [this](const event_data_t& data) {
-                    raise_activated();
-                    return true;
-                });
+            core::input_action::find_by_name("column_pick_list_down_action"),
+            [this](const event_data_t& data) {
+                if (move_down())
+                    raise_selection_changed();
+                return true;
+            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("column_pick_list_page_down_action"),
+            [this](const event_data_t& data) {
+                page_down();
+                return true;
+            });
+        action_provider().register_handler(
+            core::input_action::find_by_name("column_pick_list_select_action"),
+            [this](const event_data_t& data) {
+                raise_activated();
+                return true;
+            });
     }
 
     void column_pick_list::on_initialize() {
@@ -218,10 +284,13 @@ namespace ryu::core {
             header_x += header.width + 2;
         }
 
-        auto column_y = (bounds.top() + row_height) + (row_height / 2);
+        auto stop_row = std::min<uint32_t>(
+            _row + _max_rows,
+            static_cast<const uint32_t&>(_rows.size()));
+        auto column_y = (bounds.top() + row_height) + 8;
         for (auto row_index = _row;
-             row_index < _row + _max_rows;
-             row_index++) {
+                 row_index < stop_row;
+                 row_index++) {
             const auto& row = _rows[row_index];
 
             if (row_index == selected()) {
@@ -234,7 +303,7 @@ namespace ryu::core {
             }
 
             auto index = 0;
-            auto column_x = bounds.left() + 2;
+            auto column_x = bounds.left() + 5;
             for (const auto& header : _headers) {
                 auto clamped_width = column_x + header.width > bounds.right() ?
                                      bounds.right() - column_x :
@@ -261,18 +330,38 @@ namespace ryu::core {
             column_y += row_height;
         }
 
+        core::rect footer_rect {
+            bounds.left(),
+            bounds.bottom() - row_height,
+            bounds.width(),
+            row_height
+        };
+        auto header_bg_color = pal[_headers[0].bg_color];
+        auto header_fg_color = pal[_headers[0].fg_color];
+        surface.set_color(adjust_color(header_bg_color));
+        surface.set_font_color(font_face(), adjust_color(header_fg_color));
+        surface.fill_rect(footer_rect);
+
+        footer_rect.deflate(4, 2);
+        surface.draw_text_aligned(
+            font_face(),
+            fmt::format("Row {:04d} | Page {:03d} of {:03d}", _row + 1, _page + 1, _max_page),
+            footer_rect,
+            pick_list_header_t::halign_t::left,
+            pick_list_header_t::valign_t::middle);
+
         surface.pop_clip_rect();
     }
 
     void column_pick_list::calculate_visible_and_max_rows() {
         auto row_height = font_face()->line_height + 2;
-        auto vertical_margin = (margin().top() + margin().bottom());
-        _visible_rows = static_cast<uint32_t>((client_bounds().height() - vertical_margin) / row_height);
-        if (_visible_rows > 0 && _rows.size() > 1)
-            _visible_rows--;
+        _visible_rows = static_cast<uint32_t>((client_bounds().height() / row_height) - 2);
         _max_rows = std::min<uint32_t>(
             _visible_rows,
             static_cast<uint32_t>(_rows.size()));
+        _max_page = std::max<uint32_t>(
+            1,
+            static_cast<uint32_t>((_rows.size() / _visible_rows) + 1));
     }
 
     void column_pick_list::add_row(const pick_list_row_t& row) {

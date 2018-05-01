@@ -24,46 +24,46 @@ namespace ryu::ide::machine_list {
 
     void controller::define_actions() {
         auto leave_action = core::input_action::create_no_map(
-                "machine_list_leave",
-                "Internal",
-                "Close the machine list and return to previous state.");
+            "machine_list_leave",
+            "Internal",
+            "Close the machine list and return to previous state.");
         if (!leave_action->has_bindings())
             leave_action->bind_keys({core::key_escape});
 
         auto add_action = core::input_action::create_no_map(
-                "machine_list_add",
-                "Internal",
-                "Add a new machine and open the editor.");
+            "machine_list_add",
+            "Internal",
+            "Add a new machine and open the editor.");
         if (!add_action->has_bindings())
             add_action->bind_keys({core::key_f1});
 
         auto delete_action = core::input_action::create_no_map(
-                "machine_list_delete",
-                "Internal",
-                "Delete the selection machine from the registry.");
+            "machine_list_delete",
+            "Internal",
+            "Delete the selection machine from the registry.");
         if (!delete_action->has_bindings())
             delete_action->bind_keys({core::key_delete});
     }
 
     void controller::bind_events() {
         action_provider().register_handler(
-                core::input_action::find_by_name("machine_list_leave"),
-                [this](const core::event_data_t& data) {
-                    end_state();
-                    return true;
-                });
+            core::input_action::find_by_name("machine_list_leave"),
+            [this](const core::event_data_t& data) {
+                end_state();
+                return true;
+            });
         action_provider().register_handler(
-                core::input_action::find_by_name("machine_list_add"),
-                [this](const core::event_data_t& data) {
-                    edit_new_machine();
-                    return true;
-                });
+            core::input_action::find_by_name("machine_list_add"),
+            [this](const core::event_data_t& data) {
+                edit_new_machine();
+                return true;
+            });
         action_provider().register_handler(
-                core::input_action::find_by_name("machine_list_delete"),
-                [this](const core::event_data_t& data) {
-                    delete_selected_machine();
-                    return true;
-                });
+            core::input_action::find_by_name("machine_list_delete"),
+            [this](const core::event_data_t& data) {
+                delete_selected_machine();
+                return true;
+            });
     }
 
     void controller::on_initialize() {

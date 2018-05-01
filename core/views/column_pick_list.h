@@ -95,6 +95,12 @@ namespace ryu::core {
     protected:
         bool move_up();
 
+        bool page_up();
+
+        bool move_top();
+
+        bool page_down();
+
         bool move_down();
 
         bool move_row_up();
@@ -123,6 +129,8 @@ namespace ryu::core {
     private:
         uint32_t _row = 0;
         row_list _rows {};
+        uint32_t _page = 0;
+        uint32_t _max_page = 0;
         uint32_t _max_rows = 0;
         uint32_t _selected = 0;
         header_list _headers {};
