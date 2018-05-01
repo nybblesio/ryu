@@ -72,12 +72,12 @@ namespace ryu::core {
         return _border;
     }
 
-    uint8_t button::shortcut_color() const {
-        return _shortcut_color;
-    }
-
     void button::border(border::types value) {
         _border = value;
+    }
+
+    palette_index button::shortcut_color() const {
+        return _shortcut_color;
     }
 
     void button::on_draw(core::renderer& surface) {
@@ -136,13 +136,13 @@ namespace ryu::core {
         surface.pop_blend_mode();
     }
 
-    void button::shortcut_color(uint8_t value) {
-        _shortcut_color = value;
-    }
-
     void button::shortcut(const std::string& value) {
         _shortcut = value;
         _shortcut_text_width = (font_face()->measure_text(_shortcut) / 2) + 2;
+    }
+
+    void button::shortcut_color(palette_index value) {
+        _shortcut_color = value;
     }
 
     alignment::vertical::types button::valign() const {

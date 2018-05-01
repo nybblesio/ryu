@@ -576,10 +576,6 @@ namespace ryu::core {
             scroll_down();
     }
 
-    void text_editor::caret_color(uint8_t value) {
-        _caret.fg_color(value);
-    }
-
     void text_editor::caret_left(uint8_t columns) {
         if (_caret.left(columns))
             scroll_left();
@@ -595,15 +591,11 @@ namespace ryu::core {
         return clamped;
     }
 
-    void text_editor::selection_color(uint8_t value) {
-        _selection_color = value;
-    }
-
     void text_editor::find(const std::string& needle) {
     }
 
-    void text_editor::line_number_color(uint8_t value) {
-        _line_number_color = value;
+    void text_editor::caret_color(palette_index value) {
+        _caret.fg_color(value);
     }
 
     void text_editor::on_draw(core::renderer& surface) {
@@ -701,8 +693,16 @@ namespace ryu::core {
         }
     }
 
+    void text_editor::selection_color(palette_index value) {
+        _selection_color = value;
+    }
+
     void text_editor::size(uint32_t rows, uint16_t columns) {
         _document.document_size(rows, columns);
+    }
+
+    void text_editor::line_number_color(palette_index value) {
+        _line_number_color = value;
     }
 
     void text_editor::page_size(uint8_t height, uint8_t width) {
@@ -743,29 +743,6 @@ namespace ryu::core {
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {
-//        _selection.normalize();
-//        auto row = _selection.start().row;
-//        auto last_row = _selection.end().row;
-//
-//        if (row == last_row) {
-//            _document.write_line(stream, row, _selection.start().column, _selection.end().column);
-//            stream << "\n";
-//        } else {
-//            _document.write_line(stream, row, _selection.start().column, _document.columns());
-//            stream << "\n";
-//            ++row;
-//            if (row == last_row) {
-//                _document.write_line(stream, last_row, 0, _selection.end().column);
-//                stream << "\n";
-//            } else {
-//                for (; row < last_row; ++row) {
-//                    _document.write_line(stream, row, 0, _document.columns());
-//                    stream << "\n";
-//                }
-//                _document.write_line(stream, last_row, 0, _selection.end().column);
-//                stream << "\n";
-//            }
-//        }
     }
 
     bool text_editor::load(core::result& result, const fs::path& path) {

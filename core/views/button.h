@@ -36,13 +36,13 @@ namespace ryu::core {
 
         border::types border() const;
 
-        uint8_t shortcut_color() const;
-
         void border(border::types value);
 
-        void shortcut_color(uint8_t value);
+        palette_index shortcut_color() const;
 
         void shortcut(const std::string& value);
+
+        void shortcut_color(palette_index value);
 
         alignment::vertical::types valign() const;
 
@@ -69,8 +69,8 @@ namespace ryu::core {
         int _width = 120;
         int _height = 50;
         std::string _shortcut;
-        uint8_t _shortcut_color;
         int _shortcut_text_width = 0;
+        palette_index _shortcut_color;
         on_clicked_callable _on_clicked {};
         border::types _border = border::types::solid;
         alignment::vertical::types _valign = alignment::vertical::middle;

@@ -592,10 +592,6 @@ namespace ryu::core {
         _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
     }
 
-    void console::caret_color(uint8_t color) {
-        _caret.fg_color(color);
-    }
-
     bool console::caret_left(uint8_t columns) {
         auto overflow = false;
         if (_caret.left(columns)) {
@@ -616,7 +612,11 @@ namespace ryu::core {
         return overflow;
     }
 
-    void console::selection_color(uint8_t value) {
+    void console::caret_color(palette_index color) {
+        _caret.fg_color(color);
+    }
+
+    void console::selection_color(palette_index value) {
         _selection_color = value;
     }
 

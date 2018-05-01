@@ -38,9 +38,9 @@ namespace ryu::core {
 
         std::string value() const override;
 
-        void bg_color(uint8_t value) override;
+        void bg_color(palette_index value) override;
 
-        void fg_color(uint8_t value) override;
+        void fg_color(palette_index value) override;
 
         void palette(core::palette* value) override;
 

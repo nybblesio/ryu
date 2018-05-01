@@ -8,9 +8,9 @@
 // this source code file.
 //
 
+#include <fmt/format.h>
 #include <core/id_pool.h>
 #include <yaml-cpp/yaml.h>
-#include <fmt/format.h>
 #include "machine.h"
 #include "registry.h"
 
@@ -50,16 +50,6 @@ namespace ryu::hardware {
         return list;
     }
 
-    display* registry::find_display(uint32_t id) {
-        auto& displays = display::catalog();
-        for (size_t i = 0; i < displays.size(); i++) {
-            if (displays[i].id() == id) {
-                return &displays[i];
-            }
-        }
-        return nullptr;
-    }
-
     display_list& registry::displays() const {
         return display::catalog();
     }
@@ -73,11 +63,39 @@ namespace ryu::hardware {
         return instance;
     }
 
+    display* registry::find_display(uint32_t id) {
+        auto& displays = display::catalog();
+        for (size_t i = 0; i < displays.size(); i++) {
+            if (displays[i].id() == id) {
+                return &displays[i];
+            }
+        }
+        return nullptr;
+    }
+
     hardware::machine* registry::find_machine(uint32_t id) {
         auto it = _machines.find(id);
         if (it == _machines.end())
             return nullptr;
         return &it->second;
+    }
+
+    ic_type_list registry::integrated_circuit_types() const {
+        ic_type_list types;
+
+        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
+        auto component_types = base.get_derived_classes();
+        for(const auto& type : component_types) {
+            auto ic_type_id = type
+                .get_metadata(ryu::hardware::meta_data_key::type_id)
+                .convert<uint16_t>();
+            auto ic_type_name = type
+                .get_metadata(ryu::hardware::meta_data_key::type_name)
+                .convert<std::string>();
+            types.push_back(integrated_circuit_type_t {ic_type_id, ic_type_name});
+        }
+
+        return types;
     }
 
     bool registry::load(core::result& result, const fs::path& path) {
@@ -171,6 +189,12 @@ namespace ryu::hardware {
                         auto component_name = component_node["name"].as<std::string>();
                         auto component_address = component_node["address"].as<uint32_t>();
 
+                        auto component_color = 0;
+                        auto component_color_node = component_node["color"];
+                        if (component_color_node != nullptr) {
+                            component_color = component_color_node.as<uint32_t>();
+                        }
+
                         if (component_node["ic"] != nullptr) {
                             auto ic_node = component_node["ic"];
                             if (ic_node.IsMap()) {
@@ -195,6 +219,7 @@ namespace ryu::hardware {
                                 auto component = new hardware::component(component_id, ic);
                                 component->name(component_name);
                                 component->address(component_address);
+                                component->color(static_cast<core::palette_index>(component_color));
 
                                 if (component_node["description"] != nullptr) {
                                     auto component_desc = component_node["description"].as<std::string>();
@@ -227,24 +252,6 @@ namespace ryu::hardware {
             }
         }
         return nullptr;
-    }
-
-    ic_type_list registry::integrated_circuit_types() const {
-        ic_type_list types;
-
-        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
-        auto component_types = base.get_derived_classes();
-        for(const auto& type : component_types) {
-            auto ic_type_id = type
-                    .get_metadata(ryu::hardware::meta_data_key::type_id)
-                    .convert<uint16_t>();
-            auto ic_type_name = type
-                    .get_metadata(ryu::hardware::meta_data_key::type_name)
-                    .convert<std::string>();
-            types.push_back(integrated_circuit_type_t {ic_type_id, ic_type_name});
-        }
-
-        return types;
     }
 
     hardware::integrated_circuit* registry::new_ic_by_type_id(uint32_t type_id) {

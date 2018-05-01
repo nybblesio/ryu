@@ -47,17 +47,17 @@ namespace ryu::core {
 
         void goto_line(uint32_t row);
 
-        void caret_color(uint8_t value);
-
         void path(const fs::path& value) {
             _document.path(value);
         }
 
-        void selection_color(uint8_t value);
-
         void find(const std::string& needle);
 
-        void line_number_color(uint8_t value);
+        void caret_color(palette_index value);
+
+        void selection_color(palette_index value);
+
+        void line_number_color(palette_index value);
 
         void size(uint32_t rows, uint16_t columns);
 
@@ -139,8 +139,8 @@ namespace ryu::core {
         core::caret _caret;
         metrics_t _metrics;
         core::document _document;
-        uint8_t _selection_color;
-        uint8_t _line_number_color;
+        palette_index _selection_color;
+        palette_index _line_number_color;
         caret_changed_callable _caret_changed_callback;
     };
 

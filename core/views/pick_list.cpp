@@ -322,6 +322,10 @@ namespace ryu::core {
         }
     }
 
+    void pick_list::row_color(palette_index value) {
+        _row_color = value;
+    }
+
     void pick_list::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
 
@@ -349,7 +353,7 @@ namespace ryu::core {
         } else {
             // XXX: this shouldn't be hard coded
             if (!_found)
-                surface.set_font_color(font_face(), pal[4]);
+                surface.set_font_color(font_face(), pal[_not_found_color]);
             surface.draw_text_aligned(
                 font_face(),
                 _search,
@@ -395,19 +399,9 @@ namespace ryu::core {
                 bounds.width() - 2,
                 font_face()->line_height};
             if (row == _selection) {
-                surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                auto selection_color = pal[fg_color()];
-                selection_color.alpha(0x8f);
-                surface.set_color(selection_color);
-                surface.fill_rect(line);
-                surface.pop_blend_mode();
+                surface.draw_selection_rect(line, pal[_selection_color]);
             } else if (row == _row + _selected_item) {
-                surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                auto selection_color = pal[fg_color()];
-                selection_color.alpha(0x5f);
-                surface.set_color(selection_color);
-                surface.fill_rect(line);
-                surface.pop_blend_mode();
+                surface.draw_selection_rect(line, pal[_row_color]);
             }
             surface.draw_text_aligned(
                 font_face(),
@@ -417,6 +411,14 @@ namespace ryu::core {
                 alignment::vertical::middle);
             y += font_face()->line_height + 1;
         }
+    }
+
+    void pick_list::selection_color(palette_index value) {
+        _selection_color = value;
+    }
+
+    void pick_list::not_found_color(palette_index value) {
+        _not_found_color = value;
     }
 
     void pick_list::on_resize(const core::rect& context_bounds) {

@@ -89,17 +89,17 @@ namespace ryu::core {
 
         void caret_newline();
 
-        void caret_color(uint8_t color);
-
         void caret_up(uint8_t rows = 1);
 
         void caret_down(uint8_t rows = 1);
 
-        void selection_color(uint8_t value);
-
         bool caret_left(uint8_t columns = 1);
 
         bool caret_right(uint8_t columns = 1);
+
+        void caret_color(palette_index color);
+
+        void selection_color(palette_index value);
 
         void code_mapper(const code_to_attr_dict& value);
 
@@ -170,12 +170,12 @@ namespace ryu::core {
 
         bool _more {};
         caret _caret;
-        uint8_t _color;
         metrics_t _metrics;
         document _document;
-        uint8_t _selection_color;
+        palette_index _color;
         int16_t _remaining_lines = 0;
         states _state = states::input;
+        palette_index _selection_color;
         code_to_attr_dict _code_mapper;
         std::deque<output_queue_entry_t> _output_queue;
         caret_changed_callable _caret_changed_callback;

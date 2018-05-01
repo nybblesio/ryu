@@ -29,11 +29,11 @@ namespace ryu::core {
 
         std::string custom() const;
 
-        uint8_t state_color() const;
-
-        void state_color(uint8_t color);
+        palette_index state_color() const;
 
         void state(const std::string& name);
+
+        void state_color(palette_index color);
 
         void custom(const std::string& value);
 

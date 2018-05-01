@@ -28,6 +28,10 @@ namespace ryu::core {
         core::id_pool::instance()->release(_id);
     }
 
+    id_t view::id() const {
+        return _id;
+    }
+
     view_host* view::host() {
         return _host;
     }
@@ -77,10 +81,6 @@ namespace ryu::core {
         on_initialize();
         define_actions();
         bind_events();
-    }
-
-    uint32_t view::id() const {
-        return _id;
     }
 
     bool view::layout() const {

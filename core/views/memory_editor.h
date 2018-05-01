@@ -37,11 +37,11 @@ namespace ryu::core {
 
         void address(uint32_t address);
 
-        void caret_color(uint8_t value);
+        void caret_color(palette_index value);
 
-        void address_color(uint8_t value);
+        void address_color(palette_index value);
 
-        void selection_color(uint8_t value);
+        void selection_color(palette_index value);
 
         void on_caret_changed(const caret_changed_callable& callable);
 
@@ -80,8 +80,8 @@ namespace ryu::core {
         core::caret _caret;
         metrics_t _metrics;
         uint8_t _nybble = 0;
-        uint8_t _address_color;
-        uint8_t _selection_color;
+        palette_index _address_color;
+        palette_index _selection_color;
         caret_changed_callable _caret_changed_callback;
     };
 

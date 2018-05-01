@@ -90,16 +90,16 @@ namespace ryu::core {
         return _custom_status.value();
     }
 
-    uint8_t state_header::state_color() const {
+    palette_index state_header::state_color() const {
         return _state_label.fg_color();
-    }
-
-    void state_header::state_color(uint8_t color) {
-        _state_label.fg_color(color);
     }
 
     void state_header::state(const std::string& name) {
         _state_label.value(name);
+    }
+
+    void state_header::state_color(palette_index color) {
+        _state_label.fg_color(color);
     }
 
     void state_header::custom(const std::string& value) {

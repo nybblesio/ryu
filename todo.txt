@@ -72,12 +72,6 @@ Art Asset Requirements
     2. need new palette_view. this is a multi-column layout of palette_entry_views.
     3. create palette_editor view YAML file
     4. need to get parameters for palette from the machine's video generator IC
-            use an interface?  core::video_generator, IC implements this interface
-                                  - where in the memory map do these go?
-                                  - palette definitions
-                                  - tile definitions
-                                  - sprite definitions
-                                  - background definitions
                           also core::sound_generator, IC implements this interface
 
 - NEW: ide::tile_editor::controller (does both sprites and tiles)
@@ -95,7 +89,6 @@ Art Asset Requirements
 - NEW: ide::background_editor::controller
     1. need tile_selector view: how do we choose which tile banks to use?
     2. need scrolling layout view
-        - core::video_generator tells us background definitions
 
 - NEW: ide::preferences::controller
     1. create preferences.yaml view file
@@ -289,3 +282,4 @@ DONE
       other views and they're overlapping this region.
     - possibly make the drop down part another view that's always sorted last?
 - NEW: add page up/page down support to pick_list
+- NEW: use an interface?  core::video_generator, IC implements this interface

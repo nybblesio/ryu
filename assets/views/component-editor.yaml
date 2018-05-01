@@ -89,6 +89,7 @@ views:
               length: 8
             enabled: true
             input-filter: view.input-filters.hex
+
       - name: 'row3'
         type: view.types.dock-panel
         margin: *ROW-MARGINS
@@ -112,6 +113,9 @@ views:
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
+            row-color: ide.colors.text
+            not-found-color: ide.colors.red
+            selection-color: ide.colors.white
             tab-stop: true
             enabled: true
             next: 'description-text-editor'

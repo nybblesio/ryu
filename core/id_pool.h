@@ -12,12 +12,13 @@
 
 #include <boost/numeric/interval.hpp>
 #include <set>
+#include "core_types.h"
 
 namespace ryu::core {
 
     class id_interval {
     public:
-        id_interval(uint32_t ll, uint32_t uu) : _value(ll, uu) {}
+        id_interval(id_t ll, id_t uu) : _value(ll, uu) {}
 
         bool operator<(const id_interval& s) const {
             return
@@ -25,12 +26,12 @@ namespace ryu::core {
                     (_value.upper() < s._value.lower());
         }
 
-        uint32_t left() const { return _value.lower(); }
+        id_t left() const { return _value.lower(); }
 
-        uint32_t right() const { return _value.upper(); }
+        id_t right() const { return _value.upper(); }
 
     private:
-        boost::numeric::interval<uint32_t> _value;
+        boost::numeric::interval<id_t> _value;
     };
 
     typedef std::set<id_interval> id_set;
@@ -39,15 +40,15 @@ namespace ryu::core {
     public:
         static id_pool* instance();
 
-        uint32_t allocate();
+        id_t allocate();
 
-        void release(uint32_t id);
+        void release(id_t id);
 
-        bool mark_used(uint32_t id);
+        bool mark_used(id_t id);
 
-        bool mark_range(uint32_t start_id, uint32_t end_id);
+        bool mark_range(id_t start_id, id_t end_id);
 
-        int32_t allocate_from_range(uint32_t start_id, uint32_t end_id);
+        id_t allocate_from_range(id_t start_id, id_t end_id);
 
     protected:
         id_pool();

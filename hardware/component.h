@@ -34,7 +34,11 @@ namespace ryu::hardware {
 
         void name(const std::string& value);
 
+        ryu::core::palette_index color() const;
+
         hardware::integrated_circuit* ic() const;
+
+        void color(ryu::core::palette_index value);
 
         void description(const std::string& value);
 
@@ -43,6 +47,7 @@ namespace ryu::hardware {
         uint32_t _address;
         std::string _name;
         std::string _description;
+        ryu::core::palette_index _color;
         hardware::integrated_circuit* _ic = nullptr;
     };
 

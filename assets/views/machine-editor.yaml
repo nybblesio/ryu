@@ -110,6 +110,9 @@ views:
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
+            row-color: ide.colors.text
+            not-found-color: ide.colors.red
+            selection-color: ide.colors.white
             margin: [20, 0, 0, 0]
             tab-stop: true
             enabled: true

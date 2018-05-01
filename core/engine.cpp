@@ -286,11 +286,11 @@ namespace ryu::core {
             _surface.set_color({0x00, 0x00, 0x00, 0xff});
             _surface.clear();
 
+            SDL_Event sdl_event {};
             while (true) {
-                SDL_Event e {};
-                if (!SDL_PollEvent(&e))
+                if (!SDL_PollEvent(&sdl_event))
                     break;
-                events.push_back(e);
+                events.push_back(sdl_event);
             }
 
             // XXX: need to fix joystick repeat functionality

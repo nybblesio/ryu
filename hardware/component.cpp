@@ -44,12 +44,20 @@ namespace ryu::hardware {
             _ic->component_name(_name);
     }
 
+    ryu::core::palette_index component::color() const {
+        return _color;
+    }
+
     hardware::integrated_circuit* component::ic() const {
         return _ic;
     }
 
     void component::description(const std::string& value) {
         _description = value;
+    }
+
+    void component::color(ryu::core::palette_index value) {
+        _color = value;
     }
 
 }

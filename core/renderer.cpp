@@ -222,4 +222,12 @@ namespace ryu::core {
         return FC_GetWidth(font_face->glyph, value.c_str());
     }
 
+    void renderer::draw_selection_rect(core::rect& rect, core::palette_entry color) {
+        push_blend_mode(SDL_BLENDMODE_BLEND);
+        color.alpha(0x7f);
+        set_color(color);
+        fill_rect(rect);
+        pop_blend_mode();
+    }
+
 }

@@ -17,6 +17,11 @@
 namespace ryu::core {
 
     // --------------------
+    // id pool
+    // --------------------
+    using id_t = uint32_t;
+
+    // --------------------
     // timers
     // --------------------
     class timer;
@@ -68,6 +73,11 @@ namespace ryu::core {
     typedef std::map<std::string, std::string> blackboard;
 
     // --------------------
+    // colors & palettes
+    // --------------------
+    using palette_index = uint8_t;
+
+    // --------------------
     // view
     // --------------------
     class view;
@@ -83,7 +93,7 @@ namespace ryu::core {
 
     struct alignment {
         struct horizontal {
-            enum types {
+            enum types : uint8_t {
                 none,
                 left,
                 right,
@@ -92,7 +102,7 @@ namespace ryu::core {
         };
 
         struct vertical {
-            enum types {
+            enum types : uint8_t {
                 none,
                 top,
                 middle,
@@ -119,7 +129,7 @@ namespace ryu::core {
     };
 
     struct border {
-        enum types {
+        enum types : uint8_t {
             none,
             solid,
             dashed,
@@ -148,14 +158,16 @@ namespace ryu::core {
         int16_t right {};
     };
 
-    typedef std::vector<span_t> span_list;
-    typedef std::vector<vertex_t> vertex_list;
+    using border_type = uint8_t;
+    using dock_style = uint8_t;
+    using span_list = std::vector<span_t>;
+    using vertex_list = std::vector<vertex_t>;
 
     // --------------------
     // attributed text
     // --------------------
     struct attr_t {
-        uint8_t color = 0;
+        palette_index color = 0;
         uint8_t style = 0;
         uint8_t flags = 0;
         bool operator== (const attr_t& rhs) const {

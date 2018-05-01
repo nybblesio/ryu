@@ -365,6 +365,16 @@ namespace ryu::core {
                             pick_list->length(size);
                     }
 
+                    palette_index color;
+                    if (get_constant(result, root, view_node["row-color"], color))
+                        pick_list->row_color(color);
+
+                    if (get_constant(result, root, view_node["selection-color"], color))
+                        pick_list->selection_color(color);
+
+                    if (get_constant(result, root, view_node["not-found-color"], color))
+                        pick_list->not_found_color(color);
+
                     current_view = std::move(pick_list);
                     break;
                 }

@@ -225,12 +225,12 @@ namespace ryu::core {
             const auto& row = _rows[row_index];
 
             if (row_index == selected()) {
-                surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                auto selection_color = fg;
-                selection_color.alpha(0x5f);
-                surface.set_color(selection_color);
-                surface.fill_rect({2, column_y, bounds.width() + 5, row_height});
-                surface.pop_blend_mode();
+                core::rect selection_rect {
+                    2,
+                    column_y,
+                    bounds.width() + 5,
+                    row_height};
+                surface.draw_selection_rect(selection_rect, fg);
             }
 
             auto index = 0;

@@ -49,6 +49,12 @@ namespace ryu::core {
 
         std::string value() const override;
 
+        void row_color(palette_index value);
+
+        void selection_color(palette_index value);
+
+        void not_found_color(palette_index value);
+
         void value(const std::string& text) override;
 
     protected:
@@ -93,6 +99,9 @@ namespace ryu::core {
         int _selected_item = 0;
         option_list _options {};
         int _visibile_items = 10;
+        palette_index _row_color;
+        palette_index _selection_color;
+        palette_index _not_found_color;
         border::types _border = border::types::none;
     };
 

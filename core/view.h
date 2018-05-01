@@ -41,9 +41,9 @@ namespace ryu::core {
 
         virtual core::preferences* prefs() = 0;
 
-        virtual void remove_change_listener(uint32_t id) = 0;
+        virtual void remove_change_listener(id_t id) = 0;
 
-        virtual uint32_t add_change_listener(const state_change_callable& callable) = 0;
+        virtual id_t add_change_listener(const state_change_callable& callable) = 0;
     };
 
     class view {
@@ -81,9 +81,9 @@ namespace ryu::core {
 
         virtual ~view();
 
-        void initialize();
+        id_t id() const;
 
-        uint32_t id() const;
+        void initialize();
 
         bool layout() const;
 
@@ -244,20 +244,20 @@ namespace ryu::core {
         void on_host_changed(view_host::change_reason_flags flags);
 
     private:
-        uint32_t _id;
-        short _index = 0;
+        id_t _id;
         std::string _name;
         std::string _value;
         core::rect _rect {};
-        uint8_t _bg_color = 0;
-        uint8_t _fg_color = 0;
+        uint16_t _index = 0;
+        id_t _host_callback_id;
         view_list _children {};
         core::padding _margin {};
         view_list _render_list {};
         core::padding _padding {};
-        uint32_t _host_callback_id;
         core::view* _prev = nullptr;
         core::view* _next = nullptr;
+        palette_index _bg_color = 0;
+        palette_index _fg_color = 0;
         core::view* _parent = nullptr;
         types::id _type = types::control;
         core::view_host* _host = nullptr;

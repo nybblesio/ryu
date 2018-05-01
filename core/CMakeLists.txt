@@ -9,6 +9,7 @@ add_library(
         state.cpp state.h
         timer.cpp timer.h
         yaml_converters.h
+        video_generator.h
         engine.cpp engine.h
         parser.cpp parser.h
         id_pool.cpp id_pool.h

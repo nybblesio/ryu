@@ -210,17 +210,6 @@ namespace ryu::core {
         requires_layout();
     }
 
-    void text_box::fg_color(uint8_t value) {
-        view::fg_color(value);
-        _caret.fg_color(value);
-        _document.default_attr().color = value;
-    }
-
-    void text_box::bg_color(uint8_t value) {
-        view::bg_color(value);
-        _caret.bg_color(value);
-    }
-
     bool text_box::caret_left(uint8_t columns) {
         auto clamped = _caret.left(columns);
         if (clamped) {
@@ -235,6 +224,17 @@ namespace ryu::core {
             return _document.scroll_right();
         }
         return clamped;
+    }
+
+    void text_box::fg_color(palette_index value) {
+        view::fg_color(value);
+        _caret.fg_color(value);
+        _document.default_attr().color = value;
+    }
+
+    void text_box::bg_color(palette_index value) {
+        view::bg_color(value);
+        _caret.bg_color(value);
     }
 
     void text_box::value(const std::string& value) {

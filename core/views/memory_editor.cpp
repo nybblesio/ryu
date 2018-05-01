@@ -10,9 +10,9 @@
 
 #include <sstream>
 #include <fmt/format.h>
-#include <core/document.h>
 #include <core/project.h>
 #include <common/bytes.h>
+#include <core/document.h>
 #include "memory_editor.h"
 
 namespace ryu::core {
@@ -374,18 +374,6 @@ namespace ryu::core {
         _address = address;
     }
 
-    void memory_editor::caret_color(uint8_t value) {
-        _caret.fg_color(value);
-    }
-
-    void memory_editor::address_color(uint8_t value) {
-        _address_color = value;
-    }
-
-    void memory_editor::selection_color(uint8_t value) {
-        _selection_color = value;
-    }
-
     void memory_editor::on_draw(core::renderer& surface) {
         auto machine = core::project::instance()->machine();
 
@@ -398,6 +386,9 @@ namespace ryu::core {
         auto x = bounds.left() + _caret.padding().left();
 
         auto offset = 0;
+        auto bytes_text_width = 0;
+        std::stringstream byte_stream;
+        std::stringstream ascii_stream;
         for (size_t row = 0; row < _metrics.page_height; row++) {
             if (_address + offset > machine->mapper()->address_space())
                 break;
@@ -409,8 +400,8 @@ namespace ryu::core {
                     fmt::format("{0:08x}", _address + offset),
                     address_color);
 
-            std::stringstream byte_stream;
-            std::stringstream ascii_stream;
+            byte_stream.str("");
+            ascii_stream.str("");
             for (size_t col = 0; col < _metrics.page_width; col++) {
                 auto value = machine
                         ->mapper()
@@ -420,13 +411,40 @@ namespace ryu::core {
                 ascii_stream << c;
             }
 
-            auto bytes_length = font_face()->measure_text(byte_stream.str());
-            surface.draw_text(font_face(), x, y, byte_stream.str(), text_color);
-            surface.draw_text(font_face(), x + bytes_length, y, ascii_stream.str(), text_color);
+            auto byte_stream_str = byte_stream.str();
+            if (bytes_text_width == 0) {
+                bytes_text_width = font_face()->measure_text(byte_stream_str);
+            }
+
+            surface.draw_text(
+                font_face(),
+                x,
+                y,
+                byte_stream_str,
+                text_color);
+
+            surface.draw_text(
+                font_face(),
+                x + bytes_text_width,
+                y,
+                ascii_stream.str(),
+                text_color);
 
             offset += _metrics.page_width;
             y += max_line_height;
         }
+    }
+
+    void memory_editor::caret_color(palette_index value) {
+        _caret.fg_color(value);
+    }
+
+    void memory_editor::address_color(palette_index value) {
+        _address_color = value;
+    }
+
+    void memory_editor::selection_color(palette_index value) {
+        _selection_color = value;
     }
 
     void memory_editor::on_resize(const core::rect& context_bounds) {
