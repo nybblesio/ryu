@@ -13,6 +13,7 @@
 #include <utility>
 #include <core/view.h>
 #include <core/core_types.h>
+#include "caret.h"
 
 namespace ryu::core {
 
@@ -76,6 +77,8 @@ namespace ryu::core {
 
         void clear_rows();
 
+        void reset_search();
+
         uint32_t selected() const;
 
         const row_list& rows() const;
@@ -86,7 +89,13 @@ namespace ryu::core {
 
         void border(border::types value);
 
+        void row_color(palette_index value);
+
         void add_row(const pick_list_row_t& row);
+
+        void selection_color(palette_index value);
+
+        void not_found_color(palette_index value);
 
         void on_activated(const activated_callable& callable);
 
@@ -113,6 +122,8 @@ namespace ryu::core {
 
         void raise_selection_changed();
 
+        void on_focus_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& context_bounds) override;
@@ -126,15 +137,23 @@ namespace ryu::core {
 
         palette_entry adjust_color(palette_entry entry);
 
+        bool find_matching_text(const std::string& text);
+
     private:
+        bool _found;
         uint32_t _row = 0;
         row_list _rows {};
         uint32_t _page = 0;
+        core::caret _caret;
+        std::string _search;
         uint32_t _max_page = 0;
         uint32_t _max_rows = 0;
         uint32_t _selected = 0;
         header_list _headers {};
+        palette_index _row_color;
         uint32_t _visible_rows = 0;
+        palette_index _selection_color;
+        palette_index _not_found_color;
         activated_callable _activated_callable;
         border::types _border = border::types::none;
         selection_changed_callable _selection_changed_callable;

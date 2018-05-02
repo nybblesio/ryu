@@ -84,7 +84,9 @@ namespace ryu::ide::machine_editor {
                 [this](const core::event_data_t& data) {
                     if (!_component_pick_list->focused() || _machine == nullptr)
                         return false;
+
                     auto key = _component_pick_list->rows()[_component_pick_list->selected()].key;
+                    _component_pick_list->reset_search();
                     transition_to(
                         core::system_commands::edit_component,
                         {
@@ -104,6 +106,8 @@ namespace ryu::ide::machine_editor {
 
     void controller::on_deactivate() {
         _layout_panel->visible(false);
+        _display_pick_list->reset_search();
+        _component_pick_list->reset_search();
     }
 
     void controller::update_values() {

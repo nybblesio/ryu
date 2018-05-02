@@ -29,6 +29,8 @@ namespace ryu::core {
 
         int length() const;
 
+        void reset_search();
+
         void width(int value);
 
         void height(int value);

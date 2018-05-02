@@ -73,6 +73,7 @@ namespace ryu::ide::machine_list {
 
     void controller::on_deactivate() {
         _layout_panel->visible(false);
+        _pick_list->reset_search();
     }
 
     void controller::edit_new_machine() {
@@ -89,6 +90,7 @@ namespace ryu::ide::machine_list {
             ->find_machine(_pick_list->rows()[_pick_list->selected()].key);
         if (machine == nullptr)
             return;
+        _pick_list->reset_search();
         transition_to(
             core::system_commands::edit_machine,
             {{"name", machine->name()}});

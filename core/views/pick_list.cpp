@@ -16,7 +16,7 @@ namespace ryu::core {
     pick_list::pick_list(
             const std::string& name,
             core::view_host* host) : core::view(types::control, name, host),
-                                     _caret("text-box-caret", host) {
+                                     _caret("pick-list-caret", host) {
     }
 
     pick_list::~pick_list() {
@@ -113,7 +113,7 @@ namespace ryu::core {
         auto backspace_action = core::input_action::create_no_map(
             "pick_list_backspace_action",
             "Internal",
-            "Delete a character from the typeahead search.");
+            "Delete a character from the type ahead search.");
         if (!backspace_action->has_bindings()) {
             backspace_action->bind_keys({core::key_backspace});
         }
@@ -121,7 +121,7 @@ namespace ryu::core {
         auto delete_action = core::input_action::create_no_map(
             "pick_list_delete_action",
             "Internal",
-            "Reset the typeahead search.");
+            "Reset the type ahead search.");
         if (!delete_action->has_bindings()) {
             delete_action->bind_keys({core::key_delete});
         }
@@ -181,10 +181,7 @@ namespace ryu::core {
         action_provider().register_handler(
             core::input_action::find_by_name("pick_list_delete_action"),
             [this](const event_data_t& data) {
-                move_top();
-                _search.clear();
-                _caret.column(0);
-                _found = false;
+                reset_search();
                 return true;
             });
         action_provider().register_handler(
@@ -219,6 +216,13 @@ namespace ryu::core {
         return _length;
     }
 
+    void pick_list::reset_search() {
+        move_top();
+        _search.clear();
+        _caret.column(0);
+        _found = false;
+    }
+
     void pick_list::on_initialize() {
         tab_stop(true);
         define_actions();
@@ -228,6 +232,7 @@ namespace ryu::core {
         _caret.enabled(false);
         _caret.position(0, 0);
         _caret.page_size(1, 128);
+        _caret.palette(palette());
         _caret.fg_color(fg_color());
         _caret.bg_color(bg_color());
         _caret.font_family(font_family());
@@ -267,12 +272,7 @@ namespace ryu::core {
     }
 
     void pick_list::on_focus_changed() {
-        _caret.enabled(focused());
-        if (focused()) {
-            index(1000);
-        } else {
-            index(0);
-        }
+        index(static_cast<uint16_t>(focused() ? 1000 : 0));
     }
 
     std::string pick_list::value() const {
@@ -344,6 +344,7 @@ namespace ryu::core {
         surface.set_color(fg);
 
         if (_search.empty()) {
+            _caret.enabled(false);
             surface.draw_text_aligned(
                 font_face(),
                 value(),
@@ -351,7 +352,7 @@ namespace ryu::core {
                 alignment::horizontal::left,
                 alignment::vertical::middle);
         } else {
-            // XXX: this shouldn't be hard coded
+            _caret.enabled(focused());
             if (!_found)
                 surface.set_font_color(font_face(), pal[_not_found_color]);
             surface.draw_text_aligned(

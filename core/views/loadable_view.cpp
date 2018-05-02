@@ -434,6 +434,17 @@ namespace ryu::core {
                                     valign);
                         }
                     }
+
+                    palette_index color;
+                    if (get_constant(result, root, view_node["row-color"], color))
+                        column_pick_list->row_color(color);
+
+                    if (get_constant(result, root, view_node["selection-color"], color))
+                        column_pick_list->selection_color(color);
+
+                    if (get_constant(result, root, view_node["not-found-color"], color))
+                        column_pick_list->not_found_color(color);
+
                     current_view = std::move(column_pick_list);
                     break;
                 }

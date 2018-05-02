@@ -244,6 +244,9 @@ views:
     column-colors: &COLUMN-COLORS
       fg: ide.colors.white
       bg: ide.colors.light-blue
+    row-color: ide.colors.text
+    not-found-color: ide.colors.red
+    selection-color: ide.colors.white
     headers:
       - title: 'ID'
         colors: *COLUMN-COLORS
