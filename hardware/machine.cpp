@@ -79,6 +79,15 @@ namespace ryu::hardware {
         return list;
     }
 
+    core::video_generator* machine::video_generator() {
+        for (const auto& it : _components) {
+            auto ic = it.second->ic();
+            if (ic != nullptr && ic->is_video_generator())
+                return dynamic_cast<core::video_generator*>(ic);
+        }
+        return nullptr;
+    }
+
     void machine::display(hardware::display* display) {
         _display = display;
     }

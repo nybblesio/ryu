@@ -63,6 +63,9 @@ namespace ryu::ide::palette_editor {
             "assets/views/palette-editor.yaml");
         s_log->result(result);
 
+        _palettes = _layout_panel->find_by_name<core::list_box>("palette-list-box");
+        _editor = _layout_panel->find_by_name<core::palette_editor>("editor");
+
         return !result.is_failed();
     }
 
@@ -76,6 +79,17 @@ namespace ryu::ide::palette_editor {
 
     void controller::on_activate(const core::parameter_dict& params) {
         _layout_panel->visible(true);
+
+        auto project = core::project::instance();
+        if (project == nullptr || project->machine() == nullptr) {
+            return;
+        }
+
+        _video_generator = project->machine()->video_generator();
+        if (_video_generator == nullptr) {
+            s_log->warn("machine doesn't have an integrated circuit that supports core::video_generator.");
+            return;
+        }
     }
 
     void controller::on_update(uint32_t dt, core::pending_event_list& events) {

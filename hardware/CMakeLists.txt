@@ -16,4 +16,5 @@ add_library(
         memory_map_entry.cpp memory_map_entry.h
         cpus/mc6809/opcode.cpp cpus/mc6809/opcode.h
         integrated_circuit.cpp integrated_circuit.h
+        video/midway_mcr_video_generator.cpp video/midway_mcr_video_generator.h
         cpus/mc6809/assembly_language_parser.cpp cpus/mc6809/assembly_language_parser.h)

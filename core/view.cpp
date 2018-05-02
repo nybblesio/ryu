@@ -147,6 +147,9 @@ namespace ryu::core {
         return _margin;
     }
 
+    void view::on_palette_changed() {
+    }
+
     void view::index(uint16_t value) {
         if (value != _index) {
             _index = value;
@@ -294,7 +297,10 @@ namespace ryu::core {
     }
 
     void view::palette(core::palette* value) {
-        _palette = value;
+        if (value != _palette) {
+            _palette = value;
+            on_palette_changed();
+        }
     }
 
     void view::next_view(core::view* value) {

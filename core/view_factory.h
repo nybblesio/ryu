@@ -16,6 +16,7 @@
 #include <core/views/button.h>
 #include <core/views/console.h>
 #include <core/views/text_box.h>
+#include <core/views/list_box.h>
 #include <core/views/note_book.h>
 #include <core/views/check_box.h>
 #include <core/views/pick_list.h>
@@ -23,6 +24,7 @@
 #include <core/views/state_header.h>
 #include <core/views/memory_editor.h>
 #include <core/views/loadable_view.h>
+#include <core/views/palette_editor.h>
 #include <core/views/document_footer.h>
 #include <core/views/column_pick_list.h>
 #include <core/views/palette_entry_editor.h>
@@ -48,6 +50,8 @@ namespace ryu::core {
     using column_pick_list_unique_ptr = std::unique_ptr<core::column_pick_list>;
     using loadable_view_unique_ptr = std::unique_ptr<core::loadable_view>;
     using palette_entry_editor_unique_ptr = std::unique_ptr<core::palette_entry_editor>;
+    using palette_editor_unique_ptr = std::unique_ptr<core::palette_editor>;
+    using list_box_unique_ptr = std::unique_ptr<core::list_box>;
 
     class view_factory {
     public:

@@ -668,6 +668,40 @@ namespace ryu::core {
                     current_view = std::move(palette_entry_editor);
                     break;
                 }
+                case types::palette_editor: {
+                    auto palette_editor = core::view_factory::create_view<core::palette_editor>(
+                        host(),
+                        name,
+                        font_family(),
+                        palette(),
+                        fg_color,
+                        bg_color,
+                        value,
+                        dock_style,
+                        margins,
+                        pads,
+                        bounds);
+
+                    current_view = std::move(palette_editor);
+                    break;
+                }
+                case types::list_box: {
+                    auto list_box = core::view_factory::create_view<core::list_box>(
+                        host(),
+                        name,
+                        font_family(),
+                        palette(),
+                        fg_color,
+                        bg_color,
+                        value,
+                        dock_style,
+                        margins,
+                        pads,
+                        bounds);
+                    list_box->border(border_type);
+                    current_view = std::move(list_box);
+                    break;
+                }
                 default: {
                     result.add_message(
                             "P099",

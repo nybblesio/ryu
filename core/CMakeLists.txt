@@ -43,6 +43,7 @@ add_library(
         palette_entry.cpp palette_entry.h
         hex_formatter.cpp hex_formatter.h
         input_binding.cpp input_binding.h
+        views/list_box.cpp views/list_box.h
         views/check_box.cpp views/check_box.h
         command_parser.cpp command_parser.h
         views/note_book.cpp views/note_book.h
@@ -56,6 +57,7 @@ add_library(
         notification_center.cpp notification_center.h
         views/memory_editor.cpp views/memory_editor.h
         views/loadable_view.cpp views/loadable_view.h
+        views/palette_editor.cpp views/palette_editor.h
         input_action_provider.cpp input_action_provider.h
         views/document_footer.cpp views/document_footer.h
         views/column_pick_list.cpp views/column_pick_list.h

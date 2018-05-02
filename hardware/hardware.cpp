@@ -21,6 +21,7 @@ namespace ryu::hardware {
         dip_switch::init();
         memory_mapper::init();
         mc6809::cpu::init();
+        midway_mcr_video_generator::init();
 
         // XXX: eventually, add code to dynamically load .so/.dll
 

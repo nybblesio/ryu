@@ -1,6 +1,7 @@
 !include assets/views/view-constants.yaml
 
 name: 'palette-editor'
+focus: 'palette-list-box'
 views:
   - name: 'header-panel'
     type: view.types.state-header
@@ -12,3 +13,42 @@ views:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
 
+  - name: 'left-panel'
+    type: view.types.dock-panel
+    dock: view.dock.left
+    bounds: [0, 0, 256, 256]
+    margin: [10, 10, 10, 10]
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.transparent
+    views:
+      - name: 'palette-list-box'
+        type: view.types.list-box
+        dock: view.dock.fill
+        border: view.border.solid
+        padding: [0, 0, 0, 0]
+        bounds: [0, 0, 300, 256]
+        enabled: true
+        tab-stop: true
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.fill-color
+
+  - name: 'right-panel'
+    type: view.types.dock-panel
+    dock: view.dock.left
+    margin: [10, 10, 10, 10]
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.transparent
+    views:
+      - name: 'editor'
+        type: view.types.palette-editor
+        dock: view.dock.fill
+        padding: [0, 0, 0, 0]
+        enabled: true
+        tab-stop: true
+        sizing: view.sizing.parent
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.fill-color

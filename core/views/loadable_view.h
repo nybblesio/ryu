@@ -58,6 +58,8 @@ namespace ryu::core {
             loadable_view,
             memory_editor,
             palette_entry_editor,
+            palette_editor,
+            list_box,
             none
         };
 

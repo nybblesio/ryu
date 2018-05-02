@@ -11,6 +11,7 @@
 #pragma once
 
 #include <cstdint>
+#include <rttr/registration>
 #include "size.h"
 
 namespace ryu::core {
@@ -52,5 +53,7 @@ namespace ryu::core {
         virtual palette_attributes_t palette_attributes() const = 0;
 
         virtual background_attributes_t background_attributes() const = 0;
+
+        RTTR_ENABLE()
     };
 }

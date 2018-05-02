@@ -18,6 +18,7 @@
 #include "memory_mapper.h"
 #include "hardware_types.h"
 #include "cpus/mc6809/cpu.h"
+#include "video/midway_mcr_video_generator.h"
 
 namespace ryu::hardware {
 

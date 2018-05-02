@@ -42,7 +42,10 @@ namespace ryu::ide::palette_editor {
         void define_actions();
 
     private:
+        core::list_box* _palettes;
+        core::palette_editor* _editor;
         core::loadable_view_unique_ptr _layout_panel;
+        core::video_generator* _video_generator = nullptr;
     };
 
 };

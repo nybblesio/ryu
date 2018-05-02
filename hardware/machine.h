@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <core/video_generator.h>
 #include "display.h"
 #include "component.h"
 #include "memory_mapper.h"
@@ -44,6 +45,8 @@ namespace ryu::hardware {
         void name(const std::string& value);
 
         const component_list components() const;
+
+        core::video_generator* video_generator();
 
         void display(hardware::display* display);
 

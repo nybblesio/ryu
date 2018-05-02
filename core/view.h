@@ -222,6 +222,8 @@ namespace ryu::core {
 
         void listen_for_on_host_change();
 
+        virtual void on_palette_changed();
+
         core::input_action_provider& action_provider();
 
         virtual void on_draw(core::renderer& renderer);

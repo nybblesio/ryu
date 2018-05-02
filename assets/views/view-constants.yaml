@@ -24,6 +24,8 @@ constants:
       loadable-view: 14
       memory-editor: 15
       palette-entry-editor: 16
+      palette-editor: 17
+      list-box: 18
     border:
       none: 0
       solid: 1

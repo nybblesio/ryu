@@ -76,6 +76,14 @@ namespace ryu::hardware {
             uint32_t value,
             integrated_circuit::endianness::types endianess);
 
+        virtual bool is_video_generator() const {
+            return false;
+        }
+
+        virtual bool is_audio_generator() const {
+            return false;
+        }
+
         virtual endianness::types endianess() const;
 
         void component_name(const std::string& name);
