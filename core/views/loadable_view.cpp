@@ -644,6 +644,30 @@ namespace ryu::core {
                     current_view = std::move(memory_editor);
                     break;
                 }
+                case types::palette_entry_editor: {
+                    auto palette_entry_editor = core::view_factory::create_view<core::palette_entry_editor>(
+                        host(),
+                        name,
+                        font_family(),
+                        palette(),
+                        fg_color,
+                        bg_color,
+                        value,
+                        dock_style,
+                        margins,
+                        pads,
+                        bounds);
+
+                    uint32_t color;
+                    if (get_constant(result, root, view_node["text-color"], color))
+                        palette_entry_editor->text_color(static_cast<palette_index>(color));
+
+                    if (get_optional(view_node["palette-index"], color))
+                        palette_entry_editor->entry(static_cast<palette_index>(color));
+
+                    current_view = std::move(palette_entry_editor);
+                    break;
+                }
                 default: {
                     result.add_message(
                             "P099",

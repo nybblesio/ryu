@@ -57,6 +57,7 @@ namespace ryu::core {
             document_footer,
             loadable_view,
             memory_editor,
+            palette_entry_editor,
             none
         };
 

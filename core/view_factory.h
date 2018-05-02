@@ -25,6 +25,7 @@
 #include <core/views/loadable_view.h>
 #include <core/views/document_footer.h>
 #include <core/views/column_pick_list.h>
+#include <core/views/palette_entry_editor.h>
 #include "core_types.h"
 
 namespace ryu::core {
@@ -46,6 +47,7 @@ namespace ryu::core {
     using text_box_unique_ptr = std::unique_ptr<core::text_box>;
     using column_pick_list_unique_ptr = std::unique_ptr<core::column_pick_list>;
     using loadable_view_unique_ptr = std::unique_ptr<core::loadable_view>;
+    using palette_entry_editor_unique_ptr = std::unique_ptr<core::palette_entry_editor>;
 
     class view_factory {
     public:

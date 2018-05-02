@@ -60,4 +60,5 @@ add_library(
         views/document_footer.cpp views/document_footer.h
         views/column_pick_list.cpp views/column_pick_list.h
         views/dock_layout_panel.cpp views/dock_layout_panel.h
-        assembly_language_parser.cpp assembly_language_parser.h)
+        assembly_language_parser.cpp assembly_language_parser.h
+        views/palette_entry_editor.cpp views/palette_entry_editor.h)

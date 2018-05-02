@@ -57,16 +57,8 @@ Art Asset Requirements
     - might be new views required here, not sure
 
 - NEW: ide::palette_editor::controller
-    1. need new palette_entry_view:
-
-         +---------------+
-         | color swatch  | R: ___  G: ___ B: ___ A: ____
-         +---------------+
-
-    2. need new palette_view. this is a multi-column layout of palette_entry_views.
-    3. create palette_editor view YAML file
+    2. need new palette_editor. this is a multi-column layout of palette_entry_views.
     4. need to get parameters for palette from the machine's video generator IC
-                          also core::sound_generator, IC implements this interface
 
 - NEW: ide::tile_editor::controller (does both sprites and tiles)
     1. need new tile_editor view:  width, height, position, fat pixel size
@@ -282,3 +274,8 @@ DONE
     2. render footer with size indicators, e.g. page x of y, row z, etc.
     3. add support for type-ahead search
     4. page up/page down input_actions
+    1. need new palette_entry_view:
+- NEW: palette_entry_editor:
+         +---------------+
+         | color swatch  | R: ___  G: ___ B: ___ A: ____
+         +---------------+

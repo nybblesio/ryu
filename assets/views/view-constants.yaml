@@ -23,6 +23,7 @@ constants:
       document-footer: 13
       loadable-view: 14
       memory-editor: 15
+      palette-entry-editor: 16
     border:
       none: 0
       solid: 1
