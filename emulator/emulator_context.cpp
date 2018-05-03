@@ -116,8 +116,8 @@ namespace ryu::emulator {
     bool emulator_context::on_initialize(core::result& result) {
         define_actions();
         bind_events();
-        configure_states(result);
         configure_palette();
+        configure_states(result);
         parent_resize(bounds());
         return true;
     }

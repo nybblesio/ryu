@@ -62,7 +62,7 @@ namespace ryu::core {
             [this](const core::event_data_t& data) {
                 if (_locked)
                     return false;
-                if (_index < 255)
+                if (_index < palette()->size())
                     ++_index;
                 return true;
             });

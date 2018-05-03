@@ -66,6 +66,10 @@ namespace ryu::ide::palette_editor {
         _palettes = _layout_panel->find_by_name<core::list_box>("palette-list-box");
         _editor = _layout_panel->find_by_name<core::palette_editor>("editor");
 
+        _palettes->on_clicked([this]() {
+            // XXX: update palette on _editor
+        });
+
         return !result.is_failed();
     }
 
@@ -89,6 +93,17 @@ namespace ryu::ide::palette_editor {
         if (_video_generator == nullptr) {
             s_log->warn("machine doesn't have an integrated circuit that supports core::video_generator.");
             return;
+        }
+
+        auto palette_attributes = _video_generator->palette_attributes();
+        // XXX: need to convert contents of memory pointed to by video_generator
+        //      into n palette instances with entries.
+
+        auto& options = _palettes->options();
+        options.clear();
+
+        for (uint32_t i = 0; i < palette_attributes.number_of_palettes; i++) {
+            options.push_back(core::pick_list_option_t {i, fmt::format("palette {}", i)});
         }
     }
 

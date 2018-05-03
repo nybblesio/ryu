@@ -262,8 +262,8 @@ namespace ryu::ide {
 
         define_actions();
         bind_events();
-        configure_states(result);
         configure_palette();
+        configure_states(result);
         parent_resize(bounds());
         return true;
     }

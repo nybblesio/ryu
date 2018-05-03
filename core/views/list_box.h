@@ -24,9 +24,15 @@ namespace ryu::core {
 
         ~list_box() override;
 
+        option_list& options();
+
         border::types border() const;
 
         void border(border::types value);
+
+        void row_color(palette_index value);
+
+        void selection_color(palette_index value);
 
         void on_clicked(const on_clicked_callable& callable);
 
@@ -42,6 +48,24 @@ namespace ryu::core {
         void on_resize(const rect& context_bounds) override;
 
     private:
+        bool move_up();
+
+        bool move_down();
+
+        bool move_row_up();
+
+        bool move_row_down();
+
+        void calculate_visible_rows();
+
+    private:
+        int _row = 0;
+        int _selection = 0;
+        int _visible_rows = 0;
+        int _selected_item = 0;
+        option_list _options {};
+        palette_index _row_color;
+        palette_index _selection_color;
         on_clicked_callable _on_clicked {};
         border::types _border = border::types::solid;
     };

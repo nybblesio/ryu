@@ -16,13 +16,14 @@ namespace ryu::core {
 
     class palette {
     public:
-        const static int max_entries = 256;
-
         palette() = default;
 
+        inline size_t size() const {
+            return _entries.size();
+        }
+
         palette_entry& get(size_t index) {
-            if (index > max_entries)
-                return _entries[max_entries - 1];
+            add_missing_entries(index + 1);
             return _entries[index];
         }
 
@@ -31,7 +32,16 @@ namespace ryu::core {
         }
 
     private:
-        palette_entry _entries[max_entries] {};
+        void add_missing_entries(size_t size) {
+            if (size < _entries.size())
+                return;
+            auto missing_entry_count = size - _entries.size();
+            for (auto i = 0; i < missing_entry_count; i++)
+                _entries.emplace_back(0, 0, 0, 0);
+        }
+
+    private:
+        std::vector<palette_entry> _entries {};
     };
 
 };

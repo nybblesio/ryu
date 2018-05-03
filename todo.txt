@@ -20,6 +20,8 @@ Art Asset Requirements
 --------------------------------------
 - UPDATE: README.md
 
+- FIX: CAPS LOCK key fucks up input system
+
 - REFACTOR: use pratt parser model to completely replace shunting-yard implementation
 
 - NEW: implement ability to redirect to new or appended text file in core::console

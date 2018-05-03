@@ -699,6 +699,14 @@ namespace ryu::core {
                         pads,
                         bounds);
                     list_box->border(border_type);
+
+                    palette_index color;
+                    if (get_constant(result, root, view_node["row-color"], color))
+                        list_box->row_color(color);
+
+                    if (get_constant(result, root, view_node["selection-color"], color))
+                        list_box->selection_color(color);
+
                     current_view = std::move(list_box);
                     break;
                 }
