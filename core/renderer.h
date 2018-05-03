@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <SDL_system.h>
+#include <SDL2/SDL_system.h>
 #include "rect.h"
 #include "core_types.h"
 #include "font_family.h"

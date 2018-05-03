@@ -8,11 +8,10 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <cstdint>
-#include <SDL_rect.h>
+#include <SDL2/SDL_rect.h>
 #include "padding.h"
 
 namespace ryu::core {

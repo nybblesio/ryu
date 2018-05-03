@@ -8,7 +8,7 @@
 // this source code file.
 //
 
-#include <SDL_joystick.h>
+#include <SDL2/SDL_joystick.h>
 #include "joysticks.h"
 
 namespace ryu::core {

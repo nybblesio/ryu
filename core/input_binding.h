@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <string>
-#include <SDL_events.h>
+#include <SDL2/SDL_events.h>
 #include "joystick.h"
 
 namespace ryu::core {
