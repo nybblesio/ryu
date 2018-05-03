@@ -82,8 +82,9 @@ namespace ryu::hardware {
             uint32_t offset,
             uint32_t size,
             const std::string& name,
-            const std::string& description) {
-        _memory_map.add(offset, size, name, description);
+            const std::string& description,
+            memory_map_entry::memory_map_entry_flags flags) {
+        _memory_map.add(offset, size, name, description, flags);
     }
 
     void integrated_circuit::add_memory_map_entry(
@@ -92,8 +93,9 @@ namespace ryu::hardware {
             const std::string& name,
             const std::string& description,
             const memory_map_entry::read_callable& reader,
-            const memory_map_entry::write_callable& writer) {
-        _memory_map.add(offset, size, name, description, reader, writer);
+            const memory_map_entry::write_callable& writer,
+            memory_map_entry::memory_map_entry_flags flags) {
+        _memory_map.add(offset, size, name, description, reader, writer, flags);
     }
 
     uint32_t integrated_circuit::type_id() const {

@@ -55,4 +55,14 @@ machines:
         address: 0x9000
         ic:
           type_id: 7
-          address_space: 0x4000
+          address_space: 0xff
+          writes:
+            - offset: 0x00
+              size: 1
+              value: 0xff
+            - offset: 0x01
+              size: 1
+              value: 0x7f
+            - offset: 0x02
+              size: 2
+              value: 0xc000

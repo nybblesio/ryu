@@ -24,6 +24,9 @@ Art Asset Requirements
 
 - NEW: implement ability to redirect to new or appended text file in core::console
 
+- REFACTOR: YAML helper code for constants, includes, optionals into common
+- REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
+
 - NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
         that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
         dock_layout_panel.
@@ -279,3 +282,6 @@ DONE
          +---------------+
          | color swatch  | R: ___  G: ___ B: ___ A: ____
          +---------------+
+- FIX: need a mechanism to "configure" an integrated_circuit attached to a component
+        add flags to memory_map_entry, e.g. requires_static_config
+- FIX: update ryu::hardware::registry to load/save statically configured memory_map_entries per IC

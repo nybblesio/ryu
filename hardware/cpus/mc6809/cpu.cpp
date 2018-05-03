@@ -274,6 +274,7 @@ namespace ryu::hardware::mc6809 {
     }
 
     cpu::cpu() : hardware::integrated_circuit("mc6809-ic") {
+        // XXX: don't do this in the constructor
         add_memory_map_entry(0xfff0, 2, "Reserved", "Reserved by Motorola");
         add_memory_map_entry(0xfff2, 2, "SWI3",     "SWI3 instruction interrupt vector");
         add_memory_map_entry(0xfff4, 2, "SWI2",     "SWI2 instruction interrupt vector");

@@ -118,7 +118,6 @@ namespace ryu::hardware {
                             "R004",
                             "Machine node requires id.",
                             true);
-                    result.fail();
                     break;
                 }
 
@@ -127,7 +126,6 @@ namespace ryu::hardware {
                             "R004",
                             "Machine node requires name.",
                             true);
-                    result.fail();
                     break;
                 }
 
@@ -163,7 +161,6 @@ namespace ryu::hardware {
                                     "R004",
                                     "Machine component node requires id.",
                                     true);
-                            result.fail();
                             break;
                         }
 
@@ -172,7 +169,6 @@ namespace ryu::hardware {
                                     "R004",
                                     "Machine component node requires name.",
                                     true);
-                            result.fail();
                             break;
                         }
 
@@ -181,7 +177,6 @@ namespace ryu::hardware {
                                     "R004",
                                     "Machine component node requires address.",
                                     true);
-                            result.fail();
                             break;
                         }
 
@@ -206,14 +201,68 @@ namespace ryu::hardware {
                                             "R005",
                                             "No integrated_circuit exists for type_id.",
                                             true);
-                                    result.fail();
                                     break;
                                 }
 
-                                // XXX: at some point this should be required
-                                if (ic_node["address_space"] != nullptr) {
-                                    auto ic_address_space = ic_node["address_space"].as<uint32_t>();
-                                    ic->address_space(ic_address_space);
+                                auto address_space_node = ic_node["address_space"];
+                                if (address_space_node == nullptr || !address_space_node.IsScalar()) {
+                                    result.add_message(
+                                        "R005",
+                                        "address_space is required for integrated_circuit.",
+                                        true);
+                                    break;
+                                }
+
+                                ic->address_space(ic_node["address_space"].as<uint32_t>());
+
+                                auto writes_node = ic_node["writes"];
+                                if (writes_node != nullptr && writes_node.IsSequence()) {
+                                    for (auto wit = writes_node.begin();
+                                         wit != writes_node.end();
+                                         ++wit) {
+                                        auto write_node = *wit;
+                                        if (!write_node.IsMap())
+                                            continue;
+
+                                        auto offset_node = write_node["offset"];
+                                        auto size_node = write_node["size"];
+                                        auto value_node = write_node["value"];
+
+                                        if (offset_node == nullptr || value_node == nullptr)
+                                            continue;
+
+                                        uint32_t size = 1;
+                                        if (size_node != nullptr && size_node.IsScalar())
+                                            size = size_node.as<uint32_t>();
+
+                                        auto offset = offset_node.as<uint32_t>();
+                                        auto value = value_node.as<uint32_t>();
+
+                                        switch (size) {
+                                            case 1:
+                                                ic->write_byte(offset, static_cast<uint8_t>(value));
+                                                break;
+                                            case 2:
+                                                ic->write_word(
+                                                    offset,
+                                                    static_cast<uint16_t>(value),
+                                                    integrated_circuit::endianness::big);
+                                                break;
+                                            case 4:
+                                                ic->write_dword(
+                                                    offset,
+                                                    value,
+                                                    integrated_circuit::endianness::big);
+                                                break;
+                                            default: {
+                                                result.add_message(
+                                                    "R008",
+                                                    fmt::format("Unknown write size: {}", size),
+                                                    true);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 auto component = new hardware::component(component_id, ic);

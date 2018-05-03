@@ -16,10 +16,12 @@ namespace ryu::hardware {
             uint32_t offset,
             uint32_t size,
             const std::string& name,
-            const std::string& description)  : _size(size),
-                                               _offset(offset),
-                                               _name(name),
-                                               _description(description) {
+            const std::string& description,
+            memory_map_entry_flags flags)  : _size(size),
+                                       _offset(offset),
+                                       _name(name),
+                                       _description(description),
+                                       _flags(flags) {
     }
 
     memory_map_entry::memory_map_entry(
@@ -28,12 +30,14 @@ namespace ryu::hardware {
             const std::string& name,
             const std::string& description,
             const read_callable& reader,
-            const write_callable& writer) : _size(size),
-                                            _offset(offset),
-                                            _name(name),
-                                            _description(description),
-                                            _read_callable(reader),
-                                            _write_callable(writer) {
+            const write_callable& writer,
+            memory_map_entry_flags flags) : _size(size),
+                                      _offset(offset),
+                                      _name(name),
+                                      _description(description),
+                                      _read_callable(reader),
+                                      _write_callable(writer),
+                                      _flags(flags) {
     }
 
     uint32_t memory_map_entry::size() const {

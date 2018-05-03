@@ -107,7 +107,8 @@ namespace ryu::hardware {
                 uint32_t offset,
                 uint32_t size,
                 const std::string& name,
-                const std::string& description);
+                const std::string& description,
+                memory_map_entry::memory_map_entry_flags flags = memory_map_entry::flags::none);
 
         void add_memory_map_entry(
                 uint32_t offset,
@@ -115,7 +116,8 @@ namespace ryu::hardware {
                 const std::string& name,
                 const std::string& description,
                 const memory_map_entry::read_callable& reader,
-                const memory_map_entry::write_callable& writer);
+                const memory_map_entry::write_callable& writer,
+                memory_map_entry::memory_map_entry_flags flags = memory_map_entry::flags::none);
 
         virtual void on_address_space_changed();
 
