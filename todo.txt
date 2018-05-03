@@ -18,35 +18,68 @@ Art Asset Requirements
 
 [feature/tools] IDE UI & related tasks
 --------------------------------------
-- UPDATE: README.md
 
-- FIX: CAPS LOCK key fucks up input system
+- FIX: the layout engine in core::view is naff; need to rework it
+    - FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
+    - FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
 
-- REFACTOR: use pratt parser model to completely replace shunting-yard implementation
+- FIX: add "clipped" flag to view and set clipping rect during child rendering if bit is set
 
-- NEW: implement ability to redirect to new or appended text file in core::console
+- NEW: add ryu::hardware::integrated_circuit::initialize and on_initialize
+    - move add_memory_map calls to on_initialize methods
+    - call initialize during machine load
+
+- FIX: integrated_circuit has a type_id (this is also on rttr metadata), but....
+        the idea was more of a category, e.g. cpu, memory, etc.
+        how will we uniquely identify different "makes/models" of circuits?
+        --> make type_id the unique ID for that circuit
+        --> add category_id for the "group" that it belongs to
+
+- NEW: add new integrated_circuit_editor view
+    --> shows memory_map for ic and allows editing of values in memory
+    --> save to machine registry file
+- NEW: write registry::save and integrated into machine editor
+- FINISH: machine_editor::controller:  - callbacks
+- FINISH: component_editor::controller - callbacks
+    --> reorg layout
+    --> UPDATE: integrate new integrated_circuit_editor view into component_editor
 
 - REFACTOR: YAML helper code for constants, includes, optionals into common
 - REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
 
-- NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
-        that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
-        dock_layout_panel.
+- REFACTOR: use pratt parser model to completely replace shunting-yard implementation
+- REFACTOR: rework pipe syntax after pratt parser is in place
+- REFACTOR: rework dup operator once pratt parser is in place
+- NEW: implement ability to redirect to new or appended text file in core::console
+
+- NEW: on core::palette add static load_from_memory and store_to_memory functions
+- FINISH: ide::palette_editor::controller
+
+- FINISH: create new ide::project_editor::controller  - callbacks
+
+- NEW: enhance column_pick_list to support sub-views within a row's column
+        --> check_box
+        --> text_box
+        --> pick_list
+
+- NEW: create new view called tile_grid
+    --> tile_attribute_t, width, and height...it will render a scrollable selection grid
+
+- NEW: create fatbit_editor view
 
 - NEW: mouse event bindings ----
     which button?
     bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
 
+-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+- FIX: CAPS LOCK key fucks up input system
+
+- NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
+        that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
+        dock_layout_panel.
+
 - NEW: raise error dialog where applicable
-
-- FINISH: machine_editor::controller:
-    - callbacks
-
-- FINISH: create new ide::project_editor::controller
-    - callbacks
-
-- FINISH: component_editor::controller
-    - callbacks
 
 - FINISH: ide::memory_editor::controller
     - custom footer
@@ -60,10 +93,6 @@ Art Asset Requirements
     - create project_jump.yaml view file
     - new data structure needed here, MRU for files on project
     - might be new views required here, not sure
-
-- NEW: ide::palette_editor::controller
-    2. need new palette_editor. this is a multi-column layout of palette_entry_views.
-    4. need to get parameters for palette from the machine's video generator IC
 
 - NEW: ide::tile_editor::controller (does both sprites and tiles)
     1. need new tile_editor view:  width, height, position, fat pixel size
@@ -87,9 +116,7 @@ Art Asset Requirements
         - reuse palette editor views to allow customization of IDE and emu palettes
     2. input bindings
 
-- FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
-
-- FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
+- UPDATE: README.md
 
 [feature/tools] Emulator IDE
 ----------------------------
