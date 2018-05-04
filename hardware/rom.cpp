@@ -14,7 +14,8 @@
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::rom>("ryu::hardware::rom") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::rom_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Pseudo EPROM IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Pseudo EPROM IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_memory)
     )
     .constructor<>(rttr::registration::public_access) (
             rttr::policy::ctor::as_raw_ptr
@@ -78,6 +79,9 @@ namespace ryu::hardware {
         }
 
         return value;
+    }
+
+    void rom::on_initialize() {
     }
 
     ryu::core::byte_list rom::write_word(

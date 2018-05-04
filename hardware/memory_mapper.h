@@ -70,6 +70,8 @@ namespace ryu::hardware {
             hardware::integrated_circuit* ic = nullptr;
         };
 
+        void on_initialize() override;
+
         memory_mapper::component_address_space_t circuit_at_address(
             integrated_circuit::access_types access_type,
             uint32_t address) const;

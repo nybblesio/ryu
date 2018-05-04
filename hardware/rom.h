@@ -58,6 +58,8 @@ namespace ryu::hardware {
         uint8_t read_byte(uint32_t address) const override;
 
     protected:
+        void on_initialize() override;
+
         void on_address_space_changed() override;
 
         RTTR_ENABLE(hardware::integrated_circuit)
@@ -65,8 +67,8 @@ namespace ryu::hardware {
     private:
         void reallocate();
 
+    private:
         uint8_t* _buffer = nullptr;
     };
 
 };
-

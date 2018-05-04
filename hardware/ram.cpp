@@ -14,7 +14,8 @@
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::ram>("ryu::hardware::ram") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::ram_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "RAM IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "RAM IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_memory)
     )
     .constructor<>(rttr::registration::public_access)  (
             rttr::policy::ctor::as_raw_ptr
@@ -36,6 +37,9 @@ namespace ryu::hardware {
 
     void ram::zero() {
         std::memset(_buffer, 0, address_space());
+    }
+
+    void ram::on_initialize() {
     }
 
     ryu::core::byte_list ram::write_word(

@@ -54,6 +54,8 @@ namespace ryu::hardware {
                 integrated_circuit::endianness::types endianess) override;
 
     protected:
+        void on_initialize() override;
+
         void on_address_space_changed() override;
 
     RTTR_ENABLE(hardware::integrated_circuit)

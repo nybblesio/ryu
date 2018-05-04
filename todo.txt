@@ -16,24 +16,30 @@ Art Asset Requirements
 ----------------------
 - Context tab/button bitmaps
 
+=================================
+
+Large Refactorings
+----------------------
+- NEW: implement conan for dependency management
+
+- REFACTOR: remove boost and replace with C++17 alternatives
+    NOTE: 5/4/2018 - I attempted to refactor out boost but ran into issues with std::filesystem
+                not yet being fully supported in clang.
+
+                Additionally, compiling Ryu using GCC 8.1.0 yielded a number of conformance errors
+                related to naming.  Need to research and fix.
+
 [feature/tools] IDE UI & related tasks
 --------------------------------------
+
+- FIX: audit each view and ensure that it's rendering only within client_bounds()
+
+- FIX: refactor the render list in core::view to be a list of structures with the view* and
+        a clipping rect and other state information based on the view's parent should_clip()
 
 - FIX: the layout engine in core::view is naff; need to rework it
     - FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
     - FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
-
-- FIX: add "clipped" flag to view and set clipping rect during child rendering if bit is set
-
-- NEW: add ryu::hardware::integrated_circuit::initialize and on_initialize
-    - move add_memory_map calls to on_initialize methods
-    - call initialize during machine load
-
-- FIX: integrated_circuit has a type_id (this is also on rttr metadata), but....
-        the idea was more of a category, e.g. cpu, memory, etc.
-        how will we uniquely identify different "makes/models" of circuits?
-        --> make type_id the unique ID for that circuit
-        --> add category_id for the "group" that it belongs to
 
 - NEW: add new integrated_circuit_editor view
     --> shows memory_map for ic and allows editing of values in memory
@@ -70,10 +76,6 @@ Art Asset Requirements
 - NEW: mouse event bindings ----
     which button?
     bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
-
-- REFACTOR: remove boost and replace with C++17 alternatives
-
-- NEW: implement conan for dependency management
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -318,3 +320,12 @@ DONE
 - FIX: need a mechanism to "configure" an integrated_circuit attached to a component
         add flags to memory_map_entry, e.g. requires_static_config
 - FIX: update ryu::hardware::registry to load/save statically configured memory_map_entries per IC
+- FIX: add "clipped" flag to view and set clipping rect during child rendering if bit is set
+- NEW: add ryu::hardware::integrated_circuit::initialize and on_initialize
+    - move add_memory_map calls to on_initialize methods
+    - call initialize during machine load
+- FIX: integrated_circuit has a type_id (this is also on rttr metadata), but....
+        the idea was more of a category, e.g. cpu, memory, etc.
+        how will we uniquely identify different "makes/models" of circuits?
+        --> make type_id the unique ID for that circuit
+        --> add category_id for the "group" that it belongs to

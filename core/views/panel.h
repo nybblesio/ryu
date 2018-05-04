@@ -27,6 +27,8 @@ namespace ryu::core {
         void border(border::types value);
 
     protected:
+        void on_initialize() override;
+
         void on_draw(core::renderer& surface) override;
 
     private:

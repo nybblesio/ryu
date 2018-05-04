@@ -28,6 +28,7 @@ namespace ryu::core {
 
     void palette_editor::on_initialize() {
         tab_stop(true);
+        should_clip(true);
         define_actions();
         bind_events();
     }

@@ -78,6 +78,10 @@ namespace ryu::core {
         }
     }
 
+    void dock_layout_panel::on_initialize() {
+        should_clip(true);
+    }
+
     void dock_layout_panel::on_resize(const core::rect& context_bounds) {
         if (type() != types::container)
             return;

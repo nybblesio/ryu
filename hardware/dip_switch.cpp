@@ -13,7 +13,8 @@
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::dip_switch>("ryu::hardware::dip_switch") (
             rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::dip_switch_id),
-            rttr::metadata(ryu::hardware::meta_data_key::type_name, "Dip Switch"))
+            rttr::metadata(ryu::hardware::meta_data_key::type_name, "Dip Switch"),
+            rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_memory))
         .constructor<>(rttr::registration::public_access) (
                 rttr::policy::ctor::as_raw_ptr
         );
@@ -29,6 +30,9 @@ namespace ryu::hardware {
 
     void dip_switch::zero() {
         _switches.reset();
+    }
+
+    void dip_switch::on_initialize() {
     }
 
     void dip_switch::fill(uint8_t value) {

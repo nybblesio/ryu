@@ -20,6 +20,10 @@ namespace ryu::core {
     panel::~panel() {
     }
 
+    void panel::on_initialize() {
+        should_clip(true);
+    }
+
     border::types panel::border() const {
         return _border;
     }
@@ -30,7 +34,6 @@ namespace ryu::core {
 
     void panel::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
-        surface.push_clip_rect(bounds);
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
         auto current_palette = palette();
         if (current_palette != nullptr) {
@@ -44,7 +47,6 @@ namespace ryu::core {
                 surface.draw_rect(bounds);
             }
         }
-        surface.pop_clip_rect();
     }
 
 }

@@ -23,6 +23,8 @@ namespace ryu::core {
         ~dock_layout_panel() override;
 
     protected:
+        void on_initialize() override;
+
         void on_resize(const core::rect& context_bounds) override;
 
     private:

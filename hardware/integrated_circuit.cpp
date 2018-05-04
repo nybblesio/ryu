@@ -11,7 +11,8 @@
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::integrated_circuit>("ryu::hardware::integrated_circuit") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::integrated_circuit_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Base IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Base IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_circuit)
     )
     .constructor<const std::string&>(rttr::registration::public_access) (
             rttr::policy::ctor::as_raw_ptr
@@ -27,6 +28,13 @@ namespace ryu::hardware {
     }
 
     void integrated_circuit::zero() {
+    }
+
+    void integrated_circuit::initialize() {
+        on_initialize();
+    }
+
+    void integrated_circuit::on_initialize() {
     }
 
     bool integrated_circuit::write_latch() const {

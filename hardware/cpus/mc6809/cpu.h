@@ -33,6 +33,9 @@ namespace ryu::hardware::mc6809 {
 
         RTTR_ENABLE(hardware::integrated_circuit)
 
+    protected:
+        void on_initialize() override;
+
     private:
         static mnemonic_set _mnemonics;
         static opcode_dictionary _opcodes;

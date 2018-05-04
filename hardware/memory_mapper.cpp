@@ -13,7 +13,8 @@
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::memory_mapper>("ryu::hardware::memory_mapper") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::memory_mapper_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Memory Mapper IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Memory Mapper IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_memory)
     )
     .constructor<>(rttr::registration::public_access) (
             rttr::policy::ctor::as_raw_ptr
@@ -46,6 +47,9 @@ namespace ryu::hardware {
 
     void memory_mapper::clear() {
         _components.clear();
+    }
+
+    void memory_mapper::on_initialize() {
     }
 
     void memory_mapper::fill(uint8_t value) {

@@ -245,6 +245,10 @@ namespace ryu::core {
         return _fg_color;
     }
 
+    bool view::should_clip() const {
+        return (_flags & config::flags::clip) != 0;
+    }
+
     uint8_t view::font_style() const {
         return _font_style;
     }
@@ -260,6 +264,13 @@ namespace ryu::core {
                 std::max(0, rect.width() - pad.right()),
                 std::max(0, rect.height() - pad.bottom()));
         return padded;
+    }
+
+    void view::should_clip(bool value) {
+        if (value)
+            _flags |= config::flags::clip;
+        else
+            _flags &= ~config::flags::clip;
     }
 
     void view::bg_color(uint8_t value) {
@@ -338,7 +349,19 @@ namespace ryu::core {
                 view->layout(false);
                 view->on_resize(renderer.bounds());
             }
+            // XXX: need to rework the render list cache so it includes
+            //      a valid clipping rectangle
+
+            // XXX: the client_bounds on the parent seems to be too small for the
+            //      contents of the child views.  this is probably due to the layout
+            //      engine being bad but it may be an error somewhere else.
+
+//            auto parent = view->parent();
+//            if (parent != nullptr && parent->should_clip())
+//                renderer.push_clip_rect(parent->client_bounds());
             view->on_draw(renderer);
+//            if (parent != nullptr && parent->should_clip())
+//                renderer.pop_clip_rect();
         }
     }
 

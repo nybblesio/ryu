@@ -63,7 +63,8 @@ namespace ryu::core {
                 enabled  = 0b00000010,
                 tab_stop = 0b00000100,
                 focused  = 0b00001000,
-                layout   = 0b00010000
+                layout   = 0b00010000,
+                clip     = 0b00100000,
             };
         };
 
@@ -131,9 +132,13 @@ namespace ryu::core {
 
         void tab_stop(bool value);
 
+        bool should_clip() const;
+
         void index(uint16_t value);
 
         uint8_t font_style() const;
+
+        void should_clip(bool value);
 
         template <typename T>
         T* find_by_id(uint32_t id) {

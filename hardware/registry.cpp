@@ -312,7 +312,9 @@ namespace ryu::hardware {
                     .to_int();
             if (type_id == ic_type_id) {
                 auto instance = type.create({});
-                return instance.get_value<hardware::integrated_circuit*>();
+                auto circuit = instance.get_value<hardware::integrated_circuit*>();
+                circuit->initialize();
+                return circuit;
             }
         }
         return nullptr;

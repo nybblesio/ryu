@@ -38,6 +38,8 @@ namespace ryu::hardware {
 
         virtual ~integrated_circuit() = default;
 
+        void initialize();
+
         uint32_t id() const;
 
         virtual void zero();
@@ -118,6 +120,8 @@ namespace ryu::hardware {
                 const memory_map_entry::read_callable& reader,
                 const memory_map_entry::write_callable& writer,
                 memory_map_entry::memory_map_entry_flags flags = memory_map_entry::flags::none);
+
+        virtual void on_initialize();
 
         virtual void on_address_space_changed();
 

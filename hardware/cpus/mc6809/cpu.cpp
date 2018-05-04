@@ -274,15 +274,6 @@ namespace ryu::hardware::mc6809 {
     }
 
     cpu::cpu() : hardware::integrated_circuit("mc6809-ic") {
-        // XXX: don't do this in the constructor
-        add_memory_map_entry(0xfff0, 2, "Reserved", "Reserved by Motorola");
-        add_memory_map_entry(0xfff2, 2, "SWI3",     "SWI3 instruction interrupt vector");
-        add_memory_map_entry(0xfff4, 2, "SWI2",     "SWI2 instruction interrupt vector");
-        add_memory_map_entry(0xfff6, 2, "FIRQ",     "Fast hardware interrupt vector");
-        add_memory_map_entry(0xfff8, 2, "IRQ",      "Hardware interrupt vector");
-        add_memory_map_entry(0xfffa, 2, "SWI",      "SWI instruction interrupt vector");
-        add_memory_map_entry(0xfffc, 2, "NMI",      "Non-maskable interrupt vector");
-        add_memory_map_entry(0xfffe, 2, "Reset",    "Reset vector");
     }
 
     core::assembly_language_parser* cpu::assembler() {
@@ -1216,6 +1207,17 @@ namespace ryu::hardware::mc6809 {
             const auto& mnemonics = it.second.mnemonics();
             _mnemonics.insert(mnemonics.begin(), mnemonics.end());
         }
+    }
+
+    void cpu::on_initialize() {
+        add_memory_map_entry(0xfff0, 2, "Reserved", "Reserved by Motorola");
+        add_memory_map_entry(0xfff2, 2, "SWI3",     "SWI3 instruction interrupt vector");
+        add_memory_map_entry(0xfff4, 2, "SWI2",     "SWI2 instruction interrupt vector");
+        add_memory_map_entry(0xfff6, 2, "FIRQ",     "Fast hardware interrupt vector");
+        add_memory_map_entry(0xfff8, 2, "IRQ",      "Hardware interrupt vector");
+        add_memory_map_entry(0xfffa, 2, "SWI",      "SWI instruction interrupt vector");
+        add_memory_map_entry(0xfffc, 2, "NMI",      "Non-maskable interrupt vector");
+        add_memory_map_entry(0xfffe, 2, "Reset",    "Reset vector");
     }
 
     integrated_circuit::endianness::types cpu::endianess() const {
