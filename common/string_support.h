@@ -41,6 +41,14 @@ namespace ryu {
         rtrim(s);
     }
 
+    inline void to_lower(std::string& s) {
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    }
+
+    inline void to_upper(std::string& s) {
+        std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+    }
+
     // trim from start (copying)
     inline std::string ltrimmed(std::string s) {
         ltrim(s);

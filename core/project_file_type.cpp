@@ -9,7 +9,7 @@
 //
 
 #include <map>
-#include <boost/algorithm/string.hpp>
+#include <common/string_support.h>
 #include "project_file_type.h"
 
 namespace ryu::core {
@@ -55,7 +55,9 @@ namespace ryu::core {
     };
 
     core::system_commands::types project_file_type::code_to_action(const std::string& code) {
-        auto it = s_code_to_action.find(boost::to_lower_copy<std::string>(code));
+        auto lower_case_code = code;
+        to_lower(lower_case_code);
+        auto it = s_code_to_action.find(lower_case_code);
         if (it == s_code_to_action.end())
             return core::system_commands::unknown;
         return it->second;
@@ -69,11 +71,15 @@ namespace ryu::core {
     }
 
     bool project_file_type::does_type_require_project(const std::string& code) {
-        return !(boost::to_lower_copy<std::string>(code) == "mach");
+        auto lower_code = code;
+        to_lower(lower_code);
+        return !(lower_code == "mach");
     }
 
     project_file_type::codes project_file_type::code_to_type(const std::string& code) {
-        auto it = s_code_to_type.find(boost::to_lower_copy<std::string>(code));
+        auto lower_case_code = code;
+        to_lower(lower_case_code);
+        auto it = s_code_to_type.find(lower_case_code);
         if (it == s_code_to_type.end())
             return project_file_type::uninitialized;
         return static_cast<project_file_type::codes>(it->second);

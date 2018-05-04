@@ -9,7 +9,6 @@
 //
 
 #include <regex>
-#include <boost/algorithm/string.hpp>
 #include "assembly_language_parser.h"
 
 namespace ryu::core {

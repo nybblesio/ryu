@@ -71,6 +71,10 @@ Art Asset Requirements
     which button?
     bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
 
+- REFACTOR: remove boost and replace with C++17 alternatives
+
+- NEW: implement conan for dependency management
+
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 - FIX: CAPS LOCK key fucks up input system

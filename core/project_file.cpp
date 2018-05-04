@@ -12,7 +12,6 @@
 #include <hardware/machine.h>
 #include <common/string_support.h>
 #include <common/stream_support.h>
-#include <boost/algorithm/string.hpp>
 #include "project.h"
 #include "project_file.h"
 

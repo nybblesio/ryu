@@ -18,7 +18,6 @@
 #include <core/command_parser.h>
 #include <common/string_support.h>
 #include <common/stream_support.h>
-#include <boost/algorithm/string.hpp>
 #include "assembler.h"
 #include "environment.h"
 #include "project_file.h"
@@ -1600,7 +1599,9 @@ namespace ryu::core {
             data_table_row_t row {};
             row.columns.push_back(std::to_string(file->id()));
             row.columns.push_back(fmt::format("\"{}\"", file->path().string()));
-            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file->type())));
+            auto code = core::project_file_type::type_to_code(file->type());
+            to_upper(code);
+            row.columns.push_back(code);
             table.rows.push_back(row);
         }
 
@@ -2010,7 +2011,9 @@ namespace ryu::core {
             data_table_row_t row {};
             row.columns.push_back(std::to_string(file->id()));
             row.columns.push_back(fmt::format("\"{}\"", file->path().string()));
-            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file->type())));
+            auto code = core::project_file_type::type_to_code(file->type());
+            to_upper(code);
+            row.columns.push_back(code);
             table.rows.push_back(row);
         }
 

@@ -10,7 +10,6 @@
 
 #include <ide/ide_types.h>
 #include <logger_factory.h>
-#include <boost/algorithm/string.hpp>
 #include "controller.h"
 
 namespace ryu::ide::project_editor {
@@ -56,12 +55,14 @@ namespace ryu::ide::project_editor {
             _machine_pick_list->selected_key(machine_instance->id());
 
         for (const auto& file : project->files()) {
+            auto type_code = core::project_file_type::type_to_code(file->type());
+            to_upper(type_code);
             _file_pick_list->add_row({
                     file->id(),
                     {
                         fmt::format("{}", file->id()),
                         file->name(),
-                        boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file->type())),
+                        type_code,
                         file->should_assemble() ? "X" : ""
                     }
                 });
