@@ -26,11 +26,11 @@ namespace ryu::core {
 
         option_list& options();
 
-        border::types border() const;
-
-        void border(border::types value);
+        core::border::types border() const;
 
         void row_color(palette_index value);
+
+        void border(core::border::types value);
 
         void selection_color(palette_index value);
 
@@ -59,12 +59,12 @@ namespace ryu::core {
         void calculate_visible_rows();
 
     private:
-        int _row = 0;
-        int _selection = 0;
-        int _visible_rows = 0;
-        int _selected_item = 0;
+        size_t _row = 0;
+        size_t _selection = 0;
         option_list _options {};
         palette_index _row_color;
+        size_t _visible_rows = 0;
+        size_t _selected_item = 0;
         palette_index _selection_color;
         on_clicked_callable _on_clicked {};
         border::types _border = border::types::solid;

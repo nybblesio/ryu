@@ -44,7 +44,7 @@ namespace ryu::core {
         if (palette() == nullptr)
             return;
 
-        for (auto entry_index = 0;
+        for (size_t entry_index = 0;
                 entry_index < palette()->size();
                 ++entry_index) {
             auto entry_editor = core::view_factory::create_view<core::palette_entry_editor>(
@@ -72,7 +72,7 @@ namespace ryu::core {
             _views.push_back(std::move(entry_editor));
         }
 
-        for (auto i = 0; i < _views.size(); i++) {
+        for (size_t i = 0; i < _views.size(); i++) {
             if (i == 0) {
                 _views[i]->next_view(_views[i + 1].get());
                 _views[i]->prev_view(this);

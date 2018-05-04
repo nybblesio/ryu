@@ -10,6 +10,7 @@
 #include <map>
 #include <list>
 #include <stack>
+#include <functional>
 #include <fmt/format.h>
 #include <boost/variant.hpp>
 #include <common/SDL_FontCache.h>
@@ -201,7 +202,7 @@ namespace ryu::core {
         std::string text {};
         uint16_t min_width {};
         uint16_t max_width {};
-        alignment::horizontal::types alignment = alignment::horizontal::types::left;
+        core::alignment::horizontal::types alignment = core::alignment::horizontal::types::left;
         uint8_t padding = 1;
         uint8_t options = format_options::none;
         uint16_t width {};

@@ -170,7 +170,7 @@ namespace ryu::core {
         else {
             std::stringstream stream;
             auto data_count = std::min<size_t>(opcodes.size(), 8);
-            for (auto i = 0; i < data_count; i++) {
+            for (size_t i = 0; i < data_count; i++) {
                 stream << fmt::format("{:02x} ", opcodes[i]);
             }
             row.columns.push_back(stream.str());
@@ -213,7 +213,7 @@ namespace ryu::core {
             return overflow_row;
         };
 
-        auto index = 8;
+        size_t index = 8;
         std::stringstream stream;
         address += 8;
         while (index < opcodes.size()) {

@@ -280,7 +280,11 @@ namespace ryu::core {
                 ->set_write_latches(true);
 
         auto bounds_check_end = end_address > _location_counter;
+#ifdef __clang__
         stream.seekp(0, std::iostream::seekdir::beg);
+#else
+        stream.seekp(0, std::iostream::seekdir::_S_beg);
+#endif
 
         char data_byte;
         while (!stream.eof()) {

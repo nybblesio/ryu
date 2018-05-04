@@ -208,7 +208,7 @@ namespace ryu::core {
                         return left < right;
                     });
 
-            for (auto i = 0; (i < points.size()); i += 2) {
+            for (size_t i = 0; (i < points.size()); i += 2) {
                 auto xa = points[i] + 1;
                 xa = (xa >> 16) + ((xa & 32768) >> 15);
                 auto xb = points[i + 1] - 1;

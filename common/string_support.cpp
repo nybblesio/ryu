@@ -71,7 +71,7 @@ namespace ryu {
     std::string list_to_string(const std::vector<std::string>& list, const char& sep) {
         std::stringstream stream;
 
-        for (auto i = 0; i < list.size(); i++) {
+        for (size_t i = 0; i < list.size(); i++) {
             if (i > 0)
                 stream << sep;
             stream << list[i];

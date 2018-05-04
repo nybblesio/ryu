@@ -645,7 +645,7 @@ namespace ryu::core {
                                     directive_t::data_sizes::byte,
                                     char_byte);
                         } else if (variant.which() == variant::types::dup_literal) {
-                            auto pattern_index = 0;
+                            size_t pattern_index = 0;
                             auto dup_literal = boost::get<dup_literal_t>(variant);
                             for (size_t i = 0; i < dup_literal.count; i++) {
                                 auto numeric_literal = dup_literal.values[pattern_index++];

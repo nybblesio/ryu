@@ -23,24 +23,24 @@ namespace ryu::core {
 
         ~label() override;
 
-        border::types border() const;
-
-        void border(border::types value);
+        core::border::types border() const;
 
         std::string value() const override;
 
-        alignment::vertical::types valign() const;
-
-        alignment::horizontal::types halign() const;
+        void border(core::border::types value);
 
         void value(const std::string& text) override;
 
-        void valign(alignment::vertical::types value);
+        core::alignment::vertical::types valign() const;
 
-        void halign(alignment::horizontal::types value);
+        core::alignment::horizontal::types halign() const;
+
+        void valign(core::alignment::vertical::types value);
+
+        void halign(core::alignment::horizontal::types value);
 
     protected:
-        void on_draw(core::renderer& surface) override;
+        void on_draw(ryu::core::renderer& surface) override;
 
         void on_resize(const core::rect& context_bounds) override;
 
@@ -48,9 +48,9 @@ namespace ryu::core {
         void update_content_bounds();
 
     private:
-        border::types _border = border::types::none;
-        alignment::vertical::types _valign = alignment::vertical::middle;
-        alignment::horizontal::types _halign = alignment::horizontal::none;
+        core::border::types _border = core::border::types::none;
+        core::alignment::vertical::types _valign = core::alignment::vertical::middle;
+        core::alignment::horizontal::types _halign = core::alignment::horizontal::none;
     };
 
 };

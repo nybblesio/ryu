@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <sstream>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <boost/variant.hpp>

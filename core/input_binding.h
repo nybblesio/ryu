@@ -12,6 +12,8 @@
 
 #include <vector>
 #include <string>
+#include <memory>
+#include <cstdint>
 #include <SDL2/SDL_events.h>
 #include "joystick.h"
 
@@ -41,7 +43,7 @@ namespace ryu::core {
 
     using input_bindings = std::vector<input_binding>;
 
-    using input_key = uint32_t;
+    using input_key = int32_t;
     using input_keys = std::vector<input_key>;
 
     using joystick_buttons = uint32_t;

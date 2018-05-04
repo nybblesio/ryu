@@ -1,10 +1,25 @@
 cmake_minimum_required (VERSION 3.11)
+project (ryu)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override" CACHE STRING "compile flags" FORCE)
-message(STATUS ${CMAKE_CXX_FLAGS})
 
-project (ryu)
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override" CACHE STRING "compile flags" FORCE)
+    message(STATUS "Using clang flags: ${CMAKE_CXX_FLAGS}")
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS "-Wall" CACHE STRING "compile flags" FORCE)
+    message(STATUS "Using gcc flags: ${CMAKE_CXX_FLAGS}")
+else ()
+    message(STATUS "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
+endif()
+
+# rpath setup
+SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH "/usr/local/lib")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 set (ryu_version_major 1)
 set (ryu_version_minor 0)
 configure_file (
@@ -70,12 +85,6 @@ add_custom_command(
         POST_BUILD
         COMMAND ctest -C $<CONFIGURATION> --output-on-failure
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-
-# rpath setup
-SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-SET(CMAKE_INSTALL_RPATH "/usr/local/lib")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # target & linkage
 add_executable(

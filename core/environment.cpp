@@ -379,7 +379,7 @@ namespace ryu::core {
                 }
             }
         } else {
-            auto idx = 0;
+            size_t idx = 0;
             for (const auto& param_spec : command.spec.params) {
                 std::vector<core::variant_t>* values = nullptr;
 

@@ -309,7 +309,7 @@ namespace ryu::hardware {
         for(const auto& type : ic_types) {
             auto ic_type_id = type
                     .get_metadata(ryu::hardware::meta_data_key::type_id)
-                    .to_int();
+                    .to_uint32();
             if (type_id == ic_type_id) {
                 auto instance = type.create({});
                 auto circuit = instance.get_value<hardware::integrated_circuit*>();

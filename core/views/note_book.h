@@ -49,7 +49,7 @@ namespace ryu::core {
         void define_actions();
 
     private:
-        int _index = 0;
+        size_t _index = 0;
         std::vector<std::string> _tabs;
     };
 

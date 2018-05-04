@@ -34,11 +34,11 @@ namespace ryu::core {
 
         std::string shortcut() const;
 
-        border::types border() const;
-
-        void border(border::types value);
+        core::border::types border() const;
 
         palette_index shortcut_color() const;
+
+        void border(core::border::types value);
 
         void shortcut(const std::string& value);
 

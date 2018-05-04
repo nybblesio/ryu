@@ -126,7 +126,7 @@ namespace ryu::core {
         action_provider().register_handler(
                 core::input_action::find_by_name("memory_editor_page_up"),
                 [this](const core::event_data_t& data) {
-                    auto page_size = _metrics.page_height * _metrics.page_width;
+                    uint32_t page_size = _metrics.page_height * _metrics.page_width;
                     if (page_size > _address)
                         _address = 0;
                     else
@@ -137,8 +137,8 @@ namespace ryu::core {
                 core::input_action::find_by_name("memory_editor_page_down"),
                 [this](const core::event_data_t& data) {
                     auto machine = core::project::instance()->machine();
-                    auto page_size = _metrics.page_height * _metrics.page_width;
-                    auto remaining_memory = machine->mapper()->address_space() - _address;
+                    uint32_t page_size = _metrics.page_height * _metrics.page_width;
+                    uint32_t remaining_memory = machine->mapper()->address_space() - _address;
                     if (page_size > remaining_memory)
                         _address += remaining_memory;
                     else

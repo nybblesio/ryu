@@ -128,8 +128,6 @@ namespace ryu::core {
 
         uint8_t fg_color() const;
 
-        dock::styles dock() const;
-
         void tab_stop(bool value);
 
         bool should_clip() const;
@@ -152,7 +150,7 @@ namespace ryu::core {
             return nullptr;
         }
 
-        void dock(dock::styles style);
+        core::dock::styles dock() const;
 
         void font_style(uint8_t styles);
 
@@ -169,6 +167,8 @@ namespace ryu::core {
         virtual core::rect client_bounds();
 
         void draw(core::renderer& renderer);
+
+        void dock(core::dock::styles style);
 
         void focus(const core::view* target);
 

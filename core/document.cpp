@@ -93,7 +93,7 @@ namespace ryu::core {
             return true;
         }
 
-        auto bottom = _rows - _page_height;
+        int32_t bottom = _rows - _page_height;
         if (_row > bottom) {
             _row = bottom;
             return true;

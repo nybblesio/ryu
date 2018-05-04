@@ -37,12 +37,8 @@ namespace ryu::core {
         }
     }
 
-    border::types label::border() const {
+    core::border::types label::border() const {
         return _border;
-    }
-
-    void label::border(border::types value) {
-        _border = value;
     }
 
     void label::value(const std::string& text) {
@@ -53,7 +49,11 @@ namespace ryu::core {
         }
     }
 
-    void label::on_draw(core::renderer& surface) {
+    void label::border(core::border::types value) {
+        _border = value;
+    }
+
+    void label::on_draw(ryu::core::renderer& surface) {
         auto bounds = client_bounds();
 
         auto current_palette = palette();
@@ -78,20 +78,8 @@ namespace ryu::core {
         }
     }
 
-    alignment::vertical::types label::valign() const {
+    core::alignment::vertical::types label::valign() const {
         return _valign;
-    }
-
-    alignment::horizontal::types label::halign() const {
-        return _halign;
-    }
-
-    void label::valign(alignment::vertical::types value) {
-        _valign = value;
-    }
-
-    void label::halign(alignment::horizontal::types value) {
-        _halign = value;
     }
 
     void label::on_resize(const core::rect& context_bounds) {
@@ -109,6 +97,18 @@ namespace ryu::core {
                 break;
             }
         }
+    }
+
+    core::alignment::horizontal::types label::halign() const {
+        return _halign;
+    }
+
+    void label::valign(core::alignment::vertical::types value) {
+        _valign = value;
+    }
+
+    void label::halign(core::alignment::horizontal::types value) {
+        _halign = value;
     }
 
 }

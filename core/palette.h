@@ -36,7 +36,7 @@ namespace ryu::core {
             if (size < _entries.size())
                 return;
             auto missing_entry_count = size - _entries.size();
-            for (auto i = 0; i < missing_entry_count; i++)
+            for (size_t i = 0; i < missing_entry_count; i++)
                 _entries.emplace_back(0, 0, 0, 0);
         }
 

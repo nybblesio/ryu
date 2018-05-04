@@ -122,7 +122,7 @@ namespace ryu::core {
             const auto& msg = messages[msg_index++];
             if (msg.type() == core::result_message::types::data) {
                 if (msg.code() == "command_result") {
-                    auto count = 0;
+                    size_t count = 0;
                     auto params = msg.params();
                     for (auto it = params.begin(); it != params.end(); ++it) {
                         c->format_command_result(it->second, lines);
@@ -780,11 +780,12 @@ namespace ryu::core {
     }
 
     void console::scale_columns(std::vector<data_table_column_t>& columns) {
-        auto target_width = _document.columns() - 10;
+        uint16_t target_width = static_cast<uint16_t>(
+            _document.columns() > 10 ? _document.columns() - 10 : 10);
 
         auto get_working_size = [&]() {
-            auto working_size = 0;
-            auto clamped_count = 0;
+            size_t working_size = 0;
+            size_t clamped_count = 0;
             for (auto& col : columns) {
                 if (col.width == 0)
                     col.width = col.max_width;

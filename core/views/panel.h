@@ -22,9 +22,9 @@ namespace ryu::core {
 
         ~panel() override;
 
-        border::types border() const;
+        core::border::types border() const;
 
-        void border(border::types value);
+        void border(core::border::types value);
 
     protected:
         void on_initialize() override;
@@ -32,7 +32,7 @@ namespace ryu::core {
         void on_draw(core::renderer& surface) override;
 
     private:
-        border::types _border = border::types::none;
+        core::border::types _border = core::border::types::none;
     };
 
 };

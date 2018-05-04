@@ -41,17 +41,17 @@ namespace ryu::core {
 
         int visible_items() const;
 
-        border::types border() const;
-
         void visible_items(int value);
 
         void selected_key(uint32_t key);
 
-        void border(border::types value);
+        core::border::types border() const;
 
         std::string value() const override;
 
         void row_color(palette_index value);
+
+        void border(core::border::types value);
 
         void selection_color(palette_index value);
 
@@ -91,21 +91,20 @@ namespace ryu::core {
 
     private:
         bool _found;
-        int _row = 0;
         int _width = 0;
         int _height = 0;
         int _length = 32;
-        int _selection = 0;
+        uint32_t _row = 0;
         core::caret _caret;
         std::string _search;
-        int _selected_item = 0;
+        uint32_t _selection = 0;
         option_list _options {};
-        int _visible_items = 10;
         palette_index _row_color;
+        uint32_t _selected_item = 0;
+        uint32_t _visible_rows = 10;
         palette_index _selection_color;
         palette_index _not_found_color;
         border::types _border = border::types::none;
     };
 
 };
-

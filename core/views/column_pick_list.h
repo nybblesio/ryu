@@ -83,13 +83,13 @@ namespace ryu::core {
 
         const row_list& rows() const;
 
-        border::types border() const;
-
         void remove_row(uint32_t index);
 
-        void border(border::types value);
+        core::border::types border() const;
 
         void row_color(palette_index value);
+
+        void border(core::border::types value);
 
         void add_row(const pick_list_row_t& row);
 

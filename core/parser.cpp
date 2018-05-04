@@ -301,8 +301,8 @@ namespace ryu::core {
         auto stop_line = std::min<int32_t>(
                 static_cast<int32_t>(_input.source_lines.size()),
                 _line + 4);
-        for (auto i = start_line; i < stop_line; i++) {
-            if (i == _line - 1) {
+        for (int32_t i = start_line; i < stop_line; i++) {
+            if (i == static_cast<int32_t>(_line - 1)) {
                 stream << fmt::format("{:04d}: ", i + 1)
                        << _input.source_lines[i] << "\n"
                        << std::setw(_column + 8)
@@ -312,7 +312,7 @@ namespace ryu::core {
                        << _input.source_lines[i];
             }
 
-            if (i < stop_line - 1)
+            if (i < static_cast<int32_t>(stop_line - 1))
                 stream << "\n";
         }
 
@@ -555,7 +555,7 @@ namespace ryu::core {
         for (auto it = _operators.begin(); it != _operators.end(); ++it)
             candidates.push_back(&it->second);
 
-        auto index = 0;
+        size_t index = 0;
         operator_t* op = nullptr;
         std::vector<operator_t*> narrowed;
         while (true) {
@@ -949,7 +949,7 @@ namespace ryu::core {
 
     bool parser::match_literal(const std::string& literal) {
         auto token = current_token();
-        for (auto i = 0; i < literal.length(); ++i) {
+        for (size_t i = 0; i < literal.length(); ++i) {
             auto c = literal[i];
             if (token == nullptr) {
                 error("P008", "Unexpected end of input");
@@ -966,7 +966,7 @@ namespace ryu::core {
     std::vector<operator_t*> parser::find_matching_operators(
             std::vector<operator_t*> candidates,
             char token,
-            int index) {
+            size_t index) {
         std::vector<operator_t*> matches;
         for (auto it = candidates.begin(); it != candidates.end(); ++it) {
             auto op = *it;

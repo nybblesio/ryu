@@ -23,12 +23,12 @@ namespace ryu::core {
     }
 
     bool pick_list::page_up() {
-        if (_visible_items > _row) {
+        if (_visible_rows > _row) {
             _row = 0;
             return true;
         }
         else
-            _row -= _visible_items;
+            _row -= _visible_rows;
         return false;
     }
 
@@ -48,21 +48,21 @@ namespace ryu::core {
 
     bool pick_list::move_down() {
         _selected_item++;
-        if (_selected_item > _visible_items - 1) {
-            _selected_item = _visible_items - 1;
+        if (_selected_item > _visible_rows - 1) {
+            _selected_item = _visible_rows - 1;
             return move_row_down();
         }
         return false;
     }
 
     bool pick_list::page_down() {
-        auto next_stop_row = _row + _visible_items;
+        auto next_stop_row = _row + _visible_rows;
         if (next_stop_row > _options.size() - 1) {
-            _row = static_cast<int>(_options.size() - _visible_items);
+            _row = static_cast<int>(_options.size() - _visible_rows);
             return true;
         }
         else
-            _row += _visible_items;
+            _row += _visible_rows;
         return false;
     }
 
@@ -243,10 +243,10 @@ namespace ryu::core {
     }
 
     bool pick_list::move_row_down() {
-        if (_options.size() < _visible_items)
+        if (_options.size() < _visible_rows)
             return false;
         _row++;
-        auto max = _options.size() - _visible_items;
+        auto max = _options.size() - _visible_rows;
         if (_row > max) {
             _row = static_cast<int>(max);
             return true;
@@ -280,7 +280,7 @@ namespace ryu::core {
     }
 
     int pick_list::visible_items() const {
-        return _visible_items;
+        return _visible_rows;
     }
 
     border::types pick_list::border() const {
@@ -288,7 +288,7 @@ namespace ryu::core {
     }
 
     void pick_list::visible_items(int value) {
-        _visible_items = value;
+        _visible_rows = value;
     }
 
     void pick_list::selected_key(uint32_t key) {
@@ -378,9 +378,9 @@ namespace ryu::core {
         if (!focused())
             return;
 
-        auto height = _height > 0 ?
-                      _height :
-                      font_face()->line_height * (_visible_items + 1);
+        int32_t height = _height > 0 ?
+            _height :
+            font_face()->line_height * (_visible_rows + 1);
         auto width = _width > 0 ? _width : bounds.width();
         core::rect box {bounds.left(), bounds.bottom(), width + 6, height};
         surface.set_color(bg);
@@ -390,7 +390,7 @@ namespace ryu::core {
 
         auto y = box.top() + 4;
         auto start = _row;
-        auto stop = start + _visible_items;
+        uint32_t stop = start + _visible_rows;
         if (stop > _options.size())
             stop = static_cast<int>(_options.size());
         for (auto row = start; row < stop; ++row) {

@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <algorithm>
 #include <SDL2/SDL_joystick.h>
 #include "joysticks.h"
 

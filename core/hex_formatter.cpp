@@ -8,6 +8,7 @@
 // this source code file.
 //
 
+#include <sstream>
 #include "hex_formatter.h"
 
 namespace ryu::core {
@@ -16,18 +17,17 @@ namespace ryu::core {
             const void* data,
             size_t size) {
         auto* buf = (unsigned char*)data;
-        int i, j;
         std::stringstream stream;
-        for (i=0; i<size; i+=16) {
+        for (size_t i = 0; i < size; i += 16) {
             stream << fmt::format("{:06x}: ", i);
-            for (j=0; j<16; j++)
+            for (size_t j = 0; j < 16; j++)
                 if (i+j < size)
                     stream << fmt::format("{:02x} ", buf[i+j]);
                 else
                     stream << "   ";
             stream << " ";
-            for (j=0; j<16; j++)
-                if (i+j < size)
+            for (size_t j = 0; j < 16; j++)
+                if (i + j < size)
                     stream << (char)(isprint(buf[i+j]) ? buf[i+j] : '.');
             stream << "\n";
         }
@@ -57,14 +57,13 @@ namespace ryu::core {
         table.footers.push_back({"Bytes", 20, 20});
 
         auto* buf = (unsigned char*)data;
-        int i, j;
-        for (i = 0; i < size; i += bytes) {
+        for (size_t i = 0; i < size; i += bytes) {
             data_table_row_t row {};
             row.columns.push_back(fmt::format("{:04x}", i));
-            for (j = 0; j < bytes; j++) {
+            for (size_t j = 0; j < bytes; j++) {
                 row.columns.push_back(fmt::format("{:02x} ", buf[i + j]));
             }
-            for (j = 0; j < bytes; j++) {
+            for (size_t j = 0; j < bytes; j++) {
                 row.columns.push_back(fmt::format(
                     "{}",
                     (char) (isprint(buf[i + j]) ? buf[i + j] : '.')));

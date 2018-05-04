@@ -129,7 +129,7 @@ namespace ryu::core {
         std::vector<operator_t*> find_matching_operators(
                 std::vector<operator_t*> candidates,
                 char token,
-                int index);
+                size_t index);
 
     private:
         const std::vector<std::function<ast_node_shared_ptr ()>> _terminals = {

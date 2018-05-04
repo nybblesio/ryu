@@ -67,11 +67,16 @@ namespace ryu::core {
 
     bool state::is_focused() const {
         auto active_id = context()->peek_state();
-        return active_id == _id;
+        if (active_id == -1)
+            return false;
+        return static_cast<uint32_t>(active_id) == _id;
     }
 
     bool state::is_visible() const {
-        return context()->peek_state() == _id;
+        int32_t top_state = context()->peek_state();
+        if (top_state == -1)
+            return false;
+        return static_cast<uint32_t>(top_state) == _id;
     }
 
     core::context* state::context() {

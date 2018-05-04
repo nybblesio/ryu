@@ -25,7 +25,7 @@ namespace ryu::core {
 
     void joystick::clear() {
         _buttons = 0;
-        for (auto i = 0; i < _number_hats; i++)
+        for (size_t i = 0; i < _number_hats; i++)
             _hats[i] = 0;
     }
 
