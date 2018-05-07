@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+#include <core/yaml_support.h>
 #include <hardware/registry.h>
 #include <common/stream_support.h>
 #include <boost/filesystem/operations.hpp>
@@ -80,39 +81,37 @@ namespace ryu::core {
 
         auto root = YAML::LoadFile(project_file.string());
 
-        if (root["name"] == nullptr) {
+        std::string project_name;
+
+        if (!get_optional(root["name"], project_name)) {
             result.add_message(
-                    "C031",
-                    "Project requires name.",
-                    true);
+                "C031",
+                "Project requires name.",
+                true);
             return false;
+
         }
 
-        auto name = root["name"];
         _instance = core::project_shared_ptr(new core::project(project_path));
         _instance->suspend_notify();
-        _instance->name(name.as<std::string>());
+        _instance->name(project_name);
 
-        auto description = root["description"];
-        if (description != nullptr) {
-            _instance->description(description.as<std::string>());
-        }
+        std::string project_description;
+        if (get_optional(root["description"], project_description))
+            _instance->description(project_description);
 
+        uint32_t machine_id;
         hardware::machine* machine = nullptr;
-        auto machine_node = root["machine"];
-        if (machine_node != nullptr && machine_node.IsScalar()) {
-            auto machine_id = machine_node.as<uint32_t>();
-            if (machine_id != 0) {
-                machine = hardware::registry::instance()->find_machine(machine_id);
-                if (machine == nullptr) {
-                    result.add_message(
-                            "C031",
-                            fmt::format("no machine exists with id: {}", machine_id),
-                            true);
-                    return false;
-                }
-                _instance->machine(machine);
+        if (get_optional(root["machine"], machine_id)) {
+            machine = hardware::registry::instance()->find_machine(machine_id);
+            if (machine == nullptr) {
+                result.add_message(
+                    "C031",
+                    fmt::format("no machine exists with id: {}", machine_id),
+                    true);
+                return false;
             }
+            _instance->machine(machine);
         }
 
         auto files = root["files"];
@@ -129,20 +128,17 @@ namespace ryu::core {
             }
         }
 
-        auto active_environment_node = root["active_environment"];
-        if (active_environment_node != nullptr && active_environment_node.IsScalar()) {
-            auto active_environment_id = active_environment_node.as<uint32_t>();
-            if (active_environment_id != 0) {
-                auto file = _instance->find_file(active_environment_id);
-                if (file == nullptr) {
-                    result.add_message(
-                            "C031",
-                            fmt::format("no project_file exists with id: {}", active_environment_id),
-                            true);
-                    return false;
-                }
-                _instance->active_environment(file);
+        uint32_t active_environment_id;
+        if (get_optional(root["active_environment"], active_environment_id)) {
+            auto file = _instance->find_file(active_environment_id);
+            if (file == nullptr) {
+                result.add_message(
+                    "C031",
+                    fmt::format("no project_file exists with id: {}", active_environment_id),
+                    true);
+                return false;
             }
+            _instance->active_environment(file);
         }
 
         auto props = root["props"];

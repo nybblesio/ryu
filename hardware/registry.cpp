@@ -11,6 +11,7 @@
 #include <fmt/format.h>
 #include <core/id_pool.h>
 #include <yaml-cpp/yaml.h>
+#include <core/yaml_support.h>
 #include "machine.h"
 #include "registry.h"
 
@@ -113,15 +114,17 @@ namespace ryu::hardware {
                 if (!node.IsMap())
                     continue;
 
-                if (node["id"] == nullptr) {
+                uint32_t machine_id;
+                if (!ryu::core::get_optional(node["id"], machine_id)) {
                     result.add_message(
-                            "R004",
-                            "Machine node requires id.",
-                            true);
+                        "R004",
+                        "Machine node requires id.",
+                        true);
                     break;
                 }
 
-                if (node["name"] == nullptr) {
+                std::string machine_name;
+                if (!ryu::core::get_optional(node["name"], machine_name)) {
                     result.add_message(
                             "R004",
                             "Machine node requires name.",
@@ -129,25 +132,21 @@ namespace ryu::hardware {
                     break;
                 }
 
-                auto id = node["id"].as<uint32_t>();
-                auto name = node["name"].as<std::string>();
-                auto machine = hardware::machine(id);
-                machine.name(name);
+                auto machine = hardware::machine(machine_id);
+                machine.name(machine_name);
 
-                if (node["address_space"] != nullptr) {
-                    auto address_space = node["address_space"].as<uint32_t>();
-                    machine.address_space(address_space);
-                }
+                uint32_t machine_address_space;
+                uint32_t machine_display_id;
+                std::string machine_description;
 
-                if (node["display_id"] != nullptr) {
-                    auto display_id = node["display_id"].as<uint32_t>();
-                    machine.display(find_display(display_id));
-                }
+                if (ryu::core::get_optional(node["address_space"], machine_address_space))
+                    machine.address_space(machine_address_space);
 
-                if (node["description"] != nullptr) {
-                    auto description = node["description"].as<std::string>();
-                    machine.description(description);
-                }
+                if (ryu::core::get_optional(node["display_id"], machine_display_id))
+                    machine.display(find_display(machine_display_id));
+
+                if (ryu::core::get_optional(node["description"], machine_description))
+                    machine.description(machine_description);
 
                 auto components = node["components"];
                 if (components != nullptr && components.IsSequence()) {
@@ -156,7 +155,11 @@ namespace ryu::hardware {
                         if (!component_node.IsMap())
                             continue;
 
-                        if (component_node["id"] == nullptr) {
+                        uint32_t component_id;
+                        uint32_t component_address;
+                        std::string component_name;
+
+                        if (!ryu::core::get_optional(component_node["id"], component_id)) {
                             result.add_message(
                                     "R004",
                                     "Machine component node requires id.",
@@ -164,7 +167,7 @@ namespace ryu::hardware {
                             break;
                         }
 
-                        if (component_node["name"] == nullptr) {
+                        if (!ryu::core::get_optional(component_node["name"], component_name)) {
                             result.add_message(
                                     "R004",
                                     "Machine component node requires name.",
@@ -172,7 +175,7 @@ namespace ryu::hardware {
                             break;
                         }
 
-                        if (component_node["address"] == nullptr) {
+                        if (!ryu::core::get_optional(component_node["address"], component_address)) {
                             result.add_message(
                                     "R004",
                                     "Machine component node requires address.",
@@ -180,20 +183,14 @@ namespace ryu::hardware {
                             break;
                         }
 
-                        auto component_id = component_node["id"].as<uint32_t>();
-                        auto component_name = component_node["name"].as<std::string>();
-                        auto component_address = component_node["address"].as<uint32_t>();
-
                         auto component_color = 0;
-                        auto component_color_node = component_node["color"];
-                        if (component_color_node != nullptr) {
-                            component_color = component_color_node.as<uint32_t>();
-                        }
+                        ryu::core::get_optional(component_node["color"], component_color);
 
                         if (component_node["ic"] != nullptr) {
                             auto ic_node = component_node["ic"];
                             if (ic_node.IsMap()) {
-                                auto type_id = ic_node["type_id"].as<uint16_t>();
+                                uint16_t type_id;
+                                ryu::core::get_optional(ic_node["type_id"], type_id);
 
                                 auto ic = new_ic_by_type_id(type_id);
                                 if (ic == nullptr) {
@@ -204,8 +201,8 @@ namespace ryu::hardware {
                                     break;
                                 }
 
-                                auto address_space_node = ic_node["address_space"];
-                                if (address_space_node == nullptr || !address_space_node.IsScalar()) {
+                                uint32_t ic_address_space;
+                                if (!ryu::core::get_optional(ic_node["address_space"], ic_address_space)) {
                                     result.add_message(
                                         "R005",
                                         "address_space is required for integrated_circuit.",
@@ -213,7 +210,7 @@ namespace ryu::hardware {
                                     break;
                                 }
 
-                                ic->address_space(ic_node["address_space"].as<uint32_t>());
+                                ic->address_space(ic_address_space);
 
                                 auto writes_node = ic_node["writes"];
                                 if (writes_node != nullptr && writes_node.IsSequence()) {
@@ -270,10 +267,9 @@ namespace ryu::hardware {
                                 component->address(component_address);
                                 component->color(static_cast<core::palette_index>(component_color));
 
-                                if (component_node["description"] != nullptr) {
-                                    auto component_desc = component_node["description"].as<std::string>();
-                                    component->description(component_desc);
-                                }
+                                std::string component_description;
+                                if (ryu::core::get_optional(component_node["description"], component_description))
+                                    component->description(component_description);
 
                                 machine.add_component(component);
                             }
@@ -282,7 +278,7 @@ namespace ryu::hardware {
                 }
 
                 if (!result.is_failed())
-                    _machines.insert(std::make_pair(id, machine));
+                    _machines.insert(std::make_pair(machine_id, machine));
             }
         }
 

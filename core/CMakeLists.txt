@@ -38,6 +38,7 @@ add_library(
         project_file.cpp project_file.h
         symbol_table.cpp symbol_table.h
         views/button.cpp views/button.h
+        yaml_support.cpp yaml_support.h
         views/console.cpp views/console.h
         views/text_box.cpp views/text_box.h
         palette_entry.cpp palette_entry.h

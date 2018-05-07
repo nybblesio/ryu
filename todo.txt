@@ -26,11 +26,11 @@ Large Refactorings
     NOTE: 5/4/2018 - I attempted to refactor out boost but ran into issues with std::filesystem
                 not yet being fully supported in clang.
 
-                Additionally, compiling Ryu using GCC 8.1.0 yielded a number of conformance errors
-                related to naming.  Need to research and fix.
-
 [feature/tools] IDE UI & related tasks
 --------------------------------------
+
+- REFACTOR: YAML helper code for constants, includes, optionals into common
+- REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
 
 - FIX: audit each view and ensure that it's rendering only within client_bounds()
 
@@ -49,9 +49,6 @@ Large Refactorings
 - FINISH: component_editor::controller - callbacks
     --> reorg layout
     --> UPDATE: integrate new integrated_circuit_editor view into component_editor
-
-- REFACTOR: YAML helper code for constants, includes, optionals into common
-- REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
 
 - REFACTOR: use pratt parser model to completely replace shunting-yard implementation
 - REFACTOR: rework pipe syntax after pratt parser is in place
@@ -329,3 +326,5 @@ DONE
         how will we uniquely identify different "makes/models" of circuits?
         --> make type_id the unique ID for that circuit
         --> add category_id for the "group" that it belongs to
+- FIX: Additionally, compiling Ryu using GCC 8.1.0 yielded a number of conformance errors
+       related to naming.  Need to research and fix.

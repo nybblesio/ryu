@@ -11,6 +11,7 @@
 #include <yaml-cpp/yaml.h>
 #include <boost/filesystem/operations.hpp>
 #include "font_book.h"
+#include "yaml_support.h"
 
 namespace ryu::core {
 
@@ -42,8 +43,8 @@ namespace ryu::core {
         }
 
         for (auto it = fonts_node.begin();
-             it != fonts_node.end();
-             ++it) {
+                 it != fonts_node.end();
+                 ++it) {
             auto family_node = *it;
             if (!family_node.IsMap())
                 continue;
@@ -51,17 +52,10 @@ namespace ryu::core {
             std::string family_name;
             std::vector<uint32_t> valid_sizes {};
 
-            auto family_name_node = family_node["family"];
-            if (family_name_node != nullptr
-            &&  family_name_node.IsScalar()) {
-                family_name = family_name_node.as<std::string>();
-            }
+            if (!get_optional(family_node["family"], family_name))
+                continue;
 
-            auto sizes_node = family_node["sizes"];
-            if (sizes_node != nullptr
-            &&  sizes_node.IsSequence()) {
-                valid_sizes = sizes_node.as<std::vector<uint32_t>>();
-            }
+            get_optional(family_node["sizes"], valid_sizes);
 
             for (size_t i = 0; i < valid_sizes.size(); i++) {
                 auto current_size = valid_sizes[i];
@@ -72,27 +66,22 @@ namespace ryu::core {
                 auto styles_node = family_node["styles"];
                 if (styles_node.IsSequence()) {
                     for (auto style_it = styles_node.begin();
-                         style_it != styles_node.end();
-                         ++style_it) {
+                             style_it != styles_node.end();
+                             ++style_it) {
                         auto style_node = *style_it;
 
                         uint8_t font_flags = font::styles::normal;
-                        fs::path font_file;
+                        std::string font_flags_string;
+                        std::string font_file;
 
-                        auto flags_node = style_node["flags"];
-                        if (flags_node != nullptr && flags_node.IsScalar()) {
-                            font_flags = font::string_to_style(flags_node.as<std::string>());
+                        if (get_optional(style_node["flags"], font_flags_string))
+                            font_flags = font::string_to_style(font_flags_string);
+
+                        if (get_optional(style_node["font_file"], font_file)) {
+                            fs::path full_font_file_path(path.parent_path());
+                            full_font_file_path.append(font_file);
+                            current_family->add_style(font_flags, full_font_file_path);
                         }
-
-                        auto font_file_node = style_node["font_file"];
-                        if (font_file_node != nullptr && font_file_node.IsScalar()) {
-                            font_file = font_file_node.as<std::string>();
-                        }
-
-                        fs::path full_font_file_path(path.parent_path());
-                        full_font_file_path.append(font_file.string());
-
-                        current_family->add_style(font_flags, full_font_file_path);
                     }
                 }
             }

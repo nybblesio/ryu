@@ -10,11 +10,27 @@
 
 #pragma once
 
+#include <cstdint>
 #include <yaml-cpp/yaml.h>
 #include "core_types.h"
 #include "padding.h"
+#include "rect.h"
 
 namespace YAML {
+    template<>
+    struct convert<ryu::core::context_window::sizes> {
+        static Node encode(const ryu::core::context_window::sizes& rhs) {
+            return Node(static_cast<uint32_t>(rhs));
+        }
+
+        static bool decode(const Node& node, ryu::core::context_window::sizes& rhs) {
+            if (!node.IsScalar())
+                return false;
+            rhs = static_cast<ryu::core::context_window::sizes>(node.as<uint32_t>());
+            return true;
+        }
+    };
+
     template<>
     struct convert<ryu::core::rect> {
         static Node encode(const ryu::core::rect& rhs) {
