@@ -58,11 +58,15 @@ namespace ryu::hardware {
             uint32_t value,
             integrated_circuit::endianness::types endianess) override;
 
+        core::palette_list decode_palettes() const override;
+
         core::tile_attributes_t tile_attributes() const override;
 
         core::tile_attributes_t sprite_attributes() const override;
 
         core::palette_attributes_t palette_attributes() const override;
+
+        void encode_palettes(const core::palette_list& palettes) override;
 
         core::background_attributes_t background_attributes() const override;
 
@@ -75,4 +79,3 @@ namespace ryu::hardware {
     };
 
 };
-

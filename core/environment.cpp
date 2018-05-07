@@ -1661,7 +1661,7 @@ namespace ryu::core {
             for (auto entry_interval : map_entries) {
                 data_table_row_t row {};
 
-                component_name.add_once_column(row, component_interval.value->component_name());
+                component_name.add_once_column(row, component_interval.value->component()->name());
                 component_end.add_once_column(row, fmt::format("{:<8x}", component_interval.stop));
                 row.columns.emplace_back("-");
                 component_start.add_once_column(row, fmt::format("{:<8x}", component_interval.start));

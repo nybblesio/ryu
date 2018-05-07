@@ -29,8 +29,8 @@ Large Refactorings
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
-- REFACTOR: YAML helper code for constants, includes, optionals into common
-- REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
+- NEW: on core::palette add static load_from_memory and store_to_memory functions
+- FINISH: ide::palette_editor::controller
 
 - FIX: audit each view and ensure that it's rendering only within client_bounds()
 
@@ -54,9 +54,6 @@ Large Refactorings
 - REFACTOR: rework pipe syntax after pratt parser is in place
 - REFACTOR: rework dup operator once pratt parser is in place
 - NEW: implement ability to redirect to new or appended text file in core::console
-
-- NEW: on core::palette add static load_from_memory and store_to_memory functions
-- FINISH: ide::palette_editor::controller
 
 - FINISH: create new ide::project_editor::controller  - callbacks
 
@@ -328,3 +325,5 @@ DONE
         --> add category_id for the "group" that it belongs to
 - FIX: Additionally, compiling Ryu using GCC 8.1.0 yielded a number of conformance errors
        related to naming.  Need to research and fix.
+- REFACTOR: YAML helper code for constants, includes, optionals into common
+- REFACTOR: project, preferences, font_book, registry YAML code to use helper functions

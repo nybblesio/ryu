@@ -71,19 +71,27 @@ namespace ryu::hardware {
         return 0;
     }
 
-    void midway_mcr_video_generator::write_byte(uint32_t address, uint8_t value) {
+    core::palette_list midway_mcr_video_generator::decode_palettes() const {
+        return {};
     }
 
     core::tile_attributes_t midway_mcr_video_generator::tile_attributes() const {
-        return core::tile_attributes_t { {16, 16}, 0, core::tile_encoding::nybble_indexed };
+        return core::tile_attributes_t { {16, 16}, 0 };
+    }
+
+    void midway_mcr_video_generator::write_byte(uint32_t address, uint8_t value) {
     }
 
     core::tile_attributes_t midway_mcr_video_generator::sprite_attributes() const {
-        return core::tile_attributes_t { {32, 32}, 0, core::tile_encoding::nybble_indexed };
+        return core::tile_attributes_t { {32, 32}, 0 };
     }
 
     core::palette_attributes_t midway_mcr_video_generator::palette_attributes() const {
         return core::palette_attributes_t { 0, 16, 4 };
+    }
+
+    void midway_mcr_video_generator::encode_palettes(const core::palette_list& palettes) {
+
     }
 
     core::background_attributes_t midway_mcr_video_generator::background_attributes() const {

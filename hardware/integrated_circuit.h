@@ -64,7 +64,7 @@ namespace ryu::hardware {
 
         virtual uint32_t type_id() const;
 
-        std::string component_name() const;
+        hardware::component* component();
 
         void address_space(uint32_t value);
 
@@ -86,9 +86,9 @@ namespace ryu::hardware {
             return false;
         }
 
-        virtual endianness::types endianess() const;
+        void component(hardware::component* value);
 
-        void component_name(const std::string& name);
+        virtual endianness::types endianess() const;
 
         virtual access_type_flags access_type() const;
 
@@ -130,8 +130,8 @@ namespace ryu::hardware {
         std::string _name;
         bool _write_latch {};
         uint32_t _address_space;
-        std::string _component_name;
         hardware::memory_map _memory_map;
+        hardware::component* _component = nullptr;
     };
 
 };

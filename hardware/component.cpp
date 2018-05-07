@@ -16,6 +16,8 @@ namespace ryu::hardware {
             uint32_t id,
             hardware::integrated_circuit* ic) : _id(id),
                                                 _ic(ic) {
+        if (_ic != nullptr)
+            _ic->component(this);
     }
 
     uint32_t component::id() const {
@@ -34,18 +36,24 @@ namespace ryu::hardware {
         _address = value;
     }
 
+    hardware::machine* component::machine() {
+        return _machine;
+    }
+
     std::string component::description() const {
         return _description;
     }
 
     void component::name(const std::string& value) {
         _name = value;
-        if (_ic != nullptr)
-            _ic->component_name(_name);
     }
 
     ryu::core::palette_index component::color() const {
         return _color;
+    }
+
+    void component::machine(hardware::machine* value) {
+        _machine = value;
     }
 
     hardware::integrated_circuit* component::ic() const {

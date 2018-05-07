@@ -11,6 +11,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 #include "memory_mapper.h"
 #include "integrated_circuit.h"
 
@@ -30,9 +31,13 @@ namespace ryu::hardware {
 
         void address(uint32_t value);
 
+        hardware::machine* machine();
+
         std::string description() const;
 
         void name(const std::string& value);
+
+        void machine(hardware::machine* value);
 
         ryu::core::palette_index color() const;
 
@@ -48,8 +53,8 @@ namespace ryu::hardware {
         std::string _name;
         std::string _description;
         ryu::core::palette_index _color;
+        hardware::machine* _machine = nullptr;
         hardware::integrated_circuit* _ic = nullptr;
     };
 
 };
-

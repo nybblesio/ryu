@@ -34,6 +34,10 @@ namespace ryu::hardware {
         on_initialize();
     }
 
+    uint32_t integrated_circuit::id() const {
+        return _id;
+    }
+
     void integrated_circuit::on_initialize() {
     }
 
@@ -43,10 +47,6 @@ namespace ryu::hardware {
 
     void integrated_circuit::write_latch(bool enabled) {
         _write_latch = enabled;
-    }
-
-    uint32_t integrated_circuit::id() const {
-        return _id;
     }
 
     uint16_t integrated_circuit::read_word(
@@ -117,8 +117,8 @@ namespace ryu::hardware {
     void integrated_circuit::on_address_space_changed() {
     }
 
-    std::string integrated_circuit::component_name() const {
-        return _component_name;
+    hardware::component* integrated_circuit::component() {
+        return _component;
     }
 
     void integrated_circuit::address_space(uint32_t value) {
@@ -136,12 +136,12 @@ namespace ryu::hardware {
         return 0;
     }
 
-    core::assembly_language_parser* integrated_circuit::assembler() {
-        return nullptr;
+    void integrated_circuit::component(hardware::component* value) {
+        _component = value;
     }
 
-    void integrated_circuit::component_name(const std::string& name) {
-        _component_name = name;
+    core::assembly_language_parser* integrated_circuit::assembler() {
+        return nullptr;
     }
 
     const hardware::memory_map& integrated_circuit::memory_map() const {

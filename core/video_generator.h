@@ -10,24 +10,19 @@
 
 #pragma once
 
+#include <vector>
+#include <memory>
 #include <cstdint>
+#include <functional>
 #include <rttr/registration>
 #include "size.h"
+#include "palette.h"
 
 namespace ryu::core {
-
-    struct tile_encoding {
-        enum types {
-            indexed,
-            nybble_indexed,
-            rle
-        };
-    };
 
     struct tile_attributes_t {
         size dimensions;
         uint32_t address;
-        tile_encoding::types encoding;
     };
 
     struct palette_attributes_t {
@@ -42,15 +37,21 @@ namespace ryu::core {
         uint32_t address;
     };
 
+    using palette_list = std::vector<std::unique_ptr<palette>>;
+
     class video_generator {
     public:
         virtual ~video_generator() = default;
+
+        virtual palette_list decode_palettes() const = 0;
 
         virtual tile_attributes_t tile_attributes() const = 0;
 
         virtual tile_attributes_t sprite_attributes() const = 0;
 
         virtual palette_attributes_t palette_attributes() const = 0;
+
+        virtual void encode_palettes(const palette_list& palettes) = 0;
 
         virtual background_attributes_t background_attributes() const = 0;
 

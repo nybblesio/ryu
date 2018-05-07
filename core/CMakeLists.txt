@@ -1,7 +1,6 @@
 add_library(
         core
         result.h
-        palette.h
         size.cpp size.h
         rect.cpp rect.h
         view.cpp view.h
@@ -16,6 +15,7 @@ add_library(
         context.cpp context.h
         project.cpp project.h
         padding.cpp padding.h
+        palette.cpp palette.h
         document.cpp document.h
         renderer.cpp renderer.h
         joystick.cpp joystick.h
