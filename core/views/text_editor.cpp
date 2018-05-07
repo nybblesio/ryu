@@ -537,8 +537,6 @@ namespace ryu::core {
             raise_caret_changed();
         });
         _document.clear();
-
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
     }
 
     void text_editor::end_selection() {
@@ -599,18 +597,18 @@ namespace ryu::core {
     }
 
     void text_editor::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto client_rect = client_bounds();
         auto pal = *palette();
 
         auto& info_text_color = pal[_line_number_color];
 
-        auto y = bounds.top();
+        auto y = client_rect.top();
         auto row_start = _document.row();
         auto row_stop = row_start + _metrics.page_height;
         for (auto row = row_start; row < row_stop; row++) {
             surface.draw_text(
                     font_face(),
-                    bounds.left(),
+                    client_rect.left(),
                     y,
                     fmt::format("{0:04}", row + 1),
                     info_text_color);
@@ -624,7 +622,7 @@ namespace ryu::core {
                     col_end);
 
             auto max_line_height = font_face()->line_height;
-            auto x = bounds.left() + _caret.padding().left();
+            auto x = client_rect.left() + _caret.padding().left();
 
             for (const auto& chunk : chunks) {
                 font_style(chunk.attr.style);
@@ -651,6 +649,11 @@ namespace ryu::core {
             }
 
             y += max_line_height;
+        }
+
+        if (border() == border::types::solid) {
+            surface.set_color(pal[fg_color()]);
+            surface.draw_rect(bounds());
         }
     }
 

@@ -283,10 +283,6 @@ namespace ryu::core {
         return _visible_rows;
     }
 
-    border::types pick_list::border() const {
-        return _border;
-    }
-
     void pick_list::visible_items(int value) {
         _visible_rows = value;
     }
@@ -301,10 +297,6 @@ namespace ryu::core {
             _selection = static_cast<int>(std::distance(_options.begin(), it));
             find_matching_text(value());
         }
-    }
-
-    void pick_list::border(border::types value) {
-        _border = value;
     }
 
     void pick_list::value(const std::string& text) {
@@ -364,7 +356,7 @@ namespace ryu::core {
             surface.set_font_color(font_face(), fg);
         }
 
-        if (_border == border::types::solid) {
+        if (border() == border::types::solid) {
             surface.set_color(fg);
             surface.draw_rect(bounds);
         } else {

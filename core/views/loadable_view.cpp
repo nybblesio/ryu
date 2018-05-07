@@ -391,7 +391,6 @@ namespace ryu::core {
                             margins,
                             pads,
                             bounds);
-                    column_pick_list->border(border_type);
                     auto headers_node = view_node["headers"];
                     if (!headers_node.IsNull() && headers_node.IsSequence()) {
                         for (auto header_node_it = headers_node.begin();
@@ -461,7 +460,6 @@ namespace ryu::core {
                             margins,
                             pads,
                             bounds);
-                    panel->border(border_type);
                     current_view = std::move(panel);
                     break;
                 }
@@ -478,7 +476,6 @@ namespace ryu::core {
                             margins,
                             pads,
                             bounds);
-                    panel->border(border_type);
                     current_view = std::move(panel);
                     break;
                 }
@@ -698,7 +695,6 @@ namespace ryu::core {
                         margins,
                         pads,
                         bounds);
-                    list_box->border(border_type);
 
                     palette_index color;
                     if (get_constant(result, root, view_node["row-color"], color))
@@ -730,6 +726,7 @@ namespace ryu::core {
             current_view->sizing(sizing);
             current_view->enabled(enabled);
             current_view->visible(visible);
+            current_view->border(border_type);
             parent_view->add_child(current_view.get());
 
             auto sub_views_node = view_node["views"];

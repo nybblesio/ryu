@@ -85,11 +85,7 @@ namespace ryu::core {
 
         void remove_row(uint32_t index);
 
-        core::border::types border() const;
-
         void row_color(palette_index value);
-
-        void border(core::border::types value);
 
         void add_row(const pick_list_row_t& row);
 
@@ -155,7 +151,6 @@ namespace ryu::core {
         palette_index _selection_color;
         palette_index _not_found_color;
         activated_callable _activated_callable;
-        border::types _border = border::types::none;
         selection_changed_callable _selection_changed_callable;
     };
 

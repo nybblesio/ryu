@@ -12,6 +12,7 @@ views:
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
+
   - name: 'top-panel'
     type: view.types.dock-panel
     dock: view.dock.top
@@ -121,7 +122,7 @@ views:
 
       - name: 'row3'
         type: view.types.dock-panel
-        margin: [10, 50, 0, 0]
+        margin: [10, 50, 0, 5]
         dock: view.dock.top
         colors:
           fg: ide.colors.info-text
@@ -151,6 +152,8 @@ views:
             enabled: true
             next: 'pick-list'
             prev: 'display-pick-list'
+            padding: [10, 10, 10, 10]
+            border: view.border.solid
             caret-color: ide.colors.caret
             selection-color: ide.colors.selection
             line-number-color: ide.colors.info-text

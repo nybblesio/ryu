@@ -294,10 +294,6 @@ namespace ryu::core {
         return _rows;
     }
 
-    border::types column_pick_list::border() const {
-        return _border;
-    }
-
     void column_pick_list::raise_selection_changed() {
         if (_selection_changed_callable != nullptr) {
             if (_rows.empty())
@@ -316,10 +312,6 @@ namespace ryu::core {
         }
     }
 
-    void column_pick_list::border(border::types value) {
-        _border = value;
-    }
-
     void column_pick_list::row_color(palette_index value) {
         _row_color = value;
     }
@@ -336,7 +328,7 @@ namespace ryu::core {
         surface.fill_rect(bounds);
         surface.push_clip_rect(client_bounds());
 
-        if (_border == border::types::solid) {
+        if (border() == border::types::solid) {
             surface.set_color(fg);
             surface.draw_rect(bounds);
         }

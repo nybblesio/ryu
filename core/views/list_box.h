@@ -26,11 +26,7 @@ namespace ryu::core {
 
         option_list& options();
 
-        core::border::types border() const;
-
         void row_color(palette_index value);
-
-        void border(core::border::types value);
 
         void selection_color(palette_index value);
 
@@ -67,7 +63,6 @@ namespace ryu::core {
         size_t _selected_item = 0;
         palette_index _selection_color;
         on_clicked_callable _on_clicked {};
-        border::types _border = border::types::solid;
     };
 
 };

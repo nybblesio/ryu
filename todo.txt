@@ -29,7 +29,17 @@ Large Refactorings
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
-- NEW: on core::palette add static load_from_memory and store_to_memory functions
+- NEW: add new integrated_circuit_editor view
+    --> shows memory_map for ic and allows editing of values in memory
+    --> save to machine registry file
+- NEW: write registry::save and integrated into machine editor
+- FINISH: machine_editor::controller:  - callbacks
+- FINISH: component_editor::controller - callbacks
+    --> reorg layout
+    --> UPDATE: integrate new integrated_circuit_editor view into component_editor
+
+====
+
 - FINISH: ide::palette_editor::controller
 
 - FIX: audit each view and ensure that it's rendering only within client_bounds()
@@ -40,15 +50,6 @@ Large Refactorings
 - FIX: the layout engine in core::view is naff; need to rework it
     - FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
     - FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
-
-- NEW: add new integrated_circuit_editor view
-    --> shows memory_map for ic and allows editing of values in memory
-    --> save to machine registry file
-- NEW: write registry::save and integrated into machine editor
-- FINISH: machine_editor::controller:  - callbacks
-- FINISH: component_editor::controller - callbacks
-    --> reorg layout
-    --> UPDATE: integrate new integrated_circuit_editor view into component_editor
 
 - REFACTOR: use pratt parser model to completely replace shunting-yard implementation
 - REFACTOR: rework pipe syntax after pratt parser is in place
@@ -327,3 +328,5 @@ DONE
        related to naming.  Need to research and fix.
 - REFACTOR: YAML helper code for constants, includes, optionals into common
 - REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
+- NEW: add back pointers to component & integrated_circuit
+- NEW: add decode_palettes/encode_palettes on video_generator

@@ -266,6 +266,10 @@ namespace ryu::core {
         return padded;
     }
 
+    border::types view::border() const {
+        return _border;
+    }
+
     void view::should_clip(bool value) {
         if (value)
             _flags |= config::flags::clip;
@@ -328,6 +332,10 @@ namespace ryu::core {
         child->_parent = this;
         _children.push_back(child);
         render_list_root_reset();
+    }
+
+    void view::border(border::types value) {
+        _border = value;
     }
 
     view::sizing::types view::sizing() const {

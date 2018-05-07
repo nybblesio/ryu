@@ -72,7 +72,8 @@ namespace ryu::hardware {
     }
 
     core::palette_list midway_mcr_video_generator::decode_palettes() const {
-        return {};
+        core::palette_list palettes {};
+        return palettes;
     }
 
     core::tile_attributes_t midway_mcr_video_generator::tile_attributes() const {

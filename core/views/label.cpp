@@ -37,20 +37,12 @@ namespace ryu::core {
         }
     }
 
-    core::border::types label::border() const {
-        return _border;
-    }
-
     void label::value(const std::string& text) {
         if (view::value() != text) {
             view::value(text);
             update_content_bounds();
             requires_layout();
         }
-    }
-
-    void label::border(core::border::types value) {
-        _border = value;
     }
 
     void label::on_draw(ryu::core::renderer& surface) {
@@ -72,7 +64,7 @@ namespace ryu::core {
             bounds,
             _halign,
             _valign);
-        if (_border != border::types::none) {
+        if (border() != border::types::none) {
             surface.set_color(fg);
             surface.draw_rect(bounds);
         }

@@ -117,19 +117,11 @@ namespace ryu::core {
         bind_events();
     }
 
-    border::types list_box::border() const {
-        return _border;
-    }
-
     void list_box::calculate_visible_rows() {
         auto row_height = font_face()->line_height + 2;
         _visible_rows = static_cast<uint32_t>((client_bounds().height() / row_height) - 2);
         if (_visible_rows > _options.size())
             _visible_rows = static_cast<int>(_options.size());
-    }
-
-    void list_box::border(border::types value) {
-        _border = value;
     }
 
     void list_box::on_draw(core::renderer& surface) {
@@ -152,7 +144,7 @@ namespace ryu::core {
         surface.set_color(bg);
         surface.fill_rect(bounds);
 
-        if (_border == border::types::solid) {
+        if (border() == border::types::solid) {
             surface.set_color(fg);
             surface.draw_rect(bounds);
         }

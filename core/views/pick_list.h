@@ -45,13 +45,9 @@ namespace ryu::core {
 
         void selected_key(uint32_t key);
 
-        core::border::types border() const;
-
         std::string value() const override;
 
         void row_color(palette_index value);
-
-        void border(core::border::types value);
 
         void selection_color(palette_index value);
 
@@ -104,7 +100,6 @@ namespace ryu::core {
         uint32_t _visible_rows = 10;
         palette_index _selection_color;
         palette_index _not_found_color;
-        border::types _border = border::types::none;
     };
 
 };

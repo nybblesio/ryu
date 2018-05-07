@@ -52,6 +52,7 @@ namespace ryu::core {
 
     void button::on_initialize() {
         tab_stop(true);
+        border(core::border::types::solid);
         define_actions();
         bind_events();
     }
@@ -66,14 +67,6 @@ namespace ryu::core {
 
     std::string button::shortcut() const {
         return _shortcut;
-    }
-
-    border::types button::border() const {
-        return _border;
-    }
-
-    void button::border(border::types value) {
-        _border = value;
     }
 
     palette_index button::shortcut_color() const {
@@ -128,7 +121,7 @@ namespace ryu::core {
                 .5);
         }
 
-        if (_border == border::types::solid) {
+        if (border() == border::types::solid) {
             surface.set_color(fg);
             surface.draw_rect(bounds);
         }

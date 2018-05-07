@@ -39,7 +39,7 @@ views:
   - name: 'text-editor'
     type: view.types.text-editor
     dock: view.dock.fill
-    padding: [0, 50, 5, 5]
+    padding: [10, 50, 10, 10]
     document:
       rows: 4096
       columns: 128

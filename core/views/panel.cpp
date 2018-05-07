@@ -24,14 +24,6 @@ namespace ryu::core {
         should_clip(true);
     }
 
-    border::types panel::border() const {
-        return _border;
-    }
-
-    void panel::border(border::types value) {
-        _border = value;
-    }
-
     void panel::on_draw(core::renderer& surface) {
         auto bounds = client_bounds();
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
@@ -42,7 +34,7 @@ namespace ryu::core {
             surface.set_color(bg);
             surface.fill_rect(bounds);
             surface.pop_blend_mode();
-            if (_border != border::types::none) {
+            if (border() != border::types::none) {
                 surface.set_color(fg);
                 surface.draw_rect(bounds);
             }

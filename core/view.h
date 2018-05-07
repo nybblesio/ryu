@@ -164,6 +164,8 @@ namespace ryu::core {
 
         view::sizing::types sizing() const;
 
+        core::border::types border() const;
+
         virtual core::rect client_bounds();
 
         void draw(core::renderer& renderer);
@@ -187,6 +189,8 @@ namespace ryu::core {
         core::font_family* font_family() const;
 
         core::view* get_child_at(size_t index);
+
+        void border(core::border::types value);
 
         void margin(const core::padding& value);
 
@@ -271,6 +275,7 @@ namespace ryu::core {
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
         uint8_t _font_style = font::styles::normal;
+        border::types _border = border::types::none;
         core::dock::styles _dock = dock::styles::none;
         core::input_action_provider _action_provider {};
         view::sizing::types _sizing = view::sizing::types::content;
