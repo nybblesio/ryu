@@ -45,6 +45,7 @@ namespace ryu::core {
         _caret_status.bg_color(bg_color());
         _caret_status.dock(dock::styles::left);
         _caret_status.font_family(font_family());
+        _caret_status.value("| X:000 Y:00 | OVR");
         _caret_status.margin({0, font_face()->width, 0, 0 });
 
         _document_status.initialize();
@@ -52,14 +53,12 @@ namespace ryu::core {
         _document_status.fg_color(fg_color());
         _document_status.bg_color(bg_color());
         _document_status.dock(dock::styles::left);
-        _document_status.value("| project: (none)");
         _document_status.font_family(font_family());
+        _document_status.value("C:000/000 R:0000/0000");
         _document_status.margin({0, font_face()->width, 0, 0 });
 
         add_child(&_document_status);
         add_child(&_caret_status);
-
-        bounds().height(font_face()->line_height);
     }
 
 }

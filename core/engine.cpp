@@ -287,7 +287,7 @@ namespace ryu::core {
             _surface.clear();
 
             SDL_Event sdl_event {};
-            while (true) {
+            while (events.size() < 5) {
                 if (!SDL_PollEvent(&sdl_event))
                     break;
                 events.push_back(sdl_event);

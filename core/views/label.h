@@ -39,7 +39,7 @@ namespace ryu::core {
         void on_draw(ryu::core::renderer& surface) override;
 
     private:
-        void update_content_bounds();
+        void update_minimum_size();
 
     private:
         core::alignment::vertical::types _valign = core::alignment::vertical::middle;

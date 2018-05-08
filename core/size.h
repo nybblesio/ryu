@@ -26,6 +26,10 @@ namespace ryu::core {
 
         void width(uint32_t value);
 
+        inline bool empty() const {
+            return _width == 0 && _height == 0;
+        }
+
         void height(uint32_t value);
 
         void dimensions(uint32_t width, uint32_t height);

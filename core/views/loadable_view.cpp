@@ -112,7 +112,6 @@ namespace ryu::core {
             core::size minimum_size {};
             uint8_t fg_color = parent_view->fg_color();
             uint8_t bg_color = parent_view->bg_color();
-            dock::styles dock_style = dock::styles::none;
             border::types border_type = border::types::none;
 
             std::unique_ptr<view> current_view;
@@ -128,7 +127,6 @@ namespace ryu::core {
             get_optional(view_node["next"], next_view_name);
             get_optional(view_node["prev"], prev_view_name);
 
-            get_constant(result, root, view_node["dock"], dock_style);
             get_constant(result, root, view_node["border"], border_type);
             get_optional(view_node["margin"], margins);
             get_optional(view_node["padding"], pads);
@@ -153,7 +151,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -168,7 +166,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -201,7 +199,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -261,7 +259,7 @@ namespace ryu::core {
                             bg_color,
                             document_rows,
                             static_cast<uint16_t>(document_columns),
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -349,7 +347,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             options,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -389,7 +387,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -458,7 +456,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -474,7 +472,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -499,7 +497,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -517,7 +515,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -532,7 +530,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -549,7 +547,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -573,7 +571,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -594,7 +592,7 @@ namespace ryu::core {
                             bg_color,
                             result,
                             view_path,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads);
                     current_view = std::move(loadable);
@@ -609,7 +607,7 @@ namespace ryu::core {
                             fg_color,
                             bg_color,
                             value,
-                            dock_style,
+                            dock::none,
                             margins,
                             pads,
                             bounds);
@@ -636,7 +634,7 @@ namespace ryu::core {
                         fg_color,
                         bg_color,
                         value,
-                        dock_style,
+                        dock::none,
                         margins,
                         pads,
                         bounds);
@@ -660,7 +658,7 @@ namespace ryu::core {
                         fg_color,
                         bg_color,
                         value,
-                        dock_style,
+                        dock::none,
                         margins,
                         pads,
                         bounds);
@@ -677,7 +675,7 @@ namespace ryu::core {
                         fg_color,
                         bg_color,
                         value,
-                        dock_style,
+                        dock::none,
                         margins,
                         pads,
                         bounds);
@@ -739,41 +737,40 @@ namespace ryu::core {
             const YAML::Node& node,
             core::view* v) {
         auto panel = dynamic_cast<core::panel*>(v);
-        if (panel == nullptr)
-            return;
+        if (panel != nullptr) {
+            bool wrap_value = false;
+            uint16_t flag_value;
 
-        bool wrap_value = false;
-        uint16_t flag_value;
+            auto layout_mode_result = get_node_from_path(node, "layout.mode");
+            if (layout_mode_result.found) {
+                if (get_constant(result, root, layout_mode_result.node, flag_value))
+                    panel->layout_mode(static_cast<panel::layout_modes>(flag_value));
+            }
+
+            auto direction_result = get_node_from_path(node, "layout.direction");
+            if (direction_result.found) {
+                if (get_constant(result, root, direction_result.node, flag_value))
+                    panel->flex_direction(static_cast<panel::flex_directions>(flag_value));
+            }
+
+            auto justification_result = get_node_from_path(node, "layout.justification");
+            if (justification_result.found) {
+                if (get_constant(result, root, justification_result.node, flag_value))
+                    panel->layout_justification(static_cast<panel::layout_justifications>(flag_value));
+            }
+
+            auto wrap_result = get_node_from_path(node, "layout.wrap");
+            if (wrap_result.found) {
+                if (get_constant(result, root, wrap_result.node, wrap_value))
+                    panel->layout_wrap(wrap_value);
+            }
+        }
+
         dock::styles dock_style = dock::styles::none;
-
-        auto layout_mode_result = get_node_from_path(node, "layout.mode");
-        if (layout_mode_result.found) {
-            if (get_constant(result, root, layout_mode_result.node, flag_value))
-                panel->layout_mode(static_cast<panel::layout_modes>(flag_value));
-        }
-
-        auto direction_result = get_node_from_path(node, "layout.direction");
-        if (direction_result.found) {
-            if (get_constant(result, root, direction_result.node, flag_value))
-                panel->flex_direction(static_cast<panel::flex_directions>(flag_value));
-        }
-
-        auto justification_result = get_node_from_path(node, "layout.justification");
-        if (justification_result.found) {
-            if (get_constant(result, root, justification_result.node, flag_value))
-                panel->layout_justification(static_cast<panel::layout_justifications>(flag_value));
-        }
-
-        auto wrap_result = get_node_from_path(node, "layout.wrap");
-        if (wrap_result.found) {
-            if (get_constant(result, root, wrap_result.node, wrap_value))
-                panel->layout_wrap(wrap_value);
-        }
-
         auto dock_result = get_node_from_path(node, "layout.dock");
         if (dock_result.found) {
             if (get_constant(result, root, dock_result.node, dock_style))
-                panel->dock(dock_style);
+                v->dock(dock_style);
         }
     }
 

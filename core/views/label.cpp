@@ -29,18 +29,21 @@ namespace ryu::core {
         return view::value();
     }
 
-    void label::update_content_bounds() {
+    void label::update_minimum_size() {
         auto face = font_face();
         if (face != nullptr) {
             auto width = face->measure_text(value());
-            bounds().size(width, face->line_height);
+            auto& minimum_size = min_size();
+            minimum_size.dimensions(
+                static_cast<uint32_t>(width),
+                static_cast<uint32_t>(face->line_height));
         }
     }
 
     void label::value(const std::string& text) {
         if (view::value() != text) {
             view::value(text);
-            update_content_bounds();
+            update_minimum_size();
         }
     }
 

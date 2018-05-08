@@ -18,6 +18,7 @@
 namespace ryu::core {
 
     class view;
+    class panel;
 
     class layout_engine {
     public:
@@ -35,6 +36,8 @@ namespace ryu::core {
 
     private:
         void build_layout_tree(core::view* v, int32_t parent_lay_id);
+
+        std::pair<uint32_t, uint32_t> configure_panel(core::panel* p);
 
     private:
         lay_context _context;

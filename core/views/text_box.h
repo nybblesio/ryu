@@ -70,6 +70,8 @@ namespace ryu::core {
 
         void define_actions();
 
+        void update_minimum_size();
+
     private:
         core::caret _caret;
         core::document _document;

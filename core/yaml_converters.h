@@ -65,8 +65,8 @@ namespace YAML {
             if (!node.IsSequence() || node.size() < 4)
                 return false;
 
-            rhs.pos(node[0].as<uint32_t>(), node[1].as<uint32_t>());
-            rhs.size(node[2].as<uint32_t>(), node[3].as<uint32_t>());
+            rhs.pos(node[0].as<int32_t>(), node[1].as<int32_t>());
+            rhs.size(node[2].as<int32_t>(), node[3].as<int32_t>());
             return true;
         }
     };

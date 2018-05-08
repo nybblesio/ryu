@@ -151,7 +151,7 @@ namespace ryu::core {
                     ||  data.c == core::ascii_return)
                         return false;
 
-                    _document.put(core::element_t {
+                    _document.put(core::element_t{
                         static_cast<uint8_t>(data.c),
                         _document.default_attr()});
                     caret_right();
@@ -165,12 +165,6 @@ namespace ryu::core {
         define_actions();
         bind_events();
 
-        _caret.initialize();
-        _caret.enabled(false);
-        _caret.position(0, 0);
-        _caret.page_size(_document.page_height(), _document.page_width());
-        add_child(&_caret);
-
         _document.caret(&_caret);
         _document.document_size(1, 100);
         _document.page_size(1, 16);
@@ -180,6 +174,12 @@ namespace ryu::core {
             _document.write_line(stream, 0, 0, _document.columns());
             view::value(stream.str());
         });
+
+        _caret.initialize();
+        _caret.enabled(false);
+        _caret.position(0, 0);
+        _caret.page_size(_document.page_height(), _document.page_width());
+        add_child(&_caret);
     }
 
     uint16_t text_box::width() const {
@@ -197,6 +197,18 @@ namespace ryu::core {
     void text_box::width(uint8_t value) {
         _document.page_size(1, value);
         _caret.page_size(1, value);
+        update_minimum_size();
+    }
+
+    void text_box::update_minimum_size() {
+        auto face = font_face();
+        if (face != nullptr) {
+            auto pixel_width = face->measure_chars(width());
+            auto& minimum_size = min_size();
+            minimum_size.dimensions(
+                static_cast<uint32_t>(pixel_width),
+                static_cast<uint32_t>(face->line_height + 2));
+        }
     }
 
     std::string text_box::value() const {
@@ -243,7 +255,8 @@ namespace ryu::core {
     }
 
     void text_box::on_draw(core::renderer& surface) {
-        auto client_rect = inner_bounds();
+        auto rect = bounds();
+        auto inner_rect = inner_bounds();
 
         auto pal = *view::palette();
         auto fg = pal[view::fg_color()];
@@ -254,7 +267,7 @@ namespace ryu::core {
         }
 
         surface.set_color(bg);
-        surface.fill_rect(client_rect);
+        surface.fill_rect(inner_rect);
 
         surface.set_color(fg);
         surface.set_font_color(font_face(), fg);
@@ -262,14 +275,14 @@ namespace ryu::core {
         surface.draw_text_aligned(
             font_face(),
             value(),
-            client_rect,
+            inner_rect,
             alignment::horizontal::left,
             alignment::vertical::middle);
         surface.draw_line(
-            client_rect.left(),
-            client_rect.bottom(),
-            client_rect.right() + 5,
-            client_rect.bottom());
+            rect.left(),
+            rect.bottom(),
+            rect.right(),
+            rect.bottom());
     }
 
     void text_box::palette(core::palette* value) {

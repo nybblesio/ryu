@@ -157,8 +157,8 @@ namespace ryu::core {
 
     console::console(
             const std::string& name,
-            core::view_host* host) : core::view(core::view::types::container, name, host),
-                                               _caret("console-caret", host) {
+            core::view_host* host) : core::view(core::view::types::control, name, host),
+                                     _caret("console-caret", host) {
     }
 
     console::~console() {
@@ -563,7 +563,6 @@ namespace ryu::core {
         _document.clear();
 
         add_child(&_caret);
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
 
         define_actions();
         bind_events();

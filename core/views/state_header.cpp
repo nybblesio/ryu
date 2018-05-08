@@ -34,7 +34,6 @@ namespace ryu::core {
         _state_label.bg_color(bg_color());
         _state_label.dock(dock::styles::left);
         _state_label.font_family(font_family());
-        _state_label.min_size().dimensions(32, 30);
         _state_label.margin({0, font_face()->width, 0, 0 });
 
         _project_status.initialize();
@@ -42,9 +41,8 @@ namespace ryu::core {
         _project_status.fg_color(fg_color());
         _project_status.bg_color(bg_color());
         _project_status.dock(dock::styles::left);
-        _project_status.value("| project: (none)");
         _project_status.font_family(font_family());
-        _project_status.min_size().dimensions(32, 30);
+        _project_status.value("| project: (none)");
         _project_status.margin({0, font_face()->width, 0, 0 });
 
         _environment_status.initialize();
@@ -52,9 +50,8 @@ namespace ryu::core {
         _environment_status.fg_color(fg_color());
         _environment_status.bg_color(bg_color());
         _environment_status.dock(dock::styles::left);
-        _environment_status.value("| env: (none)");
         _environment_status.font_family(font_family());
-        _environment_status.min_size().dimensions(32, 30);
+        _environment_status.value("| env: (none)");
         _environment_status.margin({0, font_face()->width, 0, 0 });
 
         _machine_status.initialize();
@@ -62,18 +59,16 @@ namespace ryu::core {
         _machine_status.fg_color(fg_color());
         _machine_status.bg_color(bg_color());
         _machine_status.dock(dock::styles::left);
-        _machine_status.value("| machine: (none)");
         _machine_status.font_family(font_family());
-        _machine_status.min_size().dimensions(32, 30);
+        _machine_status.value("| machine: (none)");
         _machine_status.margin({0, font_face()->width, 0, 0 });
 
         _custom_status.initialize();
         _custom_status.palette(palette());
         _custom_status.fg_color(fg_color());
         _custom_status.bg_color(bg_color());
-        _custom_status.dock(dock::styles::left);
         _custom_status.font_family(font_family());
-        _custom_status.min_size().dimensions(32, 30);
+        _custom_status.dock(dock::styles::left);
         _custom_status.margin({0, font_face()->width, 0, 0 });
 
         add_child(&_state_label);
