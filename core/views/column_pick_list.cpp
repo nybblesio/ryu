@@ -324,14 +324,9 @@ namespace ryu::core {
 
         surface.set_color(bg);
 
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
         surface.fill_rect(bounds);
-        surface.push_clip_rect(client_bounds());
-
-        if (border() == border::types::solid) {
-            surface.set_color(fg);
-            surface.draw_rect(bounds);
-        }
+        surface.push_clip_rect(inner_bounds());
 
         auto row_height = face->line_height + 2;
 
@@ -463,7 +458,7 @@ namespace ryu::core {
 
     void column_pick_list::calculate_visible_and_max_rows() {
         auto row_height = font_face()->line_height + 2;
-        _visible_rows = static_cast<uint32_t>((client_bounds().height() / row_height) - 2);
+        _visible_rows = static_cast<uint32_t>((inner_bounds().height() / row_height) - 2);
         _max_rows = std::min<uint32_t>(
             _visible_rows,
             static_cast<uint32_t>(_rows.size()));

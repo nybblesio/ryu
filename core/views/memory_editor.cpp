@@ -363,7 +363,7 @@ namespace ryu::core {
     }
 
     void memory_editor::calculate_page_metrics() {
-        auto rect = client_bounds();
+        auto rect = inner_bounds();
         if (rect.empty())
             return;
         _metrics.page_width = 16;
@@ -377,7 +377,7 @@ namespace ryu::core {
     void memory_editor::on_draw(core::renderer& surface) {
         auto machine = core::project::instance()->machine();
 
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
         auto y = bounds.top();
         auto pal = *palette();
         auto& text_color = pal[fg_color()];

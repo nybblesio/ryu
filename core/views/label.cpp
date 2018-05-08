@@ -46,7 +46,7 @@ namespace ryu::core {
     }
 
     void label::on_draw(ryu::core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
 
         auto current_palette = palette();
         if (current_palette == nullptr)
@@ -64,10 +64,6 @@ namespace ryu::core {
             bounds,
             _halign,
             _valign);
-        if (border() != border::types::none) {
-            surface.set_color(fg);
-            surface.draw_rect(bounds);
-        }
     }
 
     core::alignment::vertical::types label::valign() const {

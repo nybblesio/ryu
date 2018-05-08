@@ -119,7 +119,7 @@ namespace ryu::core {
 
     void list_box::calculate_visible_rows() {
         auto row_height = font_face()->line_height + 2;
-        _visible_rows = static_cast<uint32_t>((client_bounds().height() / row_height) - 2);
+        _visible_rows = static_cast<uint32_t>((inner_bounds().height() / row_height) - 2);
         if (_visible_rows > _options.size())
             _visible_rows = static_cast<int>(_options.size());
     }
@@ -127,7 +127,7 @@ namespace ryu::core {
     void list_box::on_draw(core::renderer& surface) {
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
 
         auto pal = *palette();
         auto fg = pal[fg_color()];
@@ -143,11 +143,6 @@ namespace ryu::core {
 
         surface.set_color(bg);
         surface.fill_rect(bounds);
-
-        if (border() == border::types::solid) {
-            surface.set_color(fg);
-            surface.draw_rect(bounds);
-        }
 
         auto y = bounds.top() + 4;
         auto start = _row;

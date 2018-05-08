@@ -95,7 +95,7 @@ namespace ryu::core {
             for (auto child : children()) {
                 child->resize(context_bounds);
                 auto child_margins = child->margin();
-                auto child_bounds = child->client_bounds();
+                auto child_bounds = child->inner_bounds();
                 if (child_bounds.left() > last_left) {
                     last_left = child_bounds.left();
                     width = child_bounds.right() + child_margins.horizontal();
@@ -115,9 +115,9 @@ namespace ryu::core {
         auto parent_view = parent();
         if (parent_view != nullptr) {
             if (parent_view->type() == types::container)
-                bounds = client_bounds();
+                bounds = inner_bounds();
             else
-                bounds = parent_view->client_bounds();
+                bounds = parent_view->inner_bounds();
         } else {
             bounds = context_bounds;
         }

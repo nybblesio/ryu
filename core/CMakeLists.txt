@@ -44,6 +44,7 @@ add_library(
         palette_entry.cpp palette_entry.h
         hex_formatter.cpp hex_formatter.h
         input_binding.cpp input_binding.h
+        layout_engine.cpp layout_engine.h
         views/list_box.cpp views/list_box.h
         views/check_box.cpp views/check_box.h
         command_parser.cpp command_parser.h

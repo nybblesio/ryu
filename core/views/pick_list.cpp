@@ -319,7 +319,7 @@ namespace ryu::core {
     }
 
     void pick_list::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
 
         auto pal = *palette();
         auto fg = pal[fg_color()];
@@ -356,16 +356,11 @@ namespace ryu::core {
             surface.set_font_color(font_face(), fg);
         }
 
-        if (border() == border::types::solid) {
-            surface.set_color(fg);
-            surface.draw_rect(bounds);
-        } else {
-            surface.draw_line(
-                bounds.left(),
-                bounds.bottom(),
-                bounds.right() + 5,
-                bounds.bottom());
-        }
+        surface.draw_line(
+            bounds.left(),
+            bounds.bottom(),
+            bounds.right() + 5,
+            bounds.bottom());
 
         if (!focused())
             return;

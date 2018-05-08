@@ -52,7 +52,6 @@ namespace ryu::core {
 
     void button::on_initialize() {
         tab_stop(true);
-        border(core::border::types::solid);
         define_actions();
         bind_events();
     }
@@ -76,7 +75,7 @@ namespace ryu::core {
     void button::on_draw(core::renderer& surface) {
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
 
         auto pal = *palette();
         auto fg = pal[fg_color()];
@@ -119,11 +118,6 @@ namespace ryu::core {
                 _shortcut,
                 .5,
                 .5);
-        }
-
-        if (border() == border::types::solid) {
-            surface.set_color(fg);
-            surface.draw_rect(bounds);
         }
 
         surface.pop_blend_mode();

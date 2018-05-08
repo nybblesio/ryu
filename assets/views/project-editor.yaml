@@ -143,6 +143,7 @@ views:
         enabled: true
         next: 'edit-button'
         prev: 'pick-list'
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey
@@ -160,6 +161,7 @@ views:
         enabled: true
         next: 'delete-button'
         prev: 'add-button'
+        border: view.border.solid
         colors:
           fg: ide.colors.light-grey
           bg: ide.colors.light-blue
@@ -176,6 +178,7 @@ views:
         next: 'up-button'
         prev: 'edit-button'
         margin: *BUTTON-MARGINS
+        border: view.border.solid
         colors:
           fg: ide.colors.light-grey
           bg: ide.colors.light-blue
@@ -191,6 +194,7 @@ views:
         enabled: true
         next: 'down-button'
         prev: 'delete-button'
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey
@@ -207,6 +211,7 @@ views:
         enabled: true
         next: 'active-button'
         prev: 'up-button'
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey
@@ -224,6 +229,7 @@ views:
         next: 'name-text-box'
         prev: 'down-button'
         margin: *BUTTON-MARGINS
+        border: view.border.solid
         colors:
           fg: ide.colors.light-grey
           bg: ide.colors.light-blue

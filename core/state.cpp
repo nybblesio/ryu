@@ -107,6 +107,10 @@ namespace ryu::core {
         on_draw(renderer);
     }
 
+    core::layout_engine* state::layout_engine() {
+        return &_layout_engine;
+    }
+
     void state::resize(const core::rect& bounds) {
         if (!_initialized)
             return;

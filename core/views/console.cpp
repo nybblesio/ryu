@@ -643,7 +643,7 @@ namespace ryu::core {
     }
 
     void console::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
 
         auto current_palette = palette();
         if (current_palette == nullptr)

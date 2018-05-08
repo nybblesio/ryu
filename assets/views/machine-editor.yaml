@@ -153,7 +153,7 @@ views:
             next: 'pick-list'
             prev: 'display-pick-list'
             padding: [10, 10, 10, 10]
-            border: view.border.solid
+            border: view.border.dashed
             caret-color: ide.colors.caret
             selection-color: ide.colors.selection
             line-number-color: ide.colors.info-text
@@ -181,6 +181,7 @@ views:
         enabled: true
         next: 'edit-button'
         prev: 'pick-list'
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey
@@ -195,6 +196,7 @@ views:
         dock: view.dock.left
         tab-stop: true
         enabled: true
+        border: view.border.solid
         next: 'delete-button'
         prev: 'add-button'
         colors:
@@ -211,6 +213,7 @@ views:
         enabled: true
         next: 'map-button'
         prev: 'edit-button'
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey
@@ -226,6 +229,7 @@ views:
         next: 'name-text-box'
         prev: 'delete-button'
         dock: view.dock.right
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey

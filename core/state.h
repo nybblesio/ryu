@@ -55,6 +55,8 @@ namespace ryu::core {
 
         void draw(core::renderer& renderer);
 
+        core::layout_engine* layout_engine();
+
         void resize(const core::rect& bounds);
 
         inline core::context* context() const {
@@ -110,6 +112,7 @@ namespace ryu::core {
         bool _initialized = false;
         bool _render_parent = false;
         core::context* _context = nullptr;
+        core::layout_engine _layout_engine;
         state_transition_callable _callback {};
         core::input_action_provider _action_provider;
         std::map<uint32_t, state_change_callable> _listeners {};

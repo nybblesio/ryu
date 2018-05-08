@@ -22,13 +22,13 @@ namespace ryu::core {
 
         ~note_book() override;
 
-        int active_tab() const;
+        size_t active_tab() const;
 
-        void remove_tab(int index);
+        void remove_tab(size_t index);
 
-        void active_tab(int index);
+        void active_tab(size_t index);
 
-        core::rect client_bounds() override;
+        core::rect inner_bounds() override;
 
         void add_tab(const std::string& title, core::view* content);
 

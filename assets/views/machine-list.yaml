@@ -33,6 +33,7 @@ views:
         enabled: true
         next: 'edit-button'
         prev: 'pick-list'
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey
@@ -49,6 +50,7 @@ views:
         enabled: true
         next: 'delete-button'
         prev: 'add-button'
+        border: view.border.solid
         colors:
           fg: ide.colors.light-grey
           bg: ide.colors.light-blue
@@ -63,6 +65,7 @@ views:
         enabled: true
         next: 'pick-list'
         prev: 'edit-button'
+        border: view.border.solid
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey

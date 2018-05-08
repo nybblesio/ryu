@@ -25,19 +25,14 @@ namespace ryu::core {
     }
 
     void panel::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
         auto current_palette = palette();
         if (current_palette != nullptr) {
-            auto& fg = current_palette->get(fg_color());
             auto& bg = current_palette->get(bg_color());
             surface.set_color(bg);
             surface.fill_rect(bounds);
             surface.pop_blend_mode();
-            if (border() != border::types::none) {
-                surface.set_color(fg);
-                surface.draw_rect(bounds);
-            }
         }
     }
 

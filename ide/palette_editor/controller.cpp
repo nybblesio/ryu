@@ -66,9 +66,9 @@ namespace ryu::ide::palette_editor {
         _palettes = _layout_panel->find_by_name<core::list_box>("palette-list-box");
         _editor = _layout_panel->find_by_name<core::palette_editor>("editor");
 
-        _palettes->on_clicked([this]() {
-            // XXX: update palette on _editor
-        });
+//        _palettes->on_clicked([this]() {
+//            // XXX: update palette on _editor
+//        });
 
         return !result.is_failed();
     }

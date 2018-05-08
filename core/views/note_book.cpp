@@ -60,25 +60,25 @@ namespace ryu::core {
         bind_events();
     }
 
-    int note_book::active_tab() const {
+    size_t note_book::active_tab() const {
         return _index;
     }
 
-    void note_book::active_tab(int index) {
-        _index = index;
-    }
-
-    void note_book::remove_tab(int index) {
-        _tabs.erase(_tabs.begin() + index);
-    }
-
-    core::rect note_book::client_bounds() {
+    core::rect note_book::inner_bounds() {
         auto& rect = bounds();
         auto& margins = margin();
         return {rect.left() + (tab_width + 1),
                 rect.top() + 1,
                 rect.width() - ((tab_width + 1) + margins.left() + margins.right()),
                 rect.height() - 2};
+    }
+
+    void note_book::active_tab(size_t index) {
+        _index = index;
+    }
+
+    void note_book::remove_tab(size_t index) {
+        _tabs.erase(_tabs.begin() + index);
     }
 
     void note_book::on_draw(core::renderer& surface) {

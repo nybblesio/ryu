@@ -146,10 +146,6 @@ namespace ryu::core {
         SDL_RenderDrawLine(_surface, x1, y1, x2, y2);
     }
 
-    void renderer::set_color(const core::palette_entry& color) {
-        SDL_SetRenderDrawColor(_surface, color.red(), color.green(), color.blue(), color.alpha());
-    }
-
     void renderer::fill_polygon(const vertex_list& vertices) {
         auto vertex_count = static_cast<int16_t>(vertices.size());
         if (vertex_count < 3)
@@ -216,6 +212,42 @@ namespace ryu::core {
                 draw_line(xa, y, xb, y);
             }
         }
+    }
+
+    void renderer::set_color(const core::palette_entry& color) {
+        SDL_SetRenderDrawColor(
+            _surface,
+            color.red(),
+            color.green(),
+            color.blue(),
+            color.alpha());
+    }
+
+    void renderer::draw_dashed_hline(int x1, int x2, int y, uint16_t width) {
+        auto length = x2 - x1;
+        auto segment_length = width * 2;
+        while (length > 0) {
+            SDL_RenderDrawLine(_surface, x1, y, x1 + width, y);
+            x1 += segment_length;
+            length -= segment_length;
+        }
+    }
+
+    void renderer::draw_dashed_vline(int y1, int y2, int x, uint16_t width) {
+        auto height = y2 - y1;
+        auto segment_length = width * 2;
+        while (height > 0) {
+            SDL_RenderDrawLine(_surface, x, y1, x, y1 + width);
+            y1 += segment_length;
+            height -= segment_length;
+        }
+    }
+
+    void renderer::draw_dashed_rect(const core::rect& bounds, uint16_t width) {
+        draw_dashed_hline(bounds.left(), bounds.right(), bounds.top(), width);
+        draw_dashed_hline(bounds.left(), bounds.right(), bounds.bottom(), width);
+        draw_dashed_vline(bounds.top(), bounds.bottom(), bounds.left(), width);
+        draw_dashed_vline(bounds.top(), bounds.bottom(), bounds.right(), width);
     }
 
     int renderer::measure_text(const font_t* font_face, const std::string& value) {

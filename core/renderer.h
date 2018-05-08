@@ -80,6 +80,12 @@ namespace ryu::core {
 
         void set_color(const core::palette_entry& color);
 
+        void draw_dashed_hline(int x1, int x2, int y, uint16_t width);
+
+        void draw_dashed_vline(int y1, int y2, int x, uint16_t width);
+
+        void draw_dashed_rect(const core::rect& bounds, uint16_t width);
+
         void draw_selection_rect(core::rect& rect, core::palette_entry color);
 
     private:

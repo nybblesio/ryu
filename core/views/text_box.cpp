@@ -246,7 +246,7 @@ namespace ryu::core {
     }
 
     void text_box::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto client_rect = inner_bounds();
 
         auto pal = *view::palette();
         auto fg = pal[view::fg_color()];
@@ -257,7 +257,7 @@ namespace ryu::core {
         }
 
         surface.set_color(bg);
-        surface.fill_rect(bounds);
+        surface.fill_rect(client_rect);
 
         surface.set_color(fg);
         surface.set_font_color(font_face(), fg);
@@ -265,14 +265,14 @@ namespace ryu::core {
         surface.draw_text_aligned(
             font_face(),
             value(),
-            bounds,
+            client_rect,
             alignment::horizontal::left,
             alignment::vertical::middle);
         surface.draw_line(
-            bounds.left(),
-            bounds.bottom(),
-            bounds.right() + 5,
-            bounds.bottom());
+            client_rect.left(),
+            client_rect.bottom(),
+            client_rect.right() + 5,
+            client_rect.bottom());
     }
 
     void text_box::palette(core::palette* value) {

@@ -154,7 +154,7 @@ namespace ryu::core {
             surface.set_color(caret_color);
         }
 
-        auto parent_bounds = parent()->client_bounds();
+        auto parent_bounds = parent()->inner_bounds();
         auto& rect = bounds();
         auto& pad = padding();
         rect.size(font_face()->width, font_face()->line_height);

@@ -147,6 +147,15 @@ namespace ryu::core {
         return _margin;
     }
 
+    void view::render_list_sort() {
+        std::sort(
+            _render_list.begin(),
+            _render_list.end(),
+            [](const view* left, const view* right) {
+                return left->index() < right->index();
+            });
+    }
+
     void view::on_palette_changed() {
     }
 
@@ -159,13 +168,18 @@ namespace ryu::core {
         }
     }
 
-    void view::render_list_sort() {
-        std::sort(
-            _render_list.begin(),
-            _render_list.end(),
-            [](const view* left, const view* right) {
-                return left->index() < right->index();
-            });
+    void view::on_focus_changed() {
+    }
+
+    core::view* view::find_root() {
+        auto current = this;
+        while (true) {
+            auto next = current->parent();
+            if (next == nullptr)
+                break;
+            current = next;
+        }
+        return current;
     }
 
     void view::render_list_build() {
@@ -181,20 +195,6 @@ namespace ryu::core {
         };
         collect_child_views(this);
         render_list_sort();
-    }
-
-    void view::on_focus_changed() {
-    }
-
-    core::view* view::find_root() {
-        auto current = this;
-        while (true) {
-            auto next = current->parent();
-            if (next == nullptr)
-                break;
-            current = next;
-        }
-        return current;
     }
 
     core::palette* view::palette() {
@@ -222,17 +222,6 @@ namespace ryu::core {
             child->visible(value);
     }
 
-    std::string view::value() const {
-        return _value;
-    }
-
-    void view::tab_stop(bool value) {
-        if (value)
-            _flags |= config::flags::tab_stop;
-        else
-            _flags &= ~config::flags::tab_stop;
-    }
-
     std::string view::name() const {
         return _name;
     }
@@ -249,21 +238,32 @@ namespace ryu::core {
         return (_flags & config::flags::clip) != 0;
     }
 
-    uint8_t view::font_style() const {
-        return _font_style;
+    std::string view::value() const {
+        return _value;
     }
 
-    core::rect view::client_bounds() {
+    void view::tab_stop(bool value) {
+        if (value)
+            _flags |= config::flags::tab_stop;
+        else
+            _flags &= ~config::flags::tab_stop;
+    }
+
+    core::rect view::inner_bounds() {
         auto rect = bounds();
         auto pad = padding();
         core::rect padded;
         padded.pos(
-                rect.left() + pad.left(),
-                rect.top() + pad.top());
+            rect.left() + pad.left(),
+            rect.top() + pad.top());
         padded.size(
-                std::max(0, rect.width() - pad.right()),
-                std::max(0, rect.height() - pad.bottom()));
+            std::max(0, rect.width() - pad.right()),
+            std::max(0, rect.height() - pad.bottom()));
         return padded;
+    }
+
+    uint8_t view::font_style() const {
+        return _font_style;
     }
 
     border::types view::border() const {
@@ -360,7 +360,7 @@ namespace ryu::core {
             // XXX: need to rework the render list cache so it includes
             //      a valid clipping rectangle
 
-            // XXX: the client_bounds on the parent seems to be too small for the
+            // XXX: the inner_bounds on the parent seems to be too small for the
             //      contents of the child views.  this is probably due to the layout
             //      engine being bad but it may be an error somewhere else.
 
@@ -370,6 +370,24 @@ namespace ryu::core {
             view->on_draw(renderer);
 //            if (parent != nullptr && parent->should_clip())
 //                renderer.pop_clip_rect();
+
+            renderer.set_color(view->palette()->get(view->fg_color()));
+            switch (view->border()){
+                case border::solid: {
+                    renderer.draw_rect(view->bounds());
+                    break;
+                }
+                case border::dashed: {
+                    renderer.draw_dashed_rect(view->bounds(), 4);
+                    break;
+                }
+                case border::rounded: {
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
         }
     }
 

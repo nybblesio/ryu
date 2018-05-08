@@ -233,7 +233,7 @@ namespace ryu::core {
     }
 
     void palette_entry_editor::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto bounds = inner_bounds();
         auto pal = *palette();
         auto fg = pal[fg_color()];
         auto bg = pal[bg_color()];

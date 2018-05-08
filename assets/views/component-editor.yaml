@@ -182,7 +182,7 @@ views:
             next: 'close-button'
             prev: 'ic-pick-list'
             padding: [10, 10, 10, 10]
-            border: view.border.solid
+            border: view.border.dashed
             caret-color: ide.colors.caret
             selection-color: ide.colors.selection
             line-number-color: ide.colors.info-text
@@ -208,6 +208,7 @@ views:
         dock: view.dock.left
         enabled: true
         tab-stop: true
+        border: view.border.solid
         next: 'name-text-box'
         prev: 'description-text-editor'
         margin: *BUTTON-MARGINS

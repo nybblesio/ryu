@@ -597,7 +597,7 @@ namespace ryu::core {
     }
 
     void text_editor::on_draw(core::renderer& surface) {
-        auto client_rect = client_bounds();
+        auto client_rect = inner_bounds();
         auto pal = *palette();
 
         auto& info_text_color = pal[_line_number_color];
@@ -649,11 +649,6 @@ namespace ryu::core {
             }
 
             y += max_line_height;
-        }
-
-        if (border() == border::types::solid) {
-            surface.set_color(pal[fg_color()]);
-            surface.draw_rect(bounds());
         }
     }
 

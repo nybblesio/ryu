@@ -51,21 +51,19 @@ namespace ryu::core {
     }
 
     void check_box::on_draw(core::renderer& surface) {
-        auto bounds = client_bounds();
+        auto client_rect = inner_bounds();
 
         auto pal = *palette();
         auto& fg = pal[fg_color()];
 
-        if (!enabled() || !focused()) {
+        if (!enabled() || !focused())
             fg = fg - 35;
-        }
 
         surface.set_color(fg);
-        surface.draw_rect(bounds);
+        surface.draw_rect(bounds());
 
-        if (value() == "true") {
-            surface.draw_line(bounds.left(), bounds.top(), bounds.right(), bounds.bottom());
-        }
+        if (value() == "true")
+            surface.fill_rect(client_rect);
     }
 
 }

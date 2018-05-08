@@ -19,6 +19,7 @@
 #include "padding.h"
 #include "renderer.h"
 #include "font_family.h"
+#include "layout_engine.h"
 #include "input_action_provider.h"
 
 namespace ryu::core {
@@ -40,6 +41,8 @@ namespace ryu::core {
         virtual bool is_visible() const = 0;
 
         virtual core::preferences* prefs() = 0;
+
+        virtual core::layout_engine* layout_engine() = 0;
 
         virtual void remove_change_listener(id_t id) = 0;
 
@@ -162,11 +165,11 @@ namespace ryu::core {
 
         virtual std::string value() const;
 
+        virtual core::rect inner_bounds();
+
         view::sizing::types sizing() const;
 
         core::border::types border() const;
-
-        virtual core::rect client_bounds();
 
         void draw(core::renderer& renderer);
 
