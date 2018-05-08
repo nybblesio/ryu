@@ -64,15 +64,6 @@ namespace ryu::core {
         return _index;
     }
 
-    core::rect note_book::inner_bounds() {
-        auto& rect = bounds();
-        auto& margins = margin();
-        return {rect.left() + (tab_width + 1),
-                rect.top() + 1,
-                rect.width() - ((tab_width + 1) + margins.left() + margins.right()),
-                rect.height() - 2};
-    }
-
     void note_book::active_tab(size_t index) {
         _index = index;
     }
@@ -82,6 +73,9 @@ namespace ryu::core {
     }
 
     void note_book::on_draw(core::renderer& surface) {
+        // XXX: rework how the tab buttons are included so we can
+        //      take advantage of the layout_engine
+
         auto& rect = bounds();
         auto& pads = padding();
 
@@ -98,7 +92,7 @@ namespace ryu::core {
         auto y = rect.top() + pads.top();
         auto x = rect.left() + pads.left();
         for (const auto& tab : _tabs) {
-            core::rect tab_rect {x, y, tab_width, tab_height};
+            core::rect tab_rect {x, y, 250, 32};
 
             if (index == _index) {
                 surface.set_font_color(font_face(), bg);
@@ -119,24 +113,14 @@ namespace ryu::core {
                     alignment::horizontal::center,
                     alignment::vertical::middle);
 
-            y += (tab_height - 1);
+            y += 31;
             index++;
         }
 
         auto content_rect = bounds();
-        content_rect.pos(rect.left() + (tab_width - 1), rect.top())
-                    .size(rect.width() - (tab_width + 1), rect.height());
+        content_rect.pos(rect.left() + 249, rect.top())
+                    .size(rect.width() - 251, rect.height());
         surface.draw_rect(content_rect);
-    }
-
-    void note_book::on_resize(const core::rect& context_bounds) {
-        core::view::on_resize(context_bounds);
-
-        auto rect = bounds();
-        bounds({rect.left(),
-                rect.top(),
-                rect.width(),
-                rect.height()});
     }
 
     void note_book::add_tab(const std::string& title, core::view* content) {

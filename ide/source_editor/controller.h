@@ -46,7 +46,7 @@ namespace ryu::ide::source_editor {
         core::state_header* _header;
         core::text_box* _command_line;
         core::document_footer* _footer;
-        core::dock_layout_panel_unique_ptr _layout_panel;
+        core::loadable_view_unique_ptr _layout_panel;
     };
 
 };

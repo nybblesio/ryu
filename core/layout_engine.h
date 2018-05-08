@@ -10,10 +10,14 @@
 
 #pragma once
 
+#include <map>
 #include <layout.h>
 #include "size.h"
+#include "rect.h"
 
 namespace ryu::core {
+
+    class view;
 
     class layout_engine {
     public:
@@ -23,16 +27,19 @@ namespace ryu::core {
 
         void reset();
 
-        inline lay_id root() const {
-            return _root;
-        }
-
         void size(const core::size& value);
 
+        core::rect view_rect(core::view* v);
+
+        void calculate(core::view* root_view);
+
     private:
-        lay_id _root;
+        void build_layout_tree(core::view* v, int32_t parent_lay_id);
+
+    private:
         lay_context _context;
+        core::size _root_size {0, 0};
+        std::map<uint32_t, lay_id> _view_to_rect {};
     };
 
 };
-

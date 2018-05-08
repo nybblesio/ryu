@@ -28,20 +28,12 @@ namespace ryu::core {
 
         void active_tab(size_t index);
 
-        core::rect inner_bounds() override;
-
         void add_tab(const std::string& title, core::view* content);
 
     protected:
-        // XXX: this should not be hardcoded like this
-        const int tab_width = 200;
-        const int tab_height = 50;
-
         void on_initialize() override;
 
         void on_draw(core::renderer& surface) override;
-
-        void on_resize(const core::rect& context_bounds) override;
 
     private:
         void bind_events();

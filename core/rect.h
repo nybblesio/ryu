@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <SDL2/SDL_rect.h>
 #include "padding.h"
+#include "size.h"
 
 namespace ryu::core {
 
@@ -48,6 +49,12 @@ namespace ryu::core {
 
         int32_t bottom() const;
 
+        inline core::size to_size() const {
+            return core::size(
+                static_cast<uint32_t>(_width),
+                static_cast<uint32_t>(_height));
+        }
+
         rect& pos(int32_t left, int32_t top);
 
         void inflate(int32_t dx, int32_t dy);
@@ -66,6 +73,17 @@ namespace ryu::core {
 
         bool contains(int32_t x, int32_t y) const;
 
+        bool operator == (const rect& other) const {
+            return _top == other._top
+                   && _left == other._left
+                   && _width == other._width
+                   && _height == other._height;
+        }
+
+        bool operator != (const rect& other) const {
+            return !(*this == other);
+        }
+
         rect center_inside(const rect& target, bool scale = false);
 
     private:
@@ -76,4 +94,3 @@ namespace ryu::core {
     };
 
 };
-

@@ -264,7 +264,6 @@ namespace ryu::core {
 
     void pick_list::length(int value) {
         _length = value;
-        requires_layout();
     }
 
     option_list& pick_list::options() {
@@ -407,12 +406,6 @@ namespace ryu::core {
 
     void pick_list::not_found_color(palette_index value) {
         _not_found_color = value;
-    }
-
-    void pick_list::on_resize(const core::rect& context_bounds) {
-        bounds().size(
-            font_face()->width * (_length + 1),
-            font_face()->line_height + 10);
     }
 
     bool pick_list::find_matching_text(const std::string& text) {

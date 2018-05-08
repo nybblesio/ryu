@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include <core/view.h>
+#include "panel.h"
 
 namespace ryu::core {
 
-    class palette_editor : public core::dock_layout_panel {
+    class palette_editor : public core::panel {
     public:
         palette_editor(
             const std::string& name,
@@ -32,8 +32,6 @@ namespace ryu::core {
         void on_focus_changed() override;
 
         void on_palette_changed() override;
-
-        void on_draw(core::renderer& surface) override;
 
     private:
         void rebuild_entries();

@@ -14,7 +14,7 @@ views:
       bg: ide.colors.fill-color
 
   - name: 'top-panel'
-    type: view.types.dock-panel
+    type: view.types.panel
     dock: view.dock.top
     margin: [10, 50, 5, 15]
     colors:
@@ -23,7 +23,7 @@ views:
     row-margins: &ROW-MARGINS [10, 50, 15, 15]
     views:
       - name: 'row1'
-        type: view.types.dock-panel
+        type: view.types.panel
         dock: view.dock.top
         margin: *ROW-MARGINS
         colors:
@@ -85,7 +85,7 @@ views:
             prev: 'name-text-box'
 
       - name: 'row2'
-        type: view.types.dock-panel
+        type: view.types.panel
         margin: [10, 50, 0, 0]
         dock: view.dock.top
         colors:
@@ -123,8 +123,50 @@ views:
               fg: ide.colors.text
               bg: ide.colors.fill-color
 
+  - name: 'pick-list'
+    type: view.types.column-pick-list
+    dock: view.dock.fill
+    tab-stop: true
+    enabled: true
+    next: 'add-button'
+    prev: 'description-text-editor'
+    margin: [10, 50, 0, 10]
+    border: view.border.solid
+    sizing: view.sizing.parent
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+    column-colors: &COLUMN-COLORS
+      fg: ide.colors.white
+      bg: ide.colors.light-blue
+    headers:
+      - title: 'ID'
+        colors: *COLUMN-COLORS
+        width: 100
+        alignment:
+          horizontal: view.alignments.horizontal.center
+          vertical: view.alignments.vertical.middle
+      - title: 'Name'
+        colors: *COLUMN-COLORS
+        width: 450
+        alignment:
+          horizontal: view.alignments.horizontal.left
+          vertical: view.alignments.vertical.middle
+      - title: 'Type'
+        colors: *COLUMN-COLORS
+        width: 175
+        alignment:
+          horizontal: view.alignments.horizontal.left
+          vertical: view.alignments.vertical.middle
+      - title: 'Assemble'
+        colors: *COLUMN-COLORS
+        width: 150
+        alignment:
+          horizontal: view.alignments.horizontal.center
+          vertical: view.alignments.vertical.middle
+
   - name: 'button-panel'
-    type: view.types.dock-panel
+    type: view.types.panel
     dock: view.dock.bottom
     margin: [10, 50, 10, 0]
     colors:
@@ -233,45 +275,3 @@ views:
         colors:
           fg: ide.colors.light-grey
           bg: ide.colors.light-blue
-
-  - name: 'pick-list'
-    type: view.types.column-pick-list
-    dock: view.dock.fill
-    tab-stop: true
-    enabled: true
-    next: 'add-button'
-    prev: 'description-text-editor'
-    margin: [10, 50, 0, 10]
-    border: view.border.solid
-    sizing: view.sizing.parent
-    colors:
-      fg: ide.colors.info-text
-      bg: ide.colors.fill-color
-    column-colors: &COLUMN-COLORS
-      fg: ide.colors.white
-      bg: ide.colors.light-blue
-    headers:
-      - title: 'ID'
-        colors: *COLUMN-COLORS
-        width: 100
-        alignment:
-          horizontal: view.alignments.horizontal.center
-          vertical: view.alignments.vertical.middle
-      - title: 'Name'
-        colors: *COLUMN-COLORS
-        width: 450
-        alignment:
-          horizontal: view.alignments.horizontal.left
-          vertical: view.alignments.vertical.middle
-      - title: 'Type'
-        colors: *COLUMN-COLORS
-        width: 175
-        alignment:
-          horizontal: view.alignments.horizontal.left
-          vertical: view.alignments.vertical.middle
-      - title: 'Assemble'
-        colors: *COLUMN-COLORS
-        width: 150
-        alignment:
-          horizontal: view.alignments.horizontal.center
-          vertical: view.alignments.vertical.middle

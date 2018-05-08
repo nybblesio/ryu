@@ -38,8 +38,6 @@ namespace ryu::core {
     protected:
         void on_draw(ryu::core::renderer& surface) override;
 
-        void on_resize(const core::rect& context_bounds) override;
-
     private:
         void update_content_bounds();
 

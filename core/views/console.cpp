@@ -569,6 +569,12 @@ namespace ryu::core {
         bind_events();
     }
 
+    void console::on_bounds_changed() {
+        calculate_page_metrics();
+        _caret.page_size(_metrics.page_height, _metrics.page_width);
+        _document.page_size(_metrics.page_height, _metrics.page_width);
+    }
+
     void console::raise_caret_changed() {
         if (_caret_changed_callback != nullptr)
             _caret_changed_callback(_caret, _document);
@@ -633,13 +639,6 @@ namespace ryu::core {
 
     void console::code_mapper(const code_to_attr_dict& value) {
         _code_mapper = value;
-    }
-
-    void console::on_resize(const core::rect& context_bounds) {
-        core::view::on_resize(context_bounds);
-        calculate_page_metrics();
-        _caret.page_size(_metrics.page_height, _metrics.page_width);
-        _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
     void console::on_draw(core::renderer& surface) {

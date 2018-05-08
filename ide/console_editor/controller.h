@@ -39,7 +39,7 @@ namespace ryu::ide::console_editor {
         core::console* _console;
         bool _show_banner = true;
         core::document_footer* _footer;
-        core::dock_layout_panel_unique_ptr _layout_panel;
+        core::loadable_view_unique_ptr _layout_panel;
     };
 
 };

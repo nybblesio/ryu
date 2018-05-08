@@ -17,7 +17,7 @@
 #include <yaml-cpp/yaml.h>
 #include <core/yaml_support.h>
 #include <boost/filesystem.hpp>
-#include "dock_layout_panel.h"
+#include "panel.h"
 
 namespace ryu::core {
 
@@ -27,7 +27,7 @@ namespace ryu::core {
         std::string next {};
     };
 
-    class loadable_view : public core::dock_layout_panel {
+    class loadable_view : public core::panel {
     public:
         enum class types {
             label = 0,
@@ -37,7 +37,7 @@ namespace ryu::core {
             pick_list,
             column_pick_list,
             panel,
-            dock_panel,
+            UNUSED_REPLACE,
             notebook,
             state_header,
             check_box,
@@ -82,11 +82,17 @@ namespace ryu::core {
         void on_initialize() override;
 
     private:
+        void get_layout_config(
+            core::result& result,
+            const YAML::Node& root,
+            const YAML::Node& node,
+            core::view* v);
+
         bool create_views(
-                core::result& result,
-                const YAML::Node& root,
-                const YAML::Node& views_node,
-                core::view* parent_view);
+            core::result& result,
+            const YAML::Node& root,
+            const YAML::Node& views_node,
+            core::view* parent_view);
 
     private:
         std::string _meta_name;

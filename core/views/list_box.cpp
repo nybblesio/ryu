@@ -117,6 +117,10 @@ namespace ryu::core {
         bind_events();
     }
 
+    void list_box::on_bounds_changed() {
+        calculate_visible_rows();
+    }
+
     void list_box::calculate_visible_rows() {
         auto row_height = font_face()->line_height + 2;
         _visible_rows = static_cast<uint32_t>((inner_bounds().height() / row_height) - 2);
@@ -178,20 +182,6 @@ namespace ryu::core {
 
     void list_box::selection_color(palette_index value) {
         _selection_color = value;
-    }
-
-    void list_box::on_resize(const core::rect& context_bounds) {
-        switch (sizing()) {
-            case sizing::parent: {
-                auto container = parent();
-                bounds(container != nullptr ? container->bounds() : context_bounds);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-        calculate_visible_rows();
     }
 
     void list_box::on_clicked(const list_box::on_clicked_callable& callable) {

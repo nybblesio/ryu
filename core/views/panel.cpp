@@ -24,6 +24,14 @@ namespace ryu::core {
         should_clip(true);
     }
 
+    bool panel::layout_wrap() const {
+        return _layout_wrap;
+    }
+
+    void panel::layout_wrap(bool value) {
+        _layout_wrap = value;
+    }
+
     void panel::on_draw(core::renderer& surface) {
         auto bounds = inner_bounds();
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
@@ -34,6 +42,30 @@ namespace ryu::core {
             surface.fill_rect(bounds);
             surface.pop_blend_mode();
         }
+    }
+
+    panel::layout_modes panel::layout_mode() const {
+        return _mode;
+    }
+
+    void panel::layout_mode(panel::layout_modes value) {
+        _mode = value;
+    }
+
+    panel::flex_directions panel::flex_direction() const {
+        return _direction;
+    }
+
+    void panel::flex_direction(panel::flex_directions value) {
+        _direction = value;
+    }
+
+    panel::layout_justifications panel::layout_justification() const {
+        return _justification;
+    }
+
+    void panel::layout_justification(panel::layout_justifications value) {
+        _justification = value;
     }
 
 }

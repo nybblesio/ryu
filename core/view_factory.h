@@ -39,7 +39,6 @@ namespace ryu::core {
     using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
     using console_unique_ptr = std::unique_ptr<core::console>;
     using check_box_unique_ptr = std::unique_ptr<core::check_box>;
-    using dock_layout_panel_unique_ptr = std::unique_ptr<core::dock_layout_panel>;
     using label_unique_ptr = std::unique_ptr<core::label>;
     using memory_editor_unique_ptr = std::unique_ptr<core::memory_editor>;
     using note_book_unique_ptr = std::unique_ptr<core::note_book>;

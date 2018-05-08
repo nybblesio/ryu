@@ -14,7 +14,7 @@ views:
       bg: ide.colors.fill-color
 
   - name: 'editor-panel'
-    type: view.types.dock-panel
+    type: view.types.panel
     dock: view.dock.top
     margin: [10, 50, 5, 5]
     colors:
@@ -23,7 +23,7 @@ views:
     row-margins: &ROW-MARGINS [10, 50, 15, 15]
     views:
       - name: 'row1'
-        type: view.types.dock-panel
+        type: view.types.panel
         dock: view.dock.top
         margin: *ROW-MARGINS
         colors:
@@ -86,7 +86,7 @@ views:
             input-filter: view.input-filters.hex
 
       - name: 'row2'
-        type: view.types.dock-panel
+        type: view.types.panel
         dock: view.dock.top
         margin: *ROW-MARGINS
         colors:
@@ -118,7 +118,7 @@ views:
             prev: 'address-text-box'
 
       - name: 'row3'
-        type: view.types.dock-panel
+        type: view.types.panel
         margin: *ROW-MARGINS
         dock: view.dock.top
         colors:
@@ -150,7 +150,7 @@ views:
             prev: 'color-editor'
 
       - name: 'row4'
-        type: view.types.dock-panel
+        type: view.types.panel
         dock: view.dock.top
         margin: *ROW-MARGINS
         colors:
@@ -191,7 +191,7 @@ views:
               bg: ide.colors.fill-color
 
   - name: 'button-panel'
-    type: view.types.dock-panel
+    type: view.types.panel
     dock: view.dock.bottom
     margin: [10, 50, 5, 5]
     colors:

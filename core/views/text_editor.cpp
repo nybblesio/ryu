@@ -655,6 +655,13 @@ namespace ryu::core {
     void text_editor::delete_selection() {
     }
 
+    void text_editor::on_bounds_changed() {
+        calculate_page_metrics();
+
+        _caret.page_size(_metrics.page_height, _metrics.page_width);
+        _document.page_size(_metrics.page_height, _metrics.page_width);
+    }
+
     void text_editor::calculate_page_metrics() {
         auto face = font_face();
         auto rect = bounds();
@@ -706,38 +713,6 @@ namespace ryu::core {
     void text_editor::page_size(uint8_t height, uint8_t width) {
         _metrics.page_height = height;
         _metrics.page_width = width;
-    }
-
-    void text_editor::on_resize(const core::rect& context_bounds) {
-        core::view::on_resize(context_bounds);
-
-        calculate_page_metrics();
-
-        _caret.page_size(_metrics.page_height, _metrics.page_width);
-        _document.page_size(_metrics.page_height, _metrics.page_width);
-
-        switch(sizing()) {
-            case sizing::content: {
-                auto face = font_face();
-                auto width = bounds().width() - margin().horizontal();
-                auto height = std::max<int32_t>(
-                    bounds().height(),
-                    (face->line_height * _metrics.page_height) - margin().vertical());
-                bounds().size(width, height);
-                break;
-            }
-            case sizing::parent: {
-                auto container = parent();
-                auto rect = container != nullptr ? container->bounds() : context_bounds;
-                auto& margins = margin();
-                bounds().size(
-                    rect.width() - margins.horizontal(),
-                    rect.height() - margins.vertical());
-                break;
-            }
-            case sizing::fixed:
-                break;
-        }
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {

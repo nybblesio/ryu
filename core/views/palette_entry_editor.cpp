@@ -290,22 +290,4 @@ namespace ryu::core {
         }
     }
 
-    void palette_entry_editor::on_resize(const core::rect& context_bounds) {
-        switch (sizing()) {
-            case sizing::fixed: {
-                bounds().width(64);
-                bounds().height(64);
-                break;
-            }
-            case sizing::parent: {
-                auto container = parent();
-                bounds(container != nullptr ? container->bounds() : context_bounds);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    }
-
 }

@@ -14,7 +14,7 @@ namespace ryu::core {
 
     document_footer::document_footer(
             const std::string& name,
-            core::view_host* host) : dock_layout_panel(name, host),
+            core::view_host* host) : panel(name, host),
                                      _caret_status("caret-status-label", host),
                                      _document_status("document-status-label", host) {
     }
@@ -60,10 +60,6 @@ namespace ryu::core {
         add_child(&_caret_status);
 
         bounds().height(font_face()->line_height);
-    }
-
-    void document_footer::on_resize(const core::rect& context_bounds) {
-        dock_layout_panel::on_resize(context_bounds);
     }
 
 }

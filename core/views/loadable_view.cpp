@@ -24,7 +24,7 @@ namespace ryu::core {
 
     loadable_view::loadable_view(
             const std::string& name,
-            core::view_host* host) : dock_layout_panel(name, host) {
+            core::view_host* host) : panel(name, host) {
     }
 
     loadable_view::~loadable_view() {
@@ -71,6 +71,8 @@ namespace ryu::core {
                 if (view != nullptr)
                     focus(view);
             }
+
+            get_layout_config(result, root, root, this);
         } else {
             result.add_message(
                 "P003",
@@ -107,11 +109,11 @@ namespace ryu::core {
             core::padding margins = {};
             std::string prev_view_name;
             std::string next_view_name;
+            core::size minimum_size {};
             uint8_t fg_color = parent_view->fg_color();
             uint8_t bg_color = parent_view->bg_color();
             dock::styles dock_style = dock::styles::none;
             border::types border_type = border::types::none;
-            view::sizing::types sizing = view::sizing::types::content;
 
             std::unique_ptr<view> current_view;
 
@@ -127,11 +129,11 @@ namespace ryu::core {
             get_optional(view_node["prev"], prev_view_name);
 
             get_constant(result, root, view_node["dock"], dock_style);
-            get_constant(result, root, view_node["sizing"], sizing);
             get_constant(result, root, view_node["border"], border_type);
             get_optional(view_node["margin"], margins);
             get_optional(view_node["padding"], pads);
             get_optional(view_node["bounds"], bounds);
+            get_optional(view_node["minimum-size"], minimum_size);
 
             auto fg_result = get_node_from_path(view_node, "colors.fg");
             if (fg_result.found)
@@ -463,22 +465,6 @@ namespace ryu::core {
                     current_view = std::move(panel);
                     break;
                 }
-                case types::dock_panel: {
-                    auto panel = core::view_factory::create_view<core::dock_layout_panel>(
-                            host(),
-                            name,
-                            font_family(),
-                            palette(),
-                            fg_color,
-                            bg_color,
-                            value,
-                            dock_style,
-                            margins,
-                            pads,
-                            bounds);
-                    current_view = std::move(panel);
-                    break;
-                }
                 case types::notebook: {
                     auto notebook = core::view_factory::create_view<core::note_book>(
                             host(),
@@ -723,14 +709,19 @@ namespace ryu::core {
                         next_view_name});
             }
 
-            current_view->sizing(sizing);
             current_view->enabled(enabled);
             current_view->visible(visible);
             current_view->border(border_type);
-            parent_view->add_child(current_view.get());
+            current_view->min_size().dimensions(
+                minimum_size.width(),
+                minimum_size.height());
+
+            auto view_ptr = current_view.get();
+            get_layout_config(result, root, view_node, view_ptr);
+            parent_view->add_child(view_ptr);
 
             auto sub_views_node = view_node["views"];
-            if (!create_views(result, root, sub_views_node, current_view.get()))
+            if (!create_views(result, root, sub_views_node, view_ptr))
                 return false;
 
             _views.push_back(std::move(current_view));
@@ -740,6 +731,50 @@ namespace ryu::core {
     }
 
     void loadable_view::on_initialize() {
+    }
+
+    void loadable_view::get_layout_config(
+            core::result& result,
+            const YAML::Node& root,
+            const YAML::Node& node,
+            core::view* v) {
+        auto panel = dynamic_cast<core::panel*>(v);
+        if (panel == nullptr)
+            return;
+
+        bool wrap_value = false;
+        uint16_t flag_value;
+        dock::styles dock_style = dock::styles::none;
+
+        auto layout_mode_result = get_node_from_path(node, "layout.mode");
+        if (layout_mode_result.found) {
+            if (get_constant(result, root, layout_mode_result.node, flag_value))
+                panel->layout_mode(static_cast<panel::layout_modes>(flag_value));
+        }
+
+        auto direction_result = get_node_from_path(node, "layout.direction");
+        if (direction_result.found) {
+            if (get_constant(result, root, direction_result.node, flag_value))
+                panel->flex_direction(static_cast<panel::flex_directions>(flag_value));
+        }
+
+        auto justification_result = get_node_from_path(node, "layout.justification");
+        if (justification_result.found) {
+            if (get_constant(result, root, justification_result.node, flag_value))
+                panel->layout_justification(static_cast<panel::layout_justifications>(flag_value));
+        }
+
+        auto wrap_result = get_node_from_path(node, "layout.wrap");
+        if (wrap_result.found) {
+            if (get_constant(result, root, wrap_result.node, wrap_value))
+                panel->layout_wrap(wrap_value);
+        }
+
+        auto dock_result = get_node_from_path(node, "layout.dock");
+        if (dock_result.found) {
+            if (get_constant(result, root, dock_result.node, dock_style))
+                panel->dock(dock_style);
+        }
     }
 
 }

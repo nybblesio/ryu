@@ -51,14 +51,6 @@ namespace ryu::core {
 
     class view {
     public:
-        struct sizing {
-            enum types {
-                content,
-                fixed,
-                parent
-            };
-        };
-
         struct config {
             enum flags : uint8_t {
                 none     = 0b00000000,
@@ -66,8 +58,7 @@ namespace ryu::core {
                 enabled  = 0b00000010,
                 tab_stop = 0b00000100,
                 focused  = 0b00001000,
-                layout   = 0b00010000,
-                clip     = 0b00100000,
+                clip     = 0b00010000,
             };
         };
 
@@ -89,10 +80,6 @@ namespace ryu::core {
 
         void initialize();
 
-        bool layout() const;
-
-        short index() const;
-
         core::rect& bounds();
 
         bool focused() const;
@@ -109,11 +96,11 @@ namespace ryu::core {
 
         view_list& children();
 
-        void requires_layout();
+        uint16_t index() const;
 
         types::id type() const;
 
-        void layout(bool value);
+        core::size& min_size();
 
         core::padding& margin();
 
@@ -167,8 +154,6 @@ namespace ryu::core {
 
         virtual core::rect inner_bounds();
 
-        view::sizing::types sizing() const;
-
         core::border::types border() const;
 
         void draw(core::renderer& renderer);
@@ -186,8 +171,6 @@ namespace ryu::core {
         void bounds(const core::rect& value);
 
         const core::font_t* font_face() const;
-
-        void sizing(view::sizing::types value);
 
         core::font_family* font_family() const;
 
@@ -215,8 +198,6 @@ namespace ryu::core {
 
         virtual void value(const std::string& value);
 
-        void resize(const core::rect& context_bounds);
-
         virtual void font_family(core::font_family* value);
 
         void update(uint32_t dt, core::pending_event_list& events);
@@ -234,13 +215,13 @@ namespace ryu::core {
 
         void listen_for_on_host_change();
 
+        virtual void on_bounds_changed();
+
         virtual void on_palette_changed();
 
         core::input_action_provider& action_provider();
 
         virtual void on_draw(core::renderer& renderer);
-
-        virtual void on_resize(const core::rect& context_bounds);
 
         virtual void on_update(uint32_t dt, core::pending_event_list& events);
 
@@ -265,6 +246,7 @@ namespace ryu::core {
         uint16_t _index = 0;
         id_t _host_callback_id;
         view_list _children {};
+        core::size _min_size {};
         core::padding _margin {};
         view_list _render_list {};
         core::padding _padding {};
@@ -281,7 +263,6 @@ namespace ryu::core {
         border::types _border = border::types::none;
         core::dock::styles _dock = dock::styles::none;
         core::input_action_provider _action_provider {};
-        view::sizing::types _sizing = view::sizing::types::content;
         uint8_t _flags = config::flags::enabled | config::flags::visible;
     };
 

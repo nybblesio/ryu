@@ -16,7 +16,7 @@ namespace ryu::core {
 
     palette_editor::palette_editor(
         const std::string& name,
-        core::view_host* host) : core::dock_layout_panel(name, host) {
+        core::view_host* host) : core::panel(name, host) {
     }
 
     palette_editor::~palette_editor() {
@@ -64,7 +64,6 @@ namespace ryu::core {
             entry_editor->tab_stop(true);
             // XXX: need to fix hard coded color
             entry_editor->text_color(15);
-            entry_editor->sizing(sizing::fixed);
             entry_editor->entry(static_cast<core::palette_index>(entry_index));
 
             add_child(entry_editor.get());
@@ -88,8 +87,6 @@ namespace ryu::core {
         // XXX: can't tab back to any peer views
         if (!_views.empty())
             next_view(_views[0].get());
-
-        layout(true);
     }
 
     void palette_editor::on_focus_changed() {
@@ -98,10 +95,6 @@ namespace ryu::core {
 
     void palette_editor::on_palette_changed() {
         rebuild_entries();
-    }
-
-    void palette_editor::on_draw(core::renderer& surface) {
-        dock_layout_panel::on_draw(surface);
     }
 
 }

@@ -180,7 +180,6 @@ namespace ryu::core {
             _document.write_line(stream, 0, 0, _document.columns());
             view::value(stream.str());
         });
-        padding({5, 5, 5, 5});
     }
 
     uint16_t text_box::width() const {
@@ -198,7 +197,6 @@ namespace ryu::core {
     void text_box::width(uint8_t value) {
         _document.page_size(1, value);
         _caret.page_size(1, value);
-        requires_layout();
     }
 
     std::string text_box::value() const {
@@ -207,7 +205,6 @@ namespace ryu::core {
 
     void text_box::length(uint16_t value) {
         _document.document_size(1, value);
-        requires_layout();
     }
 
     bool text_box::caret_left(uint8_t columns) {
@@ -283,27 +280,6 @@ namespace ryu::core {
     void text_box::font_family(core::font_family* value) {
         view::font_family(value);
         _caret.font_family(value);
-    }
-
-    void text_box::on_resize(const core::rect& context_bounds) {
-        switch (sizing()) {
-            case sizing::content:
-            case sizing::fixed: {
-                bounds().size(
-                    font_face()->width * (_document.page_width() + 1),
-                    font_face()->line_height + 10);
-                break;
-            }
-            case sizing::parent: {
-                auto container = parent();
-                auto rect = container != nullptr ? container->bounds() : context_bounds;
-                auto& margins = margin();
-                bounds().size(
-                    rect.width() - margins.right(),
-                    font_face()->line_height + 10);
-                break;
-            }
-        }
     }
 
     void text_box::on_key_down(const text_box::on_key_down_callable& callable) {

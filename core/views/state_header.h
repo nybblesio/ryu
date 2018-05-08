@@ -12,11 +12,11 @@
 
 #include <core/notification_center.h>
 #include "label.h"
-#include "dock_layout_panel.h"
+#include "panel.h"
 
 namespace ryu::core {
 
-    class state_header : public core::dock_layout_panel,
+    class state_header : public core::panel,
                          public core::observer {
     public:
         state_header(
@@ -39,8 +39,6 @@ namespace ryu::core {
 
     protected:
         void on_initialize() override;
-
-        void on_resize(const core::rect& context_bounds) override;
 
         void on_notification(core::observable* instance) override;
 

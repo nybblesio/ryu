@@ -30,7 +30,7 @@ views:
       bg: ide.colors.fill-color
 
   - name: 'footer-panel'
-    type: view.types.dock-panel
+    type: view.types.panel
     dock: view.dock.bottom
     margin: *MARGINS
     colors:

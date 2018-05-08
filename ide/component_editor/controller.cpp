@@ -97,7 +97,7 @@ namespace ryu::ide::component_editor {
     }
 
     void controller::on_resize(const core::rect& bounds) {
-        _layout_panel->resize(bounds);
+        layout_engine()->size(bounds.to_size());
     }
 
     void controller::component(hardware::component* value) {

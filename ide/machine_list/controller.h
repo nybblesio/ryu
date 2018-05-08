@@ -50,7 +50,7 @@ namespace ryu::ide::machine_list {
         core::button* _edit_button;
         core::button* _delete_button;
         core::column_pick_list* _pick_list;
-        core::dock_layout_panel_unique_ptr _layout_panel;
+        core::loadable_view_unique_ptr _layout_panel;
     };
 
 };

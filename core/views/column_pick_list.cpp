@@ -286,6 +286,10 @@ namespace ryu::core {
     void column_pick_list::on_focus_changed() {
     }
 
+    void column_pick_list::on_bounds_changed() {
+        calculate_visible_and_max_rows();
+    }
+
     uint32_t column_pick_list::selected() const {
         return _row + _selected;
     }
@@ -499,26 +503,6 @@ namespace ryu::core {
             return entry - 35;
         }
         return entry;
-    }
-
-    void column_pick_list::on_resize(const core::rect& context_bounds) {
-        switch (sizing()) {
-            case sizing::content:
-            case sizing::fixed: {
-                // XXX: need to implement this
-                break;
-            }
-            case sizing::parent: {
-                auto container = parent();
-                auto rect = container != nullptr ? container->bounds() : context_bounds;
-                auto& margins = margin();
-                bounds().size(
-                    rect.width() - margins.horizontal(),
-                    rect.height() - margins.vertical());
-                break;
-            }
-        }
-        calculate_visible_and_max_rows();
     }
 
     void column_pick_list::on_activated(const column_pick_list::activated_callable& callable) {

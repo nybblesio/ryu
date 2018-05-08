@@ -357,6 +357,13 @@ namespace ryu::core {
         _caret.enabled(focused());
     }
 
+    void memory_editor::on_bounds_changed() {
+        calculate_page_metrics();
+        _caret.page_size(
+            _metrics.page_height,
+            static_cast<uint8_t>((_metrics.page_width * 3) + 16));
+    }
+
     void memory_editor::raise_caret_changed() {
         if (_caret_changed_callback != nullptr)
             _caret_changed_callback(_caret);
@@ -445,14 +452,6 @@ namespace ryu::core {
 
     void memory_editor::selection_color(palette_index value) {
         _selection_color = value;
-    }
-
-    void memory_editor::on_resize(const core::rect& context_bounds) {
-        core::view::on_resize(context_bounds);
-        calculate_page_metrics();
-        _caret.page_size(
-                _metrics.page_height,
-                static_cast<uint8_t>((_metrics.page_width * 3) + 16));
     }
 
     void memory_editor::on_caret_changed(const caret_changed_callable& callable) {

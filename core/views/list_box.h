@@ -39,9 +39,9 @@ namespace ryu::core {
 
         void on_initialize() override;
 
-        void on_draw(core::renderer& surface) override;
+        void on_bounds_changed() override;
 
-        void on_resize(const rect& context_bounds) override;
+        void on_draw(core::renderer& surface) override;
 
     private:
         bool move_up();

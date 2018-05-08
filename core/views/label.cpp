@@ -41,7 +41,6 @@ namespace ryu::core {
         if (view::value() != text) {
             view::value(text);
             update_content_bounds();
-            requires_layout();
         }
     }
 
@@ -68,23 +67,6 @@ namespace ryu::core {
 
     core::alignment::vertical::types label::valign() const {
         return _valign;
-    }
-
-    void label::on_resize(const core::rect& context_bounds) {
-        switch (sizing()) {
-            case sizing::content: {
-                update_content_bounds();
-                break;
-            }
-            case sizing::parent: {
-                auto container = parent();
-                bounds(container != nullptr ? container->bounds() : context_bounds);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
     }
 
     core::alignment::horizontal::types label::halign() const {

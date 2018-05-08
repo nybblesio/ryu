@@ -32,6 +32,25 @@ namespace YAML {
     };
 
     template<>
+    struct convert<ryu::core::size> {
+        static Node encode(const ryu::core::size& rhs) {
+            Node node;
+            node.push_back(rhs.width());
+            node.push_back(rhs.height());
+            return node;
+        }
+
+        static bool decode(const Node& node, ryu::core::size& rhs) {
+            if (!node.IsSequence() || node.size() < 2)
+                return false;
+
+            rhs.width(node[0].as<uint32_t>());
+            rhs.height(node[1].as<uint32_t>());
+            return true;
+        }
+    };
+
+    template<>
     struct convert<ryu::core::rect> {
         static Node encode(const ryu::core::rect& rhs) {
             Node node;

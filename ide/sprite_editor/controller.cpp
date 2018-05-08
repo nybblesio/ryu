@@ -71,7 +71,7 @@ namespace ryu::ide::sprite_editor {
     }
 
     void controller::on_resize(const core::rect& bounds) {
-        _layout_panel->resize(bounds);
+        layout_engine()->size(bounds.to_size());
     }
 
     void controller::on_activate(const core::parameter_dict& params) {

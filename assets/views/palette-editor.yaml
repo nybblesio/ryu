@@ -14,7 +14,7 @@ views:
       bg: ide.colors.fill-color
 
   - name: 'left-panel'
-    type: view.types.dock-panel
+    type: view.types.panel
     dock: view.dock.left
     bounds: [0, 0, 256, 256]
     margin: [10, 10, 10, 10]
@@ -39,7 +39,7 @@ views:
         selection-color: ide.colors.info-text
 
   - name: 'right-panel'
-    type: view.types.dock-panel
+    type: view.types.panel
     dock: view.dock.fill
     margin: [10, 60, 10, 10]
     colors:

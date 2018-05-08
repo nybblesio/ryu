@@ -148,23 +148,6 @@ namespace ryu::core {
         _halign = value;
     }
 
-    void button::on_resize(const core::rect& context_bounds) {
-        switch (sizing()) {
-            case sizing::content: {
-                bounds().size(_width, _height);
-                break;
-            }
-            case sizing::parent: {
-                auto container = parent();
-                bounds(container != nullptr ? container->bounds() : context_bounds);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    }
-
     void button::on_clicked(const button::on_clicked_callable& callable) {
         _on_clicked = callable;
     }

@@ -83,14 +83,6 @@ namespace ryu::core {
         bind_events();
     }
 
-    bool view::layout() const {
-        return (_flags & config::flags::layout) != 0;
-    }
-
-    short view::index() const {
-        return _index;
-    }
-
     core::rect& view::bounds() {
         return _rect;
     }
@@ -128,19 +120,12 @@ namespace ryu::core {
         return _children;
     }
 
-    void view::requires_layout() {
-        auto container = parent();
-        if (container != nullptr)
-            container->layout(true);
-        else
-            layout(true);
+    uint16_t view::index() const {
+        return _index;
     }
 
-    void view::layout(bool value) {
-        if (value)
-            _flags |= config::flags::layout;
-        else
-            _flags &= ~config::flags::layout;
+    core::size& view::min_size() {
+        return _min_size;
     }
 
     core::padding& view::margin() {
@@ -154,6 +139,9 @@ namespace ryu::core {
             [](const view* left, const view* right) {
                 return left->index() < right->index();
             });
+    }
+
+    void view::on_bounds_changed() {
     }
 
     void view::on_palette_changed() {
@@ -338,13 +326,18 @@ namespace ryu::core {
         _border = value;
     }
 
-    view::sizing::types view::sizing() const {
-        return _sizing;
-    }
-
     void view::dock(core::dock::styles style) {
         _dock = style;
     }
+
+    // XXX: need to rework the render list cache so it includes
+    //      a valid clipping rectangle
+
+    //            auto parent = view->parent();
+    //            if (parent != nullptr && parent->should_clip())
+    //                renderer.push_clip_rect(parent->client_bounds());
+    //            if (parent != nullptr && parent->should_clip())
+    //                renderer.pop_clip_rect();
 
     void view::draw(core::renderer& renderer) {
         if (!visible())
@@ -352,25 +345,13 @@ namespace ryu::core {
 
         render_list_build();
 
+        auto layout_engine = host()->layout_engine();
+        layout_engine->calculate(this);
+        bounds(layout_engine->view_rect(this));
+
         for (auto view : _render_list) {
-            if (view->layout()) {
-                view->layout(false);
-                view->on_resize(renderer.bounds());
-            }
-            // XXX: need to rework the render list cache so it includes
-            //      a valid clipping rectangle
-
-            // XXX: the inner_bounds on the parent seems to be too small for the
-            //      contents of the child views.  this is probably due to the layout
-            //      engine being bad but it may be an error somewhere else.
-
-//            auto parent = view->parent();
-//            if (parent != nullptr && parent->should_clip())
-//                renderer.push_clip_rect(parent->client_bounds());
+            view->bounds(layout_engine->view_rect(view));
             view->on_draw(renderer);
-//            if (parent != nullptr && parent->should_clip())
-//                renderer.pop_clip_rect();
-
             renderer.set_color(view->palette()->get(view->fg_color()));
             switch (view->border()){
                 case border::solid: {
@@ -406,7 +387,10 @@ namespace ryu::core {
     }
 
     void view::bounds(const core::rect& value) {
-        _rect = value;
+        if (value != _rect) {
+            _rect = value;
+            on_bounds_changed();
+        }
     }
 
     void view::focus(const core::view* target) {
@@ -424,10 +408,6 @@ namespace ryu::core {
         if (family == nullptr)
             return nullptr;
         return family->find_style(_font_style);
-    }
-
-    void view::sizing(view::sizing::types value) {
-        _sizing = value;
     }
 
     void view::on_draw(core::renderer& renderer) {
@@ -462,21 +442,8 @@ namespace ryu::core {
         _font = value;
     }
 
-    void view::resize(const core::rect& context_bounds) {
-        if (!visible())
-            return;
-
-        layout(false);
-        on_resize(context_bounds);
-        for (auto child : _children)
-            child->resize(context_bounds);
-    }
-
     core::input_action_provider& view::action_provider() {
         return _action_provider;
-    }
-
-    void view::on_resize(const core::rect& context_bounds) {
     }
 
     void view::update(uint32_t dt, core::pending_event_list& events) {
