@@ -61,4 +61,14 @@ namespace ryu::core {
         add_child(&_caret_status);
     }
 
+    void document_footer::on_palette_changed() {
+        _caret_status.palette(palette());
+        _document_status.palette(palette());
+    }
+
+    void document_footer::on_font_family_changed() {
+        _caret_status.font_family(font_family());
+        _document_status.font_family(font_family());
+    }
+
 }

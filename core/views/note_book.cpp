@@ -58,6 +58,11 @@ namespace ryu::core {
     void note_book::on_initialize() {
         define_actions();
         bind_events();
+
+        tab_stop(true);
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(256, 256);
     }
 
     size_t note_book::active_tab() const {
@@ -70,6 +75,14 @@ namespace ryu::core {
 
     void note_book::remove_tab(size_t index) {
         _tabs.erase(_tabs.begin() + index);
+    }
+
+    void note_book::on_font_family_changed() {
+        calculate_tab_and_page_sizes();
+    }
+
+    void note_book::calculate_tab_and_page_sizes() {
+        // XXX: need to implement this logic and pull out of on_draw
     }
 
     void note_book::on_draw(core::renderer& surface) {

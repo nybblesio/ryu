@@ -48,6 +48,9 @@ namespace ryu::core {
         define_actions();
         bind_events();
         value("false");
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(32, 32);
     }
 
     void check_box::on_draw(core::renderer& surface) {

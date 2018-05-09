@@ -40,6 +40,10 @@ namespace ryu::core {
     protected:
         void on_initialize() override;
 
+        void on_palette_changed() override;
+
+        void on_font_family_changed() override;
+
         void on_notification(core::observable* instance) override;
 
         bool on_notification_filter(core::observable* instance) override;

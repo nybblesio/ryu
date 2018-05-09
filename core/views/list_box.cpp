@@ -112,12 +112,20 @@ namespace ryu::core {
     }
 
     void list_box::on_initialize() {
-        tab_stop(true);
         define_actions();
         bind_events();
+
+        tab_stop(true);
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(256, 256);
     }
 
     void list_box::on_bounds_changed() {
+        calculate_visible_rows();
+    }
+
+    void list_box::on_font_family_changed() {
         calculate_visible_rows();
     }
 

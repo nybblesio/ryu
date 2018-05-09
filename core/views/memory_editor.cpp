@@ -194,8 +194,6 @@ namespace ryu::core {
     }
 
     void memory_editor::on_initialize() {
-        tab_stop(true);
-
         define_actions();
         bind_events();
 
@@ -211,7 +209,11 @@ namespace ryu::core {
         _caret.position(0, 0);
 
         add_child(&_caret);
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+
+        tab_stop(true);
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(256, 256);
     }
 
     void memory_editor::define_actions() {
@@ -359,9 +361,6 @@ namespace ryu::core {
 
     void memory_editor::on_bounds_changed() {
         calculate_page_metrics();
-        _caret.page_size(
-            _metrics.page_height,
-            static_cast<uint8_t>((_metrics.page_width * 3) + 16));
     }
 
     void memory_editor::raise_caret_changed() {
@@ -371,10 +370,20 @@ namespace ryu::core {
 
     void memory_editor::calculate_page_metrics() {
         auto rect = inner_bounds();
+
         if (rect.empty())
             return;
+
         _metrics.page_width = 16;
         _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
+
+        _caret.page_size(
+            _metrics.page_height,
+            static_cast<uint8_t>((_metrics.page_width * 3) + 16));
+    }
+
+    void memory_editor::on_font_family_changed() {
+        calculate_page_metrics();
     }
 
     void memory_editor::address(uint32_t address) {

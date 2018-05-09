@@ -33,12 +33,16 @@ namespace ryu::core {
     protected:
         void on_initialize() override;
 
+        void on_font_family_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
     private:
         void bind_events();
 
         void define_actions();
+
+        void calculate_tab_and_page_sizes();
 
     private:
         size_t _index = 0;

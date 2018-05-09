@@ -32,6 +32,10 @@ namespace ryu::core {
     protected:
         void on_initialize() override;
 
+        void on_palette_changed() override;
+
+        void on_font_family_changed() override;
+
     private:
         core::label _caret_status;
         core::label _document_status;

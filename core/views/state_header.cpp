@@ -84,8 +84,24 @@ namespace ryu::core {
         return _state_label.value();
     }
 
+    void state_header::on_palette_changed() {
+        _state_label.palette(palette());
+        _project_status.palette(palette());
+        _machine_status.palette(palette());
+        _environment_status.palette(palette());
+        _custom_status.palette(palette());
+    }
+
     std::string state_header::custom() const {
         return _custom_status.value();
+    }
+
+    void state_header::on_font_family_changed() {
+        _state_label.font_family(font_family());
+        _project_status.font_family(font_family());
+        _machine_status.font_family(font_family());
+        _environment_status.font_family(font_family());
+        _custom_status.font_family(font_family());
     }
 
     palette_index state_header::state_color() const {

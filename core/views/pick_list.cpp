@@ -58,7 +58,7 @@ namespace ryu::core {
     bool pick_list::page_down() {
         auto next_stop_row = _row + _visible_rows;
         if (next_stop_row > _options.size() - 1) {
-            _row = static_cast<int>(_options.size() - _visible_rows);
+            _row = static_cast<uint32_t>(_options.size() - _visible_rows);
             return true;
         }
         else
@@ -224,7 +224,6 @@ namespace ryu::core {
     }
 
     void pick_list::on_initialize() {
-        tab_stop(true);
         define_actions();
         bind_events();
 
@@ -237,9 +236,10 @@ namespace ryu::core {
         _caret.bg_color(bg_color());
         _caret.font_family(font_family());
         _caret.initialize();
+
         add_child(&_caret);
 
-        padding({5, 5, 5, 5});
+        tab_stop(true);
     }
 
     bool pick_list::move_row_down() {
@@ -278,12 +278,23 @@ namespace ryu::core {
         return view::value();
     }
 
-    int pick_list::visible_items() const {
+    void pick_list::on_palette_changed() {
+        _caret.palette(palette());
+    }
+
+    void pick_list::update_minimum_size() {
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(
+            static_cast<uint32_t>(font_face()->measure_chars(_length)),
+            static_cast<uint32_t>(font_face()->line_height));
+    }
+
+    uint32_t pick_list::visible_rows() const {
         return _visible_rows;
     }
 
-    void pick_list::visible_items(int value) {
-        _visible_rows = value;
+    void pick_list::on_font_family_changed() {
+        update_minimum_size();
     }
 
     void pick_list::selected_key(uint32_t key) {
@@ -295,6 +306,12 @@ namespace ryu::core {
             view::value((*it).text);
             _selection = static_cast<int>(std::distance(_options.begin(), it));
             find_matching_text(value());
+        }
+    }
+
+    void pick_list::visible_rows(uint32_t value) {
+        if (_visible_rows != value) {
+            _visible_rows = value;
         }
     }
 
@@ -358,7 +375,7 @@ namespace ryu::core {
         surface.draw_line(
             bounds.left(),
             bounds.bottom(),
-            bounds.right() + 5,
+            bounds.right(),
             bounds.bottom());
 
         if (!focused())

@@ -117,6 +117,11 @@ namespace ryu::core {
         return clamped;
     }
 
+    void caret::raise_caret_changed() {
+        if (_caret_changed_callback != nullptr)
+            _caret_changed_callback();
+    }
+
     bool caret::right(uint8_t columns) {
         _column += columns;
         auto clamped = clamp_column();
@@ -131,9 +136,14 @@ namespace ryu::core {
         return clamped;
     }
 
-    void caret::raise_caret_changed() {
-        if (_caret_changed_callback != nullptr)
-            _caret_changed_callback();
+    void caret::on_font_family_changed() {
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(
+            static_cast<uint32_t>(font_face()->width),
+            static_cast<uint32_t>(font_face()->line_height));
+
+        auto& rect = bounds();
+        rect.size(font_face()->width, font_face()->line_height);
     }
 
     caret::mode::types caret::mode() const {
@@ -157,7 +167,6 @@ namespace ryu::core {
         auto parent_bounds = parent()->inner_bounds();
         auto& rect = bounds();
         auto& pad = padding();
-        rect.size(font_face()->width, font_face()->line_height);
         rect.pos(
                 (parent_bounds.left() + (_column * rect.width())) + pad.left(),
                 (parent_bounds.top() + (_row * rect.height())) + pad.top());

@@ -60,6 +60,8 @@ namespace ryu::core {
 
         void on_bounds_changed() override;
 
+        void on_font_family_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
     private:

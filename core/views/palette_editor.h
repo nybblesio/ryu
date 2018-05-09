@@ -33,6 +33,8 @@ namespace ryu::core {
 
         void on_palette_changed() override;
 
+        void on_font_family_changed() override;
+
     private:
         void rebuild_entries();
 

@@ -262,7 +262,6 @@ namespace ryu::core {
     }
 
     void column_pick_list::on_initialize() {
-        tab_stop(true);
         define_actions();
         bind_events();
 
@@ -276,6 +275,11 @@ namespace ryu::core {
         _caret.font_family(font_family());
         _caret.initialize();
         add_child(&_caret);
+
+        tab_stop(true);
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(256, 256);
     }
 
     void column_pick_list::raise_activated() {
@@ -296,6 +300,10 @@ namespace ryu::core {
 
     const row_list& column_pick_list::rows() const {
         return _rows;
+    }
+
+    void column_pick_list::on_font_family_changed() {
+        calculate_visible_and_max_rows();
     }
 
     void column_pick_list::raise_selection_changed() {

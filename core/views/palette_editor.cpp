@@ -23,14 +23,17 @@ namespace ryu::core {
     }
 
     void palette_editor::bind_events() {
-
     }
 
     void palette_editor::on_initialize() {
-        tab_stop(true);
-        should_clip(true);
         define_actions();
         bind_events();
+
+        tab_stop(true);
+        should_clip(true);
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(256, 256);
     }
 
     void palette_editor::define_actions() {
@@ -94,7 +97,17 @@ namespace ryu::core {
     }
 
     void palette_editor::on_palette_changed() {
-        rebuild_entries();
+        if (_views.empty()) {
+            rebuild_entries();
+        } else {
+            for (const auto& view : _views)
+                view->palette(palette());
+        }
+    }
+
+    void palette_editor::on_font_family_changed() {
+        for (const auto& view : _views)
+            view->font_family(font_family());
     }
 
 }

@@ -570,8 +570,6 @@ namespace ryu::core {
 
     void console::on_bounds_changed() {
         calculate_page_metrics();
-        _caret.page_size(_metrics.page_height, _metrics.page_width);
-        _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
     void console::raise_caret_changed() {
@@ -584,6 +582,10 @@ namespace ryu::core {
             _document.scroll_up();
     }
 
+    void console::on_font_family_changed() {
+        calculate_page_metrics();
+    }
+
     void console::caret_down(uint8_t rows) {
         if (_caret.down(rows))
             _document.scroll_down();
@@ -591,10 +593,15 @@ namespace ryu::core {
 
     void console::calculate_page_metrics() {
         auto rect = bounds();
+
         if (rect.empty())
             return;
+
         _metrics.page_width = static_cast<uint8_t>(rect.width() / font_face()->width);
         _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
+
+        _caret.page_size(_metrics.page_height, _metrics.page_width);
+        _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
     bool console::caret_left(uint8_t columns) {

@@ -551,6 +551,10 @@ namespace ryu::core {
         _caret.enabled(flag);
     }
 
+    void text_editor::on_palette_changed() {
+        _caret.palette(palette());
+    }
+
     void text_editor::raise_caret_changed() {
         if (_caret_changed_callback != nullptr)
             _caret_changed_callback(_caret, _document);
@@ -660,6 +664,7 @@ namespace ryu::core {
     }
 
     void text_editor::on_font_family_changed() {
+        _caret.font_family(font_family());
         calculate_page_metrics();
     }
 

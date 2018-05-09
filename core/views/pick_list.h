@@ -39,11 +39,11 @@ namespace ryu::core {
 
         void length(int value);
 
-        int visible_items() const;
-
-        void visible_items(int value);
+        uint32_t visible_rows() const;
 
         void selected_key(uint32_t key);
+
+        void visible_rows(uint32_t value);
 
         std::string value() const override;
 
@@ -74,12 +74,18 @@ namespace ryu::core {
 
         void on_focus_changed() override;
 
+        void on_palette_changed() override;
+
+        void on_font_family_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
     private:
         void bind_events();
 
         void define_actions();
+
+        void update_minimum_size();
 
         bool find_matching_text(const std::string& text);
 

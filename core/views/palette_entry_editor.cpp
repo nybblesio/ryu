@@ -152,7 +152,6 @@ namespace ryu::core {
     }
 
     void palette_entry_editor::on_initialize() {
-        tab_stop(true);
         define_actions();
         bind_events();
 
@@ -167,7 +166,10 @@ namespace ryu::core {
         _caret.bg_color(bg_color());
         _caret.font_family(font_family());
         _caret.initialize();
+
         add_child(&_caret);
+
+        tab_stop(true);
     }
 
     bool palette_entry_editor::locked() const {
@@ -223,6 +225,23 @@ namespace ryu::core {
         _caret.enabled(focused());
     }
 
+    void palette_entry_editor::on_palette_changed() {
+        _caret.palette(palette());
+    }
+
+    void palette_entry_editor::update_minimum_size() {
+        auto& minimum_size = min_size();
+        auto field_pixel_width = font_face()->measure_text("R:00 G:00 B:00 A:00");
+        minimum_size.dimensions(
+            static_cast<uint32_t>(48 + 16 + field_pixel_width),
+            48);
+    }
+
+    void palette_entry_editor::on_font_family_changed() {
+        update_minimum_size();
+        _caret.font_family(font_family());
+    }
+
     void palette_entry_editor::entry(palette_index value) {
         _index = value;
     }
@@ -233,7 +252,7 @@ namespace ryu::core {
     }
 
     void palette_entry_editor::on_draw(core::renderer& surface) {
-        auto bounds = inner_bounds();
+        auto inner_rect = inner_bounds();
         auto pal = *palette();
         auto fg = pal[fg_color()];
         auto bg = pal[bg_color()];
@@ -250,23 +269,28 @@ namespace ryu::core {
             bg = bg - 35;
         }
 
+        auto color_bounds = core::rect {
+            inner_rect.left(),
+            inner_rect.top(),
+            48,
+            48};
         surface.set_color(entry);
-        surface.fill_rect(bounds);
+        surface.fill_rect(color_bounds);
 
         surface.set_color(fg);
-        surface.draw_rect(bounds);
+        surface.draw_rect(color_bounds);
         surface.set_font_color(font_face(), text_color);
         surface.draw_text_aligned(
             font_face(),
             fmt::format("{:02x}", _index),
-            bounds,
+            color_bounds,
             alignment::horizontal::center,
             alignment::vertical::middle);
 
         surface.draw_text(
             font_face(),
-            bounds.left() + 84,
-            bounds.top() + 16,
+            inner_rect.left() + (color_bounds.width() + 16),
+            inner_rect.top() + 16,
             fmt::format(
                 "R:{:02x} G:{:02x} B:{:02x} A:{:02x}",
                 entry.red(),

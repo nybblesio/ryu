@@ -8,7 +8,6 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <core/view.h>
@@ -74,6 +73,8 @@ namespace ryu::core {
         void raise_caret_changed();
 
         void on_initialize() override;
+
+        void on_font_family_changed() override;
 
         void on_draw(core::renderer& surface) override;
 
