@@ -64,7 +64,10 @@ namespace ryu::ide::console_editor {
             ide::colors::fill_color,
             result,
             "assets/views/console.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         _console = _layout_panel->find_by_name<core::console>("console-view");
         _footer = _layout_panel->find_by_name<core::document_footer>("footer-panel");

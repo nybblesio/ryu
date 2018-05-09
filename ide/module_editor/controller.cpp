@@ -61,7 +61,10 @@ namespace ryu::ide::module_editor {
             ide::colors::fill_color,
             result,
             "assets/views/module-editor.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         return !result.is_failed();
     }

@@ -113,13 +113,13 @@ namespace ryu::core {
             return _environment.get();
         }
 
-        void font_face(const core::font_t* value);
-
-        void font_family(core::font_family* value);
-
         inline const core::rect& bounds() const {
             return _bounds;
         }
+
+        void font_face(const core::font_t* value);
+
+        void font_family(core::font_family* value);
 
         inline void bounds(const core::rect& value) {
             _bounds = value;
@@ -149,4 +149,3 @@ namespace ryu::core {
     };
 
 };
-

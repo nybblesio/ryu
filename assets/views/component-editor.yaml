@@ -2,10 +2,16 @@
 
 name: 'machine-editor'
 focus: 'name-text-box'
+layout:
+  dock: view.layout.dock.fill
+  mode: view.layout.mode.flow
+  direction: view.layout.direction.column
 views:
   - name: 'header-panel'
     type: view.types.state-header
-    dock: view.dock.top
+    layout:
+      dock: view.layout.dock.top
+      direction: view.layout.direction.row
     margin: [10, 50, 5, 5]
     state: 'component editor'
     state_color: ide.colors.white

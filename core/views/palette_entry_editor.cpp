@@ -159,8 +159,8 @@ namespace ryu::core {
         _caret.enabled(false);
         _caret.position(0, 2);
         _caret.page_size(1, 19);
-        _caret.padding().left(84);
-        _caret.padding().top(16);
+        _caret.padding().left(48 + 16);
+        _caret.padding().top(10);
         _caret.palette(palette());
         _caret.fg_color(fg_color());
         _caret.bg_color(bg_color());
@@ -261,14 +261,6 @@ namespace ryu::core {
 
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        if (!enabled()) {
-            fg = fg - 45;
-            bg = bg - 45;
-        } else if (!focused()) {
-            fg = fg - 35;
-            bg = bg - 35;
-        }
-
         auto color_bounds = core::rect {
             inner_rect.left(),
             inner_rect.top(),
@@ -287,17 +279,22 @@ namespace ryu::core {
             alignment::horizontal::center,
             alignment::vertical::middle);
 
-        surface.draw_text(
-            font_face(),
-            inner_rect.left() + (color_bounds.width() + 16),
-            inner_rect.top() + 16,
-            fmt::format(
-                "R:{:02x} G:{:02x} B:{:02x} A:{:02x}",
-                entry.red(),
-                entry.green(),
-                entry.blue(),
-                entry.alpha()),
-            text_color);
+        std::vector<std::string> labels = {"R:", "G:", "B:", "A:"};
+        auto font = font_face();
+        auto x = inner_rect.left() + (color_bounds.width() + 16);
+        auto y = inner_rect.top() + 10;
+        size_t color = 0;
+        for (const auto& label : labels) {
+            surface.draw_text(font, x, y, label, fg);
+            x += font->measure_chars(static_cast<int>(label.length()));
+            surface.draw_text(
+                font,
+                x,
+                y,
+                fmt::format("{:02x}", entry[color++]),
+                text_color);
+            x += font->measure_chars(3);
+        }
 
         surface.pop_blend_mode();
     }

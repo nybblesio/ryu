@@ -73,7 +73,10 @@ namespace ryu::ide::source_editor {
             ide::colors::fill_color,
             result,
             "assets/views/source-editor.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         _editor = _layout_panel->find_by_name<core::text_editor>("text-editor");
         _header = _layout_panel->find_by_name<core::state_header>("header-panel");

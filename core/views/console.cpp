@@ -546,6 +546,7 @@ namespace ryu::core {
         _caret.position(0, 0);
         _caret.palette(palette());
         _caret.font_family(font_family());
+        _caret.page_size(_metrics.page_height, _metrics.page_width);
         _caret.on_caret_changed([&]() {
             raise_caret_changed();
         });
@@ -557,6 +558,7 @@ namespace ryu::core {
 
         _document.caret(&_caret);
         _document.document_size(4096, 128);
+        _document.page_size(_metrics.page_height, _metrics.page_width);
         _document.on_document_changed([&]() {
             raise_caret_changed();
         });
@@ -566,6 +568,11 @@ namespace ryu::core {
 
         define_actions();
         bind_events();
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(
+            static_cast<uint32_t>(font_face()->measure_chars(_metrics.page_width)),
+            static_cast<uint32_t>(_metrics.page_height * font_face()->line_height));
     }
 
     void console::on_bounds_changed() {
@@ -602,6 +609,11 @@ namespace ryu::core {
 
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(
+            static_cast<uint32_t>(font_face()->measure_chars(_metrics.page_width)),
+            static_cast<uint32_t>(font_face()->line_height * _metrics.page_height));
     }
 
     bool console::caret_left(uint8_t columns) {

@@ -1,14 +1,19 @@
 !include assets/views/view-constants.yaml
 
 name: 'preferences-editor'
+layout:
+  dock: view.layout.dock.fill
+  mode: view.layout.mode.flow
+  direction: view.layout.direction.column
 views:
   - name: 'header-panel'
     type: view.types.state-header
-    dock: view.dock.top
+    layout:
+      dock: view.layout.dock.top
+      direction: view.layout.direction.row
     margin: [10, 50, 5, 5]
     state: 'preferences editor'
     state_color: ide.colors.white
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
-

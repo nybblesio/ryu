@@ -24,14 +24,6 @@ namespace ryu::core {
 
         ~button() override;
 
-        int width() const;
-
-        int height() const;
-
-        void width(int value);
-
-        void height(int value);
-
         std::string shortcut() const;
 
         palette_index shortcut_color() const;
@@ -57,11 +49,14 @@ namespace ryu::core {
 
         void on_initialize() override;
 
+        void on_font_family_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
     private:
-        int _width = 120;
-        int _height = 50;
+        void update_minimum_size();
+
+    private:
         std::string _shortcut;
         int _shortcut_text_width = 0;
         palette_index _shortcut_color;

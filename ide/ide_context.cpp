@@ -38,34 +38,57 @@ namespace ryu::ide {
 
     void ide_context::define_actions() {
         auto toggle_context = core::input_action::create(
-                "toggle_ide_context",
-                "IDE",
-                "Collapse, expand, and split the IDE context window.");
+            "toggle_ide_context",
+            "IDE",
+            "Collapse, expand, and split the IDE context window.");
         if (!toggle_context->has_bindings()) {
             toggle_context->bind_keys({core::mod_alt, core::key_f1});
+        }
+
+        auto reload_state = core::input_action::create(
+            "reload_state",
+            "IDE",
+            "Execute load on active state.");
+        if (!reload_state->has_bindings()) {
+            reload_state->bind_keys({core::mod_ctrl, core::key_r});
         }
     }
 
     void ide_context::bind_events() {
         action_provider().register_handler(
-                core::input_action::find_by_name("toggle_ide_context"),
-                [this](const core::event_data_t& data) {
-                    auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
-                    switch (_size) {
-                        case core::context_window::split:
-                            size(core::context_window::expanded);
-                            emulator_context->size(core::context_window::collapsed);
-                            break;
-                        case core::context_window::expanded:
-                        case core::context_window::collapsed:
-                            size(core::context_window::split);
-                            emulator_context->size(core::context_window::split);
-                            break;
-                        default:
-                            break;
+            core::input_action::find_by_name("reload_state"),
+            [this](const core::event_data_t& data) {
+                auto active_state = find_state(peek_state());
+                if (active_state != nullptr) {
+                    core::result result;
+                    if (!active_state->load(result)) {
+                        // XXX: add in dialog/error pop up when ready
+                    } else {
+                        active_state->activate({});
                     }
-                    return true;
-                });
+                }
+                return true;
+            });
+
+        action_provider().register_handler(
+            core::input_action::find_by_name("toggle_ide_context"),
+            [this](const core::event_data_t& data) {
+                auto emulator_context = dynamic_cast<emulator::emulator_context*>(engine()->find_context("emulator"));
+                switch (_size) {
+                    case core::context_window::split:
+                        size(core::context_window::expanded);
+                        emulator_context->size(core::context_window::collapsed);
+                        break;
+                    case core::context_window::expanded:
+                    case core::context_window::collapsed:
+                        size(core::context_window::split);
+                        emulator_context->size(core::context_window::split);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            });
     }
 
     void ide_context::configure_states(core::result& result) {

@@ -40,6 +40,7 @@ namespace ryu::ide::hex_editor {
         void define_actions();
 
     private:
+        uint32_t _address = 0;
         core::text_box* _command_line;
         core::memory_editor* _memory_editor;
         core::loadable_view_unique_ptr _layout_panel;

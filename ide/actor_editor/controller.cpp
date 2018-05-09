@@ -61,7 +61,10 @@ namespace ryu::ide::actor_editor {
             ide::colors::fill_color,
             result,
             "assets/views/actor-editor.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         return !result.is_failed();
     }

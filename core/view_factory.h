@@ -70,14 +70,14 @@ namespace ryu::core {
                 const core::padding& padding = {},
                 const core::rect& bounds = {}) {
             auto view = std::make_unique<T>(name, host);
-            view->font_family(family);
-            view->palette(pal);
             view->dock(dock_style);
             view->fg_color(fg_color);
             view->bg_color(bg_color);
+            view->palette(pal);
             view->margin(margin);
             view->padding(padding);
             view->bounds(bounds);
+            view->font_family(family);
             view->value(value);
             view->initialize();
             return view;

@@ -162,6 +162,8 @@ namespace ryu::ide::machine_editor {
                 result,
                 "assets/views/machine-editor.yaml");
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         _name_textbox = _layout_panel->find_by_name<core::text_box>("name-text-box");
         _display_pick_list = _layout_panel->find_by_name<core::pick_list>("display-pick-list");
@@ -198,6 +200,8 @@ namespace ryu::ide::machine_editor {
             }
             machine(mach);
             context()->resize();
+        } else {
+            update_values();
         }
     }
 

@@ -601,18 +601,18 @@ namespace ryu::core {
     }
 
     void text_editor::on_draw(core::renderer& surface) {
-        auto client_rect = inner_bounds();
+        auto inner_rect = inner_bounds();
         auto pal = *palette();
 
         auto& info_text_color = pal[_line_number_color];
 
-        auto y = client_rect.top();
+        auto y = inner_rect.top();
         auto row_start = _document.row();
         auto row_stop = row_start + _metrics.page_height;
         for (auto row = row_start; row < row_stop; row++) {
             surface.draw_text(
                     font_face(),
-                    client_rect.left(),
+                    inner_rect.left(),
                     y,
                     fmt::format("{0:04}", row + 1),
                     info_text_color);
@@ -626,7 +626,7 @@ namespace ryu::core {
                     col_end);
 
             auto max_line_height = font_face()->line_height;
-            auto x = client_rect.left() + _caret.padding().left();
+            auto x = inner_rect.left() + _caret.padding().left();
 
             for (const auto& chunk : chunks) {
                 font_style(chunk.attr.style);
@@ -669,16 +669,20 @@ namespace ryu::core {
     }
 
     void text_editor::calculate_page_metrics() {
-        auto face = font_face();
-        auto rect = bounds();
-        if (rect.empty())
+        auto inner_rect = inner_bounds();
+
+        if (inner_rect.empty())
             return;
+
+        auto face = font_face();
+
         _metrics.page_width = static_cast<uint8_t>(std::max<int32_t>(
-                (rect.width() - _metrics.line_number_width) / face->width,
+                (inner_rect.width() - _metrics.line_number_width) / face->width,
                 _metrics.page_width));
         _metrics.page_height = static_cast<uint8_t>(std::max<int32_t>(
-                rect.height() / face->line_height,
+                inner_rect.height() / face->line_height,
                 _metrics.page_height));
+
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
     }
@@ -721,6 +725,12 @@ namespace ryu::core {
     void text_editor::page_size(uint8_t height, uint8_t width) {
         _metrics.page_height = height;
         _metrics.page_width = width;
+
+        auto half_line_height = font_face()->line_height / 2;
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(
+            static_cast<uint32_t>(font_face()->measure_chars(_metrics.line_number_width + _metrics.page_width)),
+            static_cast<uint32_t>((font_face()->line_height * _metrics.page_height) + half_line_height));
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {

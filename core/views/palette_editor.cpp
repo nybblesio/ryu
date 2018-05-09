@@ -58,15 +58,14 @@ namespace ryu::core {
                 fg_color(),
                 bg_color(),
                 "",
-                dock::top,
-                {5, 5, 5, 5},
+                dock::left,
+                {10, 30, 10, 10},
                 {},
                 {});
             entry_editor->locked(true);
+            entry_editor->text_color(1);
             entry_editor->enabled(true);
             entry_editor->tab_stop(true);
-            // XXX: need to fix hard coded color
-            entry_editor->text_color(15);
             entry_editor->entry(static_cast<core::palette_index>(entry_index));
 
             add_child(entry_editor.get());

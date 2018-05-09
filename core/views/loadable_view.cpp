@@ -182,11 +182,6 @@ namespace ryu::core {
                         button->shortcut(shortcut);
                     }
 
-                    uint32_t width;
-                    if (get_optional(view_node["width"], width)) {
-                        button->width(width);
-                    }
-
                     current_view = std::move(button);
                     break;
                 }
@@ -710,9 +705,11 @@ namespace ryu::core {
             current_view->enabled(enabled);
             current_view->visible(visible);
             current_view->border(border_type);
-            current_view->min_size().dimensions(
-                minimum_size.width(),
-                minimum_size.height());
+            if (!minimum_size.empty()) {
+                current_view->min_size().dimensions(
+                    minimum_size.width(),
+                    minimum_size.height());
+            }
 
             auto view_ptr = current_view.get();
             get_layout_config(result, root, view_node, view_ptr);
@@ -759,7 +756,7 @@ namespace ryu::core {
 
         auto wrap_result = get_node_from_path(node, "layout.wrap");
         if (wrap_result.found) {
-            if (get_constant(result, root, wrap_result.node, wrap_value))
+            if (get_optional(wrap_result.node, wrap_value))
                 v->layout_wrap(wrap_value);
         }
 

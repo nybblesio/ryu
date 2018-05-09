@@ -126,6 +126,7 @@ namespace ryu::core {
     static constexpr uint32_t key_f12 = SDLK_F12;
     static constexpr uint32_t key_up = SDLK_UP;
     static constexpr uint32_t key_c = SDLK_c;
+    static constexpr uint32_t key_r = SDLK_r;
     static constexpr uint32_t key_v = SDLK_v;
     static constexpr uint32_t key_x = SDLK_x;
     static constexpr uint32_t key_z = SDLK_z;

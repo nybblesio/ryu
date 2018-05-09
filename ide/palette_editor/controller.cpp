@@ -61,7 +61,10 @@ namespace ryu::ide::palette_editor {
             ide::colors::fill_color,
             result,
             "assets/views/palette-editor.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         _palettes = _layout_panel->find_by_name<core::list_box>("palette-list-box");
         _editor = _layout_panel->find_by_name<core::palette_editor>("editor");

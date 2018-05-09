@@ -3,14 +3,14 @@
 name: 'source-editor'
 focus: 'text-editor'
 layout:
-  dock: view.dock.fill
+  dock: view.layout.dock.fill
   mode: view.layout.mode.flow
   direction: view.layout.direction.column
 views:
   - name: 'header-panel'
     type: view.types.state-header
     layout:
-      dock: view.dock.top
+      dock: view.layout.dock.top
       direction: view.layout.direction.row
     minimum-size: [0, 30]
     margin: [10, 10, 5, 5]
@@ -23,7 +23,7 @@ views:
   - name: 'command-line-text-box'
     type: view.types.text-box
     layout:
-      dock: view.dock.top
+      dock: view.layout.dock.top
       direction: view.layout.direction.row
     margin: [10, 10, 5, 20]
     minimum-size: [0, 30]
@@ -40,7 +40,7 @@ views:
   - name: 'text-editor'
     type: view.types.text-editor
     layout:
-      dock: view.dock.fill
+      dock: view.layout.dock.fill
       direction: view.layout.direction.row
     margin: [10, 10, 5, 0]
     document:
@@ -61,7 +61,7 @@ views:
   - name: 'footer-panel'
     type: view.types.document-footer
     layout:
-      dock: view.dock.bottom
+      dock: view.layout.dock.bottom
       direction: view.layout.direction.row
     minimum-size: [0, 30]
     margin: [10, 10, 0, 5]

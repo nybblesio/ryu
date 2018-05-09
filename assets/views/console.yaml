@@ -3,14 +3,14 @@
 name: 'console'
 focus: 'console-view'
 layout:
-  dock: view.dock.fill
+  dock: view.layout.dock.fill
   mode: view.layout.mode.flow
   direction: view.layout.direction.column
 views:
   - name: 'header-panel'
     type: view.types.state-header
     layout:
-      dock: view.dock.top
+      dock: view.layout.dock.top
       direction: view.layout.direction.row
     minimum-size: [0, 30]
     margin: [10, 10, 5, 5]
@@ -23,20 +23,20 @@ views:
   - name: 'console-view'
     type: view.types.console
     layout:
-      dock: view.dock.fill
+      dock: view.layout.dock.fill
       direction: view.layout.direction.row
-    margin: [10, 10, 5, 5]
     caret-color: ide.colors.caret
     selection-color: ide.colors.selection
     colors:
       fg: ide.colors.text
       bg: ide.colors.fill-color
     enabled: true
+    margin: [10, 10, 5, 5]
 
   - name: 'footer-panel'
     type: view.types.document-footer
     layout:
-      dock: view.dock.bottom
+      dock: view.layout.dock.bottom
       direction: view.layout.direction.row
     minimum-size: [0, 30]
     margin: [10, 10, 5, 5]

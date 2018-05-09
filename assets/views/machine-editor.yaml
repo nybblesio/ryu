@@ -2,11 +2,17 @@
 
 name: 'machine-editor'
 focus: 'name-text-box'
+layout:
+  dock: view.layout.dock.fill
+  mode: view.layout.mode.flow
+  direction: view.layout.direction.column
 views:
   - name: 'header-panel'
     type: view.types.state-header
-    dock: view.dock.top
-    margin: [10, 50, 5, 15]
+    layout:
+      dock: view.layout.dock.top
+      direction: view.layout.direction.row
+    margin: [10, 10, 5, 5]
     state: 'machine editor'
     state_color: ide.colors.white
     colors:
@@ -15,16 +21,21 @@ views:
 
   - name: 'top-panel'
     type: view.types.panel
-    dock: view.dock.top
-    margin: [10, 50, 5, 15]
+    margin: [10, 10, 5, 5]
+    layout:
+      dock: view.layout.dock.top
+      mode: view.layout.mode.flex
+      direction: view.layout.direction.column
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent
-    row-margins: &ROW-MARGINS [10, 50, 15, 15]
+    row-margins: &ROW-MARGINS [5, 5, 10, 20]
     views:
       - name: 'row1'
         type: view.types.panel
-        dock: view.dock.top
+        layout:
+          dock: view.layout.dock.top
+          direction: view.layout.direction.row
         margin: *ROW-MARGINS
         colors:
           fg: ide.colors.info-text
@@ -32,36 +43,37 @@ views:
         views:
           - name: 'name-label'
             type: view.types.label
-            dock: view.dock.left
+            layout:
+              dock: view.layout.dock.left
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
             value: 'name:'
-            margin: [52, 0, 0, 0]
             alignment:
               horizontal: view.alignments.horizontal.right
               vertical: view.alignments.vertical.middle
 
           - name: 'name-text-box'
             type: view.types.text-box
-            dock: view.dock.left
+            layout:
+              dock: view.layout.dock.left
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
             value: ''
-            tab-stop: true
-            enabled: true
             next: 'address-space-text-box'
             prev: 'map-button'
-            margin: [20, 0, 0, 0]
             size:
               width: 32
               length: 32
             enabled: true
+            tab-stop: true
+            margin: [20, 0, 0, 0]
 
           - name: 'address-space-label'
             type: view.types.label
-            dock: view.dock.left
+            layout:
+              dock: view.layout.dock.left
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
@@ -72,33 +84,36 @@ views:
 
           - name: 'address-space-text-box'
             type: view.types.text-box
-            dock: view.dock.left
+            layout:
+              dock: view.layout.dock.left
             prev: 'name-text-box'
             next: 'display-pick-list'
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
             value: ''
-            tab-stop: true
-            enabled: true
-            margin: [20, 0, 0, 0]
             size:
               width: 8
               length: 8
             enabled: true
+            tab-stop: true
+            margin: [20, 0, 0, 0]
             input-filter: view.input-filters.hex
 
       - name: 'row2'
         type: view.types.panel
         margin: *ROW-MARGINS
-        dock: view.dock.top
+        layout:
+          dock: view.layout.dock.top
+          direction: view.layout.direction.row
         colors:
           fg: ide.colors.info-text
           bg: ide.colors.transparent
         views:
           - name: 'display-label'
             type: view.types.label
-            dock: view.dock.left
+            layout:
+              dock: view.layout.dock.left
             value: 'display:'
             colors:
               fg: ide.colors.text
@@ -106,7 +121,8 @@ views:
 
           - name: 'display-pick-list'
             type: view.types.pick-list
-            dock: view.dock.left
+            layout:
+              dock: view.layout.dock.left
             source: sources.displays
             colors:
               fg: ide.colors.text
@@ -114,63 +130,68 @@ views:
             row-color: ide.colors.text
             not-found-color: ide.colors.red
             selection-color: ide.colors.white
-            margin: [20, 0, 0, 0]
-            tab-stop: true
-            enabled: true
             next: 'description-text-editor'
             prev: 'address-space-text-box'
+            enabled: true
+            tab-stop: true
+            margin: [20, 0, 0, 0]
 
       - name: 'row3'
         type: view.types.panel
-        margin: [10, 50, 0, 5]
-        dock: view.dock.top
+        margin: *ROW-MARGINS
+        layout:
+          dock: view.layout.dock.top
+          direction: view.layout.direction.column
         colors:
           fg: ide.colors.info-text
           bg: ide.colors.transparent
         views:
           - name: 'description-label'
             type: view.types.label
-            dock: view.dock.top
+            layout:
+              dock: view.layout.dock.left
             colors:
               fg: ide.colors.text
               bg: ide.colors.fill-color
             value: 'description:'
-            margin: [0, 0, 5, 5]
             alignment:
               vertical: view.alignments.middle
 
           - name: 'description-text-editor'
             type: view.types.text-editor
-            dock: view.dock.fill
+            layout:
+              dock: view.layout.dock.fill
             document:
               rows: 64
               columns: 80
             page-size:
               rows: 6
               columns: 10
-            tab-stop: true
+            colors:
+              fg: ide.colors.text
+              bg: ide.colors.fill-color
             enabled: true
+            tab-stop: true
             next: 'pick-list'
             prev: 'display-pick-list'
+            margin: [0, 0, 5, 5]
             padding: [10, 10, 10, 10]
             border: view.border.dashed
             caret-color: ide.colors.caret
             selection-color: ide.colors.selection
             line-number-color: ide.colors.info-text
-            colors:
-              fg: ide.colors.text
-              bg: ide.colors.fill-color
 
   - name: 'pick-list'
     type: view.types.column-pick-list
-    dock: view.dock.fill
+    layout:
+      dock: view.layout.dock.fill
+      direction: view.layout.direction.row
     tab-stop: true
     enabled: true
     next: 'add-button'
     prev: 'description-text-editor'
-    margin: [10, 50, 5, 15]
+    margin: [10, 10, 5, 5]
     border: view.border.solid
-    sizing: view.sizing.parent
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
@@ -211,74 +232,99 @@ views:
 
   - name: 'button-panel'
     type: view.types.panel
-    dock: view.dock.bottom
-    margin: [10, 50, 5, 15]
+    layout:
+      dock: view.layout.dock.bottom
+      mode: view.layout.mode.flow
+      direction: view.layout.direction.row
+    margin: [10, 10, 5, 5]
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent
     row-margins: &BUTTON-MARGINS [5, 5, 5, 5]
     views:
-      - name: 'add-button'
-        type: view.types.button
-        width: 150
-        value: 'Add'
-        shortcut: 'F1'
-        shortcut-color: ide.colors.light-green
-        dock: view.dock.left
-        tab-stop: true
-        enabled: true
-        next: 'edit-button'
-        prev: 'pick-list'
-        border: view.border.solid
-        margin: *BUTTON-MARGINS
+      - name: 'button-left-panel'
+        type: view.types.panel
+        layout:
+          dock: view.layout.dock.left
+          mode: view.layout.mode.flex
+          direction: view.layout.direction.row
         colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-      - name: 'edit-button'
-        type: view.types.button
-        width: 150
-        value: 'Edit'
-        shortcut: 'RET'
-        shortcut-color: ide.colors.light-green
-        margin: *BUTTON-MARGINS
-        dock: view.dock.left
-        tab-stop: true
-        enabled: true
-        border: view.border.solid
-        next: 'delete-button'
-        prev: 'add-button'
+          fg: ide.colors.info-text
+          bg: ide.colors.transparent
+        views:
+          - name: 'add-button'
+            type: view.types.button
+            value: 'Add'
+            layout:
+              dock: view.layout.dock.left
+            enabled: true
+            tab-stop: true
+            next: 'edit-button'
+            prev: 'pick-list'
+            border: view.border.solid
+            margin: *BUTTON-MARGINS
+            colors:
+              fg: ide.colors.light-grey
+              bg: ide.colors.light-blue
+            shortcut: 'F1'
+            shortcut-color: ide.colors.light-green
+
+          - name: 'edit-button'
+            type: view.types.button
+            value: 'Edit'
+            margin: *BUTTON-MARGINS
+            layout:
+              dock: view.layout.dock.left
+            enabled: true
+            tab-stop: true
+            border: view.border.solid
+            next: 'delete-button'
+            prev: 'add-button'
+            colors:
+              fg: ide.colors.light-grey
+              bg: ide.colors.light-blue
+            shortcut: 'RET'
+            shortcut-color: ide.colors.light-green
+
+          - name: 'delete-button'
+            type: view.types.button
+            value: 'Delete'
+            layout:
+              dock: view.layout.dock.left
+            enabled: true
+            tab-stop: true
+            next: 'map-button'
+            prev: 'edit-button'
+            border: view.border.solid
+            margin: *BUTTON-MARGINS
+            colors:
+              fg: ide.colors.light-grey
+              bg: ide.colors.light-blue
+            shortcut: 'DEL'
+            shortcut-color: ide.colors.light-green
+
+      - name: 'button-right-panel'
+        type: view.types.panel
+        layout:
+          dock: view.layout.dock.right
+          mode: view.layout.mode.flex
         colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-      - name: 'delete-button'
-        type: view.types.button
-        width: 150
-        value: 'Delete'
-        shortcut: 'DEL'
-        shortcut-color: ide.colors.light-green
-        dock: view.dock.left
-        tab-stop: true
-        enabled: true
-        next: 'map-button'
-        prev: 'edit-button'
-        border: view.border.solid
-        margin: *BUTTON-MARGINS
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-      - name: 'map-button'
-        type: view.types.button
-        width: 150
-        value: 'Map'
-        shortcut: 'F2'
-        shortcut-color: ide.colors.light-green
-        tab-stop: true
-        enabled: true
-        next: 'name-text-box'
-        prev: 'delete-button'
-        dock: view.dock.right
-        border: view.border.solid
-        margin: *BUTTON-MARGINS
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
+          fg: ide.colors.info-text
+          bg: ide.colors.transparent
+        views:
+          - name: 'map-button'
+            type: view.types.button
+            value: 'Map'
+            enabled: true
+            tab-stop: true
+            next: 'name-text-box'
+            prev: 'delete-button'
+            layout:
+              dock: view.layout.dock.left
+            border: view.border.solid
+            margin: *BUTTON-MARGINS
+            colors:
+              fg: ide.colors.light-grey
+              bg: ide.colors.light-blue
+            shortcut: 'F2'
+            shortcut-color: ide.colors.light-green

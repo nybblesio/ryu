@@ -78,7 +78,10 @@ namespace ryu::ide::hex_editor {
                 ide::colors::fill_color,
                 result,
                 "assets/views/hex-editor.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         _memory_editor = _layout_panel->find_by_name<core::memory_editor>("memory-editor");
         _command_line = _layout_panel->find_by_name<core::text_box>("command-line-text-box");
@@ -101,9 +104,10 @@ namespace ryu::ide::hex_editor {
                 ->set_write_latches(true);
 
         auto it = params.find("addr");
-        if (it != params.end()) {
-            _memory_editor->address(boost::get<uint32_t>(it->second));
-        }
+        if (it != params.end())
+            _address = boost::get<uint32_t>(it->second);
+
+        _memory_editor->address(_address);
     }
 
     void controller::on_update(uint32_t dt, core::pending_event_list& events) {

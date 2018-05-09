@@ -78,6 +78,11 @@ namespace ryu::core {
         add_child(&_custom_status);
 
         core::notification_center::instance()->add_observer(id(), this);
+
+        // XXX: revisit this.  it works, but it feels dirty
+        auto project = core::project::instance();
+        if (project != nullptr)
+            on_notification(project);
     }
 
     std::string state_header::state() const {

@@ -21,14 +21,6 @@ namespace ryu::core {
     button::~button() {
     }
 
-    int button::width() const {
-        return _width;
-    }
-
-    int button::height() const {
-        return _height;
-    }
-
     void button::define_actions() {
         auto activate_action = core::input_action::create_no_map(
                 "button_activate",
@@ -51,21 +43,28 @@ namespace ryu::core {
     }
 
     void button::on_initialize() {
-        tab_stop(true);
         define_actions();
         bind_events();
+
+        tab_stop(true);
+        update_minimum_size();
     }
 
-    void button::width(int value) {
-        _width = value;
-    }
-
-    void button::height(int value) {
-        _height = value;
+    void button::update_minimum_size() {
+        auto& minimum_size = min_size();
+        if (minimum_size.empty()) {
+            minimum_size.dimensions(
+                125,
+                static_cast<uint32_t>(std::max(font_face()->line_height + 20, 50)));
+        }
     }
 
     std::string button::shortcut() const {
         return _shortcut;
+    }
+
+    void button::on_font_family_changed() {
+        update_minimum_size();
     }
 
     palette_index button::shortcut_color() const {
@@ -75,7 +74,7 @@ namespace ryu::core {
     void button::on_draw(core::renderer& surface) {
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        auto bounds = inner_bounds();
+        auto inner_rect = inner_bounds();
 
         auto pal = *palette();
         auto fg = pal[fg_color()];
@@ -93,14 +92,14 @@ namespace ryu::core {
         }
 
         surface.set_color(bg);
-        surface.fill_rect(bounds);
+        surface.fill_rect(inner_rect);
 
         surface.set_font_color(font_face(), fg);
         core::rect label_bounds {
-            bounds.left(),
-            bounds.top() + 6,
-            bounds.width(),
-            bounds.height() - 6
+            inner_rect.left(),
+            inner_rect.top() + 6,
+            inner_rect.width(),
+            inner_rect.height() - 6
         };
         surface.draw_text_aligned(
             font_face(),
@@ -113,8 +112,8 @@ namespace ryu::core {
             surface.set_font_color(font_face(), shortcut_color);
             surface.draw_text_scaled(
                 font_face(),
-                bounds.right() - _shortcut_text_width,
-                bounds.top() + 2,
+                inner_rect.right() - _shortcut_text_width,
+                inner_rect.top() + 2,
                 _shortcut,
                 .5,
                 .5);

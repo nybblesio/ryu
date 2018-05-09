@@ -81,7 +81,10 @@ namespace ryu::ide::component_editor {
                 ide::colors::fill_color,
                 result,
                 "assets/views/component-editor.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         _close_button = _layout_panel->find_by_name<core::button>("close-button");
         _name_text_box = _layout_panel->find_by_name<core::text_box>("name-text-box");
@@ -117,6 +120,8 @@ namespace ryu::ide::component_editor {
                 auto component_id = boost::get<uint32_t>(it->second);
                 component(mach->find_component(component_id));
             }
+        } else {
+            update_values();
         }
     }
 

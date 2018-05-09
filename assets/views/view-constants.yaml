@@ -35,6 +35,13 @@ constants:
       mode:
         flow: 0
         flex: 1
+      dock:
+        none: 0
+        bottom: 1
+        fill: 2
+        left: 3
+        right: 4
+        top: 5
       direction:
         none: 0
         row: 1

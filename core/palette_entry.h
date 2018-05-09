@@ -41,6 +41,16 @@ namespace ryu::core {
 
         void alpha(uint8_t value);
 
+        uint8_t operator[] (size_t index) {
+            switch (index) {
+                case 0:  return _red;
+                case 1:  return _green;
+                case 2:  return _blue;
+                case 3:  return _alpha;
+                default: return 0;
+            }
+        }
+
         palette_entry operator/(int factor) {
             return {_red /= factor, _green /= factor, _blue /= factor, _alpha};
         }

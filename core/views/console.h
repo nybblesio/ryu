@@ -111,8 +111,8 @@ namespace ryu::core {
 
     protected:
         struct metrics_t {
-            uint8_t page_width = 1;
-            uint8_t page_height = 1;
+            uint8_t page_width = 40;
+            uint8_t page_height = 10;
             const int left_padding = 10;
             const int right_padding = 10;
         };

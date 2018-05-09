@@ -115,7 +115,10 @@ namespace ryu::ide::machine_list {
             ide::colors::fill_color,
             result,
             "assets/views/machine-list.yaml");
+
         s_log->result(result);
+        if (result.is_failed())
+            return false;
 
         _add_button = _layout_panel->find_by_name<core::button>("add-button");
         _edit_button = _layout_panel->find_by_name<core::button>("edit-button");
