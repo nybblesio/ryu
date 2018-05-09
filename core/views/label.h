@@ -36,6 +36,8 @@ namespace ryu::core {
         void halign(core::alignment::horizontal::types value);
 
     protected:
+        void on_font_family_changed() override;
+
         void on_draw(ryu::core::renderer& surface) override;
 
     private:

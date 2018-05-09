@@ -20,59 +20,43 @@ views:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
 
-  - name: 'command-line-panel'
-    type: view.types.panel
+  - name: 'command-line-text-box'
+    type: view.types.text-box
     layout:
       dock: view.dock.top
       direction: view.layout.direction.row
     margin: [10, 10, 5, 20]
+    minimum-size: [0, 30]
+    value: ''
+    enabled: true
+    size:
+      width: 60
+      length: 255
+    enabled: true
     colors:
-      fg: ide.colors.info-text
+      fg: ide.colors.text
       bg: ide.colors.fill-color
-    views:
-      - name: 'command-line-text-box'
-        type: view.types.text-box
-        layout:
-          dock: view.dock.fill
-        minimum-size: [0, 30]
-        value: ''
-        enabled: true
-        size:
-          width: 60
-          length: 255
-        enabled: true
-        colors:
-          fg: ide.colors.text
-          bg: ide.colors.fill-color
 
-  - name: 'editor-panel'
-    type: view.types.panel
+  - name: 'text-editor'
+    type: view.types.text-editor
     layout:
       dock: view.dock.fill
       direction: view.layout.direction.row
     margin: [10, 10, 5, 0]
+    document:
+      rows: 4096
+      columns: 128
+    page-size:
+      rows: 25
+      columns: 40
+    enabled: true
+    tab-stop: true
+    caret-color: ide.colors.caret
+    selection-color: ide.colors.selection
+    line-number-color: ide.colors.info-text
     colors:
-      fg: ide.colors.info-text
+      fg: ide.colors.text
       bg: ide.colors.fill-color
-    views:
-      - name: 'text-editor'
-        type: view.types.text-editor
-        layout:
-          dock: view.dock.fill
-        document:
-          rows: 4096
-          columns: 128
-        page-size:
-          rows: 25
-          columns: 40
-        enabled: true
-        tab-stop: true
-        caret-color: ide.colors.caret
-        selection-color: ide.colors.selection
-        line-number-color: ide.colors.info-text
-        colors:
-          fg: ide.colors.text
-          bg: ide.colors.fill-color
 
   - name: 'footer-panel'
     type: view.types.document-footer

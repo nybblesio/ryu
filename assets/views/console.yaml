@@ -20,28 +20,18 @@ views:
       fg: ide.colors.info-text
       bg: ide.colors.fill-color
 
-  - name: 'console-panel'
-    type: view.types.panel
+  - name: 'console-view'
+    type: view.types.console
     layout:
       dock: view.dock.fill
-      mode: view.layout.mode.flow
-      direction: view.layout.direction.column
+      direction: view.layout.direction.row
     margin: [10, 10, 5, 5]
+    caret-color: ide.colors.caret
+    selection-color: ide.colors.selection
     colors:
-      fg: ide.colors.info-text
+      fg: ide.colors.text
       bg: ide.colors.fill-color
-    views:
-      - name: 'console-view'
-        type: view.types.console
-        layout:
-          dock: view.dock.fill
-        margin: [0, 0, 0, 0]
-        caret-color: ide.colors.caret
-        selection-color: ide.colors.selection
-        colors:
-          fg: ide.colors.text
-          bg: ide.colors.fill-color
-        enabled: true
+    enabled: true
 
   - name: 'footer-panel'
     type: view.types.document-footer

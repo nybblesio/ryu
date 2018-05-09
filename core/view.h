@@ -69,6 +69,24 @@ namespace ryu::core {
             };
         };
 
+        enum class layout_modes : uint16_t {
+            flow,
+            flex
+        };
+
+        enum class flex_directions : uint16_t {
+            none,
+            row,
+            column
+        };
+
+        enum class layout_justifications : uint16_t {
+            start,
+            middle,
+            end,
+            full
+        };
+
         view(
             types::id type,
             const std::string& name,
@@ -118,9 +136,11 @@ namespace ryu::core {
 
         uint8_t fg_color() const;
 
-        void tab_stop(bool value);
-
         bool should_clip() const;
+
+        bool layout_wrap() const;
+
+        void tab_stop(bool value);
 
         void index(uint16_t value);
 
@@ -140,6 +160,8 @@ namespace ryu::core {
             return nullptr;
         }
 
+        void layout_wrap(bool value);
+
         core::dock::styles dock() const;
 
         void font_style(uint8_t styles);
@@ -153,6 +175,8 @@ namespace ryu::core {
         virtual std::string value() const;
 
         virtual core::rect inner_bounds();
+
+        void palette(core::palette* value);
 
         core::border::types border() const;
 
@@ -178,11 +202,15 @@ namespace ryu::core {
 
         void border(core::border::types value);
 
+        view::layout_modes layout_mode() const;
+
         void margin(const core::padding& value);
 
         void padding(const core::padding& value);
 
-        virtual void palette(core::palette* value);
+        void font_family(core::font_family* value);
+
+        void layout_mode(view::layout_modes value);
 
         template <typename T>
         T* find_by_name(const std::string& name) {
@@ -196,11 +224,17 @@ namespace ryu::core {
             return nullptr;
         }
 
+        view::flex_directions flex_direction() const;
+
         virtual void value(const std::string& value);
 
-        virtual void font_family(core::font_family* value);
+        void flex_direction(view::flex_directions value);
+
+        view::layout_justifications layout_justification() const;
 
         void update(uint32_t dt, core::pending_event_list& events);
+
+        void layout_justification(view::layout_justifications value);
 
     protected:
         view_host* host();
@@ -218,6 +252,8 @@ namespace ryu::core {
         virtual void on_bounds_changed();
 
         virtual void on_palette_changed();
+
+        virtual void on_font_family_changed();
 
         core::input_action_provider& action_provider();
 
@@ -250,6 +286,7 @@ namespace ryu::core {
         core::padding _margin {};
         view_list _render_list {};
         core::padding _padding {};
+        bool _layout_wrap = false;
         core::view* _prev = nullptr;
         core::view* _next = nullptr;
         palette_index _bg_color = 0;
@@ -259,11 +296,14 @@ namespace ryu::core {
         core::view_host* _host = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
+        layout_modes _mode = layout_modes::flow;
         uint8_t _font_style = font::styles::normal;
         border::types _border = border::types::none;
         core::dock::styles _dock = dock::styles::none;
         core::input_action_provider _action_provider {};
+        flex_directions _direction = flex_directions::none;
         uint8_t _flags = config::flags::enabled | config::flags::visible;
+        layout_justifications _justification = layout_justifications::start;
     };
 
 };

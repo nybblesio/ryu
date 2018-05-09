@@ -37,7 +37,7 @@ namespace ryu::core {
     private:
         void build_layout_tree(core::view* v, int32_t parent_lay_id);
 
-        std::pair<uint32_t, uint32_t> configure_panel(core::panel* p);
+        std::pair<uint32_t, uint32_t> get_layout_flags(core::view* view);
 
     private:
         lay_context _context;

@@ -49,14 +49,14 @@ namespace ryu::core {
         lay_run_context(&_context);
     }
 
-    std::pair<uint32_t, uint32_t> layout_engine::configure_panel(core::panel* p) {
-        if (p == nullptr)
+    std::pair<uint32_t, uint32_t> layout_engine::get_layout_flags(core::view* view) {
+        if (view == nullptr)
             return {};
 
         uint32_t flags = 0;
         uint32_t behavior = 0;
 
-        switch (p->layout_mode()) {
+        switch (view->layout_mode()) {
             case panel::layout_modes::flow:
                 flags |= LAY_LAYOUT;
                 break;
@@ -65,7 +65,7 @@ namespace ryu::core {
                 break;
         }
 
-        switch (p->flex_direction()) {
+        switch (view->flex_direction()) {
             case panel::flex_directions::none:
                 break;
             case panel::flex_directions::row:
@@ -78,7 +78,7 @@ namespace ryu::core {
                 break;
         }
 
-        switch (p->layout_justification()) {
+        switch (view->layout_justification()) {
             case panel::layout_justifications::start:
                 flags |= LAY_START;
                 break;
@@ -93,7 +93,7 @@ namespace ryu::core {
                 break;
         }
 
-        if (p->layout_wrap())
+        if (view->layout_wrap())
             flags |= LAY_WRAP;
 
         return std::make_pair(flags, behavior);
@@ -131,6 +131,9 @@ namespace ryu::core {
             static_cast<lay_scalar>(margins.right()),
             static_cast<lay_scalar>(margins.bottom()));
 
+        auto flags_pair = get_layout_flags(v);
+        lay_set_contain(&_context, current_lay_id, flags_pair.first);
+
         uint32_t behavior = 0;
         switch (v->dock()) {
             case dock::none:
@@ -152,27 +155,7 @@ namespace ryu::core {
                 break;
         }
 
-        std::pair<uint32_t, uint32_t> flags_pair;
-        if (v->type() == view::types::container) {
-            auto panel = dynamic_cast<core::panel*>(v);
-            flags_pair = configure_panel(panel);
-            lay_set_contain(
-                &_context,
-                current_lay_id,
-                flags_pair.first);
-        } else {
-            auto parent_view = v->parent();
-            if (parent_view != nullptr
-            &&  parent_view->type() == view::types::container) {
-                //behavior |= LAY_FILL;
-                //lay_set_contain(&_context, current_lay_id, LAY_COLUMN);
-            }
-        }
-
-        lay_set_behave(
-            &_context,
-            current_lay_id,
-            behavior | flags_pair.second);
+        lay_set_behave(&_context, current_lay_id, behavior | flags_pair.second);
 
         _view_to_rect.insert(std::make_pair(v->id(), current_lay_id));
 

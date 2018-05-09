@@ -40,6 +40,10 @@ namespace ryu::core {
         }
     }
 
+    void label::on_font_family_changed() {
+        update_minimum_size();
+    }
+
     void label::value(const std::string& text) {
         if (view::value() != text) {
             view::value(text);

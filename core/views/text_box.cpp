@@ -215,8 +215,17 @@ namespace ryu::core {
         return view::value();
     }
 
+    void text_box::on_palette_changed() {
+        _caret.palette(palette());
+    }
+
     void text_box::length(uint16_t value) {
         _document.document_size(1, value);
+    }
+
+    void text_box::on_font_family_changed() {
+        _caret.font_family(font_family());
+        update_minimum_size();
     }
 
     bool text_box::caret_left(uint8_t columns) {
@@ -283,16 +292,6 @@ namespace ryu::core {
             rect.bottom(),
             rect.right(),
             rect.bottom());
-    }
-
-    void text_box::palette(core::palette* value) {
-        view::palette(value);
-        _caret.palette(value);
-    }
-
-    void text_box::font_family(core::font_family* value) {
-        view::font_family(value);
-        _caret.font_family(value);
     }
 
     void text_box::on_key_down(const text_box::on_key_down_callable& callable) {

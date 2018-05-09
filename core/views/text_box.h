@@ -42,11 +42,7 @@ namespace ryu::core {
 
         void fg_color(palette_index value) override;
 
-        void palette(core::palette* value) override;
-
         void value(const std::string& value) override;
-
-        void font_family(core::font_family* value) override;
 
         void on_key_down(const on_key_down_callable& callable);
 
@@ -59,9 +55,13 @@ namespace ryu::core {
 
         void on_focus_changed() override;
 
+        void on_palette_changed() override;
+
         bool caret_left(uint8_t columns = 1);
 
         bool caret_right(uint8_t columns = 1);
+
+        void on_font_family_changed() override;
 
         void on_draw(core::renderer& surface) override;
 

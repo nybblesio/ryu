@@ -736,34 +736,31 @@ namespace ryu::core {
             const YAML::Node& root,
             const YAML::Node& node,
             core::view* v) {
-        auto panel = dynamic_cast<core::panel*>(v);
-        if (panel != nullptr) {
-            bool wrap_value = false;
-            uint16_t flag_value;
+        bool wrap_value = false;
+        uint16_t flag_value;
 
-            auto layout_mode_result = get_node_from_path(node, "layout.mode");
-            if (layout_mode_result.found) {
-                if (get_constant(result, root, layout_mode_result.node, flag_value))
-                    panel->layout_mode(static_cast<panel::layout_modes>(flag_value));
-            }
+        auto layout_mode_result = get_node_from_path(node, "layout.mode");
+        if (layout_mode_result.found) {
+            if (get_constant(result, root, layout_mode_result.node, flag_value))
+                v->layout_mode(static_cast<panel::layout_modes>(flag_value));
+        }
 
-            auto direction_result = get_node_from_path(node, "layout.direction");
-            if (direction_result.found) {
-                if (get_constant(result, root, direction_result.node, flag_value))
-                    panel->flex_direction(static_cast<panel::flex_directions>(flag_value));
-            }
+        auto direction_result = get_node_from_path(node, "layout.direction");
+        if (direction_result.found) {
+            if (get_constant(result, root, direction_result.node, flag_value))
+                v->flex_direction(static_cast<panel::flex_directions>(flag_value));
+        }
 
-            auto justification_result = get_node_from_path(node, "layout.justification");
-            if (justification_result.found) {
-                if (get_constant(result, root, justification_result.node, flag_value))
-                    panel->layout_justification(static_cast<panel::layout_justifications>(flag_value));
-            }
+        auto justification_result = get_node_from_path(node, "layout.justification");
+        if (justification_result.found) {
+            if (get_constant(result, root, justification_result.node, flag_value))
+                v->layout_justification(static_cast<panel::layout_justifications>(flag_value));
+        }
 
-            auto wrap_result = get_node_from_path(node, "layout.wrap");
-            if (wrap_result.found) {
-                if (get_constant(result, root, wrap_result.node, wrap_value))
-                    panel->layout_wrap(wrap_value);
-            }
+        auto wrap_result = get_node_from_path(node, "layout.wrap");
+        if (wrap_result.found) {
+            if (get_constant(result, root, wrap_result.node, wrap_value))
+                v->layout_wrap(wrap_value);
         }
 
         dock::styles dock_style = dock::styles::none;

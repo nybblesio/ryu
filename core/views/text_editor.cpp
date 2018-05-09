@@ -657,9 +657,10 @@ namespace ryu::core {
 
     void text_editor::on_bounds_changed() {
         calculate_page_metrics();
+    }
 
-        _caret.page_size(_metrics.page_height, _metrics.page_width);
-        _document.page_size(_metrics.page_height, _metrics.page_width);
+    void text_editor::on_font_family_changed() {
+        calculate_page_metrics();
     }
 
     void text_editor::calculate_page_metrics() {
@@ -673,6 +674,8 @@ namespace ryu::core {
         _metrics.page_height = static_cast<uint8_t>(std::max<int32_t>(
                 rect.height() / face->line_height,
                 _metrics.page_height));
+        _caret.page_size(_metrics.page_height, _metrics.page_width);
+        _document.page_size(_metrics.page_height, _metrics.page_width);
     }
 
     void text_editor::insert_text(const char* text) {

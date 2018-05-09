@@ -226,6 +226,10 @@ namespace ryu::core {
         return (_flags & config::flags::clip) != 0;
     }
 
+    bool view::layout_wrap() const {
+        return _layout_wrap;
+    }
+
     std::string view::value() const {
         return _value;
     }
@@ -252,6 +256,10 @@ namespace ryu::core {
 
     uint8_t view::font_style() const {
         return _font_style;
+    }
+
+    void view::layout_wrap(bool value) {
+        _layout_wrap = value;
     }
 
     border::types view::border() const {
@@ -285,6 +293,9 @@ namespace ryu::core {
         on_focus_changed();
     }
 
+    void view::on_font_family_changed() {
+    }
+
     void view::render_list_root_reset() {
         auto root = find_root();
         if (root != nullptr)
@@ -297,13 +308,6 @@ namespace ryu::core {
 
     void view::font_style(uint8_t styles) {
         _font_style = styles;
-    }
-
-    void view::palette(core::palette* value) {
-        if (value != _palette) {
-            _palette = value;
-            on_palette_changed();
-        }
     }
 
     void view::next_view(core::view* value) {
@@ -324,6 +328,13 @@ namespace ryu::core {
 
     void view::border(border::types value) {
         _border = value;
+    }
+
+    void view::palette(core::palette* value) {
+        if (value != _palette) {
+            _palette = value;
+            on_palette_changed();
+        }
     }
 
     void view::dock(core::dock::styles style) {
@@ -430,6 +441,10 @@ namespace ryu::core {
         return _font;
     }
 
+    view::layout_modes view::layout_mode() const {
+        return _mode;
+    }
+
     void view::margin(const core::padding& value) {
         _margin = value;
     }
@@ -438,12 +453,31 @@ namespace ryu::core {
         _padding = value;
     }
 
+    void view::layout_mode(view::layout_modes value) {
+        _mode = value;
+    }
+
     void view::font_family(core::font_family* value) {
-        _font = value;
+        if (_font != value) {
+            _font = value;
+            on_font_family_changed();
+        }
+    }
+
+    view::flex_directions view::flex_direction() const {
+        return _direction;
     }
 
     core::input_action_provider& view::action_provider() {
         return _action_provider;
+    }
+
+    void view::flex_direction(view::flex_directions value) {
+        _direction = value;
+    }
+
+    view::layout_justifications view::layout_justification() const {
+        return _justification;
     }
 
     void view::update(uint32_t dt, core::pending_event_list& events) {
@@ -461,6 +495,10 @@ namespace ryu::core {
 
     void view::on_host_changed(view_host::change_reason_flags flags) {
         on_focus_changed();
+    }
+
+    void view::layout_justification(view::layout_justifications value) {
+        _justification = value;
     }
 
     void view::on_update(uint32_t dt, core::pending_event_list& events) {
