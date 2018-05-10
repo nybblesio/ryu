@@ -341,15 +341,6 @@ namespace ryu::core {
         _dock = style;
     }
 
-    // XXX: need to rework the render list cache so it includes
-    //      a valid clipping rectangle
-
-    //            auto parent = view->parent();
-    //            if (parent != nullptr && parent->should_clip())
-    //                renderer.push_clip_rect(parent->client_bounds());
-    //            if (parent != nullptr && parent->should_clip())
-    //                renderer.pop_clip_rect();
-
     void view::draw(core::renderer& renderer) {
         if (!visible())
             return;
@@ -362,7 +353,21 @@ namespace ryu::core {
 
         for (auto view : _render_list) {
             view->bounds(layout_engine->view_rect(view));
+
+            // XXX: think...think...think
+            //      is there a better way to do this?
+            auto clipped = false;
+            auto parent = view->parent();
+            if (parent != nullptr && parent->should_clip()) {
+                renderer.push_clip_rect(parent->inner_bounds());
+                clipped = true;
+            }
+
             view->on_draw(renderer);
+
+            if (clipped)
+                renderer.pop_clip_rect();
+
             renderer.set_color(view->palette()->get(view->fg_color()));
             switch (view->border()){
                 case border::solid: {

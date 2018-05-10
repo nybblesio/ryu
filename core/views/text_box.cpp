@@ -264,7 +264,6 @@ namespace ryu::core {
     }
 
     void text_box::on_draw(core::renderer& surface) {
-        auto rect = bounds();
         auto inner_rect = inner_bounds();
 
         auto pal = *view::palette();
@@ -288,10 +287,10 @@ namespace ryu::core {
             alignment::horizontal::left,
             alignment::vertical::middle);
         surface.draw_line(
-            rect.left(),
-            rect.bottom(),
-            rect.right(),
-            rect.bottom());
+            inner_rect.left(),
+            inner_rect.bottom() - 1,
+            inner_rect.right(),
+            inner_rect.bottom() - 1);
     }
 
     void text_box::on_key_down(const text_box::on_key_down_callable& callable) {

@@ -12,7 +12,7 @@ views:
     layout:
       dock: view.layout.dock.top
       direction: view.layout.direction.row
-    margin: [10, 10, 5, 5]
+    margin: [10, 50, 5, 5]
     state: 'palette editor'
     state_color: ide.colors.white
     colors:
@@ -25,7 +25,7 @@ views:
       dock: view.layout.dock.fill
       mode: view.layout.mode.flex
       direction: view.layout.direction.row
-    margin: [10, 10, 10, 10]
+    margin: [10, 50, 10, 10]
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent

@@ -12,7 +12,7 @@ views:
     layout:
       dock: view.layout.dock.top
       direction: view.layout.direction.row
-    margin: [10, 10, 5, 5]
+    margin: [10, 50, 5, 5]
     state: 'machine editor'
     state_color: ide.colors.white
     colors:
@@ -21,7 +21,7 @@ views:
 
   - name: 'top-panel'
     type: view.types.panel
-    margin: [10, 10, 5, 5]
+    margin: [10, 50, 5, 5]
     layout:
       dock: view.layout.dock.fill
       mode: view.layout.mode.flex
@@ -190,7 +190,7 @@ views:
     enabled: true
     next: 'add-button'
     prev: 'description-text-editor'
-    margin: [10, 10, 5, 5]
+    margin: [10, 50, 5, 5]
     border: view.border.solid
     colors:
       fg: ide.colors.info-text
@@ -236,7 +236,7 @@ views:
       dock: view.layout.dock.bottom
       mode: view.layout.mode.flow
       direction: view.layout.direction.row
-    margin: [10, 10, 15, 20]
+    margin: [10, 50, 15, 20]
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent

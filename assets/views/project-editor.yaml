@@ -61,8 +61,6 @@ views:
               fg: ide.colors.text
               bg: ide.colors.fill-color
             value: ''
-            tab-stop: true
-            enabled: true
             next: 'machine-pick-list'
             prev: 'delete-button'
             margin: [20, 0, 0, 0]
@@ -70,6 +68,7 @@ views:
               width: 32
               length: 32
             enabled: true
+            tab-stop: true
 
           - name: 'machine-label'
             type: view.types.label

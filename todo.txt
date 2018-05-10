@@ -33,9 +33,6 @@ Large Refactorings
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
-- FIX: refactor the render list in core::view to be a list of structures with the view* and
-        a clipping rect and other state information based on the view's parent should_clip()
-
 - NEW: add new integrated_circuit_editor view
     --> shows memory_map for ic and allows editing of values in memory
     --> save to machine registry file
@@ -331,3 +328,5 @@ DONE
 - NEW: add back pointers to component & integrated_circuit
 - NEW: add decode_palettes/encode_palettes on video_generator
 - FIX: the layout engine in core::view is naff; need to rework it
+- FIX: refactor the render list in core::view to be a list of structures with the view* and
+        a clipping rect and other state information based on the view's parent should_clip()

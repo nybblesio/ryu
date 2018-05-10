@@ -335,7 +335,7 @@ namespace ryu::core {
     }
 
     void pick_list::on_draw(core::renderer& surface) {
-        auto bounds = inner_bounds();
+        auto inner_rect = inner_bounds();
 
         auto pal = *palette();
         auto fg = pal[fg_color()];
@@ -346,7 +346,7 @@ namespace ryu::core {
         }
 
         surface.set_color(bg);
-        surface.fill_rect(bounds);
+        surface.fill_rect(inner_rect);
 
         surface.set_font_color(font_face(), fg);
         surface.set_color(fg);
@@ -356,7 +356,7 @@ namespace ryu::core {
             surface.draw_text_aligned(
                 font_face(),
                 value(),
-                bounds,
+                inner_rect,
                 alignment::horizontal::left,
                 alignment::vertical::middle);
         } else {
@@ -366,17 +366,17 @@ namespace ryu::core {
             surface.draw_text_aligned(
                 font_face(),
                 _search,
-                bounds,
+                inner_rect,
                 alignment::horizontal::left,
                 alignment::vertical::middle);
             surface.set_font_color(font_face(), fg);
         }
 
         surface.draw_line(
-            bounds.left(),
-            bounds.bottom(),
-            bounds.right(),
-            bounds.bottom());
+            inner_rect.left(),
+            inner_rect.bottom() - 1,
+            inner_rect.right(),
+            inner_rect.bottom() - 1);
 
         if (!focused())
             return;
@@ -384,8 +384,11 @@ namespace ryu::core {
         int32_t height = _height > 0 ?
             _height :
             font_face()->line_height * (_visible_rows + 1);
-        auto width = _width > 0 ? _width : bounds.width();
-        core::rect box {bounds.left(), bounds.bottom(), width + 6, height};
+        auto width = _width > 0 ? _width : inner_rect.width();
+        core::rect box {inner_rect.left(), inner_rect.bottom() - 1, width + 6, height};
+
+        surface.push_clip_rect(box);
+
         surface.set_color(bg);
         surface.fill_rect(box);
         surface.set_color(fg);
@@ -398,9 +401,9 @@ namespace ryu::core {
             stop = static_cast<int>(_options.size());
         for (auto row = start; row < stop; ++row) {
             core::rect line = {
-                bounds.left() + 4,
+                inner_rect.left() + 4,
                 y,
-                bounds.width() - 2,
+                inner_rect.width() - 2,
                 font_face()->line_height};
             if (row == _selection) {
                 surface.draw_selection_rect(line, pal[_selection_color]);
@@ -415,6 +418,8 @@ namespace ryu::core {
                 alignment::vertical::middle);
             y += font_face()->line_height + 1;
         }
+
+        surface.pop_clip_rect();
     }
 
     void pick_list::selection_color(palette_index value) {

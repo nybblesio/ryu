@@ -607,20 +607,18 @@ namespace ryu::core {
 
     void text_editor::on_draw(core::renderer& surface) {
         auto inner_rect = inner_bounds();
-        auto pal = *palette();
-
-        auto& info_text_color = pal[_line_number_color];
+        auto face = font_face();
 
         auto y = inner_rect.top();
         auto row_start = _document.row();
         auto row_stop = row_start + _metrics.page_height;
         for (auto row = row_start; row < row_stop; row++) {
             surface.draw_text(
-                    font_face(),
+                    face,
                     inner_rect.left(),
                     y,
                     fmt::format("{0:04}", row + 1),
-                    info_text_color);
+                    palette()->get(_line_number_color));
 
             uint16_t col_start = static_cast<uint16_t>(_document.column());
             uint16_t col_end = col_start + _metrics.page_width;
@@ -630,22 +628,21 @@ namespace ryu::core {
                     col_start,
                     col_end);
 
-            auto max_line_height = font_face()->line_height;
+            auto max_line_height = face->line_height;
             auto x = inner_rect.left() + _caret.padding().left();
 
             for (const auto& chunk : chunks) {
                 font_style(chunk.attr.style);
 
-                auto face = font_face();
                 if (face->line_height > max_line_height)
                     max_line_height = face->line_height;
 
                 auto width = face->measure_text(chunk.text);
-                auto color = pal[chunk.attr.color];
+                auto color = palette()->get(chunk.attr.color);
 
                 if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
                     surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-                    auto selection_color = pal[_selection_color];
+                    auto selection_color = palette()->get(_selection_color);
                     selection_color.alpha(0x7f);
                     surface.set_color(selection_color);
                     surface.fill_rect(core::rect{x, y, width, face->line_height});

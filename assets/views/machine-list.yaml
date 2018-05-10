@@ -13,7 +13,7 @@ views:
       dock: view.layout.dock.top
       direction: view.layout.direction.row
     minimum-size: [0, 30]
-    margin: [10, 10, 5, 5]
+    margin: [10, 50, 5, 5]
     state: 'machine list'
     state_color: ide.colors.white
     colors:
@@ -29,7 +29,7 @@ views:
     enabled: true
     next: 'add-button'
     prev: 'delete-button'
-    margin: [10, 10, 10, 10]
+    margin: [10, 50, 10, 10]
     border: view.border.solid
     colors:
       fg: ide.colors.info-text
@@ -71,7 +71,7 @@ views:
     layout:
       dock: view.layout.dock.bottom
       direction: view.layout.direction.row
-    margin: [10, 10, 15, 20]
+    margin: [10, 50, 15, 20]
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent
