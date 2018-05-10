@@ -10,10 +10,15 @@
 
 #include <sstream>
 #include <fmt/format.h>
+#include <logger_factory.h>
 #include <core/input_binding.h>
 #include "text_editor.h"
 
 namespace ryu::core {
+
+    static logger* s_log = logger_factory::instance()->create(
+        "text_editor",
+        logger::level::info);
 
     text_editor::text_editor(
             const std::string& name,
@@ -663,8 +668,21 @@ namespace ryu::core {
         calculate_page_metrics();
     }
 
+    void text_editor::update_minimum_size() {
+        auto face = font_face();
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(
+            static_cast<uint32_t>(face->measure_chars(_metrics.line_number_width + _metrics.page_width)),
+            static_cast<uint32_t>(face->line_height * _metrics.page_height));
+//        s_log->info(fmt::format(
+//            "minimum_size.width = {}, minimum_size.height = {}",
+//            minimum_size.width(),
+//            minimum_size.height()));
+    }
+
     void text_editor::on_font_family_changed() {
         _caret.font_family(font_family());
+        update_minimum_size();
         calculate_page_metrics();
     }
 
@@ -676,15 +694,13 @@ namespace ryu::core {
 
         auto face = font_face();
 
-        _metrics.page_width = static_cast<uint8_t>(std::max<int32_t>(
-                (inner_rect.width() - _metrics.line_number_width) / face->width,
-                _metrics.page_width));
-        _metrics.page_height = static_cast<uint8_t>(std::max<int32_t>(
-                inner_rect.height() / face->line_height,
-                _metrics.page_height));
+        _metrics.page_width = static_cast<uint8_t>((inner_rect.width() - _metrics.line_number_width) / face->width);
+        _metrics.page_height = static_cast<uint8_t>(inner_rect.height() / face->line_height);
 
         _caret.page_size(_metrics.page_height, _metrics.page_width);
         _document.page_size(_metrics.page_height, _metrics.page_width);
+
+        //update_minimum_size();
     }
 
     void text_editor::insert_text(const char* text) {
@@ -725,12 +741,7 @@ namespace ryu::core {
     void text_editor::page_size(uint8_t height, uint8_t width) {
         _metrics.page_height = height;
         _metrics.page_width = width;
-
-        auto half_line_height = font_face()->line_height / 2;
-        auto& minimum_size = min_size();
-        minimum_size.dimensions(
-            static_cast<uint32_t>(font_face()->measure_chars(_metrics.line_number_width + _metrics.page_width)),
-            static_cast<uint32_t>((font_face()->line_height * _metrics.page_height) + half_line_height));
+        update_minimum_size();
     }
 
     void text_editor::get_selected_text(std::stringstream& stream) {

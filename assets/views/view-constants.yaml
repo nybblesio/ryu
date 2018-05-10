@@ -14,7 +14,7 @@ constants:
       pick-list: 4
       column-pick-list: 5
       panel: 6
-      UNUSED-REPLACE: 7
+      integrated-circuit-editor: 7
       notebook: 8
       state-header: 9
       check-box: 10
@@ -51,17 +51,6 @@ constants:
         middle: 1
         end: 2
         full: 3
-    dock:
-      none: 0
-      bottom: 1
-      fill: 2
-      left: 3
-      right: 4
-      top: 5
-    sizing:
-      content: 0
-      fixed: 1
-      parent: 2
     alignments:
       horizontal:
         none: 0

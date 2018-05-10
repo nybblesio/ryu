@@ -39,10 +39,10 @@ namespace ryu::core {
         _meta_name.clear();
 
         std::stringstream expanded_stream;
-        if (!expand_includes(result, expanded_stream, path))
+        if (!expand_includes(result, expanded_stream, path)) {
+            s_log->error(fmt::format("expanded_stream = {}", expanded_stream.str()));
             return false;
-
-        s_log->info(fmt::format("expanded_stream = {}", expanded_stream.str()));
+        }
 
         auto root = YAML::Load(expanded_stream);
         if (!root.IsNull() && root.IsMap()) {
@@ -456,6 +456,22 @@ namespace ryu::core {
                             pads,
                             bounds);
                     current_view = std::move(panel);
+                    break;
+                }
+                case types::integrated_circuit_editor: {
+                    auto circuit_editor = core::view_factory::create_view<core::integrated_circuit_editor>(
+                        host(),
+                        name,
+                        font_family(),
+                        palette(),
+                        fg_color,
+                        bg_color,
+                        value,
+                        dock::none,
+                        margins,
+                        pads,
+                        bounds);
+                    current_view = std::move(circuit_editor);
                     break;
                 }
                 case types::notebook: {

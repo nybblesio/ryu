@@ -26,12 +26,12 @@ Large Refactorings
     NOTE: 5/4/2018 - I attempted to refactor out boost but ran into issues with std::filesystem
                 not yet being fully supported in clang.
 
+- REFACTOR: replace log4cpp with the SDL logging infrastructure
+
+- REFACTOR: use rttr's plug-in functionality and make libhardware a shared library
+
 [feature/tools] IDE UI & related tasks
 --------------------------------------
-
-- FIX: the layout engine in core::view is naff; need to rework it
-    - FIX: the dock_layout_panel still doesn't do initial size calculations in all edge cases
-    - FIX: text_editor (though it may be more general) isn't honoring margin/padding properly
 
 - FIX: refactor the render list in core::view to be a list of structures with the view* and
         a clipping rect and other state information based on the view's parent should_clip()
@@ -330,3 +330,4 @@ DONE
 - REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
 - NEW: add back pointers to component & integrated_circuit
 - NEW: add decode_palettes/encode_palettes on video_generator
+- FIX: the layout engine in core::view is naff; need to rework it

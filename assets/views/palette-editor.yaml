@@ -33,7 +33,7 @@ views:
       - name: 'left-panel'
         type: view.types.panel
         layout:
-          dock: view.layout.dock.fill
+          dock: view.layout.dock.left
           direction: view.layout.direction.column
         margin: [10, 10, 10, 10]
         colors:

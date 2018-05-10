@@ -121,6 +121,8 @@ namespace ryu::core {
 
         void delete_selection();
 
+        void update_minimum_size();
+
         void calculate_page_metrics();
 
         void caret_up(uint8_t rows = 1);

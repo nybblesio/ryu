@@ -23,13 +23,13 @@ views:
     type: view.types.panel
     margin: [10, 10, 5, 5]
     layout:
-      dock: view.layout.dock.top
+      dock: view.layout.dock.fill
       mode: view.layout.mode.flex
       direction: view.layout.direction.column
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent
-    row-margins: &ROW-MARGINS [5, 5, 10, 20]
+    row-margins: &ROW-MARGINS [0, 0, 10, 10]
     views:
       - name: 'row1'
         type: view.types.panel
@@ -140,7 +140,7 @@ views:
         type: view.types.panel
         margin: *ROW-MARGINS
         layout:
-          dock: view.layout.dock.top
+          dock: view.layout.dock.fill
           direction: view.layout.direction.column
         colors:
           fg: ide.colors.info-text
@@ -156,6 +156,7 @@ views:
             value: 'description:'
             alignment:
               vertical: view.alignments.middle
+            margin: [0, 0, 5, 5]
 
           - name: 'description-text-editor'
             type: view.types.text-editor
@@ -174,7 +175,6 @@ views:
             tab-stop: true
             next: 'pick-list'
             prev: 'display-pick-list'
-            margin: [0, 0, 5, 5]
             padding: [10, 10, 10, 10]
             border: view.border.dashed
             caret-color: ide.colors.caret
@@ -236,11 +236,11 @@ views:
       dock: view.layout.dock.bottom
       mode: view.layout.mode.flow
       direction: view.layout.direction.row
-    margin: [10, 10, 5, 5]
+    margin: [10, 10, 15, 20]
     colors:
       fg: ide.colors.info-text
       bg: ide.colors.transparent
-    row-margins: &BUTTON-MARGINS [5, 5, 5, 5]
+    row-margins: &BUTTON-MARGINS [0, 10, 0, 0]
     views:
       - name: 'button-left-panel'
         type: view.types.panel

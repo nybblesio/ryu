@@ -98,6 +98,7 @@ namespace ryu::core {
             return false;
         }
 
+        SDL_SetWindowMinimumSize(_window, 1280, 1024);
         SDL_SetWindowOpacity(_window, 1.0f);
         _renderer = SDL_CreateRenderer(
                 _window,
