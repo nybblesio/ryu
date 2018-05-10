@@ -74,7 +74,10 @@ Large Refactorings
 - NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
         that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
         dock_layout_panel.
-
+- NEW: using new dialog system, create ide::project_jump::controller
+    - create project_jump.yaml view file
+    - new data structure needed here, MRU for files on project
+    - might be new views required here, not sure
 - NEW: raise error dialog where applicable
 
 - FINISH: ide::memory_editor::controller
@@ -84,11 +87,6 @@ Large Refactorings
         component name/id on the right-hand side of the display.  plus, the footer should show which
         component you're currently accessing and maybe show the description for the memory map entry
         that matches?
-
-- NEW: using new dialog system, create ide::project_jump::controller
-    - create project_jump.yaml view file
-    - new data structure needed here, MRU for files on project
-    - might be new views required here, not sure
 
 - NEW: ide::tile_editor::controller (does both sprites and tiles)
     1. need new tile_editor view:  width, height, position, fat pixel size
@@ -108,7 +106,7 @@ Large Refactorings
 
 - NEW: ide::preferences::controller
     1. create preferences.yaml view file
-        - maybe use core::notebook to break up sections
+        - maybe use core::note_book to break up sections
         - reuse palette editor views to allow customization of IDE and emu palettes
     2. input bindings
 
