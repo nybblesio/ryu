@@ -14,7 +14,7 @@ constants:
       pick-list: 4
       column-pick-list: 5
       panel: 6
-      integrated-circuit-editor: 7
+      unused-rename-when-needed: 7
       notebook: 8
       state-header: 9
       check-box: 10

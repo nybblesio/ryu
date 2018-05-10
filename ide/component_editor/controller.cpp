@@ -44,6 +44,7 @@ namespace ryu::ide::component_editor {
         _circuit_pick_list->value("");
         _address_text_box->value("");
         _description_text_editor->clear();
+        _memory_map_list->clear_rows();
 
         if (_component == nullptr)
             return;
@@ -53,8 +54,9 @@ namespace ryu::ide::component_editor {
             "{0:08x}",
             _component->address()));
         auto ic_instance = _component->ic();
-        if (ic_instance != nullptr)
+        if (ic_instance != nullptr) {
             _circuit_pick_list->selected_key(ic_instance->type_id());
+        }
     }
 
     void controller::define_actions() {
@@ -64,6 +66,31 @@ namespace ryu::ide::component_editor {
             "Close the component editor and return to previous state.");
         if (!leave_action->has_bindings())
             leave_action->bind_keys({core::key_escape});
+    }
+
+    void controller::update_memory_map_list() {
+        _memory_map_list->clear_rows();
+
+        auto ic_instance = _component->ic();
+
+        if (ic_instance == nullptr)
+            return;
+
+        const auto& map = ic_instance->memory_map();
+        for (const auto& entry : map.entries()) {
+            if (!entry.value->requires_static_config())
+                continue;
+            _memory_map_list->add_row({
+                entry.value->offset(),
+                {
+                  fmt::format("${:04x}", entry.value->offset()),
+                  fmt::format("${:02x}", entry.value->size()),
+                  entry.value->name(),
+                  entry.value->description(),
+                  ""
+                }
+            });
+        }
     }
 
     hardware::component* controller::component() {
@@ -89,7 +116,24 @@ namespace ryu::ide::component_editor {
         _close_button = _layout_panel->find_by_name<core::button>("close-button");
         _name_text_box = _layout_panel->find_by_name<core::text_box>("name-text-box");
         _circuit_pick_list = _layout_panel->find_by_name<core::pick_list>("ic-pick-list");
+        _circuit_pick_list->on_selection_changed([this](int32_t index) {
+            if (index == -1)
+                return;
+
+            auto& option = _circuit_pick_list->options()[index];
+
+            auto ic_instance = _component->ic();
+            if (ic_instance == nullptr || ic_instance->type_id() != option.key) {
+                delete ic_instance;
+
+                ic_instance = hardware::registry::instance()->new_ic_by_type_id(option.key);
+                _component->ic(ic_instance);
+            }
+
+            update_memory_map_list();
+        });
         _address_text_box = _layout_panel->find_by_name<core::text_box>("address-text-box");
+        _memory_map_list = _layout_panel->find_by_name<core::column_pick_list>("ic-editor");
         _description_text_editor = _layout_panel->find_by_name<core::text_editor>("description-text-editor");
 
         return !result.is_failed();

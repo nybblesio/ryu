@@ -458,22 +458,6 @@ namespace ryu::core {
                     current_view = std::move(panel);
                     break;
                 }
-                case types::integrated_circuit_editor: {
-                    auto circuit_editor = core::view_factory::create_view<core::integrated_circuit_editor>(
-                        host(),
-                        name,
-                        font_family(),
-                        palette(),
-                        fg_color,
-                        bg_color,
-                        value,
-                        dock::none,
-                        margins,
-                        pads,
-                        bounds);
-                    current_view = std::move(circuit_editor);
-                    break;
-                }
                 case types::notebook: {
                     auto notebook = core::view_factory::create_view<core::note_book>(
                             host(),

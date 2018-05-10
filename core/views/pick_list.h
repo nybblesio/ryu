@@ -17,6 +17,8 @@ namespace ryu::core {
 
     class pick_list : public core::view {
     public:
+        using selection_changed_callable = std::function<void (int32_t)>;
+
         pick_list(
             const std::string& name,
             core::view_host* host);
@@ -55,6 +57,8 @@ namespace ryu::core {
 
         void value(const std::string& text) override;
 
+        void on_selection_changed(const selection_changed_callable& callable);
+
     protected:
         bool page_up();
 
@@ -71,6 +75,8 @@ namespace ryu::core {
         bool move_row_down();
 
         void on_initialize() override;
+
+        void raise_selection_changed();
 
         void on_focus_changed() override;
 
@@ -104,6 +110,7 @@ namespace ryu::core {
         uint32_t _visible_rows = 10;
         palette_index _selection_color;
         palette_index _not_found_color;
+        selection_changed_callable _selection_changed_callable;
     };
 
 };

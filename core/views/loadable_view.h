@@ -37,7 +37,7 @@ namespace ryu::core {
             pick_list,
             column_pick_list,
             panel,
-            integrated_circuit_editor,
+            unused_rename_when_needed,
             notebook,
             state_header,
             check_box,

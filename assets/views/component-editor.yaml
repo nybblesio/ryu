@@ -125,7 +125,7 @@ views:
               dock: view.layout.dock.top
             margin: [20, 0, 0, 0]
             colors:
-              fg: ide.colors.dark-grey
+              fg: ide.colors.text
               bg: ide.colors.fill-color
             text-color: ide.colors.info-text
             enabled: true
@@ -236,20 +236,62 @@ views:
             value: 'circuit editor:'
             alignment:
               vertical: view.alignments.middle
-            margin: [0, 0, 5, 5]
+            margin: [0, 0, 0, 10]
 
           - name: 'ic-editor'
-            type: view.types.integrated-circuit-editor
+            type: view.types.column-pick-list
             layout:
               dock: view.layout.dock.fill
-            next: 'close-button'
-            prev: 'ic-pick-list'
-            colors:
-              fg: ide.colors.text
-              bg: ide.colors.fill-color
+              direction: view.layout.direction.row
             enabled: true
             tab-stop: true
-            border: view.border.dashed
+            next: 'close-button'
+            prev: 'description-text-editor'
+            border: view.border.solid
+            colors:
+              fg: ide.colors.info-text
+              bg: ide.colors.fill-color
+            column-colors: &COLUMN-COLORS
+              fg: ide.colors.white
+              bg: ide.colors.light-blue
+            row-color: ide.colors.text
+            not-found-color: ide.colors.red
+            selection-color: ide.colors.white
+            headers:
+              - title: 'Offset'
+                colors: *COLUMN-COLORS
+                width: 110
+                alignment:
+                  horizontal: view.alignments.horizontal.center
+                  vertical: view.alignments.vertical.middle
+
+              - title: 'Size'
+                colors: *COLUMN-COLORS
+                width: 80
+                alignment:
+                  horizontal: view.alignments.horizontal.center
+                  vertical: view.alignments.vertical.middle
+
+              - title: 'Name'
+                colors: *COLUMN-COLORS
+                width: 350
+                alignment:
+                  horizontal: view.alignments.horizontal.left
+                  vertical: view.alignments.vertical.middle
+
+              - title: 'Description'
+                colors: *COLUMN-COLORS
+                width: 625
+                alignment:
+                  horizontal: view.alignments.horizontal.left
+                  vertical: view.alignments.vertical.middle
+
+              - title: 'Value'
+                colors: *COLUMN-COLORS
+                width: 170
+                alignment:
+                  horizontal: view.alignments.horizontal.left
+                  vertical: view.alignments.vertical.middle
 
   - name: 'button-panel'
     type: view.types.panel

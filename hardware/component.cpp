@@ -20,6 +20,11 @@ namespace ryu::hardware {
             _ic->component(this);
     }
 
+    component::~component() {
+        delete _ic;
+        _ic = nullptr;
+    }
+
     uint32_t component::id() const {
         return _id;
     }
@@ -66,6 +71,14 @@ namespace ryu::hardware {
 
     void component::color(ryu::core::palette_index value) {
         _color = value;
+    }
+
+    void component::ic(hardware::integrated_circuit* value) {
+        if (_ic != value) {
+            _ic = value;
+            if (_ic != nullptr)
+                _ic->component(this);
+        }
     }
 
 }

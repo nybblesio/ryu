@@ -33,14 +33,17 @@ Large Refactorings
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
+- NEW: enhance column_pick_list to support sub-views within a row's column
+        --> check_box
+        --> text_box
+        --> pick_list
+
 - NEW: add new integrated_circuit_editor view
     --> shows memory_map for ic and allows editing of values in memory
     --> save to machine registry file
 - NEW: write registry::save and integrated into machine editor
 - FINISH: machine_editor::controller:  - callbacks
 - FINISH: component_editor::controller - callbacks
-    --> re-org layout
-    --> UPDATE: integrate new integrated_circuit_editor view into component_editor
 
 ====
 
@@ -54,11 +57,6 @@ Large Refactorings
 - NEW: implement ability to redirect to new or appended text file in core::console
 
 - FINISH: create new ide::project_editor::controller  - callbacks
-
-- NEW: enhance column_pick_list to support sub-views within a row's column
-        --> check_box
-        --> text_box
-        --> pick_list
 
 - NEW: create new view called tile_grid
     --> tile_attribute_t, width, and height...it will render a scrollable selection grid

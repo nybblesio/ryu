@@ -1210,14 +1210,61 @@ namespace ryu::hardware::mc6809 {
     }
 
     void cpu::on_initialize() {
-        add_memory_map_entry(0xfff0, 2, "Reserved", "Reserved by Motorola");
-        add_memory_map_entry(0xfff2, 2, "SWI3",     "SWI3 instruction interrupt vector");
-        add_memory_map_entry(0xfff4, 2, "SWI2",     "SWI2 instruction interrupt vector");
-        add_memory_map_entry(0xfff6, 2, "FIRQ",     "Fast hardware interrupt vector");
-        add_memory_map_entry(0xfff8, 2, "IRQ",      "Hardware interrupt vector");
-        add_memory_map_entry(0xfffa, 2, "SWI",      "SWI instruction interrupt vector");
-        add_memory_map_entry(0xfffc, 2, "NMI",      "Non-maskable interrupt vector");
-        add_memory_map_entry(0xfffe, 2, "Reset",    "Reset vector");
+        add_memory_map_entry(
+            0xfff0,
+            2,
+            "Reserved",
+            "Reserved by Motorola",
+            memory_map_entry::flags::static_config_required);
+
+        add_memory_map_entry(
+            0xfff2,
+            2,
+            "SWI3",
+            "SWI3 instruction interrupt vector",
+            memory_map_entry::flags::static_config_required);
+
+        add_memory_map_entry(
+            0xfff4,
+            2,
+            "SWI2",
+            "SWI2 instruction interrupt vector",
+            memory_map_entry::flags::static_config_required);
+
+        add_memory_map_entry(
+            0xfff6,
+            2,
+            "FIRQ",
+            "Fast hardware interrupt vector",
+            memory_map_entry::flags::static_config_required);
+
+        add_memory_map_entry(
+            0xfff8,
+            2,
+            "IRQ",
+            "Hardware interrupt vector",
+            memory_map_entry::flags::static_config_required);
+
+        add_memory_map_entry(
+            0xfffa,
+            2,
+            "SWI",
+            "SWI instruction interrupt vector",
+            memory_map_entry::flags::static_config_required);
+
+        add_memory_map_entry(
+            0xfffc,
+            2,
+            "NMI",
+            "Non-maskable interrupt vector",
+            memory_map_entry::flags::static_config_required);
+
+        add_memory_map_entry(
+            0xfffe,
+            2,
+            "Reset",
+            "Reset vector",
+            memory_map_entry::flags::static_config_required);
     }
 
     integrated_circuit::endianness::types cpu::endianess() const {

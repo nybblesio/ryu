@@ -64,5 +64,4 @@ add_library(
         views/document_footer.cpp views/document_footer.h
         views/column_pick_list.cpp views/column_pick_list.h
         assembly_language_parser.cpp assembly_language_parser.h
-        views/palette_entry_editor.cpp views/palette_entry_editor.h
-        views/integrated_circuit_editor.cpp views/integrated_circuit_editor.h)
+        views/palette_entry_editor.cpp views/palette_entry_editor.h)

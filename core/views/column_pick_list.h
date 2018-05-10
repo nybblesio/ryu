@@ -17,6 +17,20 @@
 
 namespace ryu::core {
 
+    // NOTES:
+    //
+    // 0. add type enum for header/column, e.g. string, hex, decimal, check, text_box, pick_list, etc.
+    //
+    // 1. add read-only type so we know how to format the column when it isn't "active"
+    //      default this to "string"
+    //
+    // 2. rows are rendered in "read-only" mode until activated via some input_action
+    //
+    // 3. when activated, any columns with view-like types will render with views
+    //
+    // 4. another input_action will "commit" changes from views to row putting the
+    //      row back into "read-only" mode.
+    //
     struct pick_list_header_t {
         using valign_t = core::alignment::vertical::types;
         using halign_t = core::alignment::horizontal::types;

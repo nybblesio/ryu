@@ -297,6 +297,15 @@ namespace ryu::core {
         update_minimum_size();
     }
 
+    void pick_list::raise_selection_changed() {
+        if (_selection_changed_callable != nullptr) {
+            if (_options.empty())
+                _selection_changed_callable(-1);
+            else
+                _selection_changed_callable(_selection);
+        }
+    }
+
     void pick_list::selected_key(uint32_t key) {
         auto it = std::find_if(
             _options.begin(),
@@ -306,6 +315,7 @@ namespace ryu::core {
             view::value((*it).text);
             _selection = static_cast<int>(std::distance(_options.begin(), it));
             find_matching_text(value());
+            raise_selection_changed();
         }
     }
 
@@ -326,6 +336,7 @@ namespace ryu::core {
             if (it != _options.end()) {
                 _selection = static_cast<int>(std::distance(_options.begin(), it));
                 find_matching_text(value());
+                raise_selection_changed();
             }
         }
     }
@@ -440,6 +451,10 @@ namespace ryu::core {
             move_down();
         }
         return false;
+    }
+
+    void pick_list::on_selection_changed(const pick_list::selection_changed_callable& callable) {
+        _selection_changed_callable = callable;
     }
 
 }

@@ -23,6 +23,8 @@ namespace ryu::hardware {
             uint32_t id,
             hardware::integrated_circuit* ic);
 
+        virtual ~component();
+
         uint32_t id() const;
 
         uint32_t address() const;
@@ -46,6 +48,8 @@ namespace ryu::hardware {
         void color(ryu::core::palette_index value);
 
         void description(const std::string& value);
+
+        void ic(hardware::integrated_circuit* value);
 
     private:
         uint32_t _id;

@@ -47,11 +47,14 @@ namespace ryu::ide::component_editor {
 
         void define_actions();
 
+        void update_memory_map_list();
+
     private:
         core::button* _close_button;
         core::text_box* _name_text_box;
         core::text_box* _address_text_box;
         core::pick_list* _circuit_pick_list;
+        core::column_pick_list* _memory_map_list;
         hardware::component* _component = nullptr;
         core::text_editor* _description_text_editor;
         core::loadable_view_unique_ptr _layout_panel;

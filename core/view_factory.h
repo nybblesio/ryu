@@ -28,7 +28,6 @@
 #include <core/views/document_footer.h>
 #include <core/views/column_pick_list.h>
 #include <core/views/palette_entry_editor.h>
-#include <core/views/integrated_circuit_editor.h>
 #include "core_types.h"
 
 namespace ryu::core {
@@ -52,7 +51,6 @@ namespace ryu::core {
     using palette_entry_editor_unique_ptr = std::unique_ptr<core::palette_entry_editor>;
     using palette_editor_unique_ptr = std::unique_ptr<core::palette_editor>;
     using list_box_unique_ptr = std::unique_ptr<core::list_box>;
-    using integrated_circuit_editor_unique_ptr = std::unique_ptr<integrated_circuit_editor>;
 
     class view_factory {
     public:
