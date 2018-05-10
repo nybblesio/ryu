@@ -263,8 +263,9 @@ namespace ryu::core {
     }
 
     bool engine::run(core::result& result) {
-        short average_fps = 0;
-        short frame_count = 0;
+        uint16_t average_fps = 0;
+        uint16_t frame_count = 0;
+
         auto last_time = SDL_GetTicks();
         auto last_fps_time = last_time;
 
@@ -287,8 +288,8 @@ namespace ryu::core {
             _surface.set_color({0x00, 0x00, 0x00, 0xff});
             _surface.clear();
 
-            SDL_Event sdl_event {};
-            while (events.size() < 5) {
+            SDL_Event sdl_event{};
+            while (true) {
                 if (!SDL_PollEvent(&sdl_event))
                     break;
                 events.push_back(sdl_event);
@@ -299,7 +300,7 @@ namespace ryu::core {
             //          time to ensure it works properly.
             if (!events.empty()) {
                 action_type_flags types = input_action::type::none;
-                for (auto& e : events) {
+                for (const auto& e : events) {
                     switch (e.type) {
                         case SDL_QUIT:
                             types |= input_action::type::system;
@@ -329,7 +330,7 @@ namespace ryu::core {
                 }
 
                 auto filtered_actions = input_action::filtered_catalog(types);
-                for (auto& e : events) {
+                for (const auto& e : events) {
                     for (auto action : filtered_actions) {
                         event_data_t data{};
                         if (action->process(&e, data)) {

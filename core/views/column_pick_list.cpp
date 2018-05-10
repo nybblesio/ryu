@@ -481,6 +481,7 @@ namespace ryu::core {
 
     void column_pick_list::add_row(const pick_list_row_t& row) {
         _rows.push_back(row);
+        calculate_visible_and_max_rows();
         raise_selection_changed();
     }
 

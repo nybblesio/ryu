@@ -16,8 +16,7 @@ namespace ryu::core {
 
     caret::caret(
             const std::string& name,
-            core::view_host* host) : core::view(core::view::types::control, name, host),
-                                     _timer(500) {
+            core::view_host* host) : core::view(core::view::types::control, name, host) {
     }
 
     caret::~caret() {
@@ -78,11 +77,13 @@ namespace ryu::core {
     }
 
     void caret::on_initialize() {
-        _timer.bind([&](timer* t) {
-            _show = !_show;
-            t->reset();
-        });
-        timer_pool::instance()->add_timer(&_timer);
+        if (!_timer.ready()) {
+            _timer.bind([](timer* t) {
+                _show = !_show;
+                t->reset();
+            });
+            timer_pool::instance()->add_timer(&_timer);
+        }
     }
 
     bool caret::row(uint8_t row) {

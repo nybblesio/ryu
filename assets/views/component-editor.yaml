@@ -246,7 +246,7 @@ views:
             enabled: true
             tab-stop: true
             next: 'close-button'
-            prev: 'description-text-editor'
+            prev: 'ic-pick-list'
             border: view.border.solid
             colors:
               fg: ide.colors.info-text
@@ -312,7 +312,7 @@ views:
           dock: view.layout.dock.left
         border: view.border.solid
         next: 'name-text-box'
-        prev: 'description-text-editor'
+        prev: 'ic-editor'
         margin: *BUTTON-MARGINS
         colors:
           fg: ide.colors.light-grey

@@ -84,10 +84,11 @@ namespace ryu::core {
         bool clamp_column();
 
     private:
+        inline static bool _show = true;
+        inline static core::timer _timer {500};
+
         int16_t _row = 0;
-        bool _show = true;
         int16_t _column = 0;
-        core::timer _timer;
         uint8_t _page_width = 0;
         uint8_t _page_height = 0;
         mode::types _mode = mode::types::insert;

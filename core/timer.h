@@ -19,10 +19,6 @@ namespace ryu::core {
 
         virtual ~timer();
 
-        int id() const {
-            return _id;
-        }
-
         void kill();
 
         void start();
@@ -33,6 +29,14 @@ namespace ryu::core {
 
         bool dead() const {
             return _killed;
+        }
+
+        bool ready() const {
+            return _callback != nullptr;
+        }
+
+        uint32_t id() const {
+            return _id;
         }
 
         bool is_expired() const {
@@ -50,7 +54,7 @@ namespace ryu::core {
         }
 
     private:
-        int _id = 0;
+        uint32_t _id = 0;
         bool _killed = false;
         bool _expired = false;
         uint32_t _duration = 0;

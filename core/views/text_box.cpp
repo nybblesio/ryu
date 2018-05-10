@@ -142,14 +142,17 @@ namespace ryu::core {
         action_provider().register_handler(
                 core::input_action::find_by_name("textbox_input"),
                 [this](const core::event_data_t& data) {
-                    if (_on_key_down != nullptr)
-                        if (!_on_key_down(data.c))
+                    auto on_key_result = false;
+                    if (_on_key_down != nullptr) {
+                        on_key_result = _on_key_down(data.c);
+                        if (!on_key_result)
                             return false;
+                    }
 
                     if (data.c == core::ascii_escape
                     ||  data.c == core::ascii_tab
                     ||  data.c == core::ascii_return)
-                        return false;
+                        return on_key_result;
 
                     _document.put(core::element_t{
                         static_cast<uint8_t>(data.c),

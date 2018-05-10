@@ -255,7 +255,6 @@ namespace ryu::core {
         auto inner_rect = inner_bounds();
         auto pal = *palette();
         auto fg = pal[fg_color()];
-        auto bg = pal[bg_color()];
         auto entry = pal[_index];
         auto text_color = pal[_text_color];
 

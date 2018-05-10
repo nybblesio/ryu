@@ -60,10 +60,10 @@ namespace ryu::core {
             bool processed = process_action(event.action, event.data);
             if (processed) {
                 it = events.erase(it);
+                result = true;
                 if (!event.action->should_bubble())
-                    return true;
-                else
-                    result = true;
+                    break;
+                s_log->info(fmt::format("pending_event_t: action->name() = {}, bubble", event.action->name()));
             } else {
                 ++it;
             }

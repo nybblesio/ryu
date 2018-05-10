@@ -33,6 +33,15 @@ Large Refactorings
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
+- BUG: need a way to mark the next view that should be focused but update it after all of the
+        input_action_provider processing is complete for the entire tree.  this will fix at least one part
+        of switching between different views with common key bindings.
+
+- BUG: CTRL+SPACE is valid for both the text_editor_input event (and this is higher specificity) and
+        the source_editor::controller.  not sure how to best fix this.
+- BUG: related to above; need a better way to filter the possible set of actions down to reduce the amount of
+        work happening in the engine main loop
+
 - NEW: enhance column_pick_list to support sub-views within a row's column
         --> check_box
         --> text_box
