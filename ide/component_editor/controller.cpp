@@ -83,11 +83,11 @@ namespace ryu::ide::component_editor {
             _memory_map_list->add_row({
                 entry.value->offset(),
                 {
-                  fmt::format("${:04x}", entry.value->offset()),
-                  fmt::format("${:02x}", entry.value->size()),
+                  entry.value->offset(),
+                  entry.value->size(),
                   entry.value->name(),
                   entry.value->description(),
-                  ""
+                  static_cast<uint32_t>(0)
                 }
             });
         }

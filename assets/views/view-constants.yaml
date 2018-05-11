@@ -51,6 +51,25 @@ constants:
         middle: 1
         end: 2
         full: 3
+
+    column:
+      formats:
+        none: 0
+        hex2: 1
+        hex4: 2
+        hex8: 3
+        binary2: 4
+        binary4: 5
+        binary8: 6
+        binary16: 7
+        binary32: 8
+
+      types:
+        value: 0
+        text-box: 1
+        check-box: 2
+        button: 3
+
     alignments:
       horizontal:
         none: 0

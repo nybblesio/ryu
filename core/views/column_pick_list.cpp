@@ -46,6 +46,8 @@ namespace ryu::core {
             uint8_t fg_color,
             uint8_t bg_color,
             uint32_t width,
+            pick_list_header_t::formats format,
+            pick_list_header_t::types type,
             halign_t halign,
             valign_t valign) {
         _headers.emplace_back(
@@ -53,6 +55,8 @@ namespace ryu::core {
             fg_color,
             bg_color,
             width,
+            format,
+            type,
             valign,
             halign);
     }
@@ -294,6 +298,10 @@ namespace ryu::core {
         calculate_visible_and_max_rows();
     }
 
+    void column_pick_list::on_palette_changed() {
+        _caret.palette(palette());
+    }
+
     uint32_t column_pick_list::selected() const {
         return _row + _selected;
     }
@@ -340,15 +348,14 @@ namespace ryu::core {
         surface.fill_rect(bounds);
         surface.push_clip_rect(inner_bounds());
 
-        auto row_height = face->line_height + 2;
-
         auto header_x = bounds.left();
         for (const auto& header : _headers) {
             core::rect header_rect {
                 header_x + 1,
                 bounds.top() + 1,
                 header.width - 1,
-                row_height};
+                _row_height
+            };
             surface.set_color(adjust_color(pal[header.bg_color]));
             surface.fill_rect(header_rect);
             surface.set_font_color(
@@ -367,18 +374,18 @@ namespace ryu::core {
         auto stop_row = std::min<uint32_t>(
             _row + _max_rows,
             static_cast<const uint32_t&>(_rows.size()));
-        auto column_y = (bounds.top() + row_height) + 8;
+        auto column_y = (bounds.top() + _row_height) + 6;
         for (auto row_index = _row;
                  row_index < stop_row;
                  row_index++) {
-            const auto& row = _rows[row_index];
+            auto& row = _rows[row_index];
 
             if (row_index == selected()) {
                 core::rect selection_rect {
                     10,
                     column_y,
                     bounds.width(),
-                    row_height};
+                    _row_height};
                 surface.draw_selection_rect(selection_rect, pal[_row_color]);
             }
 
@@ -392,29 +399,142 @@ namespace ryu::core {
                     column_x,
                     column_y,
                     clamped_width,
-                    row_height};
+                    _row_height};
                 surface.push_clip_rect(column_rect);
                 surface.set_font_color(
                     face,
                     adjust_color(pal[header.fg_color]));
-                surface.draw_text_aligned(
-                    face,
-                    row.columns[index++],
-                    column_rect,
-                    header.halign,
-                    header.valign);
+
+                if (row.formatted_columns.size() < index + 1) {
+                    std::string formatted_value;
+                    const auto& variant_value = row.columns[index];
+                    auto variant_type = static_cast<pick_list_variant_types>(variant_value.index());
+
+                    switch (variant_type) {
+                        case pick_list_variant_types::empty:
+                            formatted_value = "(none)";
+                            break;
+                        case pick_list_variant_types::boolean: {
+                            auto flag = std::get<bool>(variant_value);
+                            formatted_value = flag ? "X" : "";
+                            break;
+                        }
+                        case pick_list_variant_types::string:
+                            formatted_value = std::get<std::string>(variant_value);
+                            break;
+                        case pick_list_variant_types::u32: {
+                            uint32_t value = std::get<uint32_t>(variant_value);
+                            switch (header.format) {
+                                case pick_list_header_t::formats::hex2: {
+                                    formatted_value = fmt::format("${:02x}", value);
+                                    break;
+                                }
+                                case pick_list_header_t::formats::hex4: {
+                                    formatted_value = fmt::format("${:04x}", value);
+                                    break;
+                                }
+                                case pick_list_header_t::formats::hex8: {
+                                    formatted_value = fmt::format("${:08x}", value);
+                                    break;
+                                }
+                                case pick_list_header_t::formats::binary2: {
+                                    formatted_value = fmt::format("%{:02b}", value);
+                                    break;
+                                }
+                                case pick_list_header_t::formats::binary4: {
+                                    formatted_value = fmt::format("%{:04b}", value);
+                                    break;
+                                }
+                                case pick_list_header_t::formats::binary8: {
+                                    formatted_value = fmt::format("%{:08b}", value);
+                                    break;
+                                }
+                                case pick_list_header_t::formats::binary16: {
+                                    formatted_value = fmt::format("%{:016b}", value);
+                                    break;
+                                }
+                                case pick_list_header_t::formats::binary32: {
+                                    formatted_value = fmt::format("%{:032b}", value);
+                                    break;
+                                }
+                                default: {
+                                    formatted_value = std::to_string(value);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    row.formatted_columns.push_back(formatted_value);
+                }
+
+                switch (header.type) {
+                    case pick_list_header_t::types::value: {
+                        surface.draw_text_aligned(
+                            face,
+                            row.formatted_columns[index],
+                            column_rect,
+                            header.halign,
+                            header.valign);
+                        break;
+                    }
+                    case pick_list_header_t::types::text_box: {
+                        surface.set_color(adjust_color(pal[header.bg_color]));
+                        surface.draw_rect(column_rect);
+
+                        auto box_rect = column_rect;
+                        box_rect.left(box_rect.left() + 4);
+                        box_rect.top(box_rect.top() + 1);
+                        box_rect.width(box_rect.width() - 2);
+                        box_rect.height(box_rect.height() - 2);
+                        surface.draw_text_aligned(
+                            face,
+                            row.formatted_columns[index],
+                            box_rect,
+                            header.halign,
+                            header.valign);
+                        break;
+                    }
+                    case pick_list_header_t::types::check_box: {
+                        auto column_width = column_rect.width() / 6;
+                        auto column_height = column_rect.height() / 2;
+                        core::rect box_rect = {
+                            column_rect.left() + ((column_rect.width() / 2) - column_width),
+                            column_rect.top() + (column_height / 2),
+                            column_width,
+                            column_height
+                        };
+                        surface.set_color(adjust_color(pal[header.bg_color]));
+                        surface.draw_rect(box_rect);
+                        auto flag = std::get<bool>(row.columns[index]);
+                        if (flag) {
+                            box_rect.left(box_rect.left() + 4);
+                            box_rect.top(box_rect.top() + 4);
+                            box_rect.width(box_rect.width() - 8);
+                            box_rect.height(box_rect.height() - 8);
+                            surface.fill_rect(box_rect);
+                        }
+                        break;
+                    }
+                    case pick_list_header_t::types::button:
+                        break;
+                }
+
                 surface.pop_clip_rect();
+
+                ++index;
                 column_x += header.width + 2;
             }
 
-            column_y += row_height;
+            column_y += _row_height + row_height_margin;
         }
 
         core::rect footer_rect {
             bounds.left(),
-            bounds.bottom() - row_height,
+            bounds.bottom() - _row_height,
             bounds.width(),
-            row_height
+            _row_height
         };
         auto header_bg_color = pal[_headers[0].bg_color];
         auto header_fg_color = pal[_headers[0].fg_color];
@@ -441,15 +561,16 @@ namespace ryu::core {
 
             core::rect type_ahead_rect {
                 bounds.left() + footer_string_width + 100,
-                bounds.bottom() - (row_height - 2),
+                bounds.bottom() - (_row_height - 2),
                 bounds.width() - (footer_string_width + 200),
-                row_height - 4
+                _row_height - 4
             };
             surface.set_color(bg);
             surface.fill_rect(type_ahead_rect);
 
             _caret.padding().left(type_ahead_rect.left() - 8);
-            _caret.padding().top(type_ahead_rect.top() - 52);
+            _caret.padding().top(bounds.height() - _row_height);
+
             if (!_found)
                 surface.set_font_color(face, pal[_not_found_color]);
             else
@@ -469,14 +590,22 @@ namespace ryu::core {
     }
 
     void column_pick_list::calculate_visible_and_max_rows() {
-        auto row_height = font_face()->line_height + 2;
-        _visible_rows = static_cast<uint32_t>((inner_bounds().height() / row_height) - 2);
+        _row_height = font_face()->line_height + 2;
+
+        auto rows_rect = inner_bounds();
+        rows_rect.height(rows_rect.height() - (_row_height * 2));
+
+        _visible_rows = static_cast<uint32_t>(rows_rect.height() / (_row_height + row_height_margin));
+        if (_visible_rows == 0)
+            _visible_rows = 1;
+
         _max_rows = std::min<uint32_t>(
             _visible_rows,
             static_cast<uint32_t>(_rows.size()));
+
         _max_page = std::max<uint32_t>(
             1,
-            static_cast<uint32_t>((_rows.size() / _visible_rows) + 1));
+            static_cast<uint32_t>(_rows.size() / _visible_rows));
     }
 
     void column_pick_list::add_row(const pick_list_row_t& row) {
@@ -497,7 +626,7 @@ namespace ryu::core {
         move_top();
         auto text_length = text.length();
         for (const auto& row : _rows) {
-            for (const auto& column : row.columns) {
+            for (const auto& column : row.formatted_columns) {
                 if (column.substr(0, text_length) == text) {
                     return true;
                 }

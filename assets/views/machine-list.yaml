@@ -56,6 +56,8 @@ views:
       - title: 'Address Space'
         colors: *COLUMN-COLORS
         width: 250
+        type: view.column.types.value
+        format: view.column.formats.hex8
         alignment:
           horizontal: view.alignments.horizontal.left
           vertical: view.alignments.vertical.middle

@@ -166,9 +166,9 @@ namespace ryu::ide::machine_list {
             _pick_list->add_row({
                 machine->id(),
                 {
-                    fmt::format("{}", machine->id()),
+                    machine->id(),
                     machine->name(),
-                    fmt::format("{:08x}", machine->address_space()),
+                    machine->address_space(),
                     display_name
                 }
             });

@@ -399,6 +399,8 @@ namespace ryu::core {
                             uint8_t col_bg_color = bg_color;
                             column_pick_list::valign_t valign = column_pick_list::valign_t::none;
                             column_pick_list::halign_t halign = column_pick_list::halign_t::none;
+                            pick_list_header_t::types header_type = pick_list_header_t::types::value;
+                            pick_list_header_t::formats header_format = pick_list_header_t::formats::none;
 
                             get_optional(header_node["title"], title);
                             get_optional(header_node["width"], width);
@@ -419,11 +421,16 @@ namespace ryu::core {
                             if (valign_result.found)
                                 get_constant(result, root, valign_result.node, valign);
 
+                            get_constant(result, root, header_node["type"], header_type);
+                            get_constant(result, root, header_node["format"], header_format);
+
                             column_pick_list->add_header(
                                     title,
                                     col_fg_color,
                                     col_bg_color,
                                     width,
+                                    header_format,
+                                    header_type,
                                     halign,
                                     valign);
                         }

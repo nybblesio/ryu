@@ -60,10 +60,10 @@ namespace ryu::ide::project_editor {
             _file_pick_list->add_row({
                     file->id(),
                     {
-                        fmt::format("{}", file->id()),
+                        file->id(),
                         file->name(),
                         type_code,
-                        file->should_assemble() ? "X" : ""
+                        file->should_assemble()
                     }
                 });
         }

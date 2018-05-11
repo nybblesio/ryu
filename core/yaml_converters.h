@@ -12,11 +12,40 @@
 
 #include <cstdint>
 #include <yaml-cpp/yaml.h>
-#include "core_types.h"
-#include "padding.h"
 #include "rect.h"
+#include "padding.h"
+#include "core_types.h"
+#include "views/column_pick_list.h"
 
 namespace YAML {
+    template<>
+    struct convert<ryu::core::pick_list_header_t::formats> {
+        static Node encode(const ryu::core::pick_list_header_t::formats& rhs) {
+            return Node(static_cast<uint32_t>(rhs));
+        }
+
+        static bool decode(const Node& node, ryu::core::pick_list_header_t::formats& rhs) {
+            if (!node.IsScalar())
+                return false;
+            rhs = static_cast<ryu::core::pick_list_header_t::formats>(node.as<uint32_t>());
+            return true;
+        }
+    };
+
+    template<>
+    struct convert<ryu::core::pick_list_header_t::types> {
+        static Node encode(const ryu::core::pick_list_header_t::types& rhs) {
+            return Node(static_cast<uint32_t>(rhs));
+        }
+
+        static bool decode(const Node& node, ryu::core::pick_list_header_t::types& rhs) {
+            if (!node.IsScalar())
+                return false;
+            rhs = static_cast<ryu::core::pick_list_header_t::types>(node.as<uint32_t>());
+            return true;
+        }
+    };
+
     template<>
     struct convert<ryu::core::context_window::sizes> {
         static Node encode(const ryu::core::context_window::sizes& rhs) {

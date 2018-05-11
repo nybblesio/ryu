@@ -33,26 +33,27 @@ Large Refactorings
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
+- NEW: enhance column_pick_list to support sub-views within a row's column
+        --> check_box
+        --> text_box
+        --> button
+
+- NEW: write registry::save and integrated into machine editor
+    - REFACTOR: create one YAML file per machine, so create ::load and ::save on hardware::machine
+    - REFACTOR: hardware::registry::load & hardware::registry::save now read/write YAML file that is a manifest pointing
+                the other machine YAML files
+- FINISH: machine_editor::controller:  - callbacks
+- FINISH: component_editor::controller - callbacks
+
 - BUG: need a way to mark the next view that should be focused but update it after all of the
         input_action_provider processing is complete for the entire tree.  this will fix at least one part
         of switching between different views with common key bindings.
-
+- THOUGHT: should the order be inverted for input_action_provider calls?
+            e.g. engine, context, state, then views?
 - BUG: CTRL+SPACE is valid for both the text_editor_input event (and this is higher specificity) and
         the source_editor::controller.  not sure how to best fix this.
 - BUG: related to above; need a better way to filter the possible set of actions down to reduce the amount of
         work happening in the engine main loop
-
-- NEW: enhance column_pick_list to support sub-views within a row's column
-        --> check_box
-        --> text_box
-        --> pick_list
-
-- NEW: add new integrated_circuit_editor view
-    --> shows memory_map for ic and allows editing of values in memory
-    --> save to machine registry file
-- NEW: write registry::save and integrated into machine editor
-- FINISH: machine_editor::controller:  - callbacks
-- FINISH: component_editor::controller - callbacks
 
 ====
 
@@ -66,6 +67,10 @@ Large Refactorings
 - NEW: implement ability to redirect to new or appended text file in core::console
 
 - FINISH: create new ide::project_editor::controller  - callbacks
+    - REFACTOR: add new values to project: author, copyright, license, version (major, minor, revision)
+    - REFACTOR: dependency list (shared libraries, etc.)
+    - REFACTOR: add ctemplate dependency and update project_file::create_stub_file to use
+                templates from the assets folder for different types.
 
 - NEW: create new view called tile_grid
     --> tile_attribute_t, width, and height...it will render a scrollable selection grid

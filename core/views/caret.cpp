@@ -142,9 +142,6 @@ namespace ryu::core {
         minimum_size.dimensions(
             static_cast<uint32_t>(font_face()->width),
             static_cast<uint32_t>(font_face()->line_height));
-
-        auto& rect = bounds();
-        rect.size(font_face()->width, font_face()->line_height);
     }
 
     caret::mode::types caret::mode() const {
@@ -166,11 +163,14 @@ namespace ryu::core {
         }
 
         auto parent_bounds = parent()->inner_bounds();
-        auto& rect = bounds();
         auto& pad = padding();
-        rect.pos(
-                (parent_bounds.left() + (_column * rect.width())) + pad.left(),
-                (parent_bounds.top() + (_row * rect.height())) + pad.top());
+        auto& minimum_size = min_size();
+        core::rect rect {
+            static_cast<int32_t>((parent_bounds.left() + (_column * minimum_size.width())) + pad.left()),
+            static_cast<int32_t>((parent_bounds.top() + (_row * minimum_size.height())) + pad.top()),
+            static_cast<int32_t>(minimum_size.width()),
+            static_cast<int32_t>(minimum_size.height())
+        };
         surface.fill_rect(rect);
 
         surface.pop_blend_mode();

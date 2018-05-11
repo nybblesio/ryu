@@ -261,6 +261,8 @@ views:
               - title: 'Offset'
                 colors: *COLUMN-COLORS
                 width: 110
+                type: view.column.types.value
+                format: view.column.formats.hex4
                 alignment:
                   horizontal: view.alignments.horizontal.center
                   vertical: view.alignments.vertical.middle
@@ -268,6 +270,8 @@ views:
               - title: 'Size'
                 colors: *COLUMN-COLORS
                 width: 80
+                type: view.column.types.value
+                format: view.column.formats.hex2
                 alignment:
                   horizontal: view.alignments.horizontal.center
                   vertical: view.alignments.vertical.middle
@@ -289,6 +293,8 @@ views:
               - title: 'Value'
                 colors: *COLUMN-COLORS
                 width: 170
+                type: view.column.types.text-box
+                format: view.column.formats.hex4
                 alignment:
                   horizontal: view.alignments.horizontal.left
                   vertical: view.alignments.vertical.middle

@@ -132,9 +132,9 @@ namespace ryu::ide::machine_editor {
             _component_pick_list->add_row({
                 component->id(),
                 {
-                    fmt::format("{}", component->id()),
+                    component->id(),
                     component->name(),
-                    fmt::format("{:08x}", component->address()),
+                    component->address(),
                     component->ic()->name()
                 }
             });

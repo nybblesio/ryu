@@ -11,42 +11,52 @@
 #pragma once
 
 #include <utility>
+#include <variant>
 #include <core/view.h>
 #include <core/core_types.h>
 #include "caret.h"
 
 namespace ryu::core {
 
-    // NOTES:
-    //
-    // 0. add type enum for header/column, e.g. string, hex, decimal, check, text_box, pick_list, etc.
-    //
-    // 1. add read-only type so we know how to format the column when it isn't "active"
-    //      default this to "string"
-    //
-    // 2. rows are rendered in "read-only" mode until activated via some input_action
-    //
-    // 3. when activated, any columns with view-like types will render with views
-    //
-    // 4. another input_action will "commit" changes from views to row putting the
-    //      row back into "read-only" mode.
-    //
     struct pick_list_header_t {
         using valign_t = core::alignment::vertical::types;
         using halign_t = core::alignment::horizontal::types;
+
+        enum class types : uint8_t {
+            value,
+            text_box,
+            check_box,
+            button
+        };
+
+        enum class formats : uint8_t {
+            none,
+            hex2,
+            hex4,
+            hex8,
+            binary2,
+            binary4,
+            binary8,
+            binary16,
+            binary32,
+        };
 
         pick_list_header_t(
             std::string title,
             uint8_t fg,
             uint8_t bg,
             uint32_t width,
+            formats format = formats::none,
+            types type = types::value,
             valign_t valign = valign_t::middle,
             halign_t halign = halign_t::center) : title(std::move(title)),
                                                   fg_color(fg),
                                                   bg_color(bg),
                                                   width(width),
                                                   valign(valign),
-                                                  halign(halign) {
+                                                  halign(halign),
+                                                  format(format),
+                                                  type(type) {
         }
 
         std::string title;
@@ -55,11 +65,23 @@ namespace ryu::core {
         int32_t width;
         valign_t valign;
         halign_t halign;
+        formats format;
+        types type;
+    };
+
+    using pick_list_variant = std::variant<std::monostate, uint32_t, std::string, bool>;
+
+    enum class pick_list_variant_types {
+        empty,
+        u32,
+        string,
+        boolean
     };
 
     struct pick_list_row_t {
         uint32_t key;
-        std::vector<std::string> columns {};
+        std::vector<pick_list_variant> columns {};
+        std::vector<std::string> formatted_columns {};
     };
 
     using row_list = std::vector<pick_list_row_t>;
@@ -72,6 +94,8 @@ namespace ryu::core {
 
         using valign_t = core::alignment::vertical::types;
         using halign_t = core::alignment::horizontal::types;
+
+        const int32_t row_height_margin = 4;
 
         column_pick_list(
             const std::string& name,
@@ -86,6 +110,8 @@ namespace ryu::core {
             uint8_t fg_color,
             uint8_t bg_color,
             uint32_t width,
+            pick_list_header_t::formats format = pick_list_header_t::formats::none,
+            pick_list_header_t::types type = pick_list_header_t::types::value,
             halign_t halign = halign_t::center,
             valign_t valign = valign_t::middle);
 
@@ -136,6 +162,8 @@ namespace ryu::core {
 
         void on_bounds_changed() override;
 
+        void on_palette_changed() override;
+
         void on_font_family_changed() override;
 
         void on_draw(core::renderer& surface) override;
@@ -158,6 +186,7 @@ namespace ryu::core {
         uint32_t _page = 0;
         core::caret _caret;
         std::string _search;
+        int32_t _row_height;
         uint32_t _max_page = 0;
         uint32_t _max_rows = 0;
         uint32_t _selected = 0;
