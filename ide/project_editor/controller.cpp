@@ -104,6 +104,9 @@ namespace ryu::ide::project_editor {
         _delete_button = _layout_panel->find_by_name<core::button>("delete-button");
         _name_text_box = _layout_panel->find_by_name<core::text_box>("name-text-box");
         _file_pick_list = _layout_panel->find_by_name<core::column_pick_list>("pick-list");
+        _file_pick_list->on_button_activated([](uint32_t row, uint32_t column) {
+            s_log->info(fmt::format("file pick list button activated: row={}, column={}", row, column));
+        });
         _machine_pick_list = _layout_panel->find_by_name<core::pick_list>("machine-pick-list");
         _description_text_editor = _layout_panel->find_by_name<core::text_editor>("description-text-editor");
 

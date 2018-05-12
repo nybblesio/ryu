@@ -134,6 +134,20 @@ namespace ryu::core {
     }
 
     void column_pick_list::define_actions() {
+        auto left_action = core::input_action::create_no_map(
+            "column_pick_list_left_action",
+            "Internal",
+            "Move to the previous editable column.");
+        if (!left_action->has_bindings())
+            left_action->bind_keys({core::key_left});
+
+        auto right_action = core::input_action::create_no_map(
+            "column_pick_list_right_action",
+            "Internal",
+            "Move to the next editable column.");
+        if (!right_action->has_bindings())
+            right_action->bind_keys({core::key_right});
+
         auto up_action = core::input_action::create_no_map(
             "column_pick_list_up_action",
             "Internal",
@@ -194,6 +208,44 @@ namespace ryu::core {
 
     void column_pick_list::bind_events() {
         action_provider().register_handler(
+            core::input_action::find_by_name("column_pick_list_left_action"),
+            [this](const event_data_t& data) {
+                switch (_state) {
+                    case states::none:
+                    case states::select_row: {
+                        return false;
+                    }
+                    case states::edit_row: {
+                        auto& active_row = _rows[selected()];
+                        if (active_row.active_column_index > 0) {
+                            active_row.active_column_index--;
+                            enable_caret_for_text_box();
+                        }
+                        return true;
+                    }
+                }
+            });
+
+        action_provider().register_handler(
+            core::input_action::find_by_name("column_pick_list_right_action"),
+            [this](const event_data_t& data) {
+                switch (_state) {
+                    case states::none:
+                    case states::select_row: {
+                        return false;
+                    }
+                    case states::edit_row: {
+                        auto& active_row = _rows[selected()];
+                        if (active_row.active_column_index < active_row.editable_columns.size() - 1) {
+                            active_row.active_column_index++;
+                            enable_caret_for_text_box();
+                        }
+                        return true;
+                    }
+                }
+            });
+
+        action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_up_action"),
             [this](const event_data_t& data) {
                 leave_edit_mode_if_active();
@@ -201,6 +253,7 @@ namespace ryu::core {
                     raise_selection_changed();
                 return true;
             });
+
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_page_up_action"),
             [this](const event_data_t& data) {
@@ -208,6 +261,7 @@ namespace ryu::core {
                 page_up();
                 return true;
             });
+
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_down_action"),
             [this](const event_data_t& data) {
@@ -216,6 +270,7 @@ namespace ryu::core {
                     raise_selection_changed();
                 return true;
             });
+
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_page_down_action"),
             [this](const event_data_t& data) {
@@ -223,25 +278,48 @@ namespace ryu::core {
                 page_down();
                 return true;
             });
+
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_select_action"),
             [this](const event_data_t& data) {
                 switch (_state) {
                     case states::none:
                         return false;
-                    case states::select_row:
+                    case states::select_row: {
                         raise_activated();
                         reset_search(false);
                         if (has_editable_rows())
                             enter_edit_mode();
                         return true;
-                    case states::edit_row:
-                        // XXX: if active "control" is button: invoke callback
-                        // XXX: if active "control" is check_box: toggle value
-                        // XXX: if active "control" is text_box: this is a nop?
-                        return false;
+                    }
+                    case states::edit_row: {
+                        auto& active_row = _rows[selected()];
+                        const auto column_index = active_row.editable_columns[active_row.active_column_index];
+                        auto& active_column = active_row.columns[column_index];
+                        const auto& header = _headers[column_index];
+
+                        switch (header.type) {
+                            case pick_list_header_t::types::check_box: {
+                                auto value = std::get<bool>(active_column.value);
+                                value = !value;
+                                active_column.value = value;
+                                active_column.changed = true;
+                                return true;
+                            }
+                            case pick_list_header_t::types::button: {
+                                raise_button_activated(
+                                    selected(),
+                                    static_cast<uint32_t>(column_index));
+                                return true;
+                            }
+                            case pick_list_header_t::types::text_box:
+                            default:
+                                return false;
+                        }
+                    }
                 }
             });
+
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_backspace_action"),
             [this](const event_data_t& data) {
@@ -256,10 +334,19 @@ namespace ryu::core {
                         return true;
                     }
                     case states::edit_row: {
-                        return false;
+                        auto& active_row = _rows[selected()];
+                        const auto column_index = active_row.editable_columns[active_row.active_column_index];
+                        auto& active_column = active_row.columns[column_index];
+
+                        active_column.formatted_value = active_column.formatted_value.substr(
+                            0,
+                            active_column.formatted_value.length() - 1);
+                        _caret.column(static_cast<uint8_t>(active_column.formatted_value.length()));
+                        return true;
                     }
                 }
             });
+
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_delete_action"),
             [this](const event_data_t& data) {
@@ -273,20 +360,21 @@ namespace ryu::core {
                         return false;
                 }
             });
+
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_text_input"),
             [this](const core::event_data_t& data) {
+                if (data.c == core::ascii_tab
+                ||  data.c == core::ascii_return
+                ||  data.c == core::ascii_escape) {
+                    return false;
+                }
+
                 switch (_state) {
                     case states::none: {
                         return false;
                     }
                     case states::select_row: {
-                        if (data.c == core::ascii_tab
-                        ||  data.c == core::ascii_return
-                        ||  data.c == core::ascii_escape) {
-                            return false;
-                        }
-
                         if (_search.length() < 32) {
                             _search += data.c;
                             _caret.column(static_cast<uint8_t>(_search.length()));
@@ -295,7 +383,14 @@ namespace ryu::core {
                         return true;
                     }
                     case states::edit_row: {
-                        return false;
+                        auto& active_row = _rows[selected()];
+                        const auto column_index = active_row.editable_columns[active_row.active_column_index];
+                        auto& active_column = active_row.columns[column_index];
+
+                        // XXX: this...is a problem
+                        active_column.formatted_value += data.c;
+                        _caret.column(static_cast<uint8_t>(active_column.formatted_value.length()));
+                        return true;
                     }
                 }
             });
@@ -342,7 +437,20 @@ namespace ryu::core {
             return;
 
         _state = states::edit_row;
-        // XXX: any other transition code
+
+        pick_list_row_t& active_row = _rows[selected()];
+        active_row.active_column_index = 0;
+
+        std::vector<size_t>& editable_columns = active_row.editable_columns;
+        editable_columns.clear();
+        size_t index = 0;
+        for (const auto& header : _headers) {
+            if (header.type != pick_list_header_t::types::value)
+                editable_columns.push_back(index);
+            ++index;
+        }
+
+        enable_caret_for_text_box();
     }
 
     void column_pick_list::on_focus_changed() {
@@ -402,12 +510,47 @@ namespace ryu::core {
         update_state();
     }
 
+    void column_pick_list::enable_caret_for_text_box() {
+        auto& active_row = _rows[selected()];
+
+        if (active_row.editable_columns.empty()) {
+            _caret.enabled(false);
+            return;
+        }
+
+        const auto column_index = active_row.editable_columns[active_row.active_column_index];
+        const auto& header = _headers[column_index];
+
+        if (header.type != pick_list_header_t::types::text_box) {
+            _caret.enabled(false);
+            return;
+        }
+
+        auto header_x_offset = 1;
+        for (size_t i = 0; i < column_index; i++)
+            header_x_offset += _headers[i].width + 3;
+
+        auto& active_column = active_row.columns[column_index];
+
+        _caret.padding().left(header_x_offset + 4);
+        _caret.padding().top(((_selected + 1) * (_row_height + row_height_margin)) + 3);
+        _caret.column(static_cast<uint8_t>(active_column.formatted_value.length()));
+        _caret.enabled(true);
+    }
+
     void column_pick_list::leave_edit_mode_if_active() {
         if (_state != states::edit_row)
             return;
 
         _state = states::select_row;
-        // XXX: any other transition code
+
+        pick_list_row_t& active_row = _rows[selected()];
+        active_row.active_column_index = 0;
+
+        std::vector<size_t>& editable_columns = active_row.editable_columns;
+        editable_columns.clear();
+
+        enable_caret_for_text_box();
     }
 
     void column_pick_list::row_color(palette_index value) {
@@ -595,7 +738,10 @@ namespace ryu::core {
                             column_width,
                             column_height
                         };
-                        surface.set_color(adjust_color(pal[header.bg_color]));
+
+                        auto color = pal[header.bg_color];
+                        adjust_color(color);
+                        surface.set_color(color);
                         surface.draw_rect(box_rect);
                         auto flag = std::get<bool>(row.columns[index].value);
                         if (flag) {
@@ -616,7 +762,9 @@ namespace ryu::core {
                                 column_rect.width() - 24,
                                 column_rect.height() - 2
                             };
-                            surface.set_color(adjust_color(pal[header.bg_color]));
+                            auto color = pal[header.bg_color];
+                            adjust_color(color);
+                            surface.set_color(color);
                             surface.fill_rect(button_rect);
                             surface.set_color(fg);
                             surface.draw_rect(button_rect);
@@ -636,6 +784,21 @@ namespace ryu::core {
                                 valign_t::middle);
                         }
                         break;
+                    }
+                }
+
+                if (header.type != pick_list_header_t::types::value) {
+                    if (!row.editable_columns.empty()) {
+                        auto column_index = row.editable_columns[row.active_column_index];
+                        if (index == column_index) {
+                            core::rect active_rect = {
+                                column_rect.left(),
+                                column_rect.top(),
+                                column_rect.width() - 1,
+                                column_rect.height() - 1
+                            };
+                            surface.draw_selection_band(active_rect, pal[header.fg_color]);
+                        }
                     }
                 }
 
@@ -674,34 +837,36 @@ namespace ryu::core {
             pick_list_header_t::halign_t::left,
             pick_list_header_t::valign_t::middle);
 
-        if (!_search.empty()) {
-            _caret.enabled(focused());
+        if (_state == states::select_row) {
+            if (!_search.empty()) {
+                _caret.enabled(focused());
 
-            core::rect type_ahead_rect {
-                bounds.left() + footer_string_width + 100,
-                bounds.bottom() - (_row_height - 2),
-                bounds.width() - (footer_string_width + 200),
-                _row_height - 4
-            };
-            surface.set_color(bg);
-            surface.fill_rect(type_ahead_rect);
+                core::rect type_ahead_rect{
+                    bounds.left() + footer_string_width + 100,
+                    bounds.bottom() - (_row_height - 2),
+                    bounds.width() - (footer_string_width + 200),
+                    _row_height - 4
+                };
+                surface.set_color(bg);
+                surface.fill_rect(type_ahead_rect);
 
-            _caret.padding().left(type_ahead_rect.left() - 8);
-            _caret.padding().top(bounds.height() - _row_height);
+                _caret.padding().left(type_ahead_rect.left() - 8);
+                _caret.padding().top(bounds.height() - _row_height);
 
-            if (!_found)
-                surface.set_font_color(face, pal[_not_found_color]);
-            else
-                surface.set_font_color(face, header_fg_color);
-            surface.draw_text_aligned(
-                face,
-                _search,
-                type_ahead_rect,
-                alignment::horizontal::left,
-                alignment::vertical::middle);
-            surface.set_font_color(face, fg);
-        } else {
-            _caret.enabled(false);
+                if (!_found)
+                    surface.set_font_color(face, pal[_not_found_color]);
+                else
+                    surface.set_font_color(face, header_fg_color);
+                surface.draw_text_aligned(
+                    face,
+                    _search,
+                    type_ahead_rect,
+                    alignment::horizontal::left,
+                    alignment::vertical::middle);
+                surface.set_font_color(face, fg);
+            } else {
+                _caret.enabled(false);
+            }
         }
 
         surface.pop_clip_rect();
@@ -746,6 +911,13 @@ namespace ryu::core {
         _not_found_color = value;
     }
 
+    palette_entry column_pick_list::adjust_color(palette_entry entry) {
+        if (!enabled() || !focused()) {
+            return entry - 35;
+        }
+        return entry;
+    }
+
     bool column_pick_list::find_matching_text(const std::string& text) {
         move_top();
         auto text_length = text.length();
@@ -760,15 +932,17 @@ namespace ryu::core {
         return false;
     }
 
-    palette_entry column_pick_list::adjust_color(palette_entry entry) {
-        if (!enabled() || !focused()) {
-            return entry - 35;
-        }
-        return entry;
+    void column_pick_list::raise_button_activated(uint32_t row, uint32_t column) {
+        if (_button_activated_callable != nullptr)
+            _button_activated_callable(row, column);
     }
 
     void column_pick_list::on_activated(const column_pick_list::activated_callable& callable) {
         _activated_callable = callable;
+    }
+
+    void column_pick_list::on_button_activated(const column_pick_list::button_activated_callable& callable) {
+        _button_activated_callable = callable;
     }
 
     void column_pick_list::on_selection_changed(const column_pick_list::selection_changed_callable& callable) {

@@ -33,10 +33,10 @@ Large Refactorings
 [feature/tools] IDE UI & related tasks
 --------------------------------------
 
-- NEW: enhance column_pick_list to support sub-views within a row's column
-        --> check_box
-        --> text_box
-        --> button
+- FIX: skip buttons that are "empty" when moving left/right
+- FIX: "activate"/return for text_box, should exit edit_row state -- maybe this applies to all three?
+- FIX: text_box editing for max length + data type conversions
+- FIX: moving up/down or page up/page down should reset search without moving
 
 - NEW: write registry::save and integrated into machine editor
     - REFACTOR: create one YAML file per machine, so create ::load and ::save on hardware::machine
@@ -340,3 +340,4 @@ DONE
 - FIX: the layout engine in core::view is naff; need to rework it
 - FIX: refactor the render list in core::view to be a list of structures with the view* and
         a clipping rect and other state information based on the view's parent should_clip()
+- NEW: enhance column_pick_list to support sub-views within a row's column

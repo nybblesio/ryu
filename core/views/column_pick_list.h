@@ -92,6 +92,8 @@ namespace ryu::core {
     struct pick_list_row_t {
         uint32_t key;
         std::vector<pick_list_column_t> columns {};
+        size_t active_column_index;
+        std::vector<size_t> editable_columns {};
     };
 
     using row_list = std::vector<pick_list_row_t>;
@@ -101,6 +103,7 @@ namespace ryu::core {
     public:
         using activated_callable = std::function<void (uint32_t)>;
         using selection_changed_callable = std::function<void (int32_t)>;
+        using button_activated_callable = std::function<void (uint32_t, uint32_t)>;
 
         using valign_t = core::alignment::vertical::types;
         using halign_t = core::alignment::horizontal::types;
@@ -151,6 +154,8 @@ namespace ryu::core {
 
         void on_activated(const activated_callable& callable);
 
+        void on_button_activated(const button_activated_callable& callable);
+
         void on_selection_changed(const selection_changed_callable& callable);
 
     protected:
@@ -184,6 +189,8 @@ namespace ryu::core {
 
         void on_draw(core::renderer& surface) override;
 
+        void raise_button_activated(uint32_t row, uint32_t column);
+
     private:
         void bind_events();
 
@@ -192,6 +199,8 @@ namespace ryu::core {
         void define_actions();
 
         void enter_edit_mode();
+
+        void enable_caret_for_text_box();
 
         bool has_editable_rows() const;
 
@@ -221,6 +230,7 @@ namespace ryu::core {
         palette_index _selection_color;
         palette_index _not_found_color;
         activated_callable _activated_callable;
+        button_activated_callable _button_activated_callable;
         selection_changed_callable _selection_changed_callable;
     };
 
