@@ -54,7 +54,9 @@ namespace ryu::ide::project_editor {
         if (machine_instance != nullptr)
             _machine_pick_list->selected_key(machine_instance->id());
 
-        for (const auto& file : project->files()) {
+        auto index = 0;
+        auto project_files = project->files();
+        for (const auto& file : project_files) {
             auto type_code = core::project_file_type::type_to_code(file->type());
             to_upper(type_code);
             _file_pick_list->add_row({
@@ -63,9 +65,12 @@ namespace ryu::ide::project_editor {
                         file->id(),
                         file->name(),
                         type_code,
-                        file->should_assemble()
+                        file->should_assemble(),
+                        index > 0 ? "Up" : "",
+                        index < project_files.size() - 1 ? "Down" : ""
                     }
                 });
+            ++index;
         }
     }
 

@@ -169,22 +169,41 @@ views:
         alignment:
           horizontal: view.alignments.horizontal.left
           vertical: view.alignments.vertical.middle
+
       - title: 'Name'
         colors: *COLUMN-COLORS
         width: 450
         alignment:
           horizontal: view.alignments.horizontal.left
           vertical: view.alignments.vertical.middle
+
       - title: 'Type'
         colors: *COLUMN-COLORS
         width: 175
         alignment:
           horizontal: view.alignments.horizontal.left
           vertical: view.alignments.vertical.middle
+
       - title: 'Assemble'
         colors: *COLUMN-COLORS
         width: 150
         type: view.column.types.check-box
+        alignment:
+          horizontal: view.alignments.horizontal.center
+          vertical: view.alignments.vertical.middle
+
+      - title: 'Up'
+        colors: *COLUMN-COLORS
+        width: 150
+        type: view.column.types.button
+        alignment:
+          horizontal: view.alignments.horizontal.center
+          vertical: view.alignments.vertical.middle
+
+      - title: 'Down'
+        colors: *COLUMN-COLORS
+        width: 150
+        type: view.column.types.button
         alignment:
           horizontal: view.alignments.horizontal.center
           vertical: view.alignments.vertical.middle
@@ -240,7 +259,7 @@ views:
         value: 'Delete'
         layout:
           dock: view.layout.dock.left
-        next: 'up-button'
+        next: 'name-text-box'
         prev: 'edit-button'
         margin: *BUTTON-MARGINS
         border: view.border.solid
@@ -250,55 +269,4 @@ views:
         enabled: true
         tab-stop: true
         shortcut: 'DEL'
-        shortcut-color: ide.colors.light-green
-
-      - name: 'up-button'
-        type: view.types.button
-        value: 'Up'
-        layout:
-          dock: view.layout.dock.left
-        next: 'down-button'
-        prev: 'delete-button'
-        border: view.border.solid
-        margin: *BUTTON-MARGINS
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-        enabled: true
-        tab-stop: true
-        shortcut: 'CTRL+UP ARROW'
-        shortcut-color: ide.colors.light-green
-
-      - name: 'down-button'
-        type: view.types.button
-        value: 'Down'
-        layout:
-          dock: view.layout.dock.left
-        next: 'active-button'
-        prev: 'up-button'
-        border: view.border.solid
-        margin: *BUTTON-MARGINS
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-        enabled: true
-        tab-stop: true
-        shortcut: 'CTRL+DOWN ARROW'
-        shortcut-color: ide.colors.light-green
-
-      - name: 'active-button'
-        type: view.types.button
-        value: 'Active'
-        layout:
-          dock: view.layout.dock.left
-        next: 'name-text-box'
-        prev: 'down-button'
-        margin: *BUTTON-MARGINS
-        border: view.border.solid
-        colors:
-          fg: ide.colors.light-grey
-          bg: ide.colors.light-blue
-        tab-stop: true
-        enabled: true
-        shortcut: 'CTRL+RET'
         shortcut-color: ide.colors.light-green

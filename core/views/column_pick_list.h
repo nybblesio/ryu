@@ -69,13 +69,14 @@ namespace ryu::core {
         types type;
     };
 
-    using pick_list_variant = std::variant<std::monostate, uint32_t, std::string, bool>;
+    using pick_list_variant = std::variant<std::monostate, uint32_t, std::string, bool, const char*>;
 
     enum class pick_list_variant_types {
         empty,
         u32,
         string,
-        boolean
+        boolean,
+        char_string
     };
 
     struct pick_list_row_t {

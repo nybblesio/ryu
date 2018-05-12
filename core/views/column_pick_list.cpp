@@ -419,9 +419,14 @@ namespace ryu::core {
                             formatted_value = flag ? "X" : "";
                             break;
                         }
-                        case pick_list_variant_types::string:
+                        case pick_list_variant_types::string: {
                             formatted_value = std::get<std::string>(variant_value);
                             break;
+                        }
+                        case pick_list_variant_types::char_string: {
+                            formatted_value = std::get<const char*>(variant_value);
+                            break;
+                        }
                         case pick_list_variant_types::u32: {
                             uint32_t value = std::get<uint32_t>(variant_value);
                             switch (header.format) {
@@ -517,8 +522,36 @@ namespace ryu::core {
                         }
                         break;
                     }
-                    case pick_list_header_t::types::button:
+                    case pick_list_header_t::types::button: {
+                        auto value = row.formatted_columns[index];
+                        if (!value.empty()) {
+                            core::rect button_rect{
+                                column_rect.left() + 8,
+                                column_rect.top() + 2,
+                                column_rect.width() - 24,
+                                column_rect.height() - 2
+                            };
+                            surface.set_color(adjust_color(pal[header.bg_color]));
+                            surface.fill_rect(button_rect);
+                            surface.set_color(fg);
+                            surface.draw_rect(button_rect);
+
+                            core::rect label_bounds{
+                                button_rect.left(),
+                                button_rect.top() + 2,
+                                button_rect.width(),
+                                button_rect.height() - 2
+                            };
+                            surface.set_font_color(font_face(), fg);
+                            surface.draw_text_aligned(
+                                font_face(),
+                                value,
+                                label_bounds,
+                                halign_t::center,
+                                valign_t::middle);
+                        }
                         break;
+                    }
                 }
 
                 surface.pop_clip_rect();
