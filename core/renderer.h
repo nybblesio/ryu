@@ -88,6 +88,8 @@ namespace ryu::core {
 
         void draw_selection_rect(core::rect& rect, core::palette_entry color);
 
+        void draw_selection_band(core::rect& rect, core::palette_entry color);
+
     private:
         core::rect _bounds;
         SDL_Renderer* _surface = nullptr;

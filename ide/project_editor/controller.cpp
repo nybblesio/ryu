@@ -62,12 +62,12 @@ namespace ryu::ide::project_editor {
             _file_pick_list->add_row({
                     file->id(),
                     {
-                        file->id(),
-                        file->name(),
-                        type_code,
-                        file->should_assemble(),
-                        index > 0 ? "Up" : "",
-                        index < project_files.size() - 1 ? "Down" : ""
+                        ryu::core::pick_list_column_t(file->id()),
+                        ryu::core::pick_list_column_t(file->name()),
+                        ryu::core::pick_list_column_t(type_code),
+                        ryu::core::pick_list_column_t(file->should_assemble()),
+                        ryu::core::pick_list_column_t(index > 0 ? "Up" : ""),
+                        ryu::core::pick_list_column_t(index < project_files.size() - 1 ? "Down" : "")
                     }
                 });
             ++index;

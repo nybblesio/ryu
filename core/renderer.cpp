@@ -262,4 +262,9 @@ namespace ryu::core {
         pop_blend_mode();
     }
 
+    void renderer::draw_selection_band(core::rect& rect, core::palette_entry color) {
+        set_color(color);
+        draw_dashed_rect(rect, 4);
+    }
+
 }

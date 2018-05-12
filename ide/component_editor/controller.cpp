@@ -83,11 +83,11 @@ namespace ryu::ide::component_editor {
             _memory_map_list->add_row({
                 entry.value->offset(),
                 {
-                  entry.value->offset(),
-                  entry.value->size(),
-                  entry.value->name(),
-                  entry.value->description(),
-                  static_cast<uint32_t>(0)
+                    ryu::core::pick_list_column_t(entry.value->offset()),
+                    ryu::core::pick_list_column_t(entry.value->size()),
+                    ryu::core::pick_list_column_t(entry.value->name()),
+                    ryu::core::pick_list_column_t(entry.value->description()),
+                    ryu::core::pick_list_column_t(static_cast<uint32_t>(0))
                 }
             });
         }

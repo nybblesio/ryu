@@ -110,6 +110,7 @@ namespace ryu::core {
 
     void column_pick_list::clear_rows() {
         _rows.clear();
+        update_state();
         raise_selection_changed();
     }
 
@@ -119,13 +120,6 @@ namespace ryu::core {
         }
         _row--;
         return true;
-    }
-
-    void column_pick_list::reset_search() {
-        move_top();
-        _search.clear();
-        _caret.column(0);
-        _found = false;
     }
 
     bool column_pick_list::move_row_down() {
@@ -171,7 +165,7 @@ namespace ryu::core {
         auto select_action = core::input_action::create_no_map(
             "column_pick_list_select_action",
             "Internal",
-            "Make current item the selected value.");
+            "Make current item the selected value and enter edit mode.");
         if (!select_action->has_bindings())
             select_action->bind_keys({core::key_return});
 
@@ -202,6 +196,7 @@ namespace ryu::core {
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_up_action"),
             [this](const event_data_t& data) {
+                leave_edit_mode_if_active();
                 if (move_up())
                     raise_selection_changed();
                 return true;
@@ -209,12 +204,14 @@ namespace ryu::core {
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_page_up_action"),
             [this](const event_data_t& data) {
+                leave_edit_mode_if_active();
                 page_up();
                 return true;
             });
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_down_action"),
             [this](const event_data_t& data) {
+                leave_edit_mode_if_active();
                 if (move_down())
                     raise_selection_changed();
                 return true;
@@ -222,47 +219,96 @@ namespace ryu::core {
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_page_down_action"),
             [this](const event_data_t& data) {
+                leave_edit_mode_if_active();
                 page_down();
                 return true;
             });
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_select_action"),
             [this](const event_data_t& data) {
-                raise_activated();
-                return true;
+                switch (_state) {
+                    case states::none:
+                        return false;
+                    case states::select_row:
+                        raise_activated();
+                        reset_search(false);
+                        if (has_editable_rows())
+                            enter_edit_mode();
+                        return true;
+                    case states::edit_row:
+                        // XXX: if active "control" is button: invoke callback
+                        // XXX: if active "control" is check_box: toggle value
+                        // XXX: if active "control" is text_box: this is a nop?
+                        return false;
+                }
             });
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_backspace_action"),
             [this](const event_data_t& data) {
-                move_top();
-                _search = _search.substr(0, _search.length() - 1);
-                _caret.column(static_cast<uint8_t>(_search.length()));
-                _found = find_matching_text(_search);
-                return true;
+                switch (_state) {
+                    case states::none:
+                        return false;
+                    case states::select_row: {
+                        move_top();
+                        _search = _search.substr(0, _search.length() - 1);
+                        _caret.column(static_cast<uint8_t>(_search.length()));
+                        _found = find_matching_text(_search);
+                        return true;
+                    }
+                    case states::edit_row: {
+                        return false;
+                    }
+                }
             });
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_delete_action"),
             [this](const event_data_t& data) {
-                reset_search();
-                return true;
+                switch (_state) {
+                    case states::none:
+                        return false;
+                    case states::select_row:
+                        reset_search();
+                        return true;
+                    case states::edit_row:
+                        return false;
+                }
             });
         action_provider().register_handler(
             core::input_action::find_by_name("column_pick_list_text_input"),
             [this](const core::event_data_t& data) {
-                if (data.c == core::ascii_tab
-                ||  data.c == core::ascii_return
-                ||  data.c == core::ascii_escape) {
-                    return false;
-                }
+                switch (_state) {
+                    case states::none: {
+                        return false;
+                    }
+                    case states::select_row: {
+                        if (data.c == core::ascii_tab
+                        ||  data.c == core::ascii_return
+                        ||  data.c == core::ascii_escape) {
+                            return false;
+                        }
 
-                if (_search.length() < 32) {
-                    _search += data.c;
-                    _caret.column(static_cast<uint8_t>(_search.length()));
-                    _found = find_matching_text(_search);
+                        if (_search.length() < 32) {
+                            _search += data.c;
+                            _caret.column(static_cast<uint8_t>(_search.length()));
+                            _found = find_matching_text(_search);
+                        }
+                        return true;
+                    }
+                    case states::edit_row: {
+                        return false;
+                    }
                 }
-
-                return true;
             });
+    }
+
+    void column_pick_list::update_state() {
+        if (_rows.empty()) {
+            _state = states::none;
+        }
+        else {
+            if (_state == states::none)
+                _state = states::select_row;
+        }
     }
 
     void column_pick_list::on_initialize() {
@@ -291,6 +337,14 @@ namespace ryu::core {
             _activated_callable(selected());
     }
 
+    void column_pick_list::enter_edit_mode() {
+        if (_state == states::edit_row)
+            return;
+
+        _state = states::edit_row;
+        // XXX: any other transition code
+    }
+
     void column_pick_list::on_focus_changed() {
     }
 
@@ -306,12 +360,27 @@ namespace ryu::core {
         return _row + _selected;
     }
 
+    void column_pick_list::reset_search(bool move) {
+        if (move)
+            move_top();
+        _search.clear();
+        _caret.column(0);
+        _found = false;
+    }
+
     const row_list& column_pick_list::rows() const {
         return _rows;
     }
 
     void column_pick_list::on_font_family_changed() {
         calculate_visible_and_max_rows();
+    }
+
+    bool column_pick_list::has_editable_rows() const {
+        for (const auto& header : _headers)
+            if (header.type != pick_list_header_t::types::value)
+                return true;
+        return false;
     }
 
     void column_pick_list::raise_selection_changed() {
@@ -330,6 +399,15 @@ namespace ryu::core {
             if (move_up())
                 raise_selection_changed();
         }
+        update_state();
+    }
+
+    void column_pick_list::leave_edit_mode_if_active() {
+        if (_state != states::edit_row)
+            return;
+
+        _state = states::select_row;
+        // XXX: any other transition code
     }
 
     void column_pick_list::row_color(palette_index value) {
@@ -386,7 +464,12 @@ namespace ryu::core {
                     column_y,
                     bounds.width(),
                     _row_height};
-                surface.draw_selection_rect(selection_rect, pal[_row_color]);
+
+                if (_state == states::select_row) {
+                    surface.draw_selection_rect(selection_rect, pal[_row_color]);
+                } else if (_state == states::edit_row) {
+                    surface.draw_selection_band(selection_rect, pal[_row_color]);
+                }
             }
 
             auto index = 0;
@@ -399,15 +482,16 @@ namespace ryu::core {
                     column_x,
                     column_y,
                     clamped_width,
-                    _row_height};
+                    _row_height
+                };
                 surface.push_clip_rect(column_rect);
                 surface.set_font_color(
                     face,
                     adjust_color(pal[header.fg_color]));
 
-                if (row.formatted_columns.size() < index + 1) {
+                if (row.columns[index].changed) {
                     std::string formatted_value;
-                    const auto& variant_value = row.columns[index];
+                    const auto& variant_value = row.columns[index].value;
                     auto variant_type = static_cast<pick_list_variant_types>(variant_value.index());
 
                     switch (variant_type) {
@@ -471,14 +555,15 @@ namespace ryu::core {
                         }
                     }
 
-                    row.formatted_columns.push_back(formatted_value);
+                    row.columns[index].formatted_value = formatted_value;
+                    row.columns[index].changed = false;
                 }
 
                 switch (header.type) {
                     case pick_list_header_t::types::value: {
                         surface.draw_text_aligned(
                             face,
-                            row.formatted_columns[index],
+                            row.columns[index].formatted_value,
                             column_rect,
                             header.halign,
                             header.valign);
@@ -495,7 +580,7 @@ namespace ryu::core {
                         box_rect.height(box_rect.height() - 2);
                         surface.draw_text_aligned(
                             face,
-                            row.formatted_columns[index],
+                            row.columns[index].formatted_value,
                             box_rect,
                             header.halign,
                             header.valign);
@@ -512,7 +597,7 @@ namespace ryu::core {
                         };
                         surface.set_color(adjust_color(pal[header.bg_color]));
                         surface.draw_rect(box_rect);
-                        auto flag = std::get<bool>(row.columns[index]);
+                        auto flag = std::get<bool>(row.columns[index].value);
                         if (flag) {
                             box_rect.left(box_rect.left() + 4);
                             box_rect.top(box_rect.top() + 4);
@@ -523,7 +608,7 @@ namespace ryu::core {
                         break;
                     }
                     case pick_list_header_t::types::button: {
-                        auto value = row.formatted_columns[index];
+                        auto value = row.columns[index].formatted_value;
                         if (!value.empty()) {
                             core::rect button_rect{
                                 column_rect.left() + 8,
@@ -643,7 +728,13 @@ namespace ryu::core {
 
     void column_pick_list::add_row(const pick_list_row_t& row) {
         _rows.push_back(row);
+
+        update_state();
+
+        // XXX: consider refactoring to support passing a full list so we only have
+        //      to call this once.
         calculate_visible_and_max_rows();
+
         raise_selection_changed();
     }
 
@@ -659,8 +750,8 @@ namespace ryu::core {
         move_top();
         auto text_length = text.length();
         for (const auto& row : _rows) {
-            for (const auto& column : row.formatted_columns) {
-                if (column.substr(0, text_length) == text) {
+            for (const auto& column : row.columns) {
+                if (column.formatted_value.substr(0, text_length) == text) {
                     return true;
                 }
             }

@@ -166,10 +166,10 @@ namespace ryu::ide::machine_list {
             _pick_list->add_row({
                 machine->id(),
                 {
-                    machine->id(),
-                    machine->name(),
-                    machine->address_space(),
-                    display_name
+                    ryu::core::pick_list_column_t(machine->id()),
+                    ryu::core::pick_list_column_t(machine->name()),
+                    ryu::core::pick_list_column_t(machine->address_space()),
+                    ryu::core::pick_list_column_t(display_name)
                 }
             });
         }

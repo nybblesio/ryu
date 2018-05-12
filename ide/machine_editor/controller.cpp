@@ -132,10 +132,10 @@ namespace ryu::ide::machine_editor {
             _component_pick_list->add_row({
                 component->id(),
                 {
-                    component->id(),
-                    component->name(),
-                    component->address(),
-                    component->ic()->name()
+                    ryu::core::pick_list_column_t(component->id()),
+                    ryu::core::pick_list_column_t(component->name()),
+                    ryu::core::pick_list_column_t(component->address()),
+                    ryu::core::pick_list_column_t(component->ic()->name())
                 }
             });
         }

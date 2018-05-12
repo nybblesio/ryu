@@ -79,10 +79,19 @@ namespace ryu::core {
         char_string
     };
 
+    struct pick_list_column_t {
+        pick_list_column_t(pick_list_variant value) : changed(true),
+                                                      value(value) {
+        }
+
+        bool changed;
+        pick_list_variant value;
+        std::string formatted_value;
+    };
+
     struct pick_list_row_t {
         uint32_t key;
-        std::vector<pick_list_variant> columns {};
-        std::vector<std::string> formatted_columns {};
+        std::vector<pick_list_column_t> columns {};
     };
 
     using row_list = std::vector<pick_list_row_t>;
@@ -97,6 +106,12 @@ namespace ryu::core {
         using halign_t = core::alignment::horizontal::types;
 
         const int32_t row_height_margin = 4;
+
+        enum class states {
+            none,
+            select_row,
+            edit_row
+        };
 
         column_pick_list(
             const std::string& name,
@@ -118,8 +133,6 @@ namespace ryu::core {
 
         void clear_rows();
 
-        void reset_search();
-
         uint32_t selected() const;
 
         const row_list& rows() const;
@@ -127,6 +140,8 @@ namespace ryu::core {
         void remove_row(uint32_t index);
 
         void row_color(palette_index value);
+
+        void reset_search(bool move = true);
 
         void add_row(const pick_list_row_t& row);
 
@@ -172,7 +187,15 @@ namespace ryu::core {
     private:
         void bind_events();
 
+        void update_state();
+
         void define_actions();
+
+        void enter_edit_mode();
+
+        bool has_editable_rows() const;
+
+        void leave_edit_mode_if_active();
 
         void calculate_visible_and_max_rows();
 
@@ -194,6 +217,7 @@ namespace ryu::core {
         header_list _headers {};
         palette_index _row_color;
         uint32_t _visible_rows = 0;
+        states _state = states::none;
         palette_index _selection_color;
         palette_index _not_found_color;
         activated_callable _activated_callable;
