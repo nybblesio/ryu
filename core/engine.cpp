@@ -59,7 +59,6 @@ namespace ryu::core {
         if (_window != nullptr)
             SDL_DestroyWindow(_window);
 
-        IMG_Quit();
         SDL_Quit();
 
         return !result.is_failed();
@@ -114,15 +113,6 @@ namespace ryu::core {
         }
 
         _surface.sdl_renderer(_renderer);
-
-        if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
-            result.add_message(
-                    "R005",
-                    "IMG_Init failed.",
-                    fmt::format("IMG Error: {0}", IMG_GetError()),
-                    true);
-            return false;
-        }
 
         font_book::instance()->renderer(_renderer);
         font_book::instance()->load(result, _prefs->font_book_path());

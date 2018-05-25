@@ -1,0 +1,14 @@
+[build_requires]
+sdl/2.0.8@nybblesio/stable
+fmt/4.1.0@bincrafters/stable
+Catch/1.12.1@bincrafters/stable
+yaml-cpp/0.6.2@nybblesio/stable
+
+[generators]
+cmake
+
+[options]
+sdl:shared=True
+
+[imports]
+lib, libSDL2*.dylib -> build/debug/bin
