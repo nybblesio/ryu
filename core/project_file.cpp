@@ -11,14 +11,15 @@
 #include <algorithm>
 #include <hardware/machine.h>
 #include <common/string_support.h>
-#include <boost/algorithm/string.hpp>
+#include <common/stream_support.h>
 #include "project.h"
 #include "project_file.h"
 
 namespace ryu::core {
 
-    project_file project_file::load(
+    project_file_shared_ptr project_file::load(
             core::result& result,
+            core::project* project,
             YAML::Node& node) {
         auto id = node["id"];
         if (id == nullptr) {
@@ -47,19 +48,20 @@ namespace ryu::core {
             return {};
         }
 
-        project_file file(
-                id.as<uint32_t>(),
-                fs::path(path.as<std::string>()),
-                project_file_type::code_to_type(type.as<std::string>()));
+        auto file = std::make_shared<project_file>(
+            id.as<uint32_t>(),
+            project,
+            fs::path(path.as<std::string>()),
+            project_file_type::code_to_type(type.as<std::string>()));
 
         auto sequence_node = node["sequence"];
         if (sequence_node != nullptr && sequence_node.IsScalar()) {
-            file.sequence(sequence_node.as<uint16_t>());
+            file->sequence(sequence_node.as<uint16_t>());
         }
 
         auto should_assemble_node = node["should_assemble"];
         if (should_assemble_node != nullptr && should_assemble_node.IsScalar()) {
-            file.should_assemble(should_assemble_node.as<bool>());
+            file->should_assemble(should_assemble_node.as<bool>());
         }
 
         return file;
@@ -67,20 +69,28 @@ namespace ryu::core {
 
     project_file::project_file(
             uint32_t id,
+            core::project* project,
             const fs::path& path,
             project_file_type::codes type) : _id(id),
                                              _path(path),
+                                             _project(project),
                                              _type(type) {
         core::id_pool::instance()->mark_used(_id);
         switch (_type) {
             case project_file_type::source:
-                _sequence = 3;
+                _sequence = 4;
+                _should_assemble = false;
                 break;
             case project_file_type::data:
+                _sequence = 3;
+                _should_assemble = false;
+                break;
             case project_file_type::tiles:
-            case project_file_type::sprites:
+            case project_file_type::actor:
             case project_file_type::module:
             case project_file_type::sample:
+            case project_file_type::sprites:
+            case project_file_type::palette:
             case project_file_type::background:
                 _sequence = 2;
                 _should_assemble = true;
@@ -94,40 +104,22 @@ namespace ryu::core {
         }
     }
 
-    bool project_file::read(
+    bool project_file::read_binary(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path(project::find_project_root().append(_path.string()));
-        try {
-            std::ifstream file;
-            file.open(file_path.string());
-            stream << file.rdbuf();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "P001",
-                    fmt::format("unable to read project_file: {}", e.what()),
-                    true);
-        }
-        return true;
+        return ryu::read_binary(result, full_path(), stream);
     }
 
-    bool project_file::write(
+    bool project_file::read_text(
             core::result& result,
             std::iostream& stream) {
-        fs::path file_path(project::find_project_root().append(_path.string()));
-        try {
-            std::ofstream file;
-            file.open(file_path.string());
-            file << stream.rdbuf();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "P001",
-                    fmt::format("unable to write project_file: {}", e.what()),
-                    true);
-        }
-        return true;
+        return ryu::read_text(result, full_path(), stream);
+    }
+
+    bool project_file::write_text(
+            core::result& result,
+            std::iostream& stream) {
+        return ryu::write_text(result, full_path(), stream);
     }
 
     // XXX: consider using ctemplate and assets/templates/*.tmpl
@@ -138,7 +130,13 @@ namespace ryu::core {
         fs::path file_path = path;
 
         if (!file_path.is_absolute()) {
-            file_path = project::find_project_root().append(file_path.string());
+            if (_type == project_file_type::environment) {
+                file_path = _project->path()
+                        .append(".ryu")
+                        .append(file_path.string());
+            } else {
+                file_path = _project->path().append(file_path.string());
+            }
         }
 
         if (fs::exists(file_path)) {
@@ -161,7 +159,7 @@ namespace ryu::core {
         stream << "* " << file_path.filename() << "\n";
         stream << "*\n\n";
 
-        write(result, stream);
+        write_text(result, stream);
 
         return !result.is_failed();
     }
@@ -182,8 +180,23 @@ namespace ryu::core {
         _dirty = value;
     }
 
+    std::string project_file::name() const {
+        return _path.filename().string();
+    }
+
     uint16_t project_file::sequence() const {
         return _sequence;
+    }
+
+    fs::path project_file::full_path() const {
+        if (_type == project_file_type::environment) {
+            return _project->path()
+                .append(".ryu")
+                .append(_path.string())
+                .replace_extension(".env");
+        } else {
+            return _project->path().append(_path.string());
+        }
     }
 
     bool project_file::should_assemble() const {
@@ -197,13 +210,17 @@ namespace ryu::core {
     }
 
     void project_file::should_assemble(bool flag) {
-        _should_assemble = flag;
-        _dirty = true;
+        if (flag != _should_assemble) {
+            _should_assemble = flag;
+            _dirty = true;
+        }
     }
 
     void project_file::path(const fs::path& value) {
-        _path = value;
-        _dirty = true;
+        if (value != _path) {
+            _path = value;
+            _dirty = true;
+        }
     }
 
     project_file_type::codes project_file::type() const {
@@ -211,8 +228,10 @@ namespace ryu::core {
     }
 
     void project_file::type(project_file_type::codes value) {
-        _type = value;
-        _dirty = true;
+        if (value != _type) {
+            _type = value;
+            _dirty = true;
+        }
     }
 
     bool project_file::save(core::result& result, YAML::Emitter& emitter) {

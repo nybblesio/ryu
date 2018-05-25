@@ -49,7 +49,7 @@ namespace ryu::core {
         if (result != 0) {
             auto it = _faces.insert(std::make_pair(
                     style,
-                    font_t{FC_GetWidth(instance, "A"), _size, FC_GetLineHeight(instance), instance}));
+                    font_t{FC_GetWidth(instance, " "), _size, FC_GetLineHeight(instance), instance}));
             return &(*it.first).second;
         }
         return nullptr;

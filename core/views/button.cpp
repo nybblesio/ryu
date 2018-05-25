@@ -8,88 +8,127 @@
 // this source code file.
 //
 
+#include <core/input_action.h>
 #include "button.h"
 
 namespace ryu::core {
 
-    button::button(const std::string& name) : core::view(core::view::types::control, name) {
+    button::button(
+        const std::string& name,
+        core::view_host* host) : core::view(core::view::types::control, name, host) {
     }
 
-    int button::width() const {
-        return _width;
+    button::~button() {
     }
 
-    int button::height() const {
-        return _height;
+    void button::define_actions() {
+        auto activate_action = core::input_action::create_no_map(
+                "button_activate",
+                "Internal",
+                "Activate a button view.");
+        if (!activate_action->has_bindings())
+            activate_action->bind_keys({core::key_space});
     }
 
-    void button::width(int value) {
-        _width = value;
+    void button::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("button_activate"),
+                [this](const event_data_t& data) {
+                    if (_on_clicked) {
+                        _on_clicked();
+                        return true;
+                    }
+                    return false;
+                });
     }
 
-    void button::height(int value) {
-        _height = value;
+    void button::on_initialize() {
+        define_actions();
+        bind_events();
+
+        tab_stop(true);
+        update_minimum_size();
     }
 
-    std::string button::value() const {
-        return _value;
+    void button::update_minimum_size() {
+        auto& minimum_size = min_size();
+        if (minimum_size.empty()) {
+            minimum_size.dimensions(
+                125,
+                static_cast<uint32_t>(std::max(font_face()->line_height + 20, 50)));
+        }
     }
 
-    border::types button::border() const {
-        return _border;
+    std::string button::shortcut() const {
+        return _shortcut;
     }
 
-    void button::border(border::types value) {
-        _border = value;
+    void button::on_font_family_changed() {
+        update_minimum_size();
     }
 
-    void button::value(const std::string& value) {
-        _value = value;
+    palette_index button::shortcut_color() const {
+        return _shortcut_color;
     }
 
     void button::on_draw(core::renderer& surface) {
         surface.push_blend_mode(SDL_BLENDMODE_BLEND);
 
-        auto bounds = client_bounds();
+        auto inner_rect = inner_bounds();
 
         auto pal = *palette();
         auto fg = pal[fg_color()];
         auto bg = pal[bg_color()];
+        auto shortcut_color = pal[_shortcut_color];
 
         if (!enabled()) {
             fg = fg - 45;
             bg = bg - 45;
+            shortcut_color = shortcut_color - 45;
         } else if (!focused()) {
             fg = fg - 35;
             bg = bg - 35;
+            shortcut_color = shortcut_color - 35;
         }
 
         surface.set_color(bg);
-        surface.fill_rect(bounds);
+        surface.fill_rect(inner_rect);
 
         surface.set_font_color(font_face(), fg);
-        surface.draw_text_aligned(font_face(), _value, bounds, _halign, _valign);
+        core::rect label_bounds {
+            inner_rect.left(),
+            inner_rect.top() + 6,
+            inner_rect.width(),
+            inner_rect.height() - 6
+        };
+        surface.draw_text_aligned(
+            font_face(),
+            value(),
+            label_bounds,
+            _halign,
+            _valign);
 
-        if (_border == border::types::solid) {
-            surface.set_color(fg);
-            surface.draw_rect(bounds);
+        if (!_shortcut.empty()) {
+            surface.set_font_color(font_face(), shortcut_color);
+            surface.draw_text_scaled(
+                font_face(),
+                inner_rect.right() - _shortcut_text_width,
+                inner_rect.top() + 2,
+                _shortcut,
+                .5,
+                .5);
         }
 
         surface.pop_blend_mode();
     }
 
-    bool button::on_process_event(const SDL_Event* e) {
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_SPACE: {
-                    if (_on_clicked) {
-                        _on_clicked();
-                    }
-                    return true;
-                }
-            }
-        }
-        return false;
+    void button::shortcut(const std::string& value) {
+        _shortcut = value;
+        _shortcut_text_width = (font_face()->measure_text(_shortcut) / 2) + 2;
+    }
+
+    void button::shortcut_color(palette_index value) {
+        _shortcut_color = value;
     }
 
     alignment::vertical::types button::valign() const {
@@ -106,23 +145,6 @@ namespace ryu::core {
 
     void button::halign(alignment::horizontal::types value) {
         _halign = value;
-    }
-
-    void button::on_resize(const core::rect& context_bounds) {
-        switch (sizing()) {
-            case sizing::content: {
-                bounds().size(_width, _height);
-                break;
-            }
-            case sizing::parent: {
-                auto container = parent();
-                bounds(container != nullptr ? container->bounds() : context_bounds);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
     }
 
     void button::on_clicked(const button::on_clicked_callable& callable) {

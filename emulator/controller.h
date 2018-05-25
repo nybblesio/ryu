@@ -24,13 +24,13 @@ namespace ryu::emulator {
     protected:
         void on_initialize() override;
 
-        void on_update(uint32_t dt) override;
+        bool on_load(core::result& result) override;
 
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
 
-        bool on_process_event(const SDL_Event* e) override;
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
 
     private:
     };

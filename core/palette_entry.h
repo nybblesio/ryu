@@ -11,7 +11,7 @@
 #pragma once
 
 #include <cstdint>
-#include <SDL_pixels.h>
+#include <SDL2/SDL_pixels.h>
 
 namespace ryu::core {
 
@@ -41,8 +41,14 @@ namespace ryu::core {
 
         void alpha(uint8_t value);
 
-        inline SDL_Color to_sdl_color() const {
-            return SDL_Color{_red, _green, _blue, _alpha};
+        uint8_t operator[] (size_t index) {
+            switch (index) {
+                case 0:  return _red;
+                case 1:  return _green;
+                case 2:  return _blue;
+                case 3:  return _alpha;
+                default: return 0;
+            }
         }
 
         palette_entry operator/(int factor) {
@@ -55,6 +61,10 @@ namespace ryu::core {
 
         palette_entry operator-(int subtrand) {
             return {_red -= subtrand, _green -= subtrand, _blue -= subtrand, _alpha};
+        }
+
+        inline SDL_Color to_sdl_color() const {
+            return SDL_Color{_red, _green, _blue, _alpha};
         }
 
     private:

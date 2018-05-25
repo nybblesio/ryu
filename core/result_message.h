@@ -62,6 +62,14 @@ namespace ryu::core {
             return _message;
         }
 
+        template <typename T>
+        T get_parameter(const std::string& name) const {
+            auto it = _params.find(name);
+            if (it == _params.end())
+                return {};
+            return boost::get<T>(it->second);
+        }
+
         inline const core::parameter_dict& params() const {
             return _params;
         }

@@ -18,23 +18,19 @@ namespace ryu::core {
     public:
         using on_clicked_callable = std::function<void ()>;
 
-        explicit button(const std::string& name);
+        button(
+            const std::string& name,
+            core::view_host* host);
 
-        int width() const;
+        ~button() override;
 
-        int height() const;
+        std::string shortcut() const;
 
-        void width(int value);
+        palette_index shortcut_color() const;
 
-        void height(int value);
+        void shortcut(const std::string& value);
 
-        std::string value() const;
-
-        border::types border() const;
-
-        void border(border::types value);
-
-        void value(const std::string& value);
+        void shortcut_color(palette_index value);
 
         alignment::vertical::types valign() const;
 
@@ -47,18 +43,24 @@ namespace ryu::core {
         void on_clicked(const on_clicked_callable& callable);
 
     protected:
+        void bind_events();
+
+        void define_actions();
+
+        void on_initialize() override;
+
+        void on_font_family_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
-        void on_resize(const rect& context_bounds) override;
+    private:
+        void update_minimum_size();
 
     private:
-        int _width = 120;
-        int _height = 50;
-        std::string _value;
+        std::string _shortcut;
+        int _shortcut_text_width = 0;
+        palette_index _shortcut_color;
         on_clicked_callable _on_clicked {};
-        border::types _border = border::types::solid;
         alignment::vertical::types _valign = alignment::vertical::middle;
         alignment::horizontal::types _halign = alignment::horizontal::center;
     };

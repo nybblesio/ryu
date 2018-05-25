@@ -6,16 +6,23 @@
 //
 
 #include <algorithm>
+#include <SDL2/SDL.h>
 #include <fmt/format.h>
+#include <SDL2/SDL_image.h>
+#include <common/SDL_FontCache.h>
 #include <common/string_support.h>
 #include "state.h"
 #include "engine.h"
 #include "context.h"
 #include "font_book.h"
+#include "joysticks.h"
 #include "timer_pool.h"
 #include "preferences.h"
+#include "input_action.h"
 
 namespace ryu::core {
+
+    using event_list = std::vector<SDL_Event>;
 
     std::vector<rect> engine::displays() {
         std::vector<rect> displays;
@@ -44,6 +51,8 @@ namespace ryu::core {
                     _font_family->size()));
         }
 
+        joysticks::instance()->shutdown();
+
         if (_renderer != nullptr)
             SDL_DestroyRenderer(_renderer);
 
@@ -58,7 +67,9 @@ namespace ryu::core {
 
     bool engine::initialize(
             core::result& result,
-            const core::preferences& prefs) {
+            core::preferences* prefs) {
+        _prefs = prefs;
+
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
             result.add_message(
                     "R002",
@@ -68,7 +79,9 @@ namespace ryu::core {
             return false;
         }
 
-        _window_rect = prefs.window_position();
+        _window_rect = _prefs->window_position();
+        _clip_rect = {0, 0, _window_rect.width(), _window_rect.height()};
+
         _window = SDL_CreateWindow(
                 "Ryu: The Arcade Construction Kit",
                 _window_rect.left(),
@@ -85,6 +98,7 @@ namespace ryu::core {
             return false;
         }
 
+        SDL_SetWindowMinimumSize(_window, 1280, 1024);
         SDL_SetWindowOpacity(_window, 1.0f);
         _renderer = SDL_CreateRenderer(
                 _window,
@@ -99,6 +113,8 @@ namespace ryu::core {
             return false;
         }
 
+        _surface.sdl_renderer(_renderer);
+
         if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
             result.add_message(
                     "R005",
@@ -109,9 +125,9 @@ namespace ryu::core {
         }
 
         font_book::instance()->renderer(_renderer);
-        font_book::instance()->load(result, prefs.font_book_path());
+        font_book::instance()->load(result, _prefs->font_book_path());
 
-        const auto& engine_font = prefs.engine_font();
+        const auto& engine_font = _prefs->engine_font();
         auto family = font_book::instance()->find_font_family(
                 engine_font.first,
                 engine_font.second);
@@ -123,13 +139,12 @@ namespace ryu::core {
             }
         }
 
-        return true;
-    }
+        joysticks::instance()->initialize();
 
-    void engine::blackboard(
-            const std::string& name,
-            const std::string& value) {
-        _blackboard[name] = value;
+        define_actions();
+        bind_events();
+
+        return true;
     }
 
     void engine::raise_move() {
@@ -142,28 +157,120 @@ namespace ryu::core {
         _focused_context = id;
     }
 
-    void engine::raise_resize() {
-        if (_resize_callback != nullptr) {
-            _resize_callback(core::rect{
-                    0,
-                    0,
-                    _window_rect.width(),
-                    _window_rect.height()});
-        }
+    void engine::define_actions() {
+        auto quit_action = input_action::create_no_map(
+            "ryu_quit",
+            "Ryu",
+            "Quit the Ryu application.",
+            input_action::type::system);
+        if (!quit_action->has_bindings())
+            quit_action->bind_quit();
+
+        auto minimized_action = input_action::create_no_map(
+            "ryu_minimized",
+            "Ryu",
+            "Minimize the Ryu application window.",
+            input_action::type::window);
+        if (!minimized_action->has_bindings())
+            minimized_action->bind_minimized();
+
+        auto maximized_action = input_action::create_no_map(
+            "ryu_maximized",
+            "Ryu",
+            "Maximize the Ryu application window.",
+            input_action::type::window);
+        if (!maximized_action->has_bindings())
+            maximized_action->bind_maximized();
+
+        auto move_action = input_action::create_no_map(
+            "ryu_moved",
+            "Ryu",
+            "The Ryu application window was moved.",
+            input_action::type::window,
+            input_action::flag::bubble);
+        if (!move_action->has_bindings())
+           move_action->bind_move();
+
+        auto resize_action = input_action::create_no_map(
+            "ryu_resized",
+            "Ryu",
+            "The Ryu application window was resized.",
+            input_action::type::window,
+            input_action::flag::bubble);
+        if (!resize_action->has_bindings())
+           resize_action->bind_resize();
+
+        auto restore_action = input_action::create_no_map(
+            "ryu_restore",
+            "Ryu",
+            "The Ryu application window was restored from minimized or maximized.",
+            input_action::type::window);
+        if (!restore_action->has_bindings())
+            restore_action->bind_restore();
     }
 
-    core::rect engine::bounds() const {
-        return {0, 0, _window_rect.width(), _window_rect.height()};
+    void engine::bind_events() {
+        _action_provider.register_handler(
+                input_action::find_by_name("ryu_quit"),
+                [this](const event_data_t& data) {
+                    quit();
+                    return true;
+                });
+        _action_provider.register_handler(
+                input_action::find_by_name("ryu_minimized"),
+                [](const event_data_t& data) {
+                    return true;
+                });
+        _action_provider.register_handler(
+                input_action::find_by_name("ryu_maximized"),
+                [](const event_data_t& data) {
+                    return true;
+                });
+        _action_provider.register_handler(
+                input_action::find_by_name("ryu_moved"),
+                [this](const event_data_t& data) {
+                    _window_rect.left(data.x);
+                    _window_rect.top(data.y);
+                    raise_move();
+                    return true;
+                });
+        _action_provider.register_handler(
+                input_action::find_by_name("ryu_resized"),
+                [this](const event_data_t& data) {
+                    _window_rect.width(data.width);
+                    _clip_rect.width(data.width);
+                    _window_rect.height(data.height);
+                    _clip_rect.height(data.height);
+                    raise_resize();
+                    return true;
+                });
+        _action_provider.register_handler(
+                input_action::find_by_name("ryu_restore"),
+                [](const event_data_t& data) {
+                    // XXX:
+                    return true;
+                });
+    }
+
+    void engine::raise_resize() {
+        _surface.set_clip_rect(_clip_rect);
+        if (_resize_callback != nullptr)
+            _resize_callback(_clip_rect);
+    }
+
+    core::preferences* engine::prefs() {
+        return _prefs;
     }
 
     bool engine::run(core::result& result) {
-        short average_fps = 0;
-        short frame_count = 0;
+        uint16_t average_fps = 0;
+        uint16_t frame_count = 0;
+
         auto last_time = SDL_GetTicks();
         auto last_fps_time = last_time;
-        SDL_StartTextInput();
 
-        core::renderer surface {_renderer};
+        pending_event_list pending_events {};
+        event_list events {};
 
         while (!_quit) {
             timer_pool::instance()->update();
@@ -178,56 +285,75 @@ namespace ryu::core {
                 last_fps_time = last_time;
             }
 
-            surface.set_color({0x00, 0x00, 0x00, 0xff});
-            surface.clear();
+            _surface.set_color({0x00, 0x00, 0x00, 0xff});
+            _surface.clear();
 
-            event_list events {};
-            SDL_Event e {};
-            while (SDL_PollEvent(&e) != 0) {
-                switch (e.type) {
-                    case SDL_WINDOWEVENT:
-                        switch (e.window.event) {
-                            case SDL_WINDOWEVENT_MINIMIZED:
-                                break;
-                            case SDL_WINDOWEVENT_MAXIMIZED:
-                                break;
-                            case SDL_WINDOWEVENT_MOVED:
-                                _window_rect.left(e.window.data1);
-                                _window_rect.top(e.window.data2);
-                                raise_move();
-                                break;
-                            case SDL_WINDOWEVENT_RESIZED:
-                                _window_rect.width(e.window.data1);
-                                _window_rect.height(e.window.data2);
-                                raise_resize();
-                                break;
-                            default:
-                                break;
+            SDL_Event sdl_event{};
+            while (true) {
+                if (!SDL_PollEvent(&sdl_event))
+                    break;
+                events.push_back(sdl_event);
+            }
+
+            // XXX: need to fix joystick repeat functionality
+            //          right now the binding code has to be called per some unit of
+            //          time to ensure it works properly.
+            if (!events.empty()) {
+                action_type_flags types = input_action::type::none;
+                for (const auto& e : events) {
+                    switch (e.type) {
+                        case SDL_QUIT:
+                            types |= input_action::type::system;
+                            break;
+                        case SDL_WINDOWEVENT:
+                            types |= input_action::type::window;
+                            break;
+                        case SDL_KEYUP:
+                        case SDL_KEYDOWN:
+                            types |= input_action::type::keyboard;
+                            break;
+                        case SDL_JOYBUTTONUP:
+                        case SDL_JOYHATMOTION:
+                        case SDL_JOYBUTTONDOWN:
+                        case SDL_JOYBALLMOTION:
+                            types |= input_action::type::joystick;
+                            break;
+                        case SDL_MOUSEWHEEL:
+                        case SDL_MOUSEMOTION:
+                        case SDL_MOUSEBUTTONUP:
+                        case SDL_MOUSEBUTTONDOWN:
+                            types |= input_action::type::mouse;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                auto filtered_actions = input_action::filtered_catalog(types);
+                for (const auto& e : events) {
+                    for (auto action : filtered_actions) {
+                        event_data_t data{};
+                        if (action->process(&e, data)) {
+                            pending_events.push_back(pending_event_t{action, data});
                         }
-                        break;
-                    case SDL_QUIT:
-                        _quit = true;
-                        continue;
-                    default:
-                        events.push_back(e);
-                        break;
+                    }
                 }
             }
 
             for (auto& it : _contexts)
-                it.second->update(dt, surface, events);
+                it.second->update(dt, pending_events, _surface);
+
+            _action_provider.process(pending_events);
 
             // N.B. this is an override/overlay draw so contexts
             //      can "bleed" into other contexts.
             for (auto& it : _contexts)
-                it.second->draw(surface);
-
-            surface.set_clip_rect(bounds());
+                it.second->draw(_surface);
 
             if (_font != nullptr) {
                 auto fps = fmt::format("FPS: {}", (int) average_fps);
-                auto fps_width = surface.measure_text(_font, fps);
-                surface.draw_text(
+                auto fps_width = _surface.measure_text(_font, fps);
+                _surface.draw_text(
                         _font,
                         _window_rect.width() - (fps_width + 5),
                         _window_rect.height() - (_font->line_height + 4),
@@ -235,7 +361,10 @@ namespace ryu::core {
                         {0xff, 0xff, 0xff, 0xff});
             }
 
-            surface.present();
+            _surface.present();
+
+            pending_events.clear();
+            events.clear();
 
             ++frame_count;
             last_time = current_time;
@@ -254,14 +383,6 @@ namespace ryu::core {
 
     core::rect engine::window_position() const {
         return _window_rect;
-    }
-
-    hardware::machine* engine::machine() const {
-        return _machine;
-    }
-
-    void engine::machine(hardware::machine* machine) {
-        _machine = machine;
     }
 
     void engine::add_context(core::context* context) {
@@ -291,10 +412,6 @@ namespace ryu::core {
         SDL_SetWindowSize(_window, value.width(), value.height());
     }
 
-    void engine::erase_blackboard(const std::string& name) {
-        _blackboard.erase(name);
-    }
-
     void engine::on_move(const engine::move_callable& callback) {
         _move_callback = callback;
     }
@@ -307,14 +424,6 @@ namespace ryu::core {
                 return it->second;
         }
         return nullptr;
-    }
-
-    std::string engine::blackboard(const std::string& name) const {
-        auto it = _blackboard.find(name);
-        if (it != _blackboard.end()) {
-            return it->second;
-        }
-        return "";
     }
 
     void engine::on_resize(const engine::resize_callable& callback) {

@@ -11,10 +11,7 @@
 #pragma once
 
 #include <core/state.h>
-#include <core/views/label.h>
-#include <core/views/textbox.h>
-#include <core/views/memory_editor.h>
-#include <core/views/dock_layout_panel.h>
+#include <core/view_factory.h>
 
 namespace ryu::ide::hex_editor {
 
@@ -23,34 +20,30 @@ namespace ryu::ide::hex_editor {
         explicit controller(const std::string& name);
 
     protected:
-        struct metrics_t {
-            const int left_padding = 10;
-            const int right_padding = 10;
-        };
-
         void on_initialize() override;
 
-        void on_update(uint32_t dt) override;
+        void on_deactivate() override;
+
+        bool on_load(core::result& result) override;
 
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
         void on_activate(const core::parameter_dict& params) override;
 
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
+
     private:
-        metrics_t _metrics;
-        core::label _caret_status;
-        core::label _machine_status;
-        core::label _project_status;
-        core::textbox _command_line;
-        core::memory_editor _editor;
-        core::label _environment_status;
-        core::dock_layout_panel _header;
-        core::dock_layout_panel _footer;
-        core::dock_layout_panel _layout_panel;
+        void bind_events();
+
+        void define_actions();
+
+    private:
+        uint32_t _address = 0;
+        core::text_box* _command_line;
+        core::memory_editor* _memory_editor;
+        core::loadable_view_unique_ptr _layout_panel;
     };
 
 };

@@ -12,6 +12,10 @@
 
 namespace ryu::core {
 
+    void symbol_table::clear() {
+        _symbols.clear();
+    }
+
     void symbol_table::remove(const std::string& name) {
         _symbols.erase(name);
     }

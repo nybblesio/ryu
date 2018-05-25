@@ -108,7 +108,7 @@ namespace ryu::core {
             return {};
 
         switch (node->token) {
-            case ast_node_t::placeholder:
+            case ast_node_t::redirection:
                 break;
             case ast_node_t::comment:
             case ast_node_t::command:
@@ -279,6 +279,8 @@ namespace ryu::core {
                             case operator_t::op::not_equal:             return lhs != rhs;
                             case operator_t::op::greater_than:          return lhs > rhs;
                             case operator_t::op::greater_than_equal:    return lhs >= rhs;
+                            case operator_t::op::shift_left:            return lhs << rhs;
+                            case operator_t::op::shift_right:           return lhs >> rhs;
                             default:
                                 error(result, "E008", fmt::format("operator {} is not supported", op.symbol));
                                 break;
@@ -525,21 +527,31 @@ namespace ryu::core {
                 if (variant.which() != variant::types::string_literal) {
                     listing.annotate_line_error(
                             node->line,
-                            "binary directive requires a string constant for the path");
-                    error(result, "E004", "binary directive requires a string constant for the path");
+                            "include directive requires a string constant for the path");
+                    error(result, "E004", "include directive requires a string constant for the path");
                     break;
                 }
 
                 auto path = boost::get<string_literal_t>(variant).value;
                 auto project = core::project::instance();
                 auto project_file = project->find_file(path);
+                if (project_file == nullptr) {
+                    listing.annotate_line_error(
+                        node->line,
+                        "include directive specifies invalid path");
+                    error(result, "E004", "include directive specifies invalid path");
+                    break;
+                }
 
                 std::stringstream source;
-                if (!project_file->read(result, source)) {
+                if (!project_file->read_text(result, source)) {
                     listing.annotate_line_error(
                             node->line,
-                            fmt::format("include failed for path: {}", path));
-                    error(result, "E004", fmt::format("include failed for path: {}", path));
+                            fmt::format("include failed for path: {}", project_file->full_path()));
+                    error(
+                        result,
+                        "E004",
+                        fmt::format("include failed for path: {}", project_file->full_path()));
                     break;
                 }
 
@@ -550,7 +562,7 @@ namespace ryu::core {
                         assembly_listing::row_flags::none);
 
                 auto source_text = source.str();
-                _assembler->assemble_stream(result, source_text);
+                _assembler->assemble_stream(result, parser_input_t{source_text});
                 break;
             }
             case directive_t::types::binary: {
@@ -566,22 +578,35 @@ namespace ryu::core {
                     break;
                 }
 
-                std::vector<uint8_t> data_bytes {};
                 auto start_location_counter = _assembler->location_counter();
-
-                auto path = boost::get<string_literal_t>(variant).value;
-                std::ifstream file(path, std::ios::in|std::ios::binary);
-                if (file.is_open()) {
-                    char data_byte;
-                    while (!file.eof()) {
-                        file.get(data_byte);
-                        _assembler->write_data(
-                                directive_t::data_sizes::byte,
-                                static_cast<uint32_t>(data_byte));
-                        data_bytes.push_back(static_cast<uint8_t&&>(data_byte));
-                    }
-                    file.close();
+                auto project = core::project::instance();
+                auto project_file = project->find_file(boost::get<string_literal_t>(variant).value);
+                if (project_file == nullptr) {
+                    listing.annotate_line_error(
+                        node->line,
+                        "binary directive specifies invalid path");
+                    error(result, "E004", "binary directive specifies invalid path");
+                    break;
                 }
+
+                byte_list data_bytes {};
+                std::stringstream source;
+                if (!project_file->read_binary(result, source)) {
+                    listing.annotate_line_error(
+                        node->line,
+                        fmt::format("binary include failed for path: {}", project_file->full_path()));
+                    error(
+                        result,
+                        "E004",
+                        fmt::format("binary include failed for path: {}", project_file->full_path()));
+                    break;
+                }
+
+                _assembler->load_binary_to_location_counter(
+                    result,
+                    data_bytes,
+                    source,
+                    0);
 
                 if (!result.is_failed()) {
                     listing.annotate_line(
@@ -595,7 +620,7 @@ namespace ryu::core {
                 break;
             }
             case directive_t::types::data: {
-                std::vector<uint8_t> data {};
+                byte_list data {};
                 auto start_location_counter = _assembler->location_counter();
 
                 if (node->lhs != nullptr) {
@@ -603,7 +628,7 @@ namespace ryu::core {
                 }
 
                 for (const auto& parameter_node : node->rhs->children) {
-                    std::vector<uint8_t> data_bytes {};
+                    byte_list data_bytes {};
                     auto variant = evaluate(result, parameter_node);
                     if (result.is_failed()) {
                         auto messages = result.messages();
@@ -620,7 +645,7 @@ namespace ryu::core {
                                     directive_t::data_sizes::byte,
                                     char_byte);
                         } else if (variant.which() == variant::types::dup_literal) {
-                            auto pattern_index = 0;
+                            size_t pattern_index = 0;
                             auto dup_literal = boost::get<dup_literal_t>(variant);
                             for (size_t i = 0; i < dup_literal.count; i++) {
                                 auto numeric_literal = dup_literal.values[pattern_index++];

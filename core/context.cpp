@@ -8,14 +8,15 @@
 // this source code file.
 //
 
-#include <SDL.h>
 #include <utility>
+#include <SDL2/SDL.h>
 #include "state.h"
 #include "timer.h"
 #include "engine.h"
 #include "context.h"
 #include "id_pool.h"
 #include "environment.h"
+#include "input_action.h"
 
 namespace ryu::core {
 
@@ -30,47 +31,42 @@ namespace ryu::core {
 
     void context::update(
             uint32_t dt,
-            core::renderer& renderer,
-            event_list& events) {
+            pending_event_list& pending_events,
+            core::renderer& renderer) {
         renderer.push_clip_rect(_bounds);
         renderer.push_blend_mode(SDL_BLENDMODE_NONE);
 
-        auto it = events.begin();
-        while (it != events.end()) {
-            bool processed = false;
-
-            if (_engine->focus() == _id && _stack.peek() != -1) {
-                auto active = _stack.active();
-                processed = active->process_event(it.base());
-            }
-
-            if (!processed && on_process_event(it.base())) {
-                it = events.erase(it);
-            } else {
-                ++it;
-            }
-        }
-
-        auto pal = *palette();
-        auto& fill_color = pal[_bg_color];
+        auto& fill_color = _palette[_bg_color];
         renderer.set_color(fill_color);
         renderer.fill_rect(_bounds);
 
-        _stack.draw(dt, renderer);
-        _stack.update();
+        _stack.draw(dt, pending_events, renderer);
+        _stack.apply_pending_transition();
+
+        _action_provider.process(pending_events);
 
         renderer.pop_blend_mode();
         renderer.pop_clip_rect();
     }
 
     void context::add_state(
+            core::result& result,
             core::state* state,
             const state_transition_callable& callback) {
         if (state == nullptr)
             return;
         state->context(this);
-        _stack.add_state(state, callback);
-        state->initialize(bounds());
+        if (callback != nullptr)
+            _stack.add_state(state, callback);
+        else
+            _stack.add_state(state);
+        state->initialize(result, bounds());
+    }
+
+    void context::add_state(
+            core::result& result,
+            core::state* state) {
+        add_state(result, state, nullptr);
     }
 
     void context::push_state(
@@ -86,16 +82,10 @@ namespace ryu::core {
         return on_initialize(result);
     }
 
-    void context::blackboard(
-            const std::string& name,
-            const std::string& value) {
-        _blackboard[name] = value;
-    }
-
     void context::resize() {
         auto active = _stack.find_state(_stack.peek());
         if (active != nullptr)
-            active->resize(bounds());
+            active->resize(_bounds);
     }
 
     uint32_t context::id() const {
@@ -114,20 +104,8 @@ namespace ryu::core {
         return _family;
     }
 
-    void context::add_state(core::state* state) {
-        if (state == nullptr)
-            return;
-        state->context(this);
-        _stack.add_state(state);
-        state->initialize(bounds());
-    }
-
     void context::draw(core::renderer& renderer) {
         on_draw(renderer);
-    }
-
-    void context::palette(core::palette* palette) {
-        _palette = palette;
     }
 
     void context::remove_state(core::state* state) {
@@ -138,10 +116,6 @@ namespace ryu::core {
     }
 
     void context::on_draw(core::renderer& surface) {
-    }
-
-    bool context::on_process_event(const SDL_Event* e) {
-        return false;
     }
 
     bool context::on_initialize(core::result& result) {
@@ -156,16 +130,8 @@ namespace ryu::core {
         _family = value;
     }
 
-    void context::erase_blackboard(const std::string& name) {
-        _blackboard.erase(name);
-    }
-
-    std::string context::blackboard(const std::string& name) const {
-        auto it = _blackboard.find(name);
-        if (it != _blackboard.end()) {
-            return it->second;
-        }
-        return "";
+    core::input_action_provider& context::action_provider() {
+        return _action_provider;
     }
 
 }

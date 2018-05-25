@@ -11,6 +11,7 @@
 #pragma once
 
 #include <string>
+#include "core_types.h"
 
 namespace ryu::core {
 
@@ -26,9 +27,13 @@ namespace ryu::core {
             sample,
             background,
             environment,
+            palette,
+            actor
         };
 
-        static std::string code_to_action(const std::string& code);
+        static core::system_commands::types code_to_action(const std::string& code);
+
+        static bool does_type_require_project(const std::string& code);
 
         static std::string type_to_code(project_file_type::codes code);
 

@@ -61,13 +61,17 @@ namespace ryu {
             size /= 1024;
             i++;
         }
-        return std::make_pair(i > 0 ? fmt::format("{}.{}", i, size) : fmt::format("{}", size), units[i]);
+        return std::make_pair(
+            i > 1 ?
+            fmt::format("{}.{}", i, size) :
+            fmt::format("{}", size),
+            units[i]);
     }
 
     std::string list_to_string(const std::vector<std::string>& list, const char& sep) {
         std::stringstream stream;
 
-        for (auto i = 0; i < list.size(); i++) {
+        for (size_t i = 0; i < list.size(); i++) {
             if (i > 0)
                 stream << sep;
             stream << list[i];

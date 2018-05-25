@@ -10,10 +10,7 @@
 #include <core/state.h>
 #include <core/project.h>
 #include <hardware/machine.h>
-#include <core/views/label.h>
-#include <core/views/textbox.h>
-#include <core/views/text_editor.h>
-#include <core/views/dock_layout_panel.h>
+#include <core/view_factory.h>
 
 namespace ryu::ide::source_editor {
 
@@ -25,36 +22,31 @@ namespace ryu::ide::source_editor {
         explicit controller(const std::string& name);
 
     protected:
-        struct metrics_t {
-            const int left_padding = 10;
-            const int right_padding = 10;
-        };
-
         void on_initialize() override;
 
-        void on_update(uint32_t dt) override;
+        void on_deactivate() override;
+
+        bool on_load(core::result& result) override;
 
         void on_draw(core::renderer& surface) override;
 
         void on_resize(const core::rect& bounds) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
         void on_activate(const core::parameter_dict& params) override;
 
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
+
     private:
-        metrics_t _metrics;
-        core::label _cpu_status;
-        core::label _file_status;
-        core::label _caret_status;
-        core::text_editor _editor;
-        core::label _project_label;
-        core::label _machine_label;
-        core::textbox _command_line;
-        core::label _document_status;
-        core::dock_layout_panel _footer;
-        core::dock_layout_panel _header;
-        core::dock_layout_panel _layout_panel;
+        void bind_events();
+
+        void define_actions();
+
+    private:
+        core::text_editor* _editor;
+        core::state_header* _header;
+        core::text_box* _command_line;
+        core::document_footer* _footer;
+        core::loadable_view_unique_ptr _layout_panel;
     };
 
 };

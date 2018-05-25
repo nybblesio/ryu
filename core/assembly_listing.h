@@ -12,12 +12,13 @@
 
 #include <queue>
 #include "core_types.h"
+#include "parser_types.h"
 
 namespace ryu::core {
 
     struct assembly_listing_scope_t {
         uint32_t line_number = 1;
-        std::vector<std::string> lines {};
+        parser_input_t input;
     };
 
     class assembly_listing {
@@ -41,21 +42,21 @@ namespace ryu::core {
 
         void finalize();
 
-        void end_assembly();
-
         void annotate_line(
                 uint32_t line_number,
                 uint32_t address,
-                const std::vector<uint8_t>& opcodes,
+                const byte_list& opcodes,
                 row_flags_t flags);
 
         void annotate_line_error(
                 uint32_t line_number,
                 const std::string& error);
 
+        void end_assembly_scope();
+
         core::data_table_t& table();
 
-        void begin_assembly(const std::string& source);
+        void begin_assembly_scope(const parser_input_t& source);
 
     private:
         assembly_listing_scope_t* current_scope();
@@ -63,7 +64,7 @@ namespace ryu::core {
         std::vector<data_table_row_t> format_rows(
                 uint32_t line_number,
                 uint32_t address,
-                const std::vector<uint8_t>& opcodes,
+                const byte_list& opcodes,
                 row_flags_t flags);
 
     private:

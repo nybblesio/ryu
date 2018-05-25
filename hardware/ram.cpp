@@ -8,12 +8,14 @@
 // this source code file.
 //
 
+#include <common/bytes.h>
 #include "ram.h"
 
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::ram>("ryu::hardware::ram") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::ram_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "RAM IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "RAM IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_memory)
     )
     .constructor<>(rttr::registration::public_access)  (
             rttr::policy::ctor::as_raw_ptr
@@ -37,11 +39,14 @@ namespace ryu::hardware {
         std::memset(_buffer, 0, address_space());
     }
 
-    std::vector<uint8_t> ram::write_word(
+    void ram::on_initialize() {
+    }
+
+    ryu::core::byte_list ram::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
-        std::vector<uint8_t> data {};
+        ryu::core::byte_list data {};
 
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {
@@ -57,11 +62,11 @@ namespace ryu::hardware {
         return data;
     }
 
-    std::vector<uint8_t> ram::write_dword(
+    ryu::core::byte_list ram::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
-        std::vector<uint8_t> data {};
+        ryu::core::byte_list data {};
 
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {
@@ -108,6 +113,10 @@ namespace ryu::hardware {
     }
 
     void ram::reallocate() {
+        clear_memory_map();
+
+        add_memory_map_entry(0, address_space(), "RAM", "Read/write memory block");
+
         delete _buffer;
         _buffer = new uint8_t[address_space()];
         fill(0xa9);

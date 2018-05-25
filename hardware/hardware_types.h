@@ -16,7 +16,8 @@ namespace ryu::hardware {
 
     enum class meta_data_key {
         type_id,
-        type_name
+        type_name,
+        type_category
     };
 
     struct integrated_circuit_type_t {
@@ -26,6 +27,13 @@ namespace ryu::hardware {
 
     typedef std::vector<integrated_circuit_type_t> ic_type_list;
 
+    static constexpr uint16_t category_circuit = 0;
+    static constexpr uint16_t category_memory = 1;
+    static constexpr uint16_t category_cpu = 2;
+    static constexpr uint16_t category_video = 3;
+    static constexpr uint16_t category_audio = 4;
+    static constexpr uint16_t category_input = 5;
+
     static constexpr uint16_t integrated_circuit_id = 1;
     static constexpr uint16_t memory_mapper_id = 2;
     static constexpr uint16_t ram_id = 3;
@@ -34,6 +42,7 @@ namespace ryu::hardware {
     static constexpr uint16_t fm_synthesizer_id = 6;
     static constexpr uint16_t video_generator_id = 7;
     static constexpr uint16_t cpu_id = 10;
+    static constexpr uint16_t dip_switch_id = 11;
 
     class memory;
 

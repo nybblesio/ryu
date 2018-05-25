@@ -10,35 +10,67 @@
 
 #include <ide/ide_types.h>
 #include <ide/ide_context.h>
+#include <core/input_action.h>
 #include "emulator_context.h"
 
 namespace ryu::emulator {
 
     emulator_context::emulator_context(const std::string& name) : core::context(name),
-                                                                  _palette(),
-                                                                  _emulator_state("execute") {
+                                                                  _emulator_state("machine-emulator") {
+    }
+
+    void emulator_context::define_actions() {
+        auto toggle_context = core::input_action::create(
+                "toggle_emulator_context",
+                "Emulator",
+                "Collapse, expand, and split the Emulator context window.");
+        if (!toggle_context->has_bindings()) {
+            toggle_context->bind_keys({core::mod_alt, core::key_f2});
+        }
+    }
+
+    void emulator_context::bind_events() {
+        action_provider().register_handler(
+            core::input_action::find_by_name("toggle_emulator_context"),
+            [this](const core::event_data_t& data) {
+                auto ide_context = dynamic_cast<ide::ide_context*>(engine()->find_context("ide"));
+                switch (_size) {
+                    case core::context_window::split:
+                        size(core::context_window::expanded);
+                        ide_context->size(core::context_window::collapsed);
+                        break;
+                    case core::context_window::expanded:
+                    case core::context_window::collapsed:
+                        size(core::context_window::split);
+                        ide_context->size(core::context_window::split);
+                        break;
+                    default:
+                        break;
+                }
+                return true;
+            });
     }
 
     void emulator_context::configure_palette() {
-        auto& black = _palette[ide::colors::black];
+        auto& pal = palette();
+
+        auto& black = pal[ide::colors::black];
         black.red(0x00);
         black.green(0x00);
         black.blue(0x00);
         black.alpha(0xff);
 
-        auto& dark_grey = _palette[ide::colors::dark_grey];
+        auto& dark_grey = pal[ide::colors::dark_grey];
         dark_grey.red(0x65);
         dark_grey.green(0x68);
         dark_grey.blue(0x6d);
         dark_grey.alpha(0xff);
 
-        auto& fill_color = _palette[ide::colors::fill_color];
+        auto& fill_color = pal[ide::colors::fill_color];
         fill_color.red(0x65);
         fill_color.green(0x68);
         fill_color.blue(0x6d);
         fill_color.alpha(0xff);
-
-        palette(&_palette);
     }
 
     void emulator_context::on_draw(core::renderer& surface) {
@@ -58,9 +90,12 @@ namespace ryu::emulator {
             {static_cast<int16_t>(rect.left() - tab_width), static_cast<int16_t>(middle + tab_height)},
             {static_cast<int16_t>(rect.left() - tab_width), static_cast<int16_t>(middle)},
         };
-        surface.set_color(_palette[ide::colors::indexes::dark_grey]);
+
+        auto& pal = palette();
+
+        surface.set_color(pal[ide::colors::indexes::dark_grey]);
         surface.fill_polygon(tab_vertices);
-        surface.set_color(_palette[ide::colors::indexes::black]);
+        surface.set_color(pal[ide::colors::indexes::black]);
         surface.draw_line(
                 rect.left() - tab_width,
                 middle,
@@ -79,48 +114,21 @@ namespace ryu::emulator {
     }
 
     bool emulator_context::on_initialize(core::result& result) {
+        define_actions();
+        bind_events();
         configure_palette();
-        add_state(&_emulator_state);
-        push_state(_emulator_state.id(), {});
+        configure_states(result);
         parent_resize(bounds());
         return true;
     }
 
-    bool emulator_context::on_process_event(const SDL_Event* e) {
-        auto alt_pressed = (SDL_GetModState() & KMOD_ALT) != 0;
-
-        if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_F2: {
-                    if (alt_pressed) {
-                        auto ide_context = dynamic_cast<ide::ide_context*>(engine()->find_context("ide"));
-                        switch (_size) {
-                            case core::context_window::split:
-                                size(core::context_window::expanded);
-                                ide_context->size(core::context_window::collapsed);
-                                break;
-                            case core::context_window::expanded:
-                            case core::context_window::collapsed:
-                                size(core::context_window::split);
-                                ide_context->size(core::context_window::split);
-                                break;
-                            default:
-                                break;
-                        }
-                        return true;
-                    }
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-
-        return false;
-    }
-
     core::context_window::sizes emulator_context::size() const {
         return _size;
+    }
+
+    void emulator_context::configure_states(core::result& result) {
+        add_state(result, &_emulator_state);
+        push_state(_emulator_state.id(), {});
     }
 
     void emulator_context::size(core::context_window::sizes value) {
@@ -158,4 +166,5 @@ namespace ryu::emulator {
                 break;
         }
     }
+
 }

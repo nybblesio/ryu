@@ -16,18 +16,16 @@ namespace ryu::core {
 
     class panel : public core::view {
     public:
-        explicit panel(const std::string& name);
+        panel(
+            const std::string& name,
+            core::view_host* host);
 
-        border::types border() const;
-
-        void border(border::types value);
+        ~panel() override;
 
     protected:
-        void on_draw(core::renderer& surface) override;
+        void on_initialize() override;
 
-    private:
-        border::types _border = border::types::none;
+        void on_draw(core::renderer& surface) override;
     };
 
 };
-

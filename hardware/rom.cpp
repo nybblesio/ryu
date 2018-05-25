@@ -8,12 +8,14 @@
 // this source code file.
 //
 
+#include <common/bytes.h>
 #include "rom.h"
 
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::rom>("ryu::hardware::rom") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::rom_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Pseudo EPROM IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Pseudo EPROM IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_memory)
     )
     .constructor<>(rttr::registration::public_access) (
             rttr::policy::ctor::as_raw_ptr
@@ -39,6 +41,10 @@ namespace ryu::hardware {
     }
 
     void rom::reallocate() {
+        clear_memory_map();
+
+        add_memory_map_entry(0, address_space(), "ROM", "Read-only memory block.");
+
         delete _buffer;
         _buffer = new uint8_t[address_space()];
 
@@ -75,11 +81,14 @@ namespace ryu::hardware {
         return value;
     }
 
-    std::vector<uint8_t> rom::write_word(
+    void rom::on_initialize() {
+    }
+
+    ryu::core::byte_list rom::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
-        std::vector<uint8_t> data {};
+        ryu::core::byte_list data {};
 
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {
@@ -95,11 +104,11 @@ namespace ryu::hardware {
         return data;
     }
 
-    std::vector<uint8_t> rom::write_dword(
+    ryu::core::byte_list rom::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
-        std::vector<uint8_t> data {};
+        ryu::core::byte_list data {};
 
         if (is_platform_little_endian()
         &&  endianess == integrated_circuit::endianness::types::big) {

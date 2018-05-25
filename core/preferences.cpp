@@ -8,8 +8,11 @@
 // this source code file.
 //
 
-#include <yaml-cpp/yaml.h>
+#include <core/yaml_support.h>
+#include <core/yaml_converters.h>
+#include <common/stream_support.h>
 #include "preferences.h"
+#include "input_action.h"
 
 namespace ryu::core {
 
@@ -56,30 +59,25 @@ namespace ryu::core {
         emitter << YAML::Key << "default_path" << YAML::Value << _default_path.string();
 
         emitter << YAML::Key << "window" << YAML::BeginMap;
-        emitter << YAML::Key << "left" << YAML::Value << _window_position.left();
-        emitter << YAML::Key << "top" << YAML::Value << _window_position.top();
-        emitter << YAML::Key << "width" << YAML::Value << _window_position.width();
-        emitter << YAML::Key << "height" << YAML::Value << _window_position.height();
+        emitter << YAML::Key << "rect" << YAML::Flow << YAML::BeginSeq
+                << _window_position.left()
+                << _window_position.top()
+                << _window_position.width()
+                << _window_position.height()
+                << YAML::EndSeq;
         emitter << YAML::Key << "full_screen" << YAML::Value << _full_screen;
         emitter << YAML::Key << "ide_window_size" << YAML::Value << _ide_window_size;
         emitter << YAML::Key << "emulator_window_size" << YAML::Value << _emulator_window_size;
         emitter << YAML::EndMap;
 
-        emitter << YAML::EndMap;
+        emitter << YAML::Key << "actions" << YAML::BeginSeq;
 
-        auto file_path = preferences_file_path();
+        if (!core::input_action::save(result, emitter))
+            return !result.is_failed();
 
-        try {
-            std::ofstream file;
-            file.open(file_path.string());
-            file << emitter.c_str();
-            file.close();
-        } catch (std::exception& e) {
-            result.add_message(
-                    "P001",
-                    fmt::format("unable to preferences: {}", e.what()),
-                    true);
-        }
+        emitter << YAML::EndSeq;
+
+        ryu::write_text(result, preferences_file_path(), emitter.c_str());
 
         return !result.is_failed();
     }
@@ -93,100 +91,42 @@ namespace ryu::core {
 
         auto root = YAML::LoadFile(file_path.string());
 
-        auto default_path_node = root["default_path"];
-        if (default_path_node != nullptr) {
-            default_path(default_path_node.as<std::string>());
-        }
+        std::string default_path_value;
+
+        if (get_optional(root["default_path"], default_path_value))
+            default_path(default_path_value);
 
         auto fonts_node = root["fonts"];
         if (fonts_node != nullptr) {
-            auto font_book_path_node = fonts_node["book_path"];
-            if (font_book_path_node != nullptr) {
-                _font_book_path = font_book_path_node.as<std::string>();
-            }
+            std::string font_book_path;
+            if (get_optional(fonts_node["book_path"], font_book_path))
+                _font_book_path = font_book_path;
 
             auto ide_node = fonts_node["ide"];
-            if (ide_node != nullptr) {
-                auto family_name_node = ide_node["family_name"];
-                if (family_name_node != nullptr) {
-                    auto size_node = ide_node["size"];
-                    if (size_node != nullptr) {
-                        _ide_font = std::make_pair(
-                                family_name_node.as<std::string>(),
-                                size_node.as<uint32_t>());
-                    }
-                }
-            }
+            if (ide_node != nullptr)
+                get_font_family_and_size(ide_node, _ide_font);
 
             auto emulator_node = fonts_node["emulator"];
-            if (emulator_node != nullptr) {
-                auto family_name_node = emulator_node["family_name"];
-                if (family_name_node != nullptr) {
-                    auto size_node = emulator_node["size"];
-                    if (size_node != nullptr) {
-                        _emulator_font = std::make_pair(
-                                family_name_node.as<std::string>(),
-                                size_node.as<uint32_t>());
-                    }
-                }
-            }
+            if (emulator_node != nullptr)
+                get_font_family_and_size(emulator_node, _emulator_font);
 
             auto engine_node = fonts_node["engine"];
-            if (engine_node != nullptr) {
-                auto family_name_node = engine_node["family_name"];
-                if (family_name_node != nullptr) {
-                    auto size_node = engine_node["size"];
-                    if (size_node != nullptr) {
-                        _engine_font = std::make_pair(
-                                family_name_node.as<std::string>(),
-                                size_node.as<uint32_t>());
-                    }
-                }
-            }
+            if (engine_node != nullptr)
+                get_font_family_and_size(engine_node, _engine_font);
         }
 
         auto window_node = root["window"];
         if (window_node != nullptr) {
-            int32_t left = 0, top = 0, width = 0, height = 0;
+            _window_position = window_node["rect"].as<core::rect>();
 
-            auto left_node = window_node["left"];
-            if (left_node != nullptr) {
-                left = left_node.as<int32_t>();
-            }
+            get_optional(window_node["full_screen"], _full_screen);
+            get_optional(window_node["ide_window_size"], _ide_window_size);
+            get_optional(window_node["emulator_window_size"], _emulator_window_size);
+        }
 
-            auto top_node = window_node["top"];
-            if (top_node != nullptr) {
-                top = top_node.as<int32_t>();
-            }
-
-            auto width_node = window_node["width"];
-            if (width_node != nullptr) {
-                width = width_node.as<int32_t>();
-            }
-
-            auto height_node = window_node["height"];
-            if (height_node != nullptr) {
-                height = height_node.as<int32_t>();
-            }
-
-            _window_position = {left, top, width, height};
-
-            auto full_screen_node = window_node["full_screen"];
-            if (full_screen_node != nullptr) {
-                _full_screen = full_screen_node.as<bool>();
-            }
-
-            auto ide_window_size = window_node["ide_window_size"];
-            if (ide_window_size != nullptr
-            &&  ide_window_size.IsScalar()) {
-                _ide_window_size = (core::context_window::sizes)ide_window_size.as<int>();
-            }
-
-            auto emulator_window_size = window_node["emulator_window_size"];
-            if (emulator_window_size != nullptr
-            && emulator_window_size.IsScalar()) {
-                _emulator_window_size = (core::context_window::sizes)emulator_window_size.as<int>();
-            }
+        auto actions = root["actions"];
+        if (actions != nullptr && actions.IsSequence()) {
+            core::input_action::load(result, actions);
         }
 
         return !result.is_failed();
@@ -270,16 +210,31 @@ namespace ryu::core {
         return _ide_window_size;
     }
 
-    core::context_window::sizes preferences::emulator_window_size() const {
-        return _emulator_window_size;
-    }
-
     void preferences::ide_window_size(core::context_window::sizes size) {
         _ide_window_size = size;
     }
 
+    core::context_window::sizes preferences::emulator_window_size() const {
+        return _emulator_window_size;
+    }
+
     void preferences::emulator_window_size(core::context_window::sizes size) {
         _emulator_window_size = size;
+    }
+
+    bool preferences::get_font_family_and_size(YAML::Node& node, font_value_t& value) {
+        std::string family_name;
+        uint32_t font_size;
+
+        if (get_optional(node["family_name"], family_name)) {
+            if (get_optional(node["size"], font_size)) {
+                value.first = family_name;
+                value.second = font_size;
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

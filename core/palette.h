@@ -8,28 +8,34 @@
 // this source code file.
 //
 
-
 #pragma once
 
+#include <vector>
 #include "palette_entry.h"
 
 namespace ryu::core {
 
     class palette {
     public:
-        const static int max_entries = 256;
+        palette();
 
-        palette() = default;
+        explicit palette(size_t size);
 
-        palette_entry& operator[] (size_t index) {
-            if (index > max_entries)
-                return _entries[max_entries - 1];
-            return _entries[index];
+        virtual ~palette();
+
+        inline size_t size() const {
+            return _entries.size();
         }
 
+        palette_entry& get(size_t index);
+
+        palette_entry& operator[] (size_t index);
+
     private:
-        palette_entry _entries[max_entries] {};
+        void add_missing_entries(size_t size);
+
+    private:
+        std::vector<palette_entry> _entries {};
     };
 
 };
-

@@ -1,0 +1,343 @@
+THINGS TO DO
+------------
+
+Thoughts & Questions
+----------------------
+
+=================================
+
+Project & Admin tasks
+---------------------
+- Create website for Ryu project
+
+=================================
+
+Art Asset Requirements
+----------------------
+- Context tab/button bitmaps
+
+=================================
+
+Large Refactorings
+----------------------
+- NEW: implement conan for dependency management
+
+- REFACTOR: remove boost and replace with C++17 alternatives
+    NOTE: 5/4/2018 - I attempted to refactor out boost but ran into issues with std::filesystem
+                not yet being fully supported in clang.
+
+- REFACTOR: replace log4cpp with the SDL logging infrastructure
+
+- REFACTOR: use rttr's plug-in functionality and make libhardware a shared library
+
+[feature/tools] IDE UI & related tasks
+--------------------------------------
+
+- FIX: skip buttons that are "empty" when moving left/right
+- FIX: "activate"/return for text_box, should exit edit_row state -- maybe this applies to all three?
+- FIX: text_box editing for max length + data type conversions
+- FIX: moving up/down or page up/page down should reset search without moving
+
+- NEW: write registry::save and integrated into machine editor
+    - REFACTOR: create one YAML file per machine, so create ::load and ::save on hardware::machine
+    - REFACTOR: hardware::registry::load & hardware::registry::save now read/write YAML file that is a manifest pointing
+                the other machine YAML files
+- FINISH: machine_editor::controller:  - callbacks
+- FINISH: component_editor::controller - callbacks
+
+- BUG: need a way to mark the next view that should be focused but update it after all of the
+        input_action_provider processing is complete for the entire tree.  this will fix at least one part
+        of switching between different views with common key bindings.
+- THOUGHT: should the order be inverted for input_action_provider calls?
+            e.g. engine, context, state, then views?
+- BUG: CTRL+SPACE is valid for both the text_editor_input event (and this is higher specificity) and
+        the source_editor::controller.  not sure how to best fix this.
+- BUG: related to above; need a better way to filter the possible set of actions down to reduce the amount of
+        work happening in the engine main loop
+
+====
+
+- FINISH: ide::palette_editor::controller
+
+- FIX: audit each view and ensure that it's rendering only within client_bounds()
+
+- REFACTOR: use pratt parser model to completely replace shunting-yard implementation
+- REFACTOR: rework pipe syntax after pratt parser is in place
+- REFACTOR: rework dup operator once pratt parser is in place
+- NEW: implement ability to redirect to new or appended text file in core::console
+
+- FINISH: create new ide::project_editor::controller  - callbacks
+    - REFACTOR: add new values to project: author, copyright, license, version (major, minor, revision)
+    - REFACTOR: dependency list (shared libraries, etc.)
+    - REFACTOR: add ctemplate dependency and update project_file::create_stub_file to use
+                templates from the assets folder for different types.
+
+- NEW: create new view called tile_grid
+    --> tile_attribute_t, width, and height...it will render a scrollable selection grid
+
+- NEW: create fatbit_editor view
+
+- NEW: mouse event bindings ----
+    which button?
+    bounding rectangle --or-- the filter callback could check this given mouse x/y position in event_data_t
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+- FIX: CAPS LOCK key fucks up input system
+
+- NEW: create either a state for a common dialog or a special kind of thing the engine knows as a "dialog"
+        that sits atop other states, draws a frame; header; buttons; etc.  and content can be any
+        dock_layout_panel.
+- NEW: using new dialog system, create ide::project_jump::controller
+    - create project_jump.yaml view file
+    - new data structure needed here, MRU for files on project
+    - might be new views required here, not sure
+- NEW: raise error dialog where applicable
+
+- FINISH: ide::memory_editor::controller
+    - custom footer
+    - background color/label by component
+        memory_editor view should support rendering different background colors per component with
+        component name/id on the right-hand side of the display.  plus, the footer should show which
+        component you're currently accessing and maybe show the description for the memory map entry
+        that matches?
+
+- NEW: ide::tile_editor::controller (does both sprites and tiles)
+    1. need new tile_editor view:  width, height, position, fat pixel size
+    2. need tile_selector view: width, height, position
+    3. need to render samples of the tile
+    4. need palette_selector/entry_selector views
+
+- NEW: ide::actor_editor::controller
+    1. need tile_layout_editor view
+    2. need a time line/frames view: add, edit, remove frames
+    3. need a play/stop/restart button for animations
+    4. generates assembly include, manually specify memory map location for .org
+
+- NEW: ide::background_editor::controller
+    1. need tile_selector view: how do we choose which tile banks to use?
+    2. need scrolling layout view
+
+- NEW: ide::preferences::controller
+    1. create preferences.yaml view file
+        - maybe use core::note_book to break up sections
+        - reuse palette editor views to allow customization of IDE and emu palettes
+    2. input bindings
+
+- UPDATE: README.md
+
+[feature/tools] Emulator IDE
+----------------------------
+- NEW: emulator::service::controller
+    1. create service.yaml view file
+    2. dip switches
+    3. high scores
+    4. other persistent data?
+    5. sound testing
+
+- NEW: integrated_circuit subclass for midway_mcr_video_generator
+    1. implements the core::video_generator interface
+    2. OpenGL based implementation for backgrounds, tiles, sprites
+    3. shader for palettes
+
+- NEW: integrated_circuit subclass for joystick
+
+[feature/piece-table] Document Data Structure
+----------------------------------------------
+- source_editor/document/text_editor: re-implement selection as a line-based concept
+    * cut, copy, paste, delete selection
+
+- source_editor/document/text_editor: review other action bindings and bug fix/revise
+
+- source_editor/document/text_editor: rework how loading/saving work in document and the editors
+
+- BUG: redo is broken
+
+- BUG: console::on_draw needs to handle non-adjacent spans properly
+
+- BUG: delete "empty" space between non-adjacent piece nodes
+
+- MISSING: piece_table::overwrite_at
+
+- FINISH: document/piece_table checkpoint implementation
+
+- implement a proper piece_table::load a/k/a document_formatter?
+
+- implement columnar mode on document
+
+- implement console::cut
+
+- implement console::copy
+
+- implement console::paste
+
+- implement console::select
+
+- implement text_editor::cut
+
+- implement text_editor::copy
+
+- implement text_editor::paste
+
+- implement text_editor::select
+
+- rework text_editor::on_draw to use new document
+
+- rework text_box::on_draw to use new document
+
+DONE
+----
+- create new struct that packages up source text/stream to parse, chunked lines, and formatted lines
+- core::environment now has fields for core::command_parser and core::evaluator and optimized assignment of
+  symbol table and assembler pointers to these instances.
+- OFFSTREAM: categorize help and ordering so they're consistent
+- OFFSTREAM: added @[.b|.w|.dw] for peek
+- OFFSTREAM: added ^[.b|.w|.dw] for poke
+- OFFSTREAM: implemented core::environment::fill_memory
+- implement a target command so that assembly isn't necessarily required
+- implement help [cmd] detail variant
+- implement core::environment::on_read_binary_to_memory
+- OFF STREAM|FIXED: fmt::format should recognize our custom types because we have a std::ostream operator<< override.
+                    however, it isn't working the way I'd expect, so need to research.
+                    SOLUTION: was missing #include <fmt/ostream.h>
+- OFF STREAM|FIXED: core::console now formats styled text correctly!
+- OFF STREAM      : more behavior in console is now optional and activated by using the @| operator
+- OFF STREAM      : added @> and @>> redirection operators to console commands
+- OFF STREAM|FIXED: font_family::add_style now uses space to get a proper width measurement
+- OFF STREAM|FIXED: core::console and core::text_editor now measure the chunks to get the most accurate width
+- OFF STREAM      : updated to latest Hack font TTF files
+- OFF STREAM|FIXED: parser wasn't setting _token to nullptr in reset.
+- OFF STREAM      : implement dip_switch subclass for integrated_circuit
+- implement core::environment::on_write_memory_to_binary
+- implement core::environment::on_copy_memory
+- implement core::environment::on_search_memory
+- implement core::environment::on_memory_map to dump
+  out the memory map of the active machine
+- OFF STREAM|FIXED: BUG: parser is skipping first character of identifier
+                           EXAMPLE: set debug true
+                           NOTE: looks to be related to the text "debug"; not sure why
+                           RESULT: parser is seeing "ebug"
+- OFF STREAM      : when switching env, actually assemble file
+- OFF STREAM      : implement edenv command
+- OFF STREAM|FIXED: % command working again for source editor and environments
+- implement remaining memory commands in core::environment
+- add . a/k/a "source" command that calls apply_environment again on the currently active environment
+- Add Ryu & other project information to Twitch profile & banner bitmap
+- configure weechat to limit width of handles to prevent column scrunching
+- unit tests!?  whaaaaaa you SAY?  OMG!  NOOOOOO!
+- OFF STREAM      : cleaned up piece_table_t and related interfaces
+- OFF STREAM      : implement most of delete_at.  one case remaining where delete crosses pieces.
+- core::piece_table_t: undo/redo
+    * rename insert to insert_at for consistency
+    * reworking insert_at & delete_at to make copies and swap chains
+    * remove std::list<> and use std::shared_ptr<core::piece_node_t> instead for doubly-linked list
+- core::piece_table_t: undo/redo
+- core::piece_table_t: selection (includes marks)/cut/copy/paste
+- turn off irc events in weechat
+- finish delete_at span multiple pieces scenario
+- piece_table_t::copy requires custom version of sequence/copy_elements
+- move attr_t and related structs to core_types.h
+- OFF STREAM      : add unit tests for cut
+- OFF STREAM      : add unit tests for paste selection
+- OFF STREAM      : add unit tests for delete selection
+- core::formatted_text_t vs core::attr_span_t
+- refactor console's write_message to remove "code" lookup
+- BUG: how to handle gap piece between end of piece table and far new offset
+- OFF STREAM      : MISSING: swap_deleted_node needs to fix-up line head/tail pair
+- BUG: document rendering doesn't work with horizontal scrolling
+- BUG: inserting at the head of a line appears to be broken
+- BUG: inserting into the middle of a line is broken
+- BUG: table formatting for header appears to be one character off
+- BUG: vertical scrolling in console broken
+- BUG: sub_sequence isn't handling multiple pieces correctly with different start column
+- BUG: delete_at where deleting at the end of a piece isn't working
+- BUG: need a way to align pieces to a start column.
+- OFF STREAM | BUG: parsing for a plausible command string doesn't work at bottom edge
+- BUG: console table formatting isn't quite right
+- BUG: how to handle cursor movements related to inserted elements
+- BUG: document should clamp inserts so they're within the specified width
+- BUG: sub_sequence not padding first non-adjacent piece
+- BUG: find_for_insert isn't handling first non-adjacent piece correctly
+- BUG: undo of "nullptr" sentinel works but we don't have any information
+       to pass back to the UI so we can adjust the caret
+- MISSING: undo/redo need to return # of lines/columns affected & is_delete?
+- encapsulate current SDL_Event data into our own data structure and update interface
+- filter out non-ASCII characters during input
+- joystick events
+- joystick hat motion is a bitmask: 0 for centered
+    * need to track continuous state for each direction bit, toggling the bits for events that come in
+    * return true/false based on the continuous state per joystick
+- preferences: key binding data structure and implementation
+    - add serialization/deserialization code to input_action & input_binding so we can write to preferences.yaml
+- consolidate each state's header view into one new state_header view
+- refactor console and source editor's footer into one document_footer view
+- implement a column-based pick list where each row is a panel that can have column labels & column buttons
+- implement machine pick list state + UI
+    - list out table of machines, e.g. ID, name
+    - edit & delete buttons on each line
+    - scrollable
+    - add new machine button at bottom
+-  BUG: dock_layout_panel isn't handling the machine_editor::controller layout properly, need to revisit this
+    * bug: console header, project and machine fields not properly resizing
+- bug: environment::on_evaluate isn't handling negative number properly
+- REFACTOR: once_value_t struct to live with his table buddies and make more generic
+- CHERRY PICK: from feature/piece-table core_types.cpp
+- NEW: SHIFT-TAB to reverse direction through fields
+    - see notes in view.h
+- FIX: see notes in input_action.h to fix
+- NEW: clproj should clear symbol table
+- NEW: add "clear symbols" command
+- NEW: pick_list --- add field and get/set for height of drop down portion
+        make the field an actual textbox and search list when user types
+        page up and page down key bindings
+- NEW: change engine::initialize to accept core::preferences* instead of const& and store in field
+        add core::preferences* preferences() accessor to context.h
+- fix text_box event handling
+- FIX: nasty, nasty, nasty string-based command interfaces between console, context, etc.
+- FIX: project should store project_file as collection of heap objects
+- FIX: hardware::integrated_circuit's type metadata needs to match up (somehow) with the instance id data
+        e.g. the instance name() isn't the same as the metadata
+- NEW: create new core::notification_center that encapsulates observers and the observed
+        - refactor core::project into this model
+        - helpers to send notifications
+        NOTE: inspiration here was from NSNotificationCenter in Cocoa
+- FIX: project find_project_root needs to be properly implemented.
+- FIX: project_file::read -> project_file::read_text and add project_file::read_binary
+- FIX: pick_list drop down needs to paint opaque
+    - after testing this, the issue is that the drop down portion if draw earlier than
+      other views and they're overlapping this region.
+    - possibly make the drop down part another view that's always sorted last?
+- NEW: add page up/page down support to pick_list
+- NEW: use an interface?  core::video_generator, IC implements this interface
+- NEW: column_pick_list enhancements ---
+    1. fix whitespace/padding issues
+    2. render footer with size indicators, e.g. page x of y, row z, etc.
+    3. add support for type-ahead search
+    4. page up/page down input_actions
+    1. need new palette_entry_view:
+- NEW: palette_entry_editor:
+         +---------------+
+         | color swatch  | R: ___  G: ___ B: ___ A: ____
+         +---------------+
+- FIX: need a mechanism to "configure" an integrated_circuit attached to a component
+        add flags to memory_map_entry, e.g. requires_static_config
+- FIX: update ryu::hardware::registry to load/save statically configured memory_map_entries per IC
+- FIX: add "clipped" flag to view and set clipping rect during child rendering if bit is set
+- NEW: add ryu::hardware::integrated_circuit::initialize and on_initialize
+    - move add_memory_map calls to on_initialize methods
+    - call initialize during machine load
+- FIX: integrated_circuit has a type_id (this is also on rttr metadata), but....
+        the idea was more of a category, e.g. cpu, memory, etc.
+        how will we uniquely identify different "makes/models" of circuits?
+        --> make type_id the unique ID for that circuit
+        --> add category_id for the "group" that it belongs to
+- FIX: Additionally, compiling Ryu using GCC 8.1.0 yielded a number of conformance errors
+       related to naming.  Need to research and fix.
+- REFACTOR: YAML helper code for constants, includes, optionals into common
+- REFACTOR: project, preferences, font_book, registry YAML code to use helper functions
+- NEW: add back pointers to component & integrated_circuit
+- NEW: add decode_palettes/encode_palettes on video_generator
+- FIX: the layout engine in core::view is naff; need to rework it
+- FIX: refactor the render list in core::view to be a list of structures with the view* and
+        a clipping rect and other state information based on the view's parent should_clip()
+- NEW: enhance column_pick_list to support sub-views within a row's column

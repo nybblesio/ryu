@@ -8,7 +8,6 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <core/view.h>
@@ -30,13 +29,19 @@ namespace ryu::core {
             };
         };
 
-        explicit caret(const std::string& name);
+        caret(
+            const std::string& name,
+            core::view_host* host);
+
+        ~caret() override;
 
         void select();
 
         void insert();
 
         void overwrite();
+
+        void last_column();
 
         uint8_t row() const;
 
@@ -58,7 +63,7 @@ namespace ryu::core {
 
         bool column(uint8_t column);
 
-        void initialize(uint8_t row, uint8_t column);
+        void position(uint8_t row, uint8_t column);
 
         void page_size(uint8_t page_height, uint8_t page_width);
 
@@ -66,6 +71,10 @@ namespace ryu::core {
 
     protected:
         void raise_caret_changed();
+
+        void on_initialize() override;
+
+        void on_font_family_changed() override;
 
         void on_draw(core::renderer& surface) override;
 
@@ -75,10 +84,11 @@ namespace ryu::core {
         bool clamp_column();
 
     private:
+        inline static bool _show = true;
+        inline static core::timer _timer {500};
+
         int16_t _row = 0;
-        bool _show = true;
         int16_t _column = 0;
-        core::timer _timer;
         uint8_t _page_width = 0;
         uint8_t _page_height = 0;
         mode::types _mode = mode::types::insert;

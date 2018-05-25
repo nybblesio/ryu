@@ -8,9 +8,10 @@
 // this source code file.
 //
 
+#include <fmt/format.h>
 #include <core/id_pool.h>
 #include <yaml-cpp/yaml.h>
-#include <fmt/format.h>
+#include <core/yaml_support.h>
 #include "machine.h"
 #include "registry.h"
 
@@ -50,16 +51,6 @@ namespace ryu::hardware {
         return list;
     }
 
-    display* registry::find_display(uint32_t id) {
-        auto& displays = display::catalog();
-        for (size_t i = 0; i < displays.size(); i++) {
-            if (displays[i].id() == id) {
-                return &displays[i];
-            }
-        }
-        return nullptr;
-    }
-
     display_list& registry::displays() const {
         return display::catalog();
     }
@@ -73,11 +64,39 @@ namespace ryu::hardware {
         return instance;
     }
 
+    display* registry::find_display(uint32_t id) {
+        auto& displays = display::catalog();
+        for (size_t i = 0; i < displays.size(); i++) {
+            if (displays[i].id() == id) {
+                return &displays[i];
+            }
+        }
+        return nullptr;
+    }
+
     hardware::machine* registry::find_machine(uint32_t id) {
         auto it = _machines.find(id);
         if (it == _machines.end())
             return nullptr;
         return &it->second;
+    }
+
+    ic_type_list registry::integrated_circuit_types() const {
+        ic_type_list types;
+
+        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
+        auto component_types = base.get_derived_classes();
+        for(const auto& type : component_types) {
+            auto ic_type_id = type
+                .get_metadata(ryu::hardware::meta_data_key::type_id)
+                .convert<uint16_t>();
+            auto ic_type_name = type
+                .get_metadata(ryu::hardware::meta_data_key::type_name)
+                .convert<std::string>();
+            types.push_back(integrated_circuit_type_t {ic_type_id, ic_type_name});
+        }
+
+        return types;
     }
 
     bool registry::load(core::result& result, const fs::path& path) {
@@ -95,43 +114,39 @@ namespace ryu::hardware {
                 if (!node.IsMap())
                     continue;
 
-                if (node["id"] == nullptr) {
+                uint32_t machine_id;
+                if (!ryu::core::get_optional(node["id"], machine_id)) {
                     result.add_message(
-                            "R004",
-                            "Machine node requires id.",
-                            true);
-                    result.fail();
+                        "R004",
+                        "Machine node requires id.",
+                        true);
                     break;
                 }
 
-                if (node["name"] == nullptr) {
+                std::string machine_name;
+                if (!ryu::core::get_optional(node["name"], machine_name)) {
                     result.add_message(
                             "R004",
                             "Machine node requires name.",
                             true);
-                    result.fail();
                     break;
                 }
 
-                auto id = node["id"].as<uint32_t>();
-                auto name = node["name"].as<std::string>();
-                auto machine = hardware::machine(id);
-                machine.name(name);
+                auto machine = hardware::machine(machine_id);
+                machine.name(machine_name);
 
-                if (node["address_space"] != nullptr) {
-                    auto address_space = node["address_space"].as<uint32_t>();
-                    machine.address_space(address_space);
-                }
+                uint32_t machine_address_space;
+                uint32_t machine_display_id;
+                std::string machine_description;
 
-                if (node["display_id"] != nullptr) {
-                    auto display_id = node["display_id"].as<uint32_t>();
-                    machine.display(find_display(display_id));
-                }
+                if (ryu::core::get_optional(node["address_space"], machine_address_space))
+                    machine.address_space(machine_address_space);
 
-                if (node["description"] != nullptr) {
-                    auto description = node["description"].as<std::string>();
-                    machine.description(description);
-                }
+                if (ryu::core::get_optional(node["display_id"], machine_display_id))
+                    machine.display(find_display(machine_display_id));
+
+                if (ryu::core::get_optional(node["description"], machine_description))
+                    machine.description(machine_description);
 
                 auto components = node["components"];
                 if (components != nullptr && components.IsSequence()) {
@@ -140,41 +155,42 @@ namespace ryu::hardware {
                         if (!component_node.IsMap())
                             continue;
 
-                        if (component_node["id"] == nullptr) {
+                        uint32_t component_id;
+                        uint32_t component_address;
+                        std::string component_name;
+
+                        if (!ryu::core::get_optional(component_node["id"], component_id)) {
                             result.add_message(
                                     "R004",
                                     "Machine component node requires id.",
                                     true);
-                            result.fail();
                             break;
                         }
 
-                        if (component_node["name"] == nullptr) {
+                        if (!ryu::core::get_optional(component_node["name"], component_name)) {
                             result.add_message(
                                     "R004",
                                     "Machine component node requires name.",
                                     true);
-                            result.fail();
                             break;
                         }
 
-                        if (component_node["address"] == nullptr) {
+                        if (!ryu::core::get_optional(component_node["address"], component_address)) {
                             result.add_message(
                                     "R004",
                                     "Machine component node requires address.",
                                     true);
-                            result.fail();
                             break;
                         }
 
-                        auto component_id = component_node["id"].as<uint32_t>();
-                        auto component_name = component_node["name"].as<std::string>();
-                        auto component_address = component_node["address"].as<uint32_t>();
+                        auto component_color = 0;
+                        ryu::core::get_optional(component_node["color"], component_color);
 
                         if (component_node["ic"] != nullptr) {
                             auto ic_node = component_node["ic"];
                             if (ic_node.IsMap()) {
-                                auto type_id = ic_node["type_id"].as<uint16_t>();
+                                uint16_t type_id;
+                                ryu::core::get_optional(ic_node["type_id"], type_id);
 
                                 auto ic = new_ic_by_type_id(type_id);
                                 if (ic == nullptr) {
@@ -182,24 +198,78 @@ namespace ryu::hardware {
                                             "R005",
                                             "No integrated_circuit exists for type_id.",
                                             true);
-                                    result.fail();
                                     break;
                                 }
 
-                                // XXX: at some point this should be required
-                                if (ic_node["address_space"] != nullptr) {
-                                    auto ic_address_space = ic_node["address_space"].as<uint32_t>();
-                                    ic->address_space(ic_address_space);
+                                uint32_t ic_address_space;
+                                if (!ryu::core::get_optional(ic_node["address_space"], ic_address_space)) {
+                                    result.add_message(
+                                        "R005",
+                                        "address_space is required for integrated_circuit.",
+                                        true);
+                                    break;
+                                }
+
+                                ic->address_space(ic_address_space);
+
+                                auto writes_node = ic_node["writes"];
+                                if (writes_node != nullptr && writes_node.IsSequence()) {
+                                    for (auto wit = writes_node.begin();
+                                         wit != writes_node.end();
+                                         ++wit) {
+                                        auto write_node = *wit;
+                                        if (!write_node.IsMap())
+                                            continue;
+
+                                        auto offset_node = write_node["offset"];
+                                        auto size_node = write_node["size"];
+                                        auto value_node = write_node["value"];
+
+                                        if (offset_node == nullptr || value_node == nullptr)
+                                            continue;
+
+                                        uint32_t size = 1;
+                                        if (size_node != nullptr && size_node.IsScalar())
+                                            size = size_node.as<uint32_t>();
+
+                                        auto offset = offset_node.as<uint32_t>();
+                                        auto value = value_node.as<uint32_t>();
+
+                                        switch (size) {
+                                            case 1:
+                                                ic->write_byte(offset, static_cast<uint8_t>(value));
+                                                break;
+                                            case 2:
+                                                ic->write_word(
+                                                    offset,
+                                                    static_cast<uint16_t>(value),
+                                                    integrated_circuit::endianness::big);
+                                                break;
+                                            case 4:
+                                                ic->write_dword(
+                                                    offset,
+                                                    value,
+                                                    integrated_circuit::endianness::big);
+                                                break;
+                                            default: {
+                                                result.add_message(
+                                                    "R008",
+                                                    fmt::format("Unknown write size: {}", size),
+                                                    true);
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
 
                                 auto component = new hardware::component(component_id, ic);
                                 component->name(component_name);
                                 component->address(component_address);
+                                component->color(static_cast<core::palette_index>(component_color));
 
-                                if (component_node["description"] != nullptr) {
-                                    auto component_desc = component_node["description"].as<std::string>();
-                                    component->description(component_desc);
-                                }
+                                std::string component_description;
+                                if (ryu::core::get_optional(component_node["description"], component_description))
+                                    component->description(component_description);
 
                                 machine.add_component(component);
                             }
@@ -208,7 +278,7 @@ namespace ryu::hardware {
                 }
 
                 if (!result.is_failed())
-                    _machines.insert(std::make_pair(id, machine));
+                    _machines.insert(std::make_pair(machine_id, machine));
             }
         }
 
@@ -229,34 +299,18 @@ namespace ryu::hardware {
         return nullptr;
     }
 
-    ic_type_list registry::integrated_circuit_types() const {
-        ic_type_list types;
-
-        auto base = rttr::type::get<ryu::hardware::integrated_circuit>();
-        auto component_types = base.get_derived_classes();
-        for(const auto& type : component_types) {
-            auto ic_type_id = type
-                    .get_metadata(ryu::hardware::meta_data_key::type_id)
-                    .convert<uint16_t>();
-            auto ic_type_name = type
-                    .get_metadata(ryu::hardware::meta_data_key::type_name)
-                    .convert<std::string>();
-            types.push_back(integrated_circuit_type_t {ic_type_id, ic_type_name});
-        }
-
-        return types;
-    }
-
     hardware::integrated_circuit* registry::new_ic_by_type_id(uint32_t type_id) {
         auto base_type = rttr::type::get<ryu::hardware::integrated_circuit>();
         auto ic_types = base_type.get_derived_classes();
         for(const auto& type : ic_types) {
             auto ic_type_id = type
                     .get_metadata(ryu::hardware::meta_data_key::type_id)
-                    .to_int();
+                    .to_uint32();
             if (type_id == ic_type_id) {
                 auto instance = type.create({});
-                return instance.get_value<hardware::integrated_circuit*>();
+                auto circuit = instance.get_value<hardware::integrated_circuit*>();
+                circuit->initialize();
+                return circuit;
             }
         }
         return nullptr;

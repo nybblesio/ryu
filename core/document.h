@@ -12,6 +12,7 @@
 
 #include <map>
 #include <list>
+#include <core/views/caret.h>
 #include <boost/filesystem.hpp>
 #include "result.h"
 
@@ -19,49 +20,266 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
-    struct attr_t {
-        uint8_t color = 0;
-        uint8_t style = 0;
-        uint8_t flags = 0;
-        bool operator== (const attr_t& rhs) const {
-            return color == rhs.color && style == rhs.style && flags == rhs.flags;
-        }
-        bool operator!= (const attr_t& rhs) const {
-            return color != rhs.color || style != rhs.style || flags != rhs.flags;
-        }
-    };
-
     struct element_t {
         uint8_t value = 0;
         attr_t attr;
     };
 
-    struct line_t {
-        explicit line_t(const attr_t& attr) : default_attr(attr) {
+    class line_t {
+    public:
+        line_t(
+                uint16_t width,
+                const attr_t& attr) : _default_attr(attr) {
+            _elements.reserve(width);
         }
+
+        void copy(
+                std::ostream& stream,
+                uint16_t start_column,
+                uint16_t end_column) {
+            for (uint16_t col = start_column;
+                     col < end_column && col < _elements.size();
+                     col++) {
+                const auto& element = _elements[col];
+                if (element.value == 0)
+                    stream << " ";
+                else if (element.value == 37)
+                    stream << "%%";
+                else
+                    stream << element.value;
+            }
+        }
+
+        bool empty() const {
+            if (_elements.empty())
+                return true;
+            auto is_empty = true;
+            for (const auto& element : _elements) {
+                if (element.value != 0) {
+                    is_empty = false;
+                    break;
+                }
+            }
+            return is_empty;
+        }
+
+        uint16_t end() const {
+            for (size_t col = _elements.size() - 1; col != 0; col--) {
+                const auto& element = _elements[col];
+                if (element.value != 0)
+                    return static_cast<uint16_t>(col + 1);
+            }
+            return 0;
+        }
+
+        size_t length() const {
+            return _elements.size();
+        }
+
+        void clear_selection() {
+            _selection_end = 0;
+            _selection_start = 0;
+        }
+
+        bool has_selection() const {
+            return _selection_end - _selection_start > 0;
+        }
+
         element_t* get(size_t column) {
-            if (column < elements.size())
-                return &elements[column];
+            if (column < _elements.size())
+                return &_elements[column];
             return nullptr;
         }
-        void put(size_t column, const element_t& value) {
-            if (column >= elements.size()) {
-                auto missing_columns = (column - elements.size()) + 1;
-                for (size_t i = 0; i < missing_columns; i++)
-                    elements.push_back(element_t {0, default_attr});
-            }
-            elements[column] = value;
+
+        uint16_t selection_end() const {
+            return _selection_end;
         }
-        attr_t default_attr;
-        std::vector<element_t> elements;
+
+        uint16_t selection_start() const {
+            return _selection_start;
+        }
+
+        void selection_end(uint16_t value) {
+            _selection_end = value;
+        }
+
+        void selection_start(uint16_t value) {
+            _selection_start = value;
+        }
+
+        void put(size_t column, const element_t& value) {
+            if (column >= _elements.size())
+                add_missing_elements((column + 1) - _elements.size());
+            _elements[column] = value;
+        }
+
+        void shift_left(uint16_t column, uint16_t times) {
+            if (column >= _elements.size())
+                return;
+            for (size_t i = 0; i < times; i++) {
+                _elements.erase(_elements.begin() + column);
+                _elements.push_back(element_t {0, _default_attr});
+            }
+        }
+
+        void shift_right(uint16_t column, uint16_t times) {
+            if (column < _elements.size()) {
+                for (size_t i = 0; i < times; i++) {
+                    _elements.insert(
+                        _elements.begin() + column,
+                        element_t {0, _default_attr});
+                }
+            }
+        }
+
+        void apply_selection(
+                attr_t& attr,
+                uint16_t start_column,
+                uint16_t end_column) {
+            if (!has_selection())
+                return;
+            if (_selection_start >= start_column && _selection_end <= end_column)
+                attr.flags |= core::font::flags::reverse;
+        }
+
+        attr_chunks chunks(uint16_t start_column, uint16_t end_column) {
+            if (_elements.empty())
+                return {};
+
+            attr_chunks chunks {};
+            uint16_t col = start_column;
+            std::stringstream stream;
+
+            auto last_attr = _elements[col].attr;
+            apply_selection(last_attr, start_column, end_column);
+
+            while (col < end_column && col < _elements.size()) {
+                const auto& element = _elements[col];
+                if (last_attr != element.attr) {
+                    auto text = stream.str();
+                    if (!text.empty()) {
+                        chunks.push_back(attr_chunk_t{last_attr, text});
+                        stream.str(std::string());
+                        stream.clear();
+                    }
+                    last_attr = element.attr;
+                    apply_selection(last_attr, start_column, end_column);
+                }
+                if (element.value == 0)
+                    stream << " ";
+                else if (element.value == 37)
+                    stream << "%%";
+                else
+                    stream << element.value;
+                ++col;
+            }
+
+            chunks.push_back(attr_chunk_t{
+                last_attr,
+                stream.str()});
+
+            return chunks;
+        }
+
+    private:
+        void add_missing_elements(size_t count) {
+            for (size_t i = 0; i < count; i++)
+                _elements.push_back(element_t {0, _default_attr});
+        }
+
+    private:
+        attr_t _default_attr {};
+        uint16_t _selection_end = 0;
+        uint16_t _selection_start = 0;
+        std::vector<element_t> _elements {};
     };
 
-    struct attr_chunk_t {
-        attr_t attr;
-        std::string text {};
-    };
+    class line_list {
+    public:
+        void clear() {
+            _lines.clear();
+            _line_index.clear();
+        }
 
-    typedef std::vector<attr_chunk_t> attr_chunks;
+        bool empty() const {
+            return _line_index.empty();
+        }
+
+        size_t size() const {
+            return _line_index.size();
+        }
+
+        attr_t& default_attr() {
+            return _default_attr;
+        }
+
+        line_t* at(uint32_t row) {
+            add_missing_lines(row);
+            return _line_index[row].operator->();
+        }
+
+        void delete_at(uint32_t row) {
+            if (row < _lines.size()) {
+                _lines.erase(_line_index[row]);
+                _line_index.erase(_line_index.begin() + row);
+            }
+        }
+
+        void line_width(uint16_t width) {
+            _width = width;
+        }
+
+        line_t* insert_at(uint32_t row) {
+            if (row + 1 >= _line_index.size() - 1)
+                return at(row);
+
+            _line_index.insert(
+                _line_index.begin() + row,
+                std::list<line_t>::iterator());
+            _line_index[row] = _lines.insert(
+                _line_index[row + 1],
+                line_t {_width, _default_attr});
+
+            return _line_index[row].operator->();
+        }
+
+        void default_attr(const attr_t& attr) {
+            _default_attr = attr;
+        }
+
+        void split_at(uint32_t row, uint32_t column) {
+            auto current_line = at(row);
+            auto new_line = insert_at(row + 1);
+            uint16_t col = 0;
+            for (; column < current_line->length(); column++) {
+                auto old_element = current_line->get(column);
+                new_line->put(
+                    col++,
+                    old_element != nullptr ? *old_element : element_t {0, _default_attr});
+                current_line->put(
+                    column,
+                    element_t {0, _default_attr});
+            }
+        }
+
+    private:
+        void add_missing_lines(uint32_t row) {
+            if (_line_index.empty() || row > _line_index.size() - 1) {
+                auto count = (row + 1) - _line_index.size();
+                for (size_t i = 0; i < count; i++) {
+                    _line_index.emplace_back(_lines.insert(
+                        _lines.end(),
+                        line_t {_width, _default_attr}));
+                }
+            }
+        }
+
+    private:
+        uint16_t _width = 0;
+        attr_t _default_attr {};
+        std::list<line_t> _lines {};
+        std::vector<std::list<line_t>::iterator> _line_index {};
+    };
 
     class document {
     public:
@@ -71,13 +289,45 @@ namespace ryu::core {
 
         ~document() = default;
 
+        bool load(
+            core::result& result,
+            const fs::path& path);
+
+        bool load(
+            core::result& result,
+            std::istream& stream);
+
+        bool save(
+            core::result& result,
+            std::ostream& stream);
+
+        bool save(
+            core::result& result,
+            const fs::path& path = "");
+
         void home();
 
         void clear();
 
+        void select();
+
         void page_up();
 
+        void page_size(
+            uint8_t height,
+            uint8_t width);
+
         void shift_up();
+
+        void line_end();
+
+        element_t* get();
+
+        void write_line(
+            std::ostream& stream,
+            uint32_t row,
+            uint16_t start_column,
+            uint16_t end_column);
 
         bool scroll_up();
 
@@ -87,6 +337,10 @@ namespace ryu::core {
 
         void first_page();
 
+        void split_line();
+
+        void delete_line();
+
         bool scroll_down();
 
         bool scroll_left();
@@ -95,11 +349,27 @@ namespace ryu::core {
 
         int32_t row() const;
 
+        void document_size(
+            uint32_t rows,
+            uint16_t columns);
+
+        bool is_line_empty();
+
+        line_t* insert_line();
+
+        fs::path path() const;
+
         uint32_t rows() const;
 
         bool row(uint32_t row);
 
         int16_t column() const;
+
+        attr_t& default_attr();
+
+        void clear_selection();
+
+        uint16_t find_line_end();
 
         uint16_t columns() const;
 
@@ -107,62 +377,41 @@ namespace ryu::core {
 
         uint8_t page_width() const;
 
-        attr_t default_attr() const;
+        core::caret* caret() const;
 
         uint8_t page_height() const;
 
         bool column(uint16_t column);
 
-        std::string filename() const;
+        uint32_t virtual_row() const;
 
-        void delete_line(uint32_t row);
+        attr_chunks get_line_chunks(
+            uint32_t row,
+            uint16_t start_column,
+            uint16_t end_column);
 
-        void default_attr(attr_t value);
+        void caret(core::caret* value);
 
-        bool is_line_empty(uint32_t row);
+        uint16_t virtual_column() const;
 
-        line_t* insert_line(uint32_t row);
+        void put(const element_t& value);
+
+        void path(const fs::path& value);
 
         inline size_t line_count() const {
             return _lines.size();
         }
 
-        uint16_t find_line_end(uint32_t row);
+        void shift_line_left(uint16_t times = 1);
 
-        void page_size(uint8_t height, uint8_t width);
-
-        element_t* get(uint32_t row, uint16_t column);
-
-        void split_line(uint32_t row, uint16_t column);
-
-        void document_size(uint32_t rows, uint16_t columns);
-
-        bool load(core::result& result, const fs::path& path);
-
-        bool load(core::result& result, std::istream& stream);
-
-        bool save(core::result& result, std::ostream& stream);
-
-        bool save(core::result& result, const fs::path& path = "");
-
-        void put(uint32_t row, uint16_t column, const element_t& value);
-
-        void shift_left(uint32_t row, uint16_t column, uint16_t times = 1);
+        void shift_line_right(uint16_t times = 1);
 
         void on_document_changed(const document_changed_callable& callable);
 
-        void shift_right(uint32_t row, uint16_t column, uint16_t times = 1);
-
-        void shift_line_left(uint32_t row, uint16_t column, uint16_t times = 1);
-
-        void shift_line_right(uint32_t row, uint16_t column, uint16_t times = 1);
-
-        attr_chunks get_line_chunks(uint32_t row, uint16_t column, uint16_t end_column);
-
-        void write_line(std::ostream& stream, uint32_t row, uint16_t column, uint16_t end_column);
-
     protected:
         bool clamp_row();
+
+        line_t* line_at();
 
         bool clamp_column();
 
@@ -174,12 +423,12 @@ namespace ryu::core {
         fs::path _path;
         int32_t _row = 0;
         uint32_t _rows = 1;
+        line_list _lines {};
         int16_t _column = 0;
         uint16_t _columns = 80;
-        attr_t _default_attr {};
         uint8_t _page_width = 0;
         uint8_t _page_height = 0;
-        std::vector<line_t> _lines;
+        core::caret* _caret = nullptr;
         document_changed_callable _document_changed_callback;
     };
 

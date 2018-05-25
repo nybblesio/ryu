@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include <SDL_system.h>
+#include <SDL2/SDL_system.h>
 #include "rect.h"
 #include "core_types.h"
 #include "font_family.h"
@@ -20,7 +20,7 @@ namespace ryu::core {
 
     class renderer {
     public:
-        explicit renderer(SDL_Renderer* surface);
+        renderer() = default;
 
         void clear();
 
@@ -32,6 +32,14 @@ namespace ryu::core {
                 int y,
                 const std::string& value,
                 const core::palette_entry& color);
+
+        void draw_text_scaled(
+                const font_t* font_face,
+                int x,
+                int y,
+                const std::string& value,
+                float sx,
+                float sy);
 
         int measure_text(
                 const font_t* font_face,
@@ -54,6 +62,8 @@ namespace ryu::core {
 
         const core::rect& bounds() const;
 
+        void sdl_renderer(SDL_Renderer* value);
+
         void draw_rect(const core::rect& bounds);
 
         void fill_rect(const core::rect& bounds);
@@ -69,6 +79,16 @@ namespace ryu::core {
         void fill_polygon(const vertex_list& vertices);
 
         void set_color(const core::palette_entry& color);
+
+        void draw_dashed_hline(int x1, int x2, int y, uint16_t width);
+
+        void draw_dashed_vline(int y1, int y2, int x, uint16_t width);
+
+        void draw_dashed_rect(const core::rect& bounds, uint16_t width);
+
+        void draw_selection_rect(core::rect& rect, core::palette_entry color);
+
+        void draw_selection_band(core::rect& rect, core::palette_entry color);
 
     private:
         core::rect _bounds;

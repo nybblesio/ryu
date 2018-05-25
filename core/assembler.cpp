@@ -8,8 +8,10 @@
 // this source code file.
 //
 
+#include <fstream>
 #include <iostream>
 #include <hardware/component.h>
+#include <common/bytes.h>
 #include "project.h"
 #include "assembler.h"
 #include "symbol_table.h"
@@ -22,7 +24,7 @@ namespace ryu::core {
 
     bool assembler::assemble(
             core::result& result,
-            std::string& input) {
+            const parser_input_t& input) {
         core::project::instance()
                 ->machine()
                 ->set_write_latches(true);
@@ -75,7 +77,7 @@ namespace ryu::core {
 
     bool assembler::assemble_stream(
             core::result& result,
-            std::string& input) {
+            const parser_input_t& input) {
         auto program_node = _parser.parse(input);
         auto parser_result = _parser.result();
         if (parser_result.is_failed()) {
@@ -87,13 +89,11 @@ namespace ryu::core {
                         msg.is_error());
         } else {
             if (program_node != nullptr) {
-                _listing.begin_assembly(input);
-
+                _listing.begin_assembly_scope(input);
                 if (!_evaluator.pass1_transform(result, program_node)) {
 
                 }
-
-                _listing.end_assembly();
+                _listing.end_assembly_scope();
             }
         }
 
@@ -107,7 +107,7 @@ namespace ryu::core {
                             _location_counter;
     }
 
-    std::vector<uint8_t> assembler::write_data(
+    byte_list assembler::write_data(
             directive_t::data_sizes size,
             uint32_t value) {
         auto machine = core::project::instance()->machine();
@@ -164,8 +164,8 @@ namespace ryu::core {
         _evaluator.symbol_table(_symbol_table);
     }
 
-    std::vector<uint8_t> assembler::write_data(const std::string& value) {
-        std::vector<uint8_t> data {};
+    byte_list assembler::write_data(const std::string& value) {
+        byte_list data {};
 
         auto machine = core::project::instance()->machine();
         for (const auto& c : value) {
@@ -174,6 +174,56 @@ namespace ryu::core {
                     ->mapper()
                     ->write_byte(_location_counter++, data_byte);
             data.push_back(data_byte);
+        }
+
+        return data;
+    }
+
+    byte_list assembler::read_data(directive_t::data_sizes size) {
+        byte_list data {};
+        if (_target == nullptr)
+            return data;
+
+        auto machine = core::project::instance()->machine();
+        switch (size) {
+            case directive_t::word: {
+                auto word = machine
+                        ->mapper()
+                        ->read_word(_location_counter, _target->ic()->endianess());
+                auto byte_ptr = reinterpret_cast<uint8_t*>(&word);
+                if (is_platform_little_endian()) {
+                    data.push_back(*(byte_ptr + 1));
+                    data.push_back(*byte_ptr);
+                } else {
+                    data.push_back(*byte_ptr);
+                    data.push_back(*(byte_ptr + 1));
+                }
+                break;
+            }
+            case directive_t::dword: {
+                auto dword = machine
+                        ->mapper()
+                        ->read_dword(_location_counter, _target->ic()->endianess());
+                auto byte_ptr = reinterpret_cast<uint8_t*>(&dword);
+                if (is_platform_little_endian()) {
+                    data.push_back(*(byte_ptr + 3));
+                    data.push_back(*(byte_ptr + 2));
+                    data.push_back(*(byte_ptr + 1));
+                    data.push_back(*byte_ptr);
+                } else {
+                    data.push_back(*byte_ptr);
+                    data.push_back(*(byte_ptr + 1));
+                    data.push_back(*(byte_ptr + 2));
+                    data.push_back(*(byte_ptr + 3));
+                }
+                break;
+            }
+            default: {
+                data.push_back(machine
+                        ->mapper()
+                        ->read_byte(_location_counter));
+                break;
+            }
         }
 
         return data;
@@ -194,6 +244,66 @@ namespace ryu::core {
             default:
                 break;
         }
+    }
+
+    bool assembler::read_location_counter_to_binary(
+            core::result& result,
+            std::iostream& stream,
+            uint32_t end_address) {
+        auto bounds_check_end = end_address > _location_counter;
+
+        auto project = core::project::instance();
+        auto machine = project->machine();
+
+        while (_location_counter < machine->mapper()->address_space()) {
+            if (bounds_check_end
+            && _location_counter >= end_address) {
+                break;
+            }
+            auto data_bytes = read_data(directive_t::data_sizes::byte);
+            stream.write(
+                    reinterpret_cast<const char*>(data_bytes.data()),
+                    data_bytes.size());
+            ++_location_counter;
+        }
+
+        return !result.is_failed();
+    }
+
+    bool assembler::load_binary_to_location_counter(
+            core::result& result,
+            byte_list& data_bytes,
+            std::iostream& stream,
+            uint32_t end_address) {
+        core::project::instance()
+                ->machine()
+                ->set_write_latches(true);
+
+        auto bounds_check_end = end_address > _location_counter;
+#ifdef __clang__
+        stream.seekp(0, std::iostream::seekdir::beg);
+#else
+        stream.seekp(0, std::iostream::seekdir::_S_beg);
+#endif
+
+        char data_byte;
+        while (!stream.eof()) {
+            if (bounds_check_end
+            &&  _location_counter >= end_address) {
+                break;
+            }
+            stream.get(data_byte);
+            write_data(
+                    directive_t::data_sizes::byte,
+                    static_cast<uint32_t>(data_byte));
+            data_bytes.push_back(static_cast<uint8_t>(data_byte));
+        }
+
+        core::project::instance()
+                ->machine()
+                ->set_write_latches(false);
+
+        return !result.is_failed();
     }
 
 }

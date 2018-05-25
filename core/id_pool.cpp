@@ -13,10 +13,10 @@
 namespace ryu::core {
 
     id_pool::id_pool() {
-        _pool.insert(id_interval(1, std::numeric_limits<uint32_t>::max()));
+        _pool.insert(id_interval(1, std::numeric_limits<id_t>::max()));
     }
 
-    uint32_t id_pool::allocate() {
+    id_t id_pool::allocate() {
         id_interval first = *(_pool.begin());
         auto id = first.left();
         _pool.erase(_pool.begin());
@@ -31,7 +31,7 @@ namespace ryu::core {
         return &pool;
     }
 
-    void id_pool::release(uint32_t id) {
+    void id_pool::release(id_t id) {
         auto it = _pool.find(id_interval(id, id));
         if (it != _pool.end() && it->left() <= id && it->right() > id) {
             return;
@@ -66,7 +66,7 @@ namespace ryu::core {
         }
     }
 
-    bool id_pool::mark_used(uint32_t id) {
+    bool id_pool::mark_used(id_t id) {
         auto it = _pool.find(id_interval(id, id));
         if (it == _pool.end()) {
             return false;
@@ -83,24 +83,24 @@ namespace ryu::core {
         }
     }
 
-    bool id_pool::mark_range(uint32_t start_id, uint32_t end_id) {
+    bool id_pool::mark_range(id_t start_id, id_t end_id) {
         for (size_t id = static_cast<size_t>(start_id);
              id < static_cast<size_t>(end_id);
              ++id) {
-            auto success = mark_used(static_cast<uint32_t>(id));
+            auto success = mark_used(static_cast<id_t>(id));
             if (!success)
                 return false;
         }
         return true;
     }
 
-    int32_t id_pool::allocate_from_range(uint32_t start_id, uint32_t end_id) {
+    id_t id_pool::allocate_from_range(id_t start_id, id_t end_id) {
         for (size_t id = static_cast<size_t>(start_id);
              id < static_cast<size_t>(end_id);
              ++id) {
-            auto success = mark_used(static_cast<uint32_t>(id));
+            auto success = mark_used(static_cast<id_t>(id));
             if (success)
-                return static_cast<uint32_t>(id);
+                return static_cast<id_t>(id);
         }
         return 0;
     }

@@ -11,10 +11,11 @@
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::integrated_circuit>("ryu::hardware::integrated_circuit") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::integrated_circuit_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Base IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Base IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_circuit)
     )
     .constructor<const std::string&>(rttr::registration::public_access) (
-            rttr::policy::ctor::as_raw_ptr
+        rttr::policy::ctor::as_raw_ptr
     )
     .property_readonly("id", &ryu::hardware::integrated_circuit::id)
     .property_readonly("name", &ryu::hardware::integrated_circuit::name);
@@ -29,16 +30,23 @@ namespace ryu::hardware {
     void integrated_circuit::zero() {
     }
 
+    void integrated_circuit::initialize() {
+        on_initialize();
+    }
+
+    uint32_t integrated_circuit::id() const {
+        return _id;
+    }
+
+    void integrated_circuit::on_initialize() {
+    }
+
     bool integrated_circuit::write_latch() const {
         return _write_latch;
     }
 
     void integrated_circuit::write_latch(bool enabled) {
         _write_latch = enabled;
-    }
-
-    uint32_t integrated_circuit::id() const {
-        return _id;
     }
 
     uint16_t integrated_circuit::read_word(
@@ -53,18 +61,22 @@ namespace ryu::hardware {
         return 0;
     }
 
-    std::vector<uint8_t> integrated_circuit::write_word(
+    ryu::core::byte_list integrated_circuit::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
         return {};
     }
 
-    std::vector<uint8_t> integrated_circuit::write_dword(
+    ryu::core::byte_list integrated_circuit::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {
         return {};
+    }
+
+    void integrated_circuit::clear_memory_map() {
+        _memory_map.clear();
     }
 
     void integrated_circuit::fill(uint8_t value) {
@@ -74,11 +86,39 @@ namespace ryu::hardware {
         return _name;
     }
 
+    void integrated_circuit::add_memory_map_entry(
+            uint32_t offset,
+            uint32_t size,
+            const std::string& name,
+            const std::string& description,
+            memory_map_entry::memory_map_entry_flags flags) {
+        _memory_map.add(offset, size, name, description, flags);
+    }
+
+    void integrated_circuit::add_memory_map_entry(
+            uint32_t offset,
+            uint32_t size,
+            const std::string& name,
+            const std::string& description,
+            const memory_map_entry::read_callable& reader,
+            const memory_map_entry::write_callable& writer,
+            memory_map_entry::memory_map_entry_flags flags) {
+        _memory_map.add(offset, size, name, description, reader, writer, flags);
+    }
+
+    uint32_t integrated_circuit::type_id() const {
+        return 0;
+    }
+
     uint32_t integrated_circuit::address_space() const {
         return _address_space;
     }
 
     void integrated_circuit::on_address_space_changed() {
+    }
+
+    hardware::component* integrated_circuit::component() {
+        return _component;
     }
 
     void integrated_circuit::address_space(uint32_t value) {
@@ -96,19 +136,12 @@ namespace ryu::hardware {
         return 0;
     }
 
+    void integrated_circuit::component(hardware::component* value) {
+        _component = value;
+    }
+
     core::assembly_language_parser* integrated_circuit::assembler() {
         return nullptr;
-    }
-
-    uint16_t integrated_circuit::endian_swap_word(uint16_t value) const {
-        return (value >> 8) | (value << 8);
-    }
-
-    uint32_t integrated_circuit::endian_swap_dword(uint32_t value) const {
-        return ((value >> 24) & 0xff)
-               |  ((value << 8) & 0xff0000)
-               |  ((value >> 8) & 0xff00)
-               |  ((value << 24) & 0xff000000);
     }
 
     const hardware::memory_map& integrated_circuit::memory_map() const {

@@ -13,7 +13,8 @@
 RTTR_REGISTRATION {
     rttr::registration::class_<ryu::hardware::memory_mapper>("ryu::hardware::memory_mapper") (
         rttr::metadata(ryu::hardware::meta_data_key::type_id, ryu::hardware::memory_mapper_id),
-        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Memory Mapper IC")
+        rttr::metadata(ryu::hardware::meta_data_key::type_name, "Memory Mapper IC"),
+        rttr::metadata(ryu::hardware::meta_data_key::type_category, ryu::hardware::category_memory)
     )
     .constructor<>(rttr::registration::public_access) (
             rttr::policy::ctor::as_raw_ptr
@@ -48,6 +49,9 @@ namespace ryu::hardware {
         _components.clear();
     }
 
+    void memory_mapper::on_initialize() {
+    }
+
     void memory_mapper::fill(uint8_t value) {
         for (auto& ic : _components)
             ic.value->fill(value);
@@ -62,6 +66,10 @@ namespace ryu::hardware {
         if (circuit.ic != nullptr)
             return circuit.ic->read_byte(address - circuit.start);
         return 0;
+    }
+
+    const ic_interval_list& memory_mapper::components() const {
+        return _components;
     }
 
     void memory_mapper::write_byte(uint32_t address, uint8_t value) {
@@ -122,7 +130,7 @@ namespace ryu::hardware {
         return 0;
     }
 
-    std::vector<uint8_t> memory_mapper::write_word(
+    ryu::core::byte_list memory_mapper::write_word(
             uint32_t address,
             uint16_t value,
             integrated_circuit::endianness::types endianess) {
@@ -132,7 +140,7 @@ namespace ryu::hardware {
         return {};
     }
 
-    std::vector<uint8_t> memory_mapper::write_dword(
+    ryu::core::byte_list memory_mapper::write_dword(
             uint32_t address,
             uint32_t value,
             integrated_circuit::endianness::types endianess) {

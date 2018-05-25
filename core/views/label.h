@@ -11,39 +11,41 @@
 #pragma once
 
 #include <core/view.h>
+#include <logger_factory.h>
 
 namespace ryu::core {
 
     class label : public core::view {
     public:
-        explicit label(const std::string& name);
+        label(
+            const std::string& name,
+            core::view_host* host);
 
-        std::string value() const;
+        ~label() override;
 
-        border::types border() const;
+        std::string value() const override;
 
-        void border(border::types value);
+        void value(const std::string& text) override;
 
-        void value(const std::string& value);
+        core::alignment::vertical::types valign() const;
 
-        alignment::vertical::types valign() const;
+        core::alignment::horizontal::types halign() const;
 
-        alignment::horizontal::types halign() const;
+        void valign(core::alignment::vertical::types value);
 
-        void valign(alignment::vertical::types value);
-
-        void halign(alignment::horizontal::types value);
+        void halign(core::alignment::horizontal::types value);
 
     protected:
-        void on_draw(core::renderer& surface) override;
+        void on_font_family_changed() override;
 
-        void on_resize(const core::rect& context_bounds) override;
+        void on_draw(ryu::core::renderer& surface) override;
 
     private:
-        std::string _value;
-        border::types _border = border::types::none;
-        alignment::vertical::types _valign = alignment::vertical::middle;
-        alignment::horizontal::types _halign = alignment::horizontal::none;
+        void update_minimum_size();
+
+    private:
+        core::alignment::vertical::types _valign = core::alignment::vertical::middle;
+        core::alignment::horizontal::types _halign = core::alignment::horizontal::none;
     };
 
 };

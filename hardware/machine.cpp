@@ -50,6 +50,7 @@ namespace ryu::hardware {
     void machine::remove_component(uint32_t id) {
         auto component = find_component(id);
         if (component != nullptr) {
+            component->machine(nullptr);
             _mapper.release(component->ic());
             _components.erase(id);
         }
@@ -79,6 +80,15 @@ namespace ryu::hardware {
         return list;
     }
 
+    core::video_generator* machine::video_generator() {
+        for (const auto& it : _components) {
+            auto ic = it.second->ic();
+            if (ic != nullptr && ic->is_video_generator())
+                return dynamic_cast<core::video_generator*>(ic);
+        }
+        return nullptr;
+    }
+
     void machine::display(hardware::display* display) {
         _display = display;
     }
@@ -92,6 +102,7 @@ namespace ryu::hardware {
             return;
         _components.insert(std::make_pair(component->id(), component));
         _mapper.reserve(component->address(), component->ic());
+        component->machine(this);
     }
 
     hardware::component* machine::find_component(uint32_t id) const {

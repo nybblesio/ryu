@@ -8,13 +8,10 @@
 // this source code file.
 //
 
+#include <common/SDL_FontCache.h>
 #include "renderer.h"
 
 namespace ryu::core {
-
-    renderer::renderer(SDL_Renderer* surface) {
-        _surface = surface;
-    }
 
     void renderer::clear() {
         SDL_RenderClear(_surface);
@@ -33,6 +30,22 @@ namespace ryu::core {
                 y,
                 color.to_sdl_color(),
                 value.c_str());
+    }
+
+    void renderer::draw_text_scaled(
+            const font_t* font_face,
+            int x,
+            int y,
+            const std::string& value,
+            float sx,
+            float sy) {
+        FC_DrawScale(
+            font_face->glyph,
+            _surface,
+            x,
+            y,
+            FC_MakeScale(sx, sy),
+            value.c_str());
     }
 
     void renderer::present() {
@@ -94,6 +107,10 @@ namespace ryu::core {
         return _bounds;
     }
 
+    void renderer::sdl_renderer(SDL_Renderer* value) {
+        _surface = value;
+    }
+
     void renderer::draw_rect(const core::rect& bounds) {
         auto rect = bounds.to_sdl_rect();
         SDL_RenderDrawRect(_surface, &rect);
@@ -127,10 +144,6 @@ namespace ryu::core {
 
     void renderer::draw_line(int x1, int y1, int x2, int y2) {
         SDL_RenderDrawLine(_surface, x1, y1, x2, y2);
-    }
-
-    void renderer::set_color(const core::palette_entry& color) {
-        SDL_SetRenderDrawColor(_surface, color.red(), color.green(), color.blue(), color.alpha());
     }
 
     void renderer::fill_polygon(const vertex_list& vertices) {
@@ -191,7 +204,7 @@ namespace ryu::core {
                         return left < right;
                     });
 
-            for (auto i = 0; (i < points.size()); i += 2) {
+            for (size_t i = 0; (i < points.size()); i += 2) {
                 auto xa = points[i] + 1;
                 xa = (xa >> 16) + ((xa & 32768) >> 15);
                 auto xb = points[i + 1] - 1;
@@ -201,8 +214,57 @@ namespace ryu::core {
         }
     }
 
+    void renderer::set_color(const core::palette_entry& color) {
+        SDL_SetRenderDrawColor(
+            _surface,
+            color.red(),
+            color.green(),
+            color.blue(),
+            color.alpha());
+    }
+
+    void renderer::draw_dashed_hline(int x1, int x2, int y, uint16_t width) {
+        auto length = x2 - x1;
+        auto segment_length = width * 2;
+        while (length > 0) {
+            SDL_RenderDrawLine(_surface, x1, y, x1 + width, y);
+            x1 += segment_length;
+            length -= segment_length;
+        }
+    }
+
+    void renderer::draw_dashed_vline(int y1, int y2, int x, uint16_t width) {
+        auto height = y2 - y1;
+        auto segment_length = width * 2;
+        while (height > 0) {
+            SDL_RenderDrawLine(_surface, x, y1, x, y1 + width);
+            y1 += segment_length;
+            height -= segment_length;
+        }
+    }
+
+    void renderer::draw_dashed_rect(const core::rect& bounds, uint16_t width) {
+        draw_dashed_hline(bounds.left(), bounds.right(), bounds.top(), width);
+        draw_dashed_hline(bounds.left(), bounds.right(), bounds.bottom(), width);
+        draw_dashed_vline(bounds.top(), bounds.bottom(), bounds.left(), width);
+        draw_dashed_vline(bounds.top(), bounds.bottom(), bounds.right(), width);
+    }
+
     int renderer::measure_text(const font_t* font_face, const std::string& value) {
         return FC_GetWidth(font_face->glyph, value.c_str());
+    }
+
+    void renderer::draw_selection_rect(core::rect& rect, core::palette_entry color) {
+        push_blend_mode(SDL_BLENDMODE_BLEND);
+        color.alpha(0x7f);
+        set_color(color);
+        fill_rect(rect);
+        pop_blend_mode();
+    }
+
+    void renderer::draw_selection_band(core::rect& rect, core::palette_entry color) {
+        set_color(color);
+        draw_dashed_rect(rect, 4);
     }
 
 }

@@ -9,7 +9,7 @@
 //
 
 #include <regex>
-#include <boost/algorithm/string.hpp>
+#include <common/string_support.h>
 #include "assembler_parser.h"
 
 namespace ryu::core {
@@ -286,7 +286,8 @@ namespace ryu::core {
             }
         }
 
-        auto directive_name = boost::to_lower_copy<std::string>(stream.str());
+        auto directive_name = stream.str();
+        to_lower(directive_name);
         if (directive_name.empty()) {
             return nullptr;
         }
@@ -342,7 +343,7 @@ namespace ryu::core {
         return top;
     }
 
-    ast_node_shared_ptr assembler_parser::parse(const std::string& input) {
+    ast_node_shared_ptr assembler_parser::parse(const parser_input_t& input) {
         if (input.empty())
             return nullptr;
 

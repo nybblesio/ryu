@@ -74,10 +74,10 @@ namespace ryu::core {
         });
     }
 
-    void assembly_listing::end_assembly() {
+    void assembly_listing::end_assembly_scope() {
         auto scope = current_scope();
 
-        for (; scope->line_number < scope->lines.size(); scope->line_number++) {
+        for (; scope->line_number < scope->input.source_lines.size(); scope->line_number++) {
             auto rows = format_rows(
                     scope->line_number,
                     0,
@@ -94,7 +94,7 @@ namespace ryu::core {
     void assembly_listing::annotate_line(
             uint32_t line_number,
             uint32_t address,
-            const std::vector<uint8_t>& opcodes,
+            const byte_list& opcodes,
             assembly_listing::row_flags_t flags) {
         auto scope = current_scope();
 
@@ -151,7 +151,7 @@ namespace ryu::core {
     std::vector<data_table_row_t> assembly_listing::format_rows(
             uint32_t line_number,
             uint32_t address,
-            const std::vector<uint8_t>& opcodes,
+            const byte_list& opcodes,
             assembly_listing::row_flags_t flags) {
         std::vector<data_table_row_t> rows {};
 
@@ -170,7 +170,7 @@ namespace ryu::core {
         else {
             std::stringstream stream;
             auto data_count = std::min<size_t>(opcodes.size(), 8);
-            for (auto i = 0; i < data_count; i++) {
+            for (size_t i = 0; i < data_count; i++) {
                 stream << fmt::format("{:02x} ", opcodes[i]);
             }
             row.columns.push_back(stream.str());
@@ -188,8 +188,8 @@ namespace ryu::core {
         row.columns.push_back(flag_chars);
 
         auto scope = current_scope();
-        if (line_number < scope->lines.size())
-            row.columns.push_back(scope->lines[line_number - 1]);
+        if (line_number < scope->input.source_lines.size())
+            row.columns.push_back(scope->input.source_lines[line_number - 1]);
         else
             row.columns.emplace_back(75, ' ');
 
@@ -213,7 +213,7 @@ namespace ryu::core {
             return overflow_row;
         };
 
-        auto index = 8;
+        size_t index = 8;
         std::stringstream stream;
         address += 8;
         while (index < opcodes.size()) {
@@ -244,16 +244,8 @@ namespace ryu::core {
         return &_scopes.top();
     }
 
-    void assembly_listing::begin_assembly(const std::string& source) {
-        assembly_listing_scope_t scope {};
-
-        std::stringstream stream;
-        stream << source << "\n";
-        std::string line;
-        while (std::getline(stream, line)) {
-            scope.lines.push_back(line);
-        }
-
+    void assembly_listing::begin_assembly_scope(const parser_input_t& source) {
+        assembly_listing_scope_t scope {1, source};
         _scopes.push(scope);
     }
 

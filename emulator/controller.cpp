@@ -24,7 +24,8 @@ namespace ryu::emulator {
     void controller::on_initialize() {
     }
 
-    void controller::on_update(uint32_t dt) {
+    bool controller::on_load(core::result& result) {
+        return true;
     }
 
     void controller::on_draw(core::renderer& surface) {
@@ -33,8 +34,7 @@ namespace ryu::emulator {
     void controller::on_resize(const core::rect& bounds) {
     }
 
-    bool controller::on_process_event(const SDL_Event* e) {
-        return false;
+    void controller::on_update(uint32_t dt, core::pending_event_list& events) {
     }
 
 }

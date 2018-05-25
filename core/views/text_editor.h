@@ -13,7 +13,7 @@
 #include <core/view.h>
 #include <core/project.h>
 #include <core/document.h>
-#include <core/selection.h>
+#include <core/input_action.h>
 #include "caret.h"
 
 namespace ryu::core {
@@ -25,11 +25,17 @@ namespace ryu::core {
         using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
         using char_action_callable = std::function<void (uint32_t, uint16_t)>;
 
-        explicit text_editor(const std::string& name);
+        text_editor(
+                const std::string& name,
+                core::view_host* host);
+
+        ~text_editor() override;
 
         void clear();
 
-        void goto_line(uint32_t row);
+        fs::path path() const {
+            return _document.path();
+        }
 
         int page_width() const {
             return _metrics.page_width;
@@ -39,19 +45,23 @@ namespace ryu::core {
             return _metrics.page_height;
         }
 
-        std::string filename() const {
-            return _document.filename();
+        void goto_line(uint32_t row);
+
+        void path(const fs::path& value) {
+            _document.path(value);
         }
-
-        void caret_color(uint8_t value);
-
-        void selection_color(uint8_t value);
 
         void find(const std::string& needle);
 
-        void line_number_color(uint8_t value);
+        void caret_color(palette_index value);
 
-        void initialize(uint32_t rows, uint16_t columns);
+        void selection_color(palette_index value);
+
+        void line_number_color(palette_index value);
+
+        void size(uint32_t rows, uint16_t columns);
+
+        void page_size(uint8_t height, uint8_t width);
 
         bool load(core::result& result, const fs::path& path);
 
@@ -61,8 +71,8 @@ namespace ryu::core {
 
     protected:
         struct metrics_t {
-            uint8_t page_width {};
-            uint8_t page_height {};
+            uint8_t page_width = 0;
+            uint8_t page_height = 0;
             int line_number_width {};
             const int left_padding = 10;
             const int right_padding = 10;
@@ -70,11 +80,15 @@ namespace ryu::core {
 
         void raise_caret_changed();
 
+        void on_initialize() override;
+
+        void on_bounds_changed() override;
+
+        void on_palette_changed() override;
+
+        void on_font_family_changed() override;
+
         void on_draw(core::renderer& surface) override;
-
-        bool on_process_event(const SDL_Event* e) override;
-
-        void on_resize(const core::rect& context_bounds) override;
 
     private:
         void page_up();
@@ -91,19 +105,25 @@ namespace ryu::core {
 
         void first_page();
 
+        void bind_events();
+
         void scroll_left();
 
         void scroll_down();
 
         bool scroll_right();
 
+        void caret_newline();
+
         void end_selection();
+
+        void define_actions();
 
         void delete_selection();
 
-        void calculate_page_metrics();
+        void update_minimum_size();
 
-        void update_virtual_position();
+        void calculate_page_metrics();
 
         void caret_up(uint8_t rows = 1);
 
@@ -117,21 +137,16 @@ namespace ryu::core {
 
         bool caret_right(uint8_t columns = 1);
 
-        void update_selection(uint16_t line_end);
-
         void get_selected_text(std::stringstream& stream);
 
-        void for_each_selection_char(const char_action_callable& action);
+        bool input_event_filter(const core::event_data_t& data);
 
     private:
-        uint16_t _vcol;
-        uint32_t _vrow;
         core::caret _caret;
         metrics_t _metrics;
         core::document _document;
-        uint8_t _selection_color;
-        uint8_t _line_number_color;
-        core::selection _selection;
+        palette_index _selection_color;
+        palette_index _line_number_color;
         caret_changed_callable _caret_changed_callback;
     };
 

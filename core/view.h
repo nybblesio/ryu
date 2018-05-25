@@ -8,43 +8,57 @@
 // this source code file.
 //
 
-
 #pragma once
 
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <SDL_events.h>
-#include <SDL_render.h>
 #include "rect.h"
 #include "palette.h"
 #include "context.h"
 #include "padding.h"
 #include "renderer.h"
 #include "font_family.h"
+#include "layout_engine.h"
+#include "input_action_provider.h"
 
 namespace ryu::core {
 
-    class view {
+    class view_host {
     public:
-        using on_tab_callable = std::function<const core::view* ()>;
-
-        struct sizing {
-            enum types {
-                content,
-                fixed,
-                parent
-            };
+        enum change_reasons : uint8_t {
+            focus       = 0b00000001,
+            visibility  = 0b00000010
         };
 
+        using change_reason_flags = uint8_t;
+        using state_change_callable = std::function<void (change_reason_flags)>;
+
+        virtual ~view_host() = default;
+
+        virtual bool is_focused() const = 0;
+
+        virtual bool is_visible() const = 0;
+
+        virtual core::preferences* prefs() = 0;
+
+        virtual core::layout_engine* layout_engine() = 0;
+
+        virtual void remove_change_listener(id_t id) = 0;
+
+        virtual id_t add_change_listener(const state_change_callable& callable) = 0;
+    };
+
+    class view {
+    public:
         struct config {
             enum flags : uint8_t {
-                none    = 0b00000000,
-                visible = 0b00000001,
-                enabled = 0b00000010,
-                tabstop = 0b00000100,
-                focused = 0b00001000,
-                layout  = 0b00010000
+                none     = 0b00000000,
+                visible  = 0b00000001,
+                enabled  = 0b00000010,
+                tab_stop = 0b00000100,
+                focused  = 0b00001000,
+                clip     = 0b00010000,
             };
         };
 
@@ -55,15 +69,34 @@ namespace ryu::core {
             };
         };
 
-        view(types::id type, const std::string& name);
+        enum class layout_modes : uint16_t {
+            flow,
+            flex
+        };
+
+        enum class flex_directions : uint16_t {
+            none,
+            row,
+            column
+        };
+
+        enum class layout_justifications : uint16_t {
+            start,
+            middle,
+            end,
+            full
+        };
+
+        view(
+            types::id type,
+            const std::string& name,
+            core::view_host* host);
 
         virtual ~view();
 
-        int id() const;
+        id_t id() const;
 
-        bool layout() const;
-
-        short index() const;
+        void initialize();
 
         core::rect& bounds();
 
@@ -73,31 +106,27 @@ namespace ryu::core {
 
         bool visible() const;
 
-        bool tabstop() const;
-
         core::view* parent();
+
+        bool tab_stop() const;
 
         void clear_children();
 
         view_list& children();
 
-        void requires_layout();
+        uint16_t index() const;
 
         types::id type() const;
 
-        void layout(bool value);
+        core::size& min_size();
 
         core::padding& margin();
-
-        void index(short value);
 
         core::padding& padding();
 
         void enabled(bool value);
 
         void visible(bool value);
-
-        void tabstop(bool value);
 
         std::string name() const;
 
@@ -107,21 +136,53 @@ namespace ryu::core {
 
         uint8_t fg_color() const;
 
-        dock::styles dock() const;
+        bool should_clip() const;
+
+        bool layout_wrap() const;
+
+        void tab_stop(bool value);
+
+        void index(uint16_t value);
 
         uint8_t font_style() const;
 
-        void dock(dock::styles style);
+        void should_clip(bool value);
+
+        template <typename T>
+        T* find_by_id(uint32_t id) {
+            if (_id == id)
+                return dynamic_cast<T*>(this);
+            for (auto child : _children) {
+                auto found = child->find_by_id<T>(id);
+                if (found != nullptr)
+                    return found;
+            }
+            return nullptr;
+        }
+
+        void layout_wrap(bool value);
+
+        core::dock::styles dock() const;
 
         void font_style(uint8_t styles);
 
         void add_child(core::view* child);
 
-        view::sizing::types sizing() const;
+        void next_view(core::view* value);
 
-        virtual core::rect client_bounds();
+        void prev_view(core::view* value);
+
+        virtual std::string value() const;
+
+        virtual core::rect inner_bounds();
+
+        void palette(core::palette* value);
+
+        core::border::types border() const;
 
         void draw(core::renderer& renderer);
+
+        void dock(core::dock::styles style);
 
         void focus(const core::view* target);
 
@@ -135,61 +196,114 @@ namespace ryu::core {
 
         const core::font_t* font_face() const;
 
-        void sizing(view::sizing::types value);
-
-        bool process_event(const SDL_Event* e);
-
         core::font_family* font_family() const;
 
         core::view* get_child_at(size_t index);
+
+        void border(core::border::types value);
+
+        view::layout_modes layout_mode() const;
 
         void margin(const core::padding& value);
 
         void padding(const core::padding& value);
 
-        void on_tab(const on_tab_callable& callable);
+        void font_family(core::font_family* value);
 
-        virtual void palette(core::palette* palette);
+        void layout_mode(view::layout_modes value);
 
-        void resize(const core::rect& context_bounds);
+        template <typename T>
+        T* find_by_name(const std::string& name) {
+            if (_name == name)
+                return dynamic_cast<T*>(this);
+            for (view* child : _children) {
+                auto found = child->find_by_name<T>(name);
+                if (found != nullptr)
+                    return found;
+            }
+            return nullptr;
+        }
 
-        virtual void font_family(core::font_family* font);
+        view::flex_directions flex_direction() const;
+
+        virtual void value(const std::string& value);
+
+        void flex_direction(view::flex_directions value);
+
+        view::layout_justifications layout_justification() const;
+
+        void update(uint32_t dt, core::pending_event_list& events);
+
+        void layout_justification(view::layout_justifications value);
 
     protected:
+        view_host* host();
+
         core::view* find_root();
 
         void inner_focus(bool value);
 
+        virtual void on_initialize();
+
         virtual void on_focus_changed();
+
+        void listen_for_on_host_change();
+
+        virtual void on_bounds_changed();
+
+        virtual void on_palette_changed();
+
+        virtual void on_font_family_changed();
+
+        core::input_action_provider& action_provider();
 
         virtual void on_draw(core::renderer& renderer);
 
-        virtual bool on_process_event(const SDL_Event* e);
-
-        virtual void draw_children(core::renderer& renderer);
-
-        virtual void on_resize(const core::rect& context_bounds);
+        virtual void on_update(uint32_t dt, core::pending_event_list& events);
 
     private:
-        int _id;
-        short _index = 0;
+        void bind_events();
+
+        void define_actions();
+
+        void render_list_sort();
+
+        void render_list_build();
+
+        void render_list_root_reset();
+
+        void on_host_changed(view_host::change_reason_flags flags);
+
+    private:
+        id_t _id;
         std::string _name;
+        std::string _value;
         core::rect _rect {};
-        uint8_t _bg_color = 0;
-        uint8_t _fg_color = 0;
+        uint16_t _index = 0;
+        id_t _host_callback_id;
         view_list _children {};
+        core::size _min_size {};
         core::padding _margin {};
+        view_list _render_list {};
         core::padding _padding {};
+        bool _layout_wrap = false;
+        core::view* _prev = nullptr;
+        core::view* _next = nullptr;
+        palette_index _bg_color = 0;
+        palette_index _fg_color = 0;
         core::view* _parent = nullptr;
         types::id _type = types::control;
-        on_tab_callable _on_tab_callable;
+        core::view_host* _host = nullptr;
         core::palette* _palette = nullptr;
         core::font_family* _font = nullptr;
+        layout_modes _mode = layout_modes::flow;
         uint8_t _font_style = font::styles::normal;
+        border::types _border = border::types::none;
         core::dock::styles _dock = dock::styles::none;
-        view::sizing::types _sizing = view::sizing::types::content;
+        core::input_action_provider _action_provider {};
+        flex_directions _direction = flex_directions::none;
         uint8_t _flags = config::flags::enabled | config::flags::visible;
+        layout_justifications _justification = layout_justifications::start;
     };
 
 };
-

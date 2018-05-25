@@ -23,11 +23,18 @@ namespace ryu::hardware::mc6809 {
 
         cpu();
 
+        uint32_t type_id() const override {
+            return ryu::hardware::cpu_id;
+        }
+
         endianness::types endianess() const override;
 
         core::assembly_language_parser* assembler() override;
 
         RTTR_ENABLE(hardware::integrated_circuit)
+
+    protected:
+        void on_initialize() override;
 
     private:
         static mnemonic_set _mnemonics;

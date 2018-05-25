@@ -14,8 +14,11 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <sstream>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <boost/variant.hpp>
+#include <boost/filesystem/path.hpp>
 
 namespace ryu::core {
 
@@ -35,9 +38,12 @@ namespace ryu::core {
             clear,
 
             add_symbol,
+            drop_symbols,
             remove_symbol,
             show_symbol_table,
 
+            peek,
+            poke,
             assemble,
             evaluate,
             disassemble,
@@ -56,6 +62,7 @@ namespace ryu::core {
             change_directory,
             print_working_directory,
 
+            target,
             new_project,
             edit_project,
             load_project,
@@ -68,6 +75,8 @@ namespace ryu::core {
             remove_project_file,
 
             new_environment,
+            apply_environment,
+            edit_environment,
             list_environments,
             remove_environment,
             switch_environment,
@@ -76,6 +85,7 @@ namespace ryu::core {
             edit_machine,
             delete_machine,
             use_machine,
+            memory_map,
 
             open_editor,
             source_editor,
@@ -85,6 +95,8 @@ namespace ryu::core {
             background_editor,
             module_editor,
             sample_editor,
+            actor_editor,
+            palette_editor,
 
             read_binary_to_memory,
             write_memory_to_binary,
@@ -157,7 +169,13 @@ namespace ryu::core {
         command_flags_t valid_sizes = command_size_flags::none;
         std::vector<command_parameter_spec_t> params {};
         std::string help {};
+        std::string category = "system";
+        uint32_t sequence {};
+        std::string full_help;
+        std::string command_name;
     };
+
+    typedef std::vector<command_spec_t> command_spec_list;
 
     struct command_t {
         command_spec_t spec;
@@ -182,6 +200,15 @@ namespace ryu::core {
                     break;
             }
             return stream;
+        }
+
+        static uint32_t size_to_byte_count(command_size_flags flags) {
+            switch (flags) {
+                default:    return 1;
+                case word:  return 2;
+                case dword: return 4;
+                case qword: return 8;
+            }
         }
 
         static command_size_flags token_to_size(const std::string& token) {
@@ -233,16 +260,16 @@ namespace ryu::core {
             switch (directive.type) {
                 case data: {
                     switch (directive.data_size) {
-                        case data_sizes::byte:
+                        case directive_t::data_sizes::byte:
                             stream << ".byte";
                             break;
-                        case data_sizes::word:
+                        case directive_t::data_sizes::word:
                             stream << ".word";
                             break;
-                        case data_sizes::dword:
+                        case directive_t::data_sizes::dword:
                             stream << ".dword";
                             break;
-                        case data_sizes::ascii:
+                        case directive_t::data_sizes::ascii:
                             stream << ".ascii";
                             break;
                         default:
@@ -355,7 +382,9 @@ namespace ryu::core {
             left_parenthesis,
             right_parenthesis,
             left_bracket,
-            right_bracket
+            right_bracket,
+            shift_left,
+            shift_right
         };
 
         enum op_type : uint8_t {
@@ -450,25 +479,65 @@ namespace ryu::core {
     };
 
     struct comment_t {
-        std::string value;
+        std::string value {};
 
-        friend std::ostream& operator<<(std::ostream& stream, const comment_t& comment) {
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const comment_t& comment) {
             stream << "* " << comment.value;
             return stream;
         }
     };
 
     struct identifier_t {
-        std::string value;
+        std::string value {};
 
-        friend std::ostream& operator<<(std::ostream& stream, const identifier_t& identifier) {
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const identifier_t& identifier) {
             stream << identifier.value;
             return stream;
         }
     };
 
     struct label_t {
-        std::string value;
+        std::string value {};
+
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
 
         friend std::ostream& operator<<(
                 std::ostream& stream,
@@ -479,16 +548,51 @@ namespace ryu::core {
     };
 
     struct string_literal_t {
-        std::string value;
+        std::string value {};
 
-        friend std::ostream& operator<<(std::ostream& stream, const string_literal_t& lit) {
+        inline bool empty() const {
+            return value.empty();
+        }
+
+        operator std::string() {
+            return value;
+        }
+
+        operator std::string() const {
+            return value;
+        }
+
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const string_literal_t& lit) {
             stream << "\"" << lit.value << "\"";
             return stream;
+        }
+
+        operator boost::filesystem::path() {
+            return value;
+        }
+
+        operator boost::filesystem::path() const {
+            return value;
         }
     };
 
     struct boolean_literal_t {
-        bool value;
+        bool value {};
+
+        operator bool() {
+            return value;
+        }
+        operator bool() const {
+            return value;
+        }
+        operator uint32_t() {
+            return value ? 1 : 0;
+        }
+        operator uint32_t() const {
+            return value ? 1 : 0;
+        }
         boolean_literal_t operator! () {
             return boolean_literal_t {!value};
         }
@@ -511,8 +615,14 @@ namespace ryu::core {
     };
 
     struct numeric_literal_t {
-        uint32_t value;
+        uint32_t value {};
 
+        operator uint32_t() {
+            return value;
+        }
+        operator uint32_t() const {
+            return value;
+        }
         numeric_literal_t operator~ () {
             return numeric_literal_t {~value};
         }
@@ -545,6 +655,12 @@ namespace ryu::core {
         numeric_literal_t operator^ (const numeric_literal_t& other) {
             return numeric_literal_t {value ^ other.value};
         }
+        numeric_literal_t operator<< (const numeric_literal_t& other) {
+            return numeric_literal_t {value << other.value};
+        }
+        numeric_literal_t operator>> (const numeric_literal_t& other) {
+            return numeric_literal_t {value >> other.value};
+        }
         boolean_literal_t operator< (const numeric_literal_t& other) {
             return boolean_literal_t {value < other.value};
         }
@@ -563,16 +679,27 @@ namespace ryu::core {
         boolean_literal_t operator>= (const numeric_literal_t& other) {
             return boolean_literal_t {value >= other.value};
         }
-        friend std::ostream& operator<<(std::ostream& stream, const numeric_literal_t& lit) {
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const numeric_literal_t& lit) {
             stream << lit.value;
             return stream;
         }
     };
 
     struct char_literal_t {
-        unsigned char value;
+        unsigned char value {};
 
+        operator unsigned char() {
+            return value;
+        }
+        operator unsigned char() const {
+            return value;
+        }
         operator numeric_literal_t() {
+            return numeric_literal_t {value};
+        }
+        operator numeric_literal_t() const {
             return numeric_literal_t {value};
         }
         boolean_literal_t operator== (const char_literal_t& other) {
@@ -593,7 +720,9 @@ namespace ryu::core {
         boolean_literal_t operator>= (const char_literal_t& other) {
             return boolean_literal_t {value >= other.value};
         }
-        friend std::ostream& operator<<(std::ostream& stream, const char_literal_t& lit) {
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const char_literal_t& lit) {
             stream << "'" << lit.value << "'";
             return stream;
         }
@@ -603,7 +732,9 @@ namespace ryu::core {
         uint32_t count;
         std::vector<numeric_literal_t> values;
 
-        friend std::ostream& operator<<(std::ostream& stream, const dup_literal_t& lit) {
+        friend std::ostream& operator<<(
+                std::ostream& stream,
+                const dup_literal_t& lit) {
             return stream;
         }
     };
@@ -647,12 +778,12 @@ namespace ryu::core {
             address,
             uninitialized_literal,
             location_counter_literal,
-            placeholder
+            redirection
         };
 
         void serialize(std::ostream& stream) {
             switch (token) {
-                case placeholder:
+                case redirection:
                     break;
                 case branch:
                     lhs->serialize(stream);
@@ -778,17 +909,75 @@ namespace ryu::core {
         uint32_t column = 0;
     };
 
-    typedef std::map<std::string, std::vector<core::variant_t>> command_parameter_dict;
+    typedef std::vector<core::variant_t> variant_list;
+    typedef std::map<std::string, variant_list> command_parameter_dict;
 
     struct command_handler_context_t {
         core::result& result;
         core::command_t& command;
         core::command_parameter_dict& params;
         const core::ast_node_shared_ptr& root;
+
+        variant_list get_variadic_parameters() const {
+            auto it = params.find("...");
+            if (it == params.end())
+                return {};
+            return it->second;
+        }
+
+        template <typename T>
+        T get_parameter(const std::string& name) const {
+            auto it = params.find(name);
+            if (it == params.end())
+                return {};
+            return boost::get<T>(it->second.front());
+        }
     };
 
     using command_handler_callable = std::function<bool (environment*, const command_handler_context_t&)>;
 
     typedef std::map<uint8_t, command_handler_callable> command_handler_dict;
 
+    struct parser_input_t {
+        static void split_to_lines(
+                const std::string& source,
+                std::vector<std::string>& source_lines) {
+            source_lines.clear();
+            std::stringstream stream;
+            stream << source << "\n";
+            std::string line;
+            while (std::getline(stream, line)) {
+                source_lines.push_back(line);
+            }
+        }
+
+        parser_input_t() : source("") {
+        }
+
+        explicit parser_input_t(const std::string& source) {
+            this->source = source;
+            split_to_lines(this->source, this->source_lines);
+        }
+
+        inline bool empty() const {
+            return source.empty();
+        }
+
+        inline size_t length() const {
+            return source.length();
+        }
+
+        inline std::string& operator[](size_t index) {
+            assert(index >= 0 && index < source_lines.size());
+            return source_lines[index];
+        }
+
+        inline const std::string& operator[](size_t index) const {
+            assert(index >= 0 && index < source_lines.size());
+            return source_lines[index];
+        }
+
+        std::string source;
+        std::vector<std::string> source_lines {};
+    };
 };

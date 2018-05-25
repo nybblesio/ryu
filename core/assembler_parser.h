@@ -149,7 +149,7 @@ namespace ryu::core {
 
         void register_operators();
 
-        ast_node_shared_ptr parse(const std::string& input) override;
+        ast_node_shared_ptr parse(const parser_input_t& input) override;
 
     protected:
         ast_node_shared_ptr parse_directive();

@@ -9,6 +9,7 @@
 
 #include <string>
 #include <rttr/registration>
+#include <core/core_types.h>
 #include <core/assembly_language_parser.h>
 #include "memory_map.h"
 #include "hardware_types.h"
@@ -37,6 +38,8 @@ namespace ryu::hardware {
 
         virtual ~integrated_circuit() = default;
 
+        void initialize();
+
         uint32_t id() const;
 
         virtual void zero();
@@ -53,23 +56,37 @@ namespace ryu::hardware {
                 uint32_t address,
                 integrated_circuit::endianness::types endianess) const;
 
-        virtual std::vector<uint8_t> write_word(
-                uint32_t address,
-                uint16_t value,
-                integrated_circuit::endianness::types endianess);
-
-        virtual std::vector<uint8_t> write_dword(
-                uint32_t address,
-                uint32_t value,
-                integrated_circuit::endianness::types endianess);
-
         void write_latch(bool enabled);
 
         uint32_t address_space() const;
 
         virtual void fill(uint8_t value);
 
+        virtual uint32_t type_id() const;
+
+        hardware::component* component();
+
         void address_space(uint32_t value);
+
+        virtual ryu::core::byte_list write_word(
+            uint32_t address,
+            uint16_t value,
+            integrated_circuit::endianness::types endianess);
+
+        virtual ryu::core::byte_list write_dword(
+            uint32_t address,
+            uint32_t value,
+            integrated_circuit::endianness::types endianess);
+
+        virtual bool is_video_generator() const {
+            return false;
+        }
+
+        virtual bool is_audio_generator() const {
+            return false;
+        }
+
+        void component(hardware::component* value);
 
         virtual endianness::types endianess() const;
 
@@ -86,16 +103,27 @@ namespace ryu::hardware {
         RTTR_ENABLE()
 
     protected:
+        void clear_memory_map();
+
+        void add_memory_map_entry(
+                uint32_t offset,
+                uint32_t size,
+                const std::string& name,
+                const std::string& description,
+                memory_map_entry::memory_map_entry_flags flags = memory_map_entry::flags::none);
+
+        void add_memory_map_entry(
+                uint32_t offset,
+                uint32_t size,
+                const std::string& name,
+                const std::string& description,
+                const memory_map_entry::read_callable& reader,
+                const memory_map_entry::write_callable& writer,
+                memory_map_entry::memory_map_entry_flags flags = memory_map_entry::flags::none);
+
+        virtual void on_initialize();
+
         virtual void on_address_space_changed();
-
-        inline bool is_platform_little_endian() const {
-            int n = 1;
-            return (*(char*)&n) == 1;
-        }
-
-        uint16_t endian_swap_word(uint16_t value) const;
-
-        uint32_t endian_swap_dword(uint32_t value) const;
 
     private:
         uint32_t _id {};
@@ -103,6 +131,7 @@ namespace ryu::hardware {
         bool _write_latch {};
         uint32_t _address_space;
         hardware::memory_map _memory_map;
+        hardware::component* _component = nullptr;
     };
 
 };

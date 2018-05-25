@@ -17,6 +17,7 @@
 #include "palette.h"
 #include "renderer.h"
 #include "state_stack.h"
+#include "input_action_provider.h"
 
 namespace ryu::core {
 
@@ -30,18 +31,19 @@ namespace ryu::core {
 
         void update(
                 uint32_t dt,
-                core::renderer& renderer,
-                event_list& events);
+                pending_event_list& pending_events,
+                core::renderer& renderer);
 
         void resize();
 
         void add_state(
+                core::result& result,
                 core::state* state,
                 const state_transition_callable& callback);
 
-        void blackboard(
-                const std::string& name,
-                const std::string& value);
+        void add_state(
+                core::result& result,
+                core::state* state);
 
         void push_state(
                 int id,
@@ -59,6 +61,14 @@ namespace ryu::core {
 
         uint8_t bg_color() const {
             return _bg_color;
+        }
+
+        core::palette& palette() {
+            return _palette;
+        }
+
+        core::preferences* prefs() {
+            return _engine->prefs();
         }
 
         void fg_color(uint8_t index) {
@@ -83,19 +93,11 @@ namespace ryu::core {
             return _name;
         }
 
-        inline core::rect bounds() const {
-            return _bounds;
-        }
-
         void engine(core::engine* value) {
             _engine = value;
         }
 
-        void add_state(core::state* state);
-
         void draw(core::renderer& renderer);
-
-        void palette(core::palette* palette);
 
         inline core::engine* engine() const {
             return _engine;
@@ -103,16 +105,16 @@ namespace ryu::core {
 
         void remove_state(core::state* state);
 
-        inline core::palette* palette() const {
-            return _palette;
-        }
-
         inline core::state* find_state(int id) {
             return _stack.find_state(id);
         }
 
         inline core::environment* environment() {
             return _environment.get();
+        }
+
+        inline const core::rect& bounds() const {
+            return _bounds;
         }
 
         void font_face(const core::font_t* value);
@@ -124,16 +126,12 @@ namespace ryu::core {
             resize();
         }
 
-        void erase_blackboard(const std::string& name);
-
-        std::string blackboard(const std::string& name) const;
-
     protected:
         virtual void on_draw(core::renderer& surface);
 
-        virtual bool on_initialize(core::result& result);
+        core::input_action_provider& action_provider();
 
-        virtual bool on_process_event(const SDL_Event* e);
+        virtual bool on_initialize(core::result& result);
 
     private:
         uint32_t _id = 0;
@@ -141,14 +139,13 @@ namespace ryu::core {
         uint8_t _fg_color = 0;
         uint8_t _bg_color = 0;
         core::rect _bounds {};
+        core::palette _palette {};
         core::state_stack _stack {};
-        core::blackboard _blackboard {};
         core::engine* _engine = nullptr;
-        core::palette* _palette = nullptr;
         const core::font_t* _font = nullptr;
         core::font_family* _family = nullptr;
+        core::input_action_provider _action_provider;
         std::unique_ptr<core::environment> _environment;
     };
 
 };
-

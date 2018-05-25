@@ -9,6 +9,7 @@
 //
 
 #include <fmt/format.h>
+#include <common/bytes.h>
 #include <core/evaluator.h>
 #include <core/core_types.h>
 #include <hardware/machine.h>
@@ -16,7 +17,7 @@
 #include <boost/filesystem.hpp>
 #include <core/command_parser.h>
 #include <common/string_support.h>
-#include <boost/algorithm/string.hpp>
+#include <common/stream_support.h>
 #include "assembler.h"
 #include "environment.h"
 #include "project_file.h"
@@ -45,6 +46,18 @@ namespace ryu::core {
             std::bind(&environment::on_add_symbol, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::drop_symbols,
+            std::bind(&environment::on_drop_symbols, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
+            core::command::types::edit_environment,
+            std::bind(&environment::on_edit_environment, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
+            core::command::types::apply_environment,
+            std::bind(&environment::on_apply_environment, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::remove_symbol,
             std::bind(&environment::on_remove_symbol, std::placeholders::_1, std::placeholders::_2)
         },
@@ -53,8 +66,20 @@ namespace ryu::core {
             std::bind(&environment::on_show_symbol_table, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::peek,
+            std::bind(&environment::on_peek_memory, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
+            core::command::types::poke,
+            std::bind(&environment::on_poke_memory, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::assemble,
             std::bind(&environment::on_assemble, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
+            core::command::types::target,
+            std::bind(&environment::on_set_target, std::placeholders::_1, std::placeholders::_2)
         },
         {
             core::command::types::evaluate,
@@ -185,6 +210,10 @@ namespace ryu::core {
             std::bind(&environment::on_delete_machine, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::memory_map,
+            std::bind(&environment::on_memory_map, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::use_machine,
             std::bind(&environment::on_use_machine, std::placeholders::_1, std::placeholders::_2)
         },
@@ -221,6 +250,14 @@ namespace ryu::core {
             std::bind(&environment::on_sample_editor, std::placeholders::_1, std::placeholders::_2)
         },
         {
+            core::command::types::actor_editor,
+            std::bind(&environment::on_actor_editor, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
+            core::command::types::palette_editor,
+            std::bind(&environment::on_palette_editor, std::placeholders::_1, std::placeholders::_2)
+        },
+        {
             core::command::types::read_binary_to_memory,
             std::bind(&environment::on_read_binary_to_memory, std::placeholders::_1, std::placeholders::_2)
         },
@@ -247,31 +284,28 @@ namespace ryu::core {
     };
 
     static void format_numeric_conversion(
-            int32_t value,
+            uint32_t value,
             core::command_size_flags size,
             std::vector<std::string>& results) {
 
         std::string ascii;
-        std::string signed_fmt_spec,
+        std::string hex_fmt_spc,
                 decimal_fmt_spec,
                 ascii_fmt_spec,
                 binary_fmt_spec;
 
-        uint32_t mask = 0;
         auto byte_count = 0;
         switch (size) {
             case core::command_size_flags::byte:
                 byte_count = 1;
-                mask = 0xff;
-                signed_fmt_spec = "${0:02x}";
+                hex_fmt_spc = "${0:02x}";
                 decimal_fmt_spec = "{0:>3}";
                 ascii_fmt_spec = "\"{0:>1}\"";
                 binary_fmt_spec = "%{0:08b}";
                 break;
             case core::command_size_flags::word:
                 byte_count = 2;
-                mask = 0xffff;
-                signed_fmt_spec = "${0:04x}";
+                hex_fmt_spc = "${0:04x}";
                 decimal_fmt_spec = "{0:>5}";
                 ascii_fmt_spec = "\"{0:>2}\"";
                 binary_fmt_spec = "%{0:016b}";
@@ -279,8 +313,7 @@ namespace ryu::core {
             case core::command_size_flags::none:
             case core::command_size_flags::dword:
                 byte_count = 4;
-                mask = 0xffffffff;
-                signed_fmt_spec = "${0:08x}";
+                hex_fmt_spc = "${0:08x}";
                 decimal_fmt_spec = "{0:>10}";
                 ascii_fmt_spec = "\"{0:>4}\"";
                 binary_fmt_spec = "%{0:032b}";
@@ -296,31 +329,25 @@ namespace ryu::core {
             ascii += isprint(c) ? c : '.';
         }
 
-        auto signed_value = value & mask;
-
-        results.push_back(fmt::format(signed_fmt_spec, signed_value));
-        results.push_back(fmt::format(decimal_fmt_spec, value));
+        results.push_back(fmt::format(hex_fmt_spc, value));
+        if ((value & 0b10000000000000000000000000000000) != 0)
+            results.push_back(fmt::format(decimal_fmt_spec, static_cast<int32_t>(value)));
+        else
+            results.push_back(fmt::format(decimal_fmt_spec, value));
         results.push_back(fmt::format(ascii_fmt_spec, ascii));
-        results.push_back(fmt::format(binary_fmt_spec, signed_value));
+        results.push_back(fmt::format(binary_fmt_spec, value));
     }
 
     environment::environment() : _assembler(std::make_unique<core::assembler>()),
-                                 _symbol_table(std::make_unique<core::symbol_table>()) {
+                                 _evaluator(std::make_unique<core::evaluator>(_assembler.get())),
+                                 _symbol_table(std::make_unique<core::symbol_table>()),
+                                 _command_parser(std::make_unique<core::command_parser>()) {
+        _evaluator->symbol_table(_symbol_table.get());
+        _assembler->symbol_table(_symbol_table.get());
+        _command_parser->symbol_table(_symbol_table.get());
     }
 
     environment::~environment() {
-    }
-
-    bool environment::load(
-            core::result& result,
-            std::iostream& stream) {
-        return false;
-    }
-
-    bool environment::save(
-            core::result& result,
-            std::iostream& stream) {
-        return false;
     }
 
     bool environment::execute(
@@ -328,23 +355,20 @@ namespace ryu::core {
             const std::string& line) {
         using namespace boost::filesystem;
 
-        core::command_parser parser;
-        parser.symbol_table(_symbol_table.get());
-
-        auto root = parser.parse(line);
-        if (root == nullptr || parser.result().is_failed()) {
-            for (auto& msg : parser.result().messages())
+        parser_input_t input{line};
+        auto root = _command_parser->parse(input);
+        if (root == nullptr || _command_parser->result().is_failed()) {
+            for (auto& msg : _command_parser->result().messages())
                 result.add_message(msg.code(), msg.message(), msg.is_error());
             result.fail();
             return false;
         }
 
-        auto command = boost::get<core::command_t>(root->value);
-        core::evaluator evaluator(_assembler.get());
-        evaluator.symbol_table(_symbol_table.get());
+        auto command = root->command_type();
+        auto statement_node = root->lhs;
 
         core::command_parameter_dict params;
-        if (root->children.empty()) {
+        if (statement_node->rhs->children.empty()) {
             for (const auto& param_spec : command.spec.params) {
                 if (param_spec.required) {
                     result.add_message(
@@ -355,12 +379,12 @@ namespace ryu::core {
                 }
             }
         } else {
-            auto idx = 0;
+            size_t idx = 0;
             for (const auto& param_spec : command.spec.params) {
                 std::vector<core::variant_t>* values = nullptr;
 
                 if (param_spec.required) {
-                    if (idx >= root->children.size()) {
+                    if (idx >= statement_node->rhs->children.size()) {
                         result.add_message(
                                 "C801",
                                 fmt::format("the parameter <italic>'{}'<> is required.", param_spec.name),
@@ -370,7 +394,7 @@ namespace ryu::core {
                     }
                 }
 
-                if (idx >= root->children.size())
+                if (idx >= statement_node->rhs->children.size())
                     break;
 
                 auto it = params.find(param_spec.name);
@@ -382,8 +406,8 @@ namespace ryu::core {
                 values = &it->second;
 
                 auto value = param_spec.evaluate ?
-                             evaluator.evaluate(result, root->children[idx]) :
-                             root->children[idx]->value;
+                             _evaluator->evaluate(result, statement_node->rhs->children[idx]) :
+                             statement_node->rhs->children[idx]->value;
 
                 if (result.is_failed())
                     break;
@@ -405,10 +429,10 @@ namespace ryu::core {
                     values->push_back(value);
 
                     ++idx;
-                    while (idx < root->children.size()) {
+                    while (idx < statement_node->rhs->children.size()) {
                         value = param_spec.evaluate ?
-                                evaluator.evaluate(result, root->children[idx++]) :
-                                root->children[idx]->value;
+                                _evaluator->evaluate(result, statement_node->rhs->children[idx++]) :
+                                statement_node->rhs->children[idx]->value;
                         if (result.is_failed())
                             break;
                         values->push_back(value);
@@ -429,6 +453,14 @@ namespace ryu::core {
             return false;
         }
 
+        if (!root->rhs->children.empty()) {
+            auto redirection_node = root->rhs->children[0];
+            auto redirection_symbol = redirection_node->lhs->string_literal_type();
+            if (redirection_symbol == "|") {
+                result.add_data("pipe_to_more", {{"enabled", true}});
+            }
+        }
+
         return handler_it->second(this, {result, command, params, root});
     }
 
@@ -444,6 +476,16 @@ namespace ryu::core {
 
     void environment::name(const std::string& value) {
         _name = value;
+    }
+
+    void environment::format_data_bytes(
+            std::stringstream& stream,
+            uint32_t address,
+            const byte_list& bytes) {
+        stream << fmt::format("{:08x}: ", address);
+        for (auto byte_value : bytes)
+            stream << fmt::format("{:02x}", byte_value);
+        stream << "\n";
     }
 
     data_table_t environment::create_symbol_table() {
@@ -467,29 +509,61 @@ namespace ryu::core {
         return table;
     }
 
-    bool environment::assemble(core::result& result) {
-        if (core::project::instance() == nullptr) {
-            result.add_message(
-                    "A001",
-                    "no project is loaded; assemble failed",
-                    true);
+    bool environment::assemble(
+            core::result& result,
+            core::project_file* file) {
+        if (!file->should_assemble())
             return false;
+
+        std::stringstream source;
+        if (!file->read_text(result, source))
+            return false;
+
+        auto source_text = source.str();
+        return _assembler->assemble(result, parser_input_t {source_text});
+    }
+
+    bool environment::apply_environment(
+            core::result& result,
+            core::project_file* file) {
+        if (!has_valid_project(result))
+            return false;
+
+        _symbol_table->clear();
+
+        if (file != nullptr) {
+            result.add_message(
+                    "E001",
+                    fmt::format("Apply Environment: <bold>{}<>", file->name()));
+            result.add_message(
+                    "E001",
+                    fmt::format("Assemble: \n  <italic>{}<>\n", file->full_path()));
+            if (assemble(result, file)) {
+                name(file->name());
+            }
+
+            auto listing_table = _assembler->listing().table();
+
+            if (listing_table.rows.size() > 2) {
+                result.add_data(
+                        "command_result",
+                        {
+                                {"listing", listing_table},
+                                {"symbols", create_symbol_table()}
+                        });
+            }
         }
 
-        _assembler->symbol_table(_symbol_table.get());
+        return !result.is_failed();
+    }
+
+    bool environment::assemble(core::result& result) {
+        if (!has_valid_project_and_machine(result))
+            return false;
 
         auto files = core::project::instance()->files();
-        for (auto& file : files) {
-            if (!file.should_assemble())
-                continue;
-
-            std::stringstream source;
-            if (!file.read(result, source))
-                break;
-
-            auto source_text = source.str();
-            if (!_assembler->assemble(result, source_text))
-                break;
+        for (const auto& file : files) {
+            assemble(result, file.get());
         }
 
         auto listing_table = _assembler->listing().table();
@@ -513,7 +587,7 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("quit")}});
+                {{"action", core::system_commands::quit}});
         return true;
     }
 
@@ -521,83 +595,149 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using format_options = core::data_table_column_t::format_options;
 
-        const auto commands = core::command_parser::command_catalog();
+        auto build_command_spec = [](std::stringstream& stream, const command_spec_t& cmd_spec) {
+            stream << cmd_spec.command_name;
 
-        data_table_t table{};
-        table.line_spacing = 1;
-        table.headers.push_back({
-                "Command",
-                20,
-                40,
-                alignment::horizontal::left,
-                1,
-                format_options::style_codes
-        });
-        table.headers.push_back({
-                "Help",
-                35,
-                75,
-                alignment::horizontal::left,
-                1,
-                format_options::style_codes | format_options::word_wrap
-        });
-        table.footers.push_back({"Command Count", 15, 20});
-
-        for (const auto& c : commands) {
-            data_table_row_t row{};
-
-            std::stringstream stream;
-            stream << c.first;
-
-            if (c.second.valid_sizes != core::command_size_flags::none) {
+            if (cmd_spec.valid_sizes != core::command_size_flags::none) {
                 stream << "<italic>[.";
 
-                if ((c.second.valid_sizes & core::command_size_flags::byte) != 0) {
+                if ((cmd_spec.valid_sizes & core::command_size_flags::byte) != 0) {
                     stream << "b";
                 }
 
-                if ((c.second.valid_sizes & core::command_size_flags::word) != 0) {
+                if ((cmd_spec.valid_sizes & core::command_size_flags::word) != 0) {
                     stream << "|w";
                 }
 
-                if ((c.second.valid_sizes & core::command_size_flags::dword) != 0) {
+                if ((cmd_spec.valid_sizes & core::command_size_flags::dword) != 0) {
                     stream << "|dw";
                 }
 
-                if ((c.second.valid_sizes & core::command_size_flags::qword) != 0) {
+                if ((cmd_spec.valid_sizes & core::command_size_flags::qword) != 0) {
                     stream << "|qw";
                 }
 
                 stream << "]<>";
             }
 
-            if (!c.second.params.empty()) {
+            if (!cmd_spec.params.empty()) {
                 stream << " ";
-                for (size_t i = 0; i < c.second.params.size(); i++) {
-                    auto param_spec = c.second.params[i];
+                for (size_t i = 0; i < cmd_spec.params.size(); i++) {
+                    auto param_spec = cmd_spec.params[i];
                     if (param_spec.required) {
                         stream << "<bold>" << param_spec.name << "<>";
                     } else {
                         stream << "<italic>[" << param_spec.name << "]<>";
                     }
-                    if (i < c.second.params.size() - 1)
+                    if (i < cmd_spec.params.size() - 1)
                         stream << " ";
                 }
             }
+        };
 
-            row.columns.push_back(stream.str());
-            row.columns.push_back(c.second.help);
+        const auto commands = core::command_parser::command_catalog();
 
-            table.rows.push_back(row);
+        auto command_name = context.get_parameter<core::string_literal_t>("cmd");
+        if (!command_name.empty()) {
+            auto command_it = commands.find(command_name);
+            if (command_it != commands.end()) {
+                std::stringstream stream;
+                auto cmd_spec = command_it->second;
+                cmd_spec.command_name = command_it->first;
+                build_command_spec(stream, cmd_spec);
+
+                context.result.add_message("H001", "\n<rev> Command Syntax <>");
+                context.result.add_message("H001", stream.str());
+                context.result.add_message("H001", "\n<rev> Category       <>");
+                context.result.add_message("H001", cmd_spec.category);
+                context.result.add_message("H001", "\n<rev> Overview       <>");
+                context.result.add_message("H001", cmd_spec.help);
+                context.result.add_message("H001", "\n<rev> Details        <>");
+                context.result.add_message("H001", cmd_spec.full_help);
+            }
+        } else {
+            data_table_t table{};
+            table.line_spacing = 1;
+            table.headers.push_back({
+                    "Category",
+                    20,
+                    20,
+                    alignment::horizontal::left,
+                    1,
+                    format_options::style_codes
+            });
+            table.headers.push_back({
+                    "Command",
+                    35,
+                    35,
+                    alignment::horizontal::left,
+                    1,
+                    format_options::style_codes
+            });
+            table.headers.push_back({
+                    "Help",
+                    60,
+                    60,
+                    alignment::horizontal::left,
+                    1,
+                    format_options::style_codes | format_options::word_wrap
+            });
+            table.footers.push_back({"Command Count", 15, 20});
+
+            std::map<std::string, std::shared_ptr<command_spec_list>> categorized_commands;
+
+            for (auto c : commands) {
+                std::shared_ptr<command_spec_list> spec_list = nullptr;
+
+                auto spec_it = categorized_commands.find(c.second.category);
+                if (spec_it == categorized_commands.end()) {
+                    spec_list = std::make_shared<command_spec_list>();
+                    categorized_commands.insert(std::make_pair(c.second.category, spec_list));
+                } else {
+                    spec_list = spec_it->second;
+                }
+
+                c.second.command_name = c.first;
+                spec_list->push_back(c.second);
+            }
+
+            for (const auto c : categorized_commands) {
+                auto sorted_list = *(c.second);
+                std::sort(
+                        sorted_list.begin(),
+                        sorted_list.end(),
+                        [](const command_spec_t& l, const command_spec_t& r) {
+                            return l.category < r.category && l.sequence < r.sequence;
+                        });
+
+                std::string category_name;
+
+                for (const auto& cmd_spec : sorted_list) {
+                    data_table_row_t row{};
+
+                    if (category_name != cmd_spec.category) {
+                        category_name = cmd_spec.category;
+                        row.columns.push_back(category_name);
+                    } else {
+                        row.columns.emplace_back("");
+                    }
+
+                    std::stringstream stream;
+                    build_command_spec(stream, cmd_spec);
+
+                    row.columns.push_back(stream.str());
+                    row.columns.push_back(cmd_spec.help);
+
+                    table.rows.push_back(row);
+                }
+            }
+
+            table.rows.push_back({
+                 {fmt::format("{} available commands", commands.size())}
+            });
+
+            context.result.add_data("command_result", {{"data", table}});
         }
-
-        table.rows.push_back({
-                {fmt::format("{} available commands", commands.size())}
-        });
-
-        context.result.add_data(
-                "command_result",
-                {{"data", table}});
 
         return true;
     }
@@ -606,16 +746,18 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("clear")}});
+                {{"action", core::system_commands::clear}});
         return true;
     }
 
     bool environment::on_open_editor(
             const command_handler_context_t& context) {
-        core::parameter_dict dict;
+        auto name = context.get_parameter<core::string_literal_t>("name");
+        auto type = context.get_parameter<core::identifier_t>("type");
 
-        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
-        auto type = boost::get<core::identifier_t>(context.params["type"].front()).value;
+        if (project_file_type::does_type_require_project(type)
+        && !has_valid_project(context.result))
+            return false;
 
         context.result.add_data("command_action", {
                 {"action", project_file_type::code_to_action(type)},
@@ -633,21 +775,78 @@ namespace ryu::core {
         return assemble(context.result);
     }
 
+    bool environment::on_set_target(
+            const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+        auto name = context.get_parameter<string_literal_t>("name");
+        return _assembler->load_target(context.result, name);
+    }
+
     bool environment::on_add_symbol(
             const command_handler_context_t& context) {
-        auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
-        _symbol_table->put(identifier, context.root->children[1]);
-        return true;
+        auto statement_node = context.root->lhs;
+        if (statement_node->rhs->children.size() == 2) {
+            auto identifier = context.get_parameter<core::identifier_t>("name");
+            _symbol_table->put(identifier, statement_node->rhs->children[1]);
+        } else {
+            context.result.add_message(
+                "C007",
+                "set command requires two parameters",
+                true);
+        }
+
+        return !context.result.is_failed();
+    }
+
+    bool environment::on_drop_symbols(
+            const command_handler_context_t& context) {
+        _symbol_table->clear();
+        context.result.add_message("C006", "Symbol table cleared.");
+        return !context.result.is_failed();
+    }
+
+    bool environment::on_edit_environment(
+            const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
+
+        core::project_file* active_environment = nullptr;
+
+        auto name = context.get_parameter<core::string_literal_t>("name");
+        if (name.empty()) {
+            active_environment = core::project::instance()->active_environment();
+        } else {
+            active_environment = core::project::instance()->find_file(name);
+        }
+
+        if (active_environment == nullptr) {
+            context.result.add_message(
+                    "C032",
+                    fmt::format("no environment file exists: {}", name),
+                    true);
+            return false;
+        }
+
+        context.result.add_data("command_action", {
+                {"action", project_file_type::code_to_action("text")},
+                {"name", active_environment->full_path().string()}
+        });
+
+        return false;
     }
 
     bool environment::on_disassemble(
             const command_handler_context_t& context) {
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
         return true;
     }
 
     bool environment::on_remove_symbol(
             const command_handler_context_t& context) {
-        auto identifier = boost::get<core::identifier_t>(context.params["name"].front()).value;
+        auto identifier = context.get_parameter<core::identifier_t>("name");
         _symbol_table->remove(identifier);
         return true;
     }
@@ -674,31 +873,29 @@ namespace ryu::core {
         auto dump_count = 0;
         parameter_dict params;
 
-        const auto& values = context.params["..."];
+        const auto& values = context.get_variadic_parameters();
         for (const auto& param : values) {
             switch (param.which()) {
                 case core::variant::types::char_literal: {
-                    auto value = boost::get<core::char_literal_t>(param).value;
                     std::vector<std::string> results;
                     format_numeric_conversion(
-                            value,
+                            boost::get<core::char_literal_t>(param),
                             context.command.size,
                             results);
                     conversion_table.rows.push_back({results});
                     break;
                 }
                 case core::variant::types::numeric_literal: {
-                    auto value = boost::get<core::numeric_literal_t>(param).value;
                     std::vector<std::string> results;
                     format_numeric_conversion(
-                            value,
+                            boost::get<core::numeric_literal_t>(param),
                             context.command.size,
                             results);
                     conversion_table.rows.push_back({results});
                     break;
                 }
                 case core::variant::types::string_literal: {
-                    auto value = boost::get<core::string_literal_t>(param).value;
+                    auto value = static_cast<std::string>(boost::get<core::string_literal_t>(param));
                     std::vector<std::vector<std::string>> lines;
                     auto table = core::hex_formatter::dump_to_table(
                             static_cast<const void*>(value.c_str()),
@@ -709,10 +906,9 @@ namespace ryu::core {
                     break;
                 }
                 case core::variant::types::boolean_literal: {
-                    auto value = boost::get<core::boolean_literal_t>(param).value;
                     std::vector<std::string> results;
                     format_numeric_conversion(
-                            value,
+                            boost::get<core::boolean_literal_t>(param),
                             core::command_size_flags::byte,
                             results);
                     conversion_table.rows.push_back({results});
@@ -737,28 +933,153 @@ namespace ryu::core {
     // ----------------------------------------------------------
     // memory commands
     // ----------------------------------------------------------
+    bool environment::on_peek_memory(
+            const command_handler_context_t& context) {
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+        _assembler->location_counter(addr);
+
+        std::vector<uint8_t> data_bytes {};
+        switch (context.command.size) {
+            case command_size_flags::none:
+            case command_size_flags::byte:
+                data_bytes = _assembler->read_data(directive_t::data_sizes::byte);
+                break;
+            case command_size_flags::word:
+                data_bytes = _assembler->read_data(directive_t::data_sizes::word);
+                break;
+            case command_size_flags::dword:
+                data_bytes = _assembler->read_data(directive_t::data_sizes::dword);
+                break;
+            default:
+                break;
+        }
+
+        std::stringstream stream;
+        format_data_bytes(stream, addr, data_bytes);
+
+        context.result.add_data("command_result", {{"data", stream.str()}});
+
+        return !context.result.is_failed();
+    }
+
+    bool environment::on_poke_memory(
+            const command_handler_context_t& context) {
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+        _assembler->location_counter(addr);
+
+        const auto& values = context.get_variadic_parameters();
+        for (const auto& param : values) {
+            uint32_t data_value = 0;
+
+            switch (param.which()) {
+                case core::variant::types::char_literal: {
+                    data_value = boost::get<core::char_literal_t>(param);
+                    break;
+                }
+                case core::variant::types::numeric_literal: {
+                    data_value = boost::get<core::numeric_literal_t>(param);
+                    break;
+                }
+                case core::variant::types::string_literal: {
+                    auto string_value = boost::get<core::string_literal_t>(param);
+                    break;
+                }
+                case core::variant::types::boolean_literal: {
+                    data_value = boost::get<core::boolean_literal_t>(param);
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+
+            switch (context.command.size) {
+                case command_size_flags::none:
+                case command_size_flags::byte:
+                    _assembler->write_data(directive_t::data_sizes::byte, data_value);
+                    break;
+                case command_size_flags::word:
+                    _assembler->write_data(directive_t::data_sizes::word, data_value);
+                    break;
+                case command_size_flags::dword:
+                    _assembler->write_data(directive_t::data_sizes::dword, data_value);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return !context.result.is_failed();
+    }
+
     bool environment::on_copy_memory(
             const command_handler_context_t& context) {
-        return true;
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
+        auto dest_address = context.get_parameter<core::numeric_literal_t>("dest");
+        auto src_address = context.get_parameter<core::numeric_literal_t>("src");
+        auto count = context.get_parameter<core::numeric_literal_t>("count");
+        auto byte_count = command_t::size_to_byte_count(context.command.size);
+
+        for (size_t i = 0; i < count * byte_count; i++) {
+            _assembler->location_counter(src_address + i);
+            auto data_bytes = _assembler->read_data(directive_t::data_sizes::byte);
+            _assembler->location_counter(dest_address + i);
+            _assembler->write_data(directive_t::data_sizes::byte, data_bytes.front());
+        }
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_fill_memory(
             const command_handler_context_t& context) {
-        return true;
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+        _assembler->location_counter(addr);
+
+        auto count = context.get_parameter<core::numeric_literal_t>("count");
+        auto value = context.get_parameter<core::numeric_literal_t>("value");
+        auto byte_count = command_t::size_to_byte_count(context.command.size);
+
+        for (size_t i = 0; i < count / byte_count; i++) {
+            switch (context.command.size) {
+                case command_size_flags::none:
+                case command_size_flags::byte:
+                    _assembler->write_data(directive_t::data_sizes::byte, value);
+                    break;
+                case command_size_flags::word:
+                    _assembler->write_data(directive_t::data_sizes::word, value);
+                    break;
+                case command_size_flags::dword:
+                    _assembler->write_data(directive_t::data_sizes::dword, value);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_dump_memory(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C033",
-                    "no project is loaded; dump memory failed",
-                    true);
+        if (!has_valid_project_machine_and_target(context.result))
             return false;
-        }
 
-        auto buffer = new uint8_t[128];
-        auto addr = boost::get<core::numeric_literal_t>(context.params["addr"].front()).value;
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+        auto bytes = context.get_parameter<core::numeric_literal_t>("bytes");
+
+        auto byte_count = std::max<uint32_t>(bytes.value, 128);
+        auto buffer = new uint8_t[byte_count];
 
         auto machine = core::project::instance()->machine();
         if (machine == nullptr) {
@@ -769,7 +1090,7 @@ namespace ryu::core {
             return false;
         }
 
-        for (size_t i = 0; i < 128; i++) {
+        for (size_t i = 0; i < byte_count; i++) {
             buffer[i] = machine
                     ->mapper()
                     ->read_byte(static_cast<uint32_t>(addr + i));
@@ -780,7 +1101,7 @@ namespace ryu::core {
             {
                 {
                     "data",
-                    core::hex_formatter::dump_to_table(buffer, 128, 16)
+                    core::hex_formatter::dump_to_table(buffer, byte_count, 16)
                 }
             });
 
@@ -791,20 +1112,116 @@ namespace ryu::core {
 
     bool environment::on_search_memory(
             const command_handler_context_t& context) {
-        return true;
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr").value;
+        auto count = context.get_parameter<core::numeric_literal_t>("count");
+        auto byte_count = command_t::size_to_byte_count(context.command.size);
+        auto value = context.get_parameter<core::numeric_literal_t>("value").value;
+
+        address_list matched_addresses {};
+
+        for (size_t i = 0; i < count; i++) {
+            _assembler->location_counter(addr);
+            switch (context.command.size) {
+                case command_size_flags::none:
+                case command_size_flags::byte: {
+                    auto data_bytes = _assembler->read_data(directive_t::data_sizes::byte);
+                    if (value == data_bytes.front()) {
+                        matched_addresses.push_back(_assembler->location_counter());
+                    }
+                    break;
+                }
+                case command_size_flags::word: {
+                    auto data_bytes = _assembler->read_data(directive_t::data_sizes::word);
+                    auto endian_correct_value = static_cast<uint16_t>(value);
+                    if (is_platform_little_endian()) {
+                        endian_correct_value = endian_swap_word(endian_correct_value);
+                    }
+                    auto memory_word = *(reinterpret_cast<uint16_t*>(data_bytes.data()));
+                    if (memory_word == endian_correct_value)
+                        matched_addresses.push_back(_assembler->location_counter());
+                    break;
+                }
+                case command_size_flags::dword: {
+                    auto data_bytes = _assembler->read_data(directive_t::data_sizes::dword);
+                    auto endian_correct_value = value;
+                    if (is_platform_little_endian()) {
+                        endian_correct_value = endian_swap_dword(endian_correct_value);
+                    }
+                    auto memory_dword = *(reinterpret_cast<uint32_t*>(data_bytes.data()));
+                    if (memory_dword == endian_correct_value)
+                        matched_addresses.push_back(_assembler->location_counter());
+                    break;
+                }
+                default:
+                    break;
+            }
+            addr += byte_count;
+        }
+
+        data_table_t table {};
+        table.headers.push_back({"Address", 8, 8});
+        for (auto i = 0; i < 8; i++)
+            table.headers.push_back({fmt::format("{:02x}", i), 2, 2});
+        for (auto i = 0; i < 8; i++) {
+            table.headers.push_back({
+                    "",
+                    1,
+                    1,
+                    core::alignment::horizontal::types::left,
+                    0
+            });
+        }
+        table.footers.push_back({"Locations Found Count", 20, 20});
+
+        for (auto matched_address : matched_addresses) {
+            data_table_row_t row {};
+
+            row.columns.push_back(fmt::format("{:08x}", matched_address));
+
+            byte_list data_bytes {};
+            for (auto i = 0; i < 8; i++) {
+                _assembler->location_counter(matched_address + i);
+                data_bytes.push_back(_assembler->read_data(directive_t::data_sizes::byte).front());
+            }
+
+            for (auto i = 0; i < 8; i++) {
+                row.columns.push_back(fmt::format("{:02x}", data_bytes[i]));
+            }
+
+            for (auto i = 0; i < 8; i++) {
+                row.columns.push_back(fmt::format(
+                        "{}",
+                        (char) (isprint(data_bytes[i]) ? data_bytes[i] : '.')));
+            }
+
+            table.rows.push_back(row);
+        }
+
+        table.rows.push_back({{fmt::format(
+                "{} locations matched",
+                matched_addresses.size())}});
+
+        context.result.add_data("command_result", {{"data", table}});
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_memory_editor(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C033",
-                    "no project is loaded; unable to open memory editor",
-                    true);
+        if (!has_valid_project_machine_and_target(context.result))
             return false;
-        }
 
-        context.result.add_data("command_action", {{"action", std::string("edit_memory")}});
+        auto addr = context.get_parameter<core::numeric_literal_t>("addr");
+
+        context.result.add_data(
+                "command_action",
+                {
+                    {"action", core::system_commands::edit_memory},
+                    {"addr", addr.value}
+                });
         return true;
     }
 
@@ -829,12 +1246,72 @@ namespace ryu::core {
 
     bool environment::on_read_binary_to_memory(
             const command_handler_context_t& context) {
-        return true;
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
+        auto project = core::project::instance();
+        fs::path path(context.get_parameter<core::string_literal_t>("path").value);
+        if (!path.is_absolute())
+            path = project->path().append(path.string());
+
+        auto start = context.get_parameter<core::numeric_literal_t>("start");
+        auto end = context.get_parameter<core::numeric_literal_t>("end");
+
+        _assembler->location_counter(start);
+
+        std::stringstream stream;
+        if (!ryu::read_binary(context.result, path, stream))
+            return false;
+
+        byte_list data_bytes {};
+        _assembler->load_binary_to_location_counter(
+                context.result,
+                data_bytes,
+                stream,
+                end);
+
+        context.result.add_data(
+                "command_result",
+                {
+                    {
+                        "data",
+                        core::hex_formatter::dump_to_table(
+                                data_bytes.data(),
+                                data_bytes.size(),
+                                16)
+                    }
+                });
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_write_memory_to_binary(
             const command_handler_context_t& context) {
-        return true;
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
+        auto project = core::project::instance();
+        fs::path path(context.get_parameter<core::string_literal_t>("path").value);
+        if (!path.is_absolute())
+            path = project->path().append(path.string());
+
+        auto start = context.get_parameter<core::numeric_literal_t>("start");
+        auto end = context.get_parameter<core::numeric_literal_t>("end");
+
+        std::stringstream stream;
+        _assembler->location_counter(start);
+        _assembler->read_location_counter_to_binary(
+                context.result,
+                stream,
+                end);
+        if (!ryu::write_binary(context.result, path, stream))
+            return false;
+
+        context.result.add_message(
+                "M001",
+                fmt::format("{} bytes written to {}", _assembler->location_counter() - start, path));
+
+        return !context.result.is_failed();
     }
 
     // ----------------------------------------------------------
@@ -844,8 +1321,8 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
-        auto src = boost::get<core::string_literal_t>(context.params["src"].front()).value;
-        auto dest = boost::get<core::string_literal_t>(context.params["dest"].front()).value;
+        auto src = context.get_parameter<core::string_literal_t>("src");
+        auto dest = context.get_parameter<core::string_literal_t>("dest");
 
         boost::system::error_code ec;
         boost::filesystem::rename(src, dest, ec);
@@ -914,23 +1391,22 @@ namespace ryu::core {
         using namespace boost::filesystem;
 
         std::string message;
-        auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
-        if (!is_directory(value) && !is_regular_file(value)) {
+        auto path = context.get_parameter<core::string_literal_t>("path");
+        if (!is_directory(path) && !is_regular_file(path)) {
             context.result.add_message(
                     "C008",
-                    fmt::format("invalid path: {}", value), true);
+                    fmt::format("invalid path: {}", path), true);
         } else {
             boost::system::error_code ec;
 
-            if (remove(value, ec)) {
+            if (remove(path, ec)) {
                 context.result.add_message(
                         "C008",
-                        fmt::format("removal success: {}", value));
+                        fmt::format("removal success: {}", path));
             } else {
                 context.result.add_message(
                         "C008",
-                        fmt::format("removal failed: {}",
-                                    ec.message()),
+                        fmt::format("removal failed: {}", ec.message()),
                         true);
             }
         }
@@ -942,10 +1418,10 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
-        auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
+        auto path = context.get_parameter<core::string_literal_t>("path");
         boost::system::error_code ec;
 
-        if (!create_directory(value, ec)) {
+        if (!create_directory(path, ec)) {
             context.result.add_message(
                     "C007",
                     fmt::format("create directory failed: {}", ec.message()),
@@ -960,21 +1436,21 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
-        auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
-        if (!is_directory(value)) {
+        auto path = context.get_parameter<core::string_literal_t>("path");
+        if (!is_directory(path)) {
             context.result.add_message(
                     "C007",
-                    fmt::format("invalid path: {}", value),
+                    fmt::format("invalid path: {}", path),
                     true);
             return false;
         }
 
-        current_path(value);
+        current_path(path);
 
         context.result.add_data(
                 "command_action",
                 {
-                    {"action", std::string("update_working_directory")},
+                    {"action", core::system_commands::update_working_directory},
                 });
 
         return true;
@@ -998,106 +1474,99 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         return core::project::create(
                 context.result,
-                boost::get<core::string_literal_t>(context.params["path"].front()).value);
+                context.get_parameter<core::string_literal_t>("path"));
     }
 
     bool environment::on_edit_project(
             const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
+
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_project")}});
+                {{"action", core::system_commands::edit_project}});
         return true;
     }
 
     bool environment::on_load_project(
             const command_handler_context_t& context) {
-        fs::path path;
-        auto it = context.params.find("path");
-        if (it != context.params.end())
-            path = boost::get<core::string_literal_t>(it->second.front()).value;
-        return core::project::load(context.result, path);
+        auto path = context.get_parameter<core::string_literal_t>("path");
+        if (core::project::load(context.result, path)) {
+            apply_environment(
+                    context.result,
+                    core::project::instance()->active_environment());
+        }
+
+        return !context.result.is_failed();
     }
 
     bool environment::on_save_project(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C033",
-                    "no project is loaded; save failed",
-                    true);
+        if (!has_valid_project(context.result))
             return false;
-        }
         return core::project::instance()->save(context.result);
     }
 
     bool environment::on_close_project(
             const command_handler_context_t& context) {
-        return core::project::close(context.result);
+        if (!has_valid_project(context.result))
+            return false;
+        auto result = core::project::close(context.result);
+        if (result)
+            _symbol_table->clear();
+        return result;
     }
 
     bool environment::on_clone_project(
             const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
         return core::project::clone(
                 context.result,
                 core::project::instance()->path(),
-                boost::get<core::string_literal_t>(context.params["path"].front()).value);
+                context.get_parameter<core::string_literal_t>("path").value);
     }
 
     bool environment::on_save_project_file(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C032",
-                    "no project is loaded; unable to save project file",
-                    true);
+        if (!has_valid_project(context.result))
             return false;
-        }
 
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("save_project_file")}});
+                {{"action", core::system_commands::save_project_file}});
 
         return true;
     }
 
     bool environment::on_new_project_file(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                "C032",
-                "no project is loaded; unable to create project file",
-                true);
+        if (!has_valid_project(context.result))
             return false;
-        }
 
-        std::string type("TEXT");
-        auto path = boost::get<core::string_literal_t>(context.params["path"].front()).value;
-        auto type_it = context.params.find("type");
-        if (type_it != context.params.end()) {
-            type = boost::get<core::identifier_t>(type_it->second.front()).value;
-        }
+        auto type = context.get_parameter<core::identifier_t>("type");
+        if (type.empty())
+            type.value = "TEXT";
+        auto path = context.get_parameter<core::string_literal_t>("path");
 
-        core::project_file file(
+        auto project = core::project::instance();
+        auto file = std::make_shared<core::project_file>(
                 core::id_pool::instance()->allocate(),
+                project,
                 path,
                 core::project_file_type::code_to_type(type));
-        core::project::instance()->add_file(file);
-        file.create_stub_file(context.result, path);
+        project->add_file(file);
+        file->create_stub_file(context.result, path);
 
         return !context.result.is_failed();
     }
 
     bool environment::on_remove_project_file(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C032",
-                    "no project is loaded; unable to remove project file",
-                    true);
+        if (!has_valid_project(context.result))
             return false;
-        }
 
-        auto path = boost::get<core::string_literal_t>(context.params["path"].front()).value;
+        auto path = context.get_parameter<core::string_literal_t>("path");
         auto file = core::project::instance()->find_file(path);
         if (file == nullptr) {
             context.result.add_message(
@@ -1114,13 +1583,8 @@ namespace ryu::core {
 
     bool environment::on_list_project_files(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                "C032",
-                "no project is loaded; unable to list files",
-                true);
+        if (!has_valid_project(context.result))
             return false;
-        }
 
         data_table_t table {};
         table.headers.push_back({"ID",           5,  5});
@@ -1130,12 +1594,14 @@ namespace ryu::core {
 
         auto project_files = core::project::instance()->files();
         for (const auto& file : project_files) {
-            if (file.type() == project_file_type::environment)
+            if (file->type() == project_file_type::environment)
                 continue;
             data_table_row_t row {};
-            row.columns.push_back(std::to_string(file.id()));
-            row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
-            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file.type())));
+            row.columns.push_back(std::to_string(file->id()));
+            row.columns.push_back(fmt::format("\"{}\"", file->path().string()));
+            auto code = core::project_file_type::type_to_code(file->type());
+            to_upper(code);
+            row.columns.push_back(code);
             table.rows.push_back(row);
         }
 
@@ -1151,16 +1617,90 @@ namespace ryu::core {
     // ----------------------------------------------------------
     // machine commands
     // ----------------------------------------------------------
+    bool environment::on_memory_map(
+            const command_handler_context_t& context) {
+        using format_options = data_table_column_t::format_options;
+
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+
+        data_table_t table {};
+        table.headers.push_back({"Component Name",   20,  20});
+        table.headers.push_back({"Start",             8,   8});
+        table.headers.push_back({
+                "",
+                1,
+                1,
+                alignment::horizontal::types::left,
+                1
+        });
+        table.headers.push_back({"End",               8,   8});
+        table.headers.push_back({"Name",             10,  10});
+        table.headers.push_back({"Offset",            8,   8});
+        table.headers.push_back({"Size",              4,   4});
+        table.headers.push_back({
+                "Details",
+                55,
+                55,
+                alignment::horizontal::types::left,
+                1,
+                format_options::word_wrap | format_options::style_codes
+        });
+        table.footers.push_back({"Component Count",  15,  20});
+
+        auto mapper = core::project::instance()->machine()->mapper();
+        auto mapper_components = mapper->components();
+
+        for (auto component_interval : mapper_components) {
+            auto map_entries = component_interval.value->memory_map().entries();
+
+            once_value_t component_name;
+            once_value_t component_start;
+            once_value_t component_end;
+
+            for (auto entry_interval : map_entries) {
+                data_table_row_t row {};
+
+                component_name.add_once_column(row, component_interval.value->component()->name());
+                component_end.add_once_column(row, fmt::format("{:<8x}", component_interval.stop));
+                row.columns.emplace_back("-");
+                component_start.add_once_column(row, fmt::format("{:<8x}", component_interval.start));
+
+                row.columns.push_back(entry_interval.value->name());
+                row.columns.push_back(fmt::format("{:<8x}", entry_interval.start));
+                row.columns.push_back(fmt::format("{:<4x}", entry_interval.stop - entry_interval.start));
+                row.columns.push_back(entry_interval.value->description());
+                table.rows.push_back(row);
+            }
+
+            data_table_row_t row {};
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            row.columns.emplace_back("");
+            table.rows.push_back(row);
+        }
+
+        table.rows.push_back({{fmt::format(
+                "{} components mapped",
+                table.rows.size())}});
+
+        context.result.add_data(
+                "command_result",
+                {{"data", table}});
+
+        return true;
+    }
+
     bool environment::on_use_machine(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C034",
-                    "no project is loaded; use machine failed",
-                    true);
+        if (!has_valid_project(context.result))
             return false;
-        }
-        auto machine_name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
+
+        auto machine_name = context.get_parameter<core::string_literal_t>("name");
         auto machine = hardware::registry::instance()->find_machine(machine_name);
         if (machine == nullptr) {
             context.result.add_message(
@@ -1175,11 +1715,15 @@ namespace ryu::core {
 
     bool environment::on_edit_machine(
             const command_handler_context_t& context) {
+        auto action = core::system_commands::edit_machine;
+        auto name = context.get_parameter<core::string_literal_t>("name");
+        if (name.empty())
+            action = core::system_commands::list_machine;
         context.result.add_data(
                 "command_action",
                 {
-                    {"action", std::string("edit_machine")},
-                    {"name", boost::get<core::string_literal_t>(context.params["name"].front()).value}
+                    {"action", action},
+                    {"name", name}
                 });
         return true;
     }
@@ -1215,7 +1759,7 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         return hardware::registry::instance()->remove_machine(
                 context.result,
-                boost::get<core::string_literal_t>(context.params["name"].front()).value);
+                context.get_parameter<core::string_literal_t>("name"));
     }
 
     // ----------------------------------------------------------
@@ -1225,18 +1769,18 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
-        auto value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
-        if (!is_regular_file(value)) {
+        auto path = context.get_parameter<core::string_literal_t>("path");
+        if (!is_regular_file(path)) {
             context.result.add_message(
                     "C021",
-                    fmt::format("invalid path: {}", value),
+                    fmt::format("invalid path: {}", path),
                     true);
             return false;
         }
 
         context.result.add_data("command_action", {
-                {"action", std::string("read_text")},
-                {"name", value}
+                {"action", core::system_commands::read_text},
+                {"name", path}
         });
 
         return true;
@@ -1244,10 +1788,9 @@ namespace ryu::core {
 
     bool environment::on_goto_line(
             const command_handler_context_t& context) {
-        auto line_number = static_cast<uint32_t>(boost::get<core::numeric_literal_t>(
-                context.params["line"].front()).value);
+        auto line_number = context.get_parameter<core::numeric_literal_t>("line");
         context.result.add_data("command_action", {
-                {"action", std::string("goto_line")},
+                {"action", core::system_commands::goto_line},
                 {"line_number", line_number}
         });
 
@@ -1257,8 +1800,8 @@ namespace ryu::core {
     bool environment::on_find_text(
             const command_handler_context_t& context) {
         context.result.add_data("command_action", {
-                {"action", std::string("find_text")},
-                {"needle", boost::get<core::string_literal_t>(context.params["needle"].front()).value}
+                {"action", core::system_commands::find_text},
+                {"needle", context.get_parameter<core::string_literal_t>("needle")}
         });
 
         return true;
@@ -1268,21 +1811,18 @@ namespace ryu::core {
             const command_handler_context_t& context) {
         using namespace boost::filesystem;
 
-        std::string value {"(default)"};
-        if (!context.root->children.empty()) {
-            value = boost::get<core::string_literal_t>(context.params["path"].front()).value;
-            if (!is_regular_file(value)) {
-                context.result.add_message(
-                        "C022",
-                        fmt::format("invalid path: {}", value),
-                        true);
-                return false;
-            }
+        auto path = context.get_parameter<core::string_literal_t>("path");
+        if (!is_regular_file(path)) {
+            context.result.add_message(
+                    "C022",
+                    fmt::format("invalid path: {}", path),
+                    true);
+            return false;
         }
 
         context.result.add_data("command_action", {
-                {"action", std::string("write_text")},
-                {"name", value}
+                {"action", core::system_commands::write_text},
+                {"name", path}
         });
 
         return true;
@@ -1290,62 +1830,102 @@ namespace ryu::core {
 
     bool environment::on_tile_editor(
             const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_tiles")}});
+                {{"action", core::system_commands::edit_tiles}});
         return true;
     }
 
     bool environment::on_module_editor(
             const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_music")}});
+                {{"action", core::system_commands::edit_music}});
         return true;
     }
 
     bool environment::on_source_editor(
             const command_handler_context_t& context) {
-        auto path = boost::get<core::string_literal_t>(context.params["path"].front()).value;
+        if (!has_valid_project(context.result))
+            return false;
+
+        auto path = context.get_parameter<core::string_literal_t>("path");
         context.result.add_data(
                 "command_action",
                 {
-                        {"action", std::string("edit_source")},
-                        {"path", project::find_project_root().append(path).string()}
+                    {"action", core::system_commands::edit_source},
+                    {"name", path}
                 });
         return true;
     }
 
     bool environment::on_sprite_editor(
             const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_sprites")}});
+                {{"action", core::system_commands::edit_sprites}});
         return true;
     }
 
     bool environment::on_sample_editor(
             const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_sounds")}});
+                {{"action", core::system_commands::edit_sounds}});
         return true;
     }
 
     bool environment::on_register_editor(
             const command_handler_context_t& context) {
+        if (!has_valid_project_machine_and_target(context.result))
+            return false;
+
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_cpu")}});
+                {{"action", core::system_commands::edit_cpu}});
         return true;
     }
 
     bool environment::on_background_editor(
             const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
         context.result.add_data(
                 "command_action",
-                {{"action", std::string("edit_backgrounds")}});
+                {{"action", core::system_commands::edit_backgrounds}});
         return true;
+    }
+
+    bool environment::on_actor_editor(
+            const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+        context.result.add_data(
+            "command_action",
+            {{"action", core::system_commands::edit_actor}});
+        return false;
+    }
+
+    bool environment::on_palette_editor(
+            const command_handler_context_t& context) {
+        if (!has_valid_project_and_machine(context.result))
+            return false;
+        context.result.add_data(
+            "command_action",
+            {{"action", core::system_commands::edit_palette}});
+        return false;
     }
 
     // ----------------------------------------------------------
@@ -1353,17 +1933,12 @@ namespace ryu::core {
     // ----------------------------------------------------------
     bool environment::on_new_environment(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C032",
-                    "no project is loaded; unable to create environment",
-                    true);
+        if (!has_valid_project(context.result))
             return false;
-        }
 
-        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
+        auto name = context.get_parameter<core::string_literal_t>("name");
 
-        fs::path environment_file_path(name);
+        fs::path environment_file_path(name.value);
         if (environment_file_path.has_parent_path()) {
             context.result.add_message(
                     "C032",
@@ -1396,26 +1971,32 @@ namespace ryu::core {
             return false;
         }
 
-        core::project_file file(
+        auto project = core::project::instance();
+        auto file = std::make_shared<core::project_file>(
                 core::id_pool::instance()->allocate(),
-                name,
+                project,
+                name.value,
                 core::project_file_type::environment);
-        core::project::instance()->add_file(file);
-        file.create_stub_file(context.result, environment_file_path);
-        core::project::instance()->save(context.result);
+        project->add_file(file);
+        file->create_stub_file(context.result, environment_file_path);
+        project->save(context.result);
 
         return !context.result.is_failed();
     }
 
+    bool environment::on_apply_environment(
+            const command_handler_context_t& context) {
+        if (!has_valid_project(context.result))
+            return false;
+        return apply_environment(
+                context.result,
+                core::project::instance()->active_environment());
+    }
+
     bool environment::on_list_environments(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C032",
-                    "no project is loaded; unable to list environments",
-                    true);
+        if (!has_valid_project(context.result))
             return false;
-        }
 
         data_table_t table {};
         table.headers.push_back({"ID",                   5,  5});
@@ -1425,12 +2006,14 @@ namespace ryu::core {
 
         auto project_files = core::project::instance()->files();
         for (const auto& file : project_files) {
-            if (file.type() != project_file_type::environment)
+            if (file->type() != project_file_type::environment)
                 continue;
             data_table_row_t row {};
-            row.columns.push_back(std::to_string(file.id()));
-            row.columns.push_back(fmt::format("\"{}\"", file.path().string()));
-            row.columns.push_back(boost::to_upper_copy<std::string>(core::project_file_type::type_to_code(file.type())));
+            row.columns.push_back(std::to_string(file->id()));
+            row.columns.push_back(fmt::format("\"{}\"", file->path().string()));
+            auto code = core::project_file_type::type_to_code(file->type());
+            to_upper(code);
+            row.columns.push_back(code);
             table.rows.push_back(row);
         }
 
@@ -1445,16 +2028,11 @@ namespace ryu::core {
 
     bool environment::on_remove_environment(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C032",
-                    "no project is loaded; unable to remove environment",
-                    true);
+        if (!has_valid_project(context.result))
             return false;
-        }
 
-        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
-        auto file = core::project::instance()->find_file(name);
+        auto name = context.get_parameter<core::string_literal_t>("name");
+        auto file = core::project::instance()->find_file(name.value);
         if (file == nullptr) {
             context.result.add_message(
                     "C032",
@@ -1468,7 +2046,7 @@ namespace ryu::core {
 
         fs::path environment_file_path(fs::current_path()
                .append(".ryu")
-               .append(fs::path(name)
+               .append(fs::path(static_cast<std::string>(name))
                                .replace_extension(".env")
                                .string()));
 
@@ -1488,31 +2066,68 @@ namespace ryu::core {
 
     bool environment::on_switch_environment(
             const command_handler_context_t& context) {
-        if (core::project::instance() == nullptr) {
-            context.result.add_message(
-                    "C032",
-                    "no project is loaded; unable to switch environment",
+        core::project_file* active_environment = nullptr;
+
+        auto name = context.get_parameter<core::string_literal_t>("name");
+
+        if (!name.empty()) {
+            active_environment = core::project::instance()->find_file(name);
+            if (active_environment == nullptr) {
+                context.result.add_message(
+                        "C032",
+                        fmt::format("no environment file exists: {}", name),
+                        true);
+                return false;
+            }
+        }
+
+        core::project::instance()->active_environment(active_environment);
+        if (apply_environment(context.result, active_environment)) {
+            core::project::instance()->save(context.result);
+        }
+
+        return !context.result.is_failed();
+    }
+
+    bool environment::has_valid_project(core::result& result) {
+        auto project = core::project::instance();
+        if (project == nullptr) {
+            result.add_message(
+                    "C033",
+                    "no project is loaded",
                     true);
             return false;
         }
 
-        auto name = boost::get<core::string_literal_t>(context.params["name"].front()).value;
-        auto file = core::project::instance()->find_file(name);
-        if (file == nullptr) {
-            context.result.add_message(
-                    "C032",
-                    fmt::format("no environment file exists: {}", name),
+        return true;
+    }
+
+    bool environment::has_valid_project_and_machine(core::result& result) {
+        if (!has_valid_project(result))
+            return false;
+
+        if (core::project::instance()->machine() == nullptr) {
+            result.add_message(
+                    "C033",
+                    "loaded project has no machine associated",
                     true);
             return false;
         }
 
-        auto active_environment = core::project::instance()->active_environment();
-        if (active_environment != nullptr) {
+        return true;
+    }
 
+    bool environment::has_valid_project_machine_and_target(core::result& result) {
+        if (!has_valid_project_and_machine(result))
+            return false;
+
+        if (_assembler->target() == nullptr) {
+            result.add_message(
+                    "C033",
+                    "no target component is set for the environment",
+                    true);
+            return false;
         }
-
-        core::project::instance()->active_environment(file);
-        core::project::instance()->save(context.result);
 
         return true;
     }

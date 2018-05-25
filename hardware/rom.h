@@ -29,12 +29,12 @@ namespace ryu::hardware {
                 uint32_t address,
                 uint8_t value) override;
 
-        std::vector<uint8_t> write_word(
+        ryu::core::byte_list write_word(
                 uint32_t address,
                 uint16_t value,
                 integrated_circuit::endianness::types endianess) override;
 
-        std::vector<uint8_t> write_dword(
+        ryu::core::byte_list write_dword(
                 uint32_t address,
                 uint32_t value,
                 integrated_circuit::endianness::types endianess) override;
@@ -49,11 +49,17 @@ namespace ryu::hardware {
 
         void fill(uint8_t value) override;
 
+        uint32_t type_id() const override {
+            return ryu::hardware::rom_id;
+        }
+
         access_type_flags access_type() const override;
 
         uint8_t read_byte(uint32_t address) const override;
 
     protected:
+        void on_initialize() override;
+
         void on_address_space_changed() override;
 
         RTTR_ENABLE(hardware::integrated_circuit)
@@ -61,8 +67,8 @@ namespace ryu::hardware {
     private:
         void reallocate();
 
+    private:
         uint8_t* _buffer = nullptr;
     };
 
 };
-

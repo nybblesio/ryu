@@ -13,14 +13,11 @@
 #include <utility>
 #include <core/view.h>
 #include <core/document.h>
-#include <core/selection.h>
+#include <core/input_action.h>
 #include <core/text_formatter.h>
 #include "caret.h"
 
 namespace ryu::core {
-
-    using code_to_attr_callable = std::function<void (attr_t&)>;
-    typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
 
     class console;
 
@@ -45,7 +42,7 @@ namespace ryu::core {
     public:
         using caret_changed_callable = std::function<void(const core::caret&, const core::document&)>;
         using execute_command_callable = std::function<bool(core::result&, const std::string&)>;
-        using command_action_dict = std::map<std::string, std::function<bool (core::console&, const parameter_dict&)>>;
+        using command_action_dict = std::map<core::system_commands::types, std::function<bool (core::console&, const parameter_dict&)>>;
 
         enum states {
             input,
@@ -56,7 +53,11 @@ namespace ryu::core {
             wait,
         };
 
-        explicit console(const std::string& name);
+        console(
+            const std::string& name,
+            core::view_host* host);
+
+        ~console() override;
 
         void page_up();
 
@@ -70,7 +71,7 @@ namespace ryu::core {
 
         void caret_home();
 
-        void initialize();
+        void caret_line_end();
 
         uint32_t write_message(
                 const std::string& message,
@@ -80,9 +81,13 @@ namespace ryu::core {
                 const formatted_text_t& formatted_text,
                 bool last_newline = true);
 
-        void update(uint32_t dt);
+        bool more() const;
 
-        void caret_color(uint8_t color);
+        void caret_up_line();
+
+        void more(bool flag);
+
+        void caret_newline();
 
         void caret_up(uint8_t rows = 1);
 
@@ -91,6 +96,10 @@ namespace ryu::core {
         bool caret_left(uint8_t columns = 1);
 
         bool caret_right(uint8_t columns = 1);
+
+        void caret_color(palette_index color);
+
+        void selection_color(palette_index value);
 
         void code_mapper(const code_to_attr_dict& value);
 
@@ -102,25 +111,31 @@ namespace ryu::core {
 
     protected:
         struct metrics_t {
-            uint8_t page_width = 1;
-            uint8_t page_height = 1;
+            uint8_t page_width = 40;
+            uint8_t page_height = 10;
             const int left_padding = 10;
             const int right_padding = 10;
         };
 
-        void update_virtual_position();
+        void on_initialize() override;
+
+        void on_bounds_changed() override;
+
+        void on_font_family_changed() override;
 
         void on_draw(core::renderer& surface) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
-        void on_resize(const core::rect& context_bounds) override;
+        void on_update(uint32_t dt, core::pending_event_list& events) override;
 
     private:
         friend struct output_queue_entry_t;
 
+        void bind_events();
+
+        void define_actions();
+
         bool transition_to(
-                const std::string& name,
+                core::state_transition_command command,
                 const core::parameter_dict& params);
 
         void format_data_table(
@@ -148,20 +163,21 @@ namespace ryu::core {
 
         std::string find_command_string();
 
+        void select_color(const std::string& name);
+
         void scale_columns(std::vector<data_table_column_t>& columns);
 
     private:
-        static command_action_dict _handlers;
+        static command_action_dict s_handlers;
 
+        bool _more {};
         caret _caret;
-        uint8_t _color;
-        uint16_t _vcol;
-        uint32_t _vrow;
         metrics_t _metrics;
         document _document;
-        selection _selection;
+        palette_index _color;
         int16_t _remaining_lines = 0;
         states _state = states::input;
+        palette_index _selection_color;
         code_to_attr_dict _code_mapper;
         std::deque<output_queue_entry_t> _output_queue;
         caret_changed_callable _caret_changed_callback;

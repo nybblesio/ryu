@@ -11,6 +11,7 @@
 #pragma once
 
 #include <core/context.h>
+#include <core/view_factory.h>
 #include "controller.h"
 
 namespace ryu::emulator {
@@ -30,13 +31,16 @@ namespace ryu::emulator {
 
         bool on_initialize(core::result& result) override;
 
-        bool on_process_event(const SDL_Event* e) override;
-
     private:
+        void bind_events();
+
+        void define_actions();
+
         void configure_palette();
 
+        void configure_states(core::result& result);
+
     private:
-        core::palette _palette;
         controller _emulator_state;
         core::context_window::sizes _size = core::context_window::sizes::split;
     };

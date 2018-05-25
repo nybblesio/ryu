@@ -11,57 +11,106 @@
 #pragma once
 
 #include <core/view.h>
+#include "caret.h"
 
 namespace ryu::core {
 
-    typedef std::vector<std::string> option_list;
-
     class pick_list : public core::view {
     public:
-        explicit pick_list(const std::string& name);
+        using selection_changed_callable = std::function<void (int32_t)>;
+
+        pick_list(
+            const std::string& name,
+            core::view_host* host);
+
+        ~pick_list() override;
+
+        int width() const;
+
+        int height() const;
 
         int length() const;
 
-        std::string value();
+        void reset_search();
+
+        void width(int value);
+
+        void height(int value);
 
         option_list& options();
 
         void length(int value);
 
-        int visible_items() const;
+        uint32_t visible_rows() const;
 
-        border::types border() const;
+        void selected_key(uint32_t key);
 
-        void visible_items(int value);
+        void visible_rows(uint32_t value);
 
-        void border(border::types value);
+        std::string value() const override;
 
-        void value(const std::string& value);
+        void row_color(palette_index value);
+
+        void selection_color(palette_index value);
+
+        void not_found_color(palette_index value);
+
+        void value(const std::string& text) override;
+
+        void on_selection_changed(const selection_changed_callable& callable);
 
     protected:
+        bool page_up();
+
         bool move_up();
 
+        void move_top();
+
         bool move_down();
+
+        bool page_down();
 
         bool move_row_up();
 
         bool move_row_down();
 
+        void on_initialize() override;
+
+        void raise_selection_changed();
+
+        void on_focus_changed() override;
+
+        void on_palette_changed() override;
+
+        void on_font_family_changed() override;
+
         void on_draw(core::renderer& surface) override;
 
-        bool on_process_event(const SDL_Event* e) override;
+    private:
+        void bind_events();
 
-        void on_resize(const rect& context_bounds) override;
+        void define_actions();
+
+        void update_minimum_size();
+
+        bool find_matching_text(const std::string& text);
 
     private:
-        int _row = 0;
+        bool _found;
+        int _width = 0;
+        int _height = 0;
         int _length = 32;
-        std::string _value;
-        int _selection = 0;
+        uint32_t _row = 0;
+        core::caret _caret;
+        std::string _search;
+        uint32_t _selection = 0;
         option_list _options {};
-        int _visibile_items = 10;
-        border::types _border = border::types::none;
+        palette_index _row_color;
+        uint32_t _selected_item = 0;
+        uint32_t _visible_rows = 10;
+        palette_index _selection_color;
+        palette_index _not_found_color;
+        selection_changed_callable _selection_changed_callable;
     };
 
 };
-

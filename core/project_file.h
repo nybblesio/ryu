@@ -24,28 +24,34 @@ namespace ryu::core {
 
     class project_file {
     public:
-        static project_file load(
+        static project_file_shared_ptr load(
             core::result& result,
+            core::project* project,
             YAML::Node& node);
 
         project_file() = default;
 
         project_file(
-                uint32_t id,
-                const fs::path& path,
-                project_file_type::codes type);
+            uint32_t id,
+            core::project* project,
+            const fs::path& path,
+            project_file_type::codes type);
 
-        bool read(
-                core::result& result,
-                std::iostream& stream);
+        bool read_binary(
+            core::result& result,
+            std::iostream& stream);
 
-        bool write(
-                core::result& result,
-                std::iostream& stream);
+        bool read_text(
+            core::result& result,
+            std::iostream& stream);
+
+        bool write_text(
+            core::result& result,
+            std::iostream& stream);
 
         bool create_stub_file(
-                core::result& result,
-                const fs::path& path);
+            core::result& result,
+            const fs::path& path);
 
         bool dirty() const;
 
@@ -55,7 +61,11 @@ namespace ryu::core {
 
         void dirty(bool value);
 
+        std::string name() const;
+
         uint16_t sequence() const;
+
+        fs::path full_path() const;
 
         bool should_assemble() const;
 
@@ -77,6 +87,7 @@ namespace ryu::core {
         bool _dirty = false;
         uint16_t _sequence = 0;
         bool _should_assemble = false;
+        core::project* _project = nullptr;
         project_file_type::codes _type = project_file_type::codes::uninitialized;
     };
 

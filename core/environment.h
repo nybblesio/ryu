@@ -16,7 +16,9 @@
 namespace ryu::core {
 
     class assembler;
+    class evaluator;
     class symbol_table;
+    class command_parser;
 
     class environment {
     public:
@@ -24,15 +26,15 @@ namespace ryu::core {
 
         virtual ~environment();
 
-        bool load(
-                core::result& result,
-                std::iostream& stream);
-
-        bool save(
-                core::result& result,
-                std::iostream& stream);
-
         std::string name() const;
+
+        bool assemble(
+                core::result& result,
+                core::project_file* file);
+
+        bool apply_environment(
+                core::result& result,
+                core::project_file* file);
 
         core::symbol_table* symbol_table();
 
@@ -43,7 +45,18 @@ namespace ryu::core {
         bool execute(core::result& result, const std::string& line);
 
     private:
+        void format_data_bytes(
+                std::stringstream& stream,
+                uint32_t address,
+                const byte_list& bytes);
+
         data_table_t create_symbol_table();
+
+        bool has_valid_project(core::result& result);
+
+        bool has_valid_project_and_machine(core::result& result);
+
+        bool has_valid_project_machine_and_target(core::result& result);
 
     private:
         // ----------------------------------------------------------
@@ -67,7 +80,16 @@ namespace ryu::core {
         bool on_assemble(
                 const command_handler_context_t& context);
 
+        bool on_set_target(
+                const command_handler_context_t& context);
+
         bool on_add_symbol(
+                const command_handler_context_t& context);
+
+        bool on_drop_symbols(
+                const command_handler_context_t& context);
+
+        bool on_edit_environment(
                 const command_handler_context_t& context);
 
         bool on_disassemble(
@@ -77,6 +99,9 @@ namespace ryu::core {
                 const command_handler_context_t& context);
 
         bool on_go_to_address(
+                const command_handler_context_t& context);
+
+        bool on_apply_environment(
                 const command_handler_context_t& context);
 
         bool on_new_environment(
@@ -100,6 +125,12 @@ namespace ryu::core {
         // ----------------------------------------------------------
         // memory commands
         // ----------------------------------------------------------
+        bool on_peek_memory(
+                const command_handler_context_t& context);
+
+        bool on_poke_memory(
+                const command_handler_context_t& context);
+
         bool on_fill_memory(
                 const command_handler_context_t& context);
 
@@ -155,6 +186,9 @@ namespace ryu::core {
                 const command_handler_context_t& context);
 
         bool on_delete_machine(
+                const command_handler_context_t& context);
+
+        bool on_memory_map(
                 const command_handler_context_t& context);
 
         // ----------------------------------------------------------
@@ -220,6 +254,12 @@ namespace ryu::core {
         bool on_sprite_editor(
                 const command_handler_context_t& context);
 
+        bool on_palette_editor(
+                const command_handler_context_t& context);
+
+        bool on_actor_editor(
+                const command_handler_context_t& context);
+
         bool on_source_editor(
                 const command_handler_context_t& context);
 
@@ -234,7 +274,9 @@ namespace ryu::core {
 
         std::string _name;
         std::unique_ptr<core::assembler> _assembler;
+        std::unique_ptr<core::evaluator> _evaluator;
         std::unique_ptr<core::symbol_table> _symbol_table;
+        std::unique_ptr<core::command_parser> _command_parser;
     };
 
 };

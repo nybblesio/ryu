@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <yaml-cpp/yaml.h>
 #include <boost/filesystem.hpp>
 #include "rect.h"
 #include "result.h"
@@ -20,7 +21,7 @@ namespace ryu::core {
 
     namespace fs = boost::filesystem;
 
-    typedef std::pair<std::string, uint32_t> font_value_t;
+    using font_value_t = std::pair<std::string, uint32_t>;
 
     class preferences {
     public:
@@ -75,6 +76,9 @@ namespace ryu::core {
         core::context_window::sizes emulator_window_size() const;
 
         void emulator_window_size(core::context_window::sizes size);
+
+    private:
+        bool get_font_family_and_size(YAML::Node& node, font_value_t& value);
 
     private:
         bool _full_screen = false;

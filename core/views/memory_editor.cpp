@@ -10,83 +10,357 @@
 
 #include <sstream>
 #include <fmt/format.h>
+#include <core/project.h>
+#include <common/bytes.h>
 #include <core/document.h>
 #include "memory_editor.h"
 
 namespace ryu::core {
 
-    memory_editor::memory_editor(const std::string& name) : core::view(core::view::types::container, name),
-                                                            _caret("editor-caret") {
+    memory_editor::memory_editor(
+            const std::string& name,
+            core::view_host* host) : core::view(core::view::types::container, name, host),
+                                     _caret("editor-caret", host) {
+    }
+
+    memory_editor::~memory_editor() {
     }
 
     void memory_editor::clear() {
-
-        first_page();
         _caret.row(0);
         _caret.column(0);
-        update_virtual_position();
     }
 
-    void memory_editor::page_up() {
-
-        update_virtual_position();
+    void memory_editor::caret_left() {
+        if (_caret.left(1)) {
+            _caret.column(static_cast<uint8_t>((_metrics.page_width * 3) + _metrics.page_width + 1));
+            _caret.up(1);
+            _nybble = 1;
+        } else {
+            auto column = _caret.column() + 1;
+            if (column < (_metrics.page_width * 3) + 1 && column % 3 == 0) {
+                _caret.left(1);
+                _nybble = 1;
+            } else {
+                _nybble = 0;
+            }
+        }
     }
 
-    void memory_editor::page_down() {
-
-        update_virtual_position();
+    void memory_editor::caret_right(uint8_t overflow_column) {
+        if (_caret.right(1)) {
+            _caret.column(overflow_column);
+            _caret.down(1);
+            _nybble = 0;
+        } else {
+            auto column = _caret.column() + 1;
+            if (column < (_metrics.page_width * 3) + 1 && column % 3 == 0) {
+                _caret.right(1);
+                _nybble = 0;
+            } else {
+                _nybble = 1;
+            }
+        }
     }
 
-    void memory_editor::scroll_up() {
+    void memory_editor::bind_events() {
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_tab"),
+                [this](const core::event_data_t& data) {
+                    auto ascii_column_start = _metrics.page_width * 3;
+                    if (_caret.column() < ascii_column_start)
+                        _caret.column(static_cast<uint8_t>(ascii_column_start));
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_shift_tab"),
+                [this](const core::event_data_t& data) {
+                    auto ascii_column_start = _metrics.page_width * 3;
+                    if (_caret.column() >= ascii_column_start)
+                        _caret.column(0);
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_home"),
+                [this](const core::event_data_t& data) {
+                    _caret.column(0);
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_end"),
+                [this](const core::event_data_t& data) {
+                    _caret.column(static_cast<uint8_t>((_metrics.page_width * 3) + _metrics.page_width + 1));
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_caret_left"),
+                [this](const core::event_data_t& data) {
+                    caret_left();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_caret_right"),
+                [this](const core::event_data_t& data) {
+                    caret_right();
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_caret_up"),
+                [this](const core::event_data_t& data) {
+                    if (_caret.up(1)) {
+                        if (_address > _metrics.page_width)
+                            _address -= _metrics.page_width;
+                    }
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_caret_down"),
+                [this](const core::event_data_t& data) {
+                    if (_caret.down(1)) {
+                        auto machine = core::project::instance()->machine();
+                        if (_address < machine->mapper()->address_space() - _metrics.page_width)
+                            _address += _metrics.page_width;
+                    }
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_page_up"),
+                [this](const core::event_data_t& data) {
+                    uint32_t page_size = _metrics.page_height * _metrics.page_width;
+                    if (page_size > _address)
+                        _address = 0;
+                    else
+                        _address -= page_size;
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_page_down"),
+                [this](const core::event_data_t& data) {
+                    auto machine = core::project::instance()->machine();
+                    uint32_t page_size = _metrics.page_height * _metrics.page_width;
+                    uint32_t remaining_memory = machine->mapper()->address_space() - _address;
+                    if (page_size > remaining_memory)
+                        _address += remaining_memory;
+                    else
+                        _address += page_size;
+                    return true;
+                });
+        action_provider().register_handler(
+                core::input_action::find_by_name("memory_editor_input"),
+                [this](const core::event_data_t& data) {
+                    auto machine = core::project::instance()->machine();
 
-        update_virtual_position();
+                    if (data.c == core::ascii_escape)
+                        return false;
+
+                    auto ascii_column_start = _metrics.page_width * 3;
+
+                    if (_caret.column() < ascii_column_start) {
+                        if (!isxdigit(data.c))
+                            return false;
+
+                        auto offset = (_caret.row() * _metrics.page_width) +
+                                      _caret.column() / 3;
+
+                        auto nybble = static_cast<uint8_t>(data.c > '9' ?
+                            (data.c & ~0x20) - 'A' + 10 :
+                            data.c - '0');
+
+                        auto value = machine
+                                ->mapper()
+                                ->read_byte(static_cast<uint32_t>(_address + offset));
+                        if (_nybble == 0) {
+                            value = set_upper_nybble(value, nybble);
+                        } else {
+                            value = set_lower_nybble(value, nybble);
+                        }
+
+                        machine->mapper()->write_byte(_address + offset, value);
+                        caret_right();
+                    } else {
+                        if (!isprint(data.c))
+                            return false;
+
+                        auto offset = (_caret.row() * _metrics.page_width) +
+                                      (_caret.column() - ascii_column_start);
+                        machine->mapper()->write_byte(
+                                _address + offset,
+                                static_cast<uint8_t>(data.c));
+                        caret_right(static_cast<uint8_t>(ascii_column_start));
+                    }
+
+                    return true;
+                });
     }
 
-    void memory_editor::caret_end() {
-        auto end_column = 2 * 16;
-        caret_home();
-        for (auto i = 0; i < end_column; i++)
-            caret_right();
-        update_virtual_position();
+    void memory_editor::on_initialize() {
+        define_actions();
+        bind_events();
+
+        _metrics.address_width = font_face()->measure_chars(9) + 8;
+
+        _caret.initialize();
+        _caret.palette(palette());
+        _caret.on_caret_changed([&]() {
+            raise_caret_changed();
+        });
+        _caret.font_family(font_family());
+        _caret.padding().left(_metrics.address_width);
+        _caret.position(0, 0);
+
+        add_child(&_caret);
+
+        tab_stop(true);
+
+        auto& minimum_size = min_size();
+        minimum_size.dimensions(256, 256);
     }
 
-    void memory_editor::last_page() {
-        update_virtual_position();
-    }
+    void memory_editor::define_actions() {
+        auto caret_left_action = core::input_action::create(
+                "memory_editor_caret_left",
+                "IDE::Memory Editor",
+                "Move the caret left.");
+        if (!caret_left_action->has_bindings()) {
+            caret_left_action->bind_keys({core::key_left});
+            caret_left_action->bind_keys({core::key_backspace});
+        }
 
-    void memory_editor::first_page() {
-        update_virtual_position();
-    }
+        auto caret_select_left_action = core::input_action::create(
+                "memory_editor_caret_select_left",
+                "IDE::Memory Editor",
+                "Move the caret left in selection mode.");
+        if (!caret_select_left_action->has_bindings()) {
+            caret_select_left_action->bind_keys({core::mod_shift, core::key_left});
+        }
 
-    void memory_editor::caret_home() {
-        _caret.column(0);
-        update_virtual_position();
-    }
+        auto caret_right_action = core::input_action::create(
+                "memory_editor_caret_right",
+                "IDE::Memory Editor",
+                "Move the caret right.");
+        if (!caret_right_action->has_bindings()) {
+            caret_right_action->bind_keys({core::key_right});
+        }
 
-    void memory_editor::scroll_down() {
-        update_virtual_position();
-    }
+        auto caret_select_right_action = core::input_action::create(
+                "memory_editor_caret_select_right",
+                "IDE::Memory Editor",
+                "Move the caret right in selection mode.");
+        if (!caret_select_right_action->has_bindings()) {
+            caret_select_right_action->bind_keys({core::mod_shift, core::key_right});
+        }
 
-    void memory_editor::scroll_left() {
-        update_virtual_position();
-    }
+        auto caret_down_action = core::input_action::create(
+                "memory_editor_caret_down",
+                "IDE::Memory Editor",
+                "Move the caret down.");
+        if (!caret_down_action->has_bindings()) {
+            caret_down_action->bind_keys({core::key_down});
+        }
 
-    bool memory_editor::scroll_right() {
-        bool clamped = false;
-        update_virtual_position();
-        return clamped;
-    }
+        auto caret_select_down_action = core::input_action::create(
+                "memory_editor_caret_select_down",
+                "IDE::Memory Editor",
+                "Move the caret down in selection mode.");
+        if (!caret_select_down_action->has_bindings()) {
+            caret_select_down_action->bind_keys({core::mod_shift, core::key_down});
+        }
 
-    void memory_editor::end_selection() {
-        if (_caret.mode() != core::caret::mode::select)
-            return;
+        auto caret_up_action = core::input_action::create(
+                "memory_editor_caret_up",
+                "IDE::Memory Editor",
+                "Move the caret up a line.");
+        if (!caret_up_action->has_bindings()) {
+            caret_up_action->bind_keys({core::key_up});
+        }
 
-        _caret.insert();
-        _selection.end(_vrow, _vcol);
+        auto caret_select_up_action = core::input_action::create(
+                "memory_editor_caret_select_up",
+                "IDE::Memory Editor",
+                "Move the caret up in selection mode.");
+        if (!caret_select_up_action->has_bindings()) {
+            caret_select_up_action->bind_keys({core::mod_shift, core::key_up});
+        }
+
+        auto page_up_action = core::input_action::create(
+                "memory_editor_page_up",
+                "IDE::Memory Editor",
+                "Move up one page.");
+        if (!page_up_action->has_bindings()) {
+            page_up_action->bind_keys({core::key_page_up});
+        }
+
+        auto page_down_action = core::input_action::create(
+                "memory_editor_page_down",
+                "IDE::Memory Editor",
+                "Move down one page.");
+        if (!page_down_action->has_bindings()) {
+            page_down_action->bind_keys({core::key_page_down});
+        }
+
+        auto select_home_action = core::input_action::create(
+                "memory_editor_select_home",
+                "IDE::Memory Editor",
+                "Move the caret to the home position in selection mode.");
+        if (!select_home_action->has_bindings()) {
+            select_home_action->bind_keys({core::mod_shift, core::key_home});
+        }
+
+        auto tab_action = core::input_action::create(
+                "memory_editor_tab",
+                "IDE::Memory Editor",
+                "Move caret to the ASCII area.");
+        if (!tab_action->has_bindings()) {
+            tab_action->bind_keys({core::key_tab});
+        }
+
+        auto shift_tab_action = core::input_action::create(
+                "memory_editor_shift_tab",
+                "IDE::Memory Editor",
+                "Move caret to the byte area.");
+        if (!shift_tab_action->has_bindings()) {
+            shift_tab_action->bind_keys({core::mod_shift, core::key_tab});
+        }
+
+        auto home_action = core::input_action::create(
+                "memory_editor_home",
+                "IDE::Memory Editor",
+                "Move the caret to the home position.");
+        if (!home_action->has_bindings()) {
+            home_action->bind_keys({core::key_home});
+        }
+
+        auto select_end_action = core::input_action::create(
+                "memory_editor_select_end",
+                "IDE::Memory Editor",
+                "Move the caret to the end position in selection mode.");
+        if (!select_end_action->has_bindings()) {
+            select_end_action->bind_keys({core::mod_shift, core::key_end});
+        }
+
+        auto end_action = core::input_action::create(
+                "memory_editor_end",
+                "IDE::Memory Editor",
+                "Move the caret to the end position.");
+        if (!end_action->has_bindings()) {
+            end_action->bind_keys({core::key_end});
+        }
+
+        auto text_input_action = core::input_action::create_no_map(
+                "memory_editor_input",
+                "IDE::Memory Editor",
+                "Any hexadecimal input (non-mappable).");
+        if (!text_input_action->has_bindings()) {
+            text_input_action->bind_text_input();
+        }
     }
 
     void memory_editor::on_focus_changed() {
         _caret.enabled(focused());
+    }
+
+    void memory_editor::on_bounds_changed() {
+        calculate_page_metrics();
     }
 
     void memory_editor::raise_caret_changed() {
@@ -94,383 +368,99 @@ namespace ryu::core {
             _caret_changed_callback(_caret);
     }
 
-    void memory_editor::caret_up(uint8_t rows) {
-        if (_caret.up(rows))
-            scroll_up();
-        update_virtual_position();
+    void memory_editor::calculate_page_metrics() {
+        auto rect = inner_bounds();
+
+        if (rect.empty())
+            return;
+
+        _metrics.page_width = 16;
+        _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
+
+        _caret.page_size(
+            _metrics.page_height,
+            static_cast<uint8_t>((_metrics.page_width * 3) + 16));
     }
 
-    void memory_editor::goto_address(uint32_t address) {
-
-        update_virtual_position();
+    void memory_editor::on_font_family_changed() {
+        calculate_page_metrics();
     }
 
-    void memory_editor::caret_down(uint8_t rows) {
-        if (_caret.down(rows))
-            scroll_down();
-        update_virtual_position();
-    }
-
-    void memory_editor::update_virtual_position() {
-        _vrow = _caret.row();
-        _vcol = _caret.column();
-
-        if (_caret.mode() != core::caret::mode::select)
-            _selection.clear();
-    }
-
-    void memory_editor::caret_color(uint8_t value) {
-        _caret.fg_color(value);
-    }
-
-    void memory_editor::caret_left(uint8_t columns) {
-        if (_caret.left(columns))
-            scroll_left();
-        update_virtual_position();
-    }
-
-    bool memory_editor::caret_right(uint8_t columns) {
-        auto clamped = false;
-        if (_caret.right(columns)) {
-            clamped = scroll_right();
-            if (clamped) {
-                caret_down();
-                caret_home();
-            }
-        }
-        update_virtual_position();
-        return clamped;
-    }
-
-    void memory_editor::selection_color(uint8_t value) {
-        _selection_color = value;
-    }
-
-    void memory_editor::find(const std::string& needle) {
-    }
-
-    void memory_editor::address_color(uint8_t value) {
-        _line_number_color = value;
-    }
-
-    void memory_editor::update_selection(uint16_t line_end) {
-        if (_caret.mode() == core::caret::mode::select) {
-            if (_vrow < _selection.start().row && line_end < _selection.start().column)
-                _selection.start(_vrow, line_end);
-            else
-                _selection.end(_vrow, line_end);
-        } else {
-            _caret.select();
-            _selection.start(_vrow, 0);
-            _selection.end(_vrow, line_end);
-        }
+    void memory_editor::address(uint32_t address) {
+        _address = address;
     }
 
     void memory_editor::on_draw(core::renderer& surface) {
-//        auto bounds = client_bounds();
-//        auto pal = *palette();
+        auto machine = core::project::instance()->machine();
 
-//        auto& info_text_color = pal[_line_number_color];
+        auto bounds = inner_bounds();
+        auto y = bounds.top();
+        auto pal = *palette();
+        auto& text_color = pal[fg_color()];
+        auto& address_color = pal[_address_color];
+        auto max_line_height = font_face()->line_height;
+        auto x = bounds.left() + _caret.padding().left();
 
-        // XXX: this may not be correct because the font metrics may change
-//        auto face = font_face();
-//        auto y = bounds.top();
+        auto offset = 0;
+        auto bytes_text_width = 0;
+        std::stringstream byte_stream;
+        std::stringstream ascii_stream;
+        for (size_t row = 0; row < _metrics.page_height; row++) {
+            if (_address + offset > machine->mapper()->address_space())
+                break;
 
-//        auto row_start = _document.row();
-//        auto row_stop = row_start + _metrics.page_height;
-//
-//        for (auto row = row_start; row < row_stop; row++) {
-//            surface.draw_text(font_face(), bounds.left(), y, fmt::format("{0:04}", row + 1), info_text_color);
-//
-//            uint16_t col_start = static_cast<uint16_t>(_document.column());
-//            uint16_t col_end = col_start + _metrics.page_width;
-//
-//            auto x = bounds.left() + _caret.padding().left();
-//            auto chunks = _document.get_line_chunks(
-//                    static_cast<uint32_t>(row),
-//                    col_start,
-//                    col_end);
-//            for (const auto& chunk : chunks) {
-//                auto width = static_cast<int32_t>(face->width * chunk.text.length());
-//                auto color = pal[chunk.attr.color];
-//
-//                if ((chunk.attr.flags & core::font::flags::reverse) != 0) {
-//                    surface.push_blend_mode(SDL_BLENDMODE_BLEND);
-//                    auto selection_color = pal[_selection_color];
-//                    selection_color.alpha(0x7f);
-//                    surface.set_color(selection_color);
-//                    surface.fill_rect(core::rect{x, y, width, face->line_height});
-//                    surface.pop_blend_mode();
-//                }
-//
-//                font_style(chunk.attr.style);
-//                surface.draw_text(font_face(), x, y, chunk.text, color);
-//                x += width;
-//            }
-//
-//            y += face->line_height;
-//        }
-    }
+            surface.draw_text(
+                    font_face(),
+                    bounds.left(),
+                    y,
+                    fmt::format("{0:08x}", _address + offset),
+                    address_color);
 
-    void memory_editor::delete_selection() {
-        _selection.normalize();
-
-//        auto row = _selection.start().row;
-//        auto last_row = _selection.end().row;
-
-//        if (row == last_row) {
-//            auto line_end = _document.find_line_end(row);
-//            if (_selection.start().column == 0 && _selection.end().column == line_end) {
-//                _document.delete_line(row);
-//            } else {
-//                for (uint16_t col = _selection.start().column; col < _selection.end().column; col++)
-//                    _document.put(row, col, core::element_t {0, _document.default_attr()});
-//            }
-//        } else {
-//            _document.delete_line(row);
-//            for (auto i = row; i < last_row; i++)
-//                _document.delete_line(row);
-//            for (uint16_t col = 0; col < _selection.end().column; col++)
-//                _document.put(row, col, core::element_t {0, _document.default_attr()});
-//        }
-
-        _caret.row(static_cast<uint8_t>(_selection.start().row));
-        _caret.column(static_cast<uint8_t>(_selection.start().column));
-
-        update_virtual_position();
-        end_selection();
-    }
-
-    void memory_editor::calculate_page_metrics() {
-        auto rect = bounds();
-        if (rect.empty())
-            return;
-        _metrics.page_width = static_cast<uint8_t>((rect.width() - _metrics.line_number_width) / font_face()->width);
-        _metrics.page_height = static_cast<uint8_t>(rect.height() / font_face()->line_height);
-    }
-
-    bool memory_editor::on_process_event(const SDL_Event* e) {
-        auto ctrl_pressed = (SDL_GetModState() & KMOD_CTRL) != 0;
-        auto shift_pressed = (SDL_GetModState() & KMOD_SHIFT) != 0;
-
-        if (e->type == SDL_TEXTINPUT) {
-            //insert_text(&e->text.text[0]);
-        } else if (e->type == SDL_KEYDOWN) {
-            switch (e->key.keysym.sym) {
-                case SDLK_c: {
-                    if (ctrl_pressed) {
-//                        std::stringstream stream;
-//                        get_selected_text(stream);
-//                        SDL_SetClipboardText(stream.str().c_str());
-                    }
-                    break;
-                }
-                case SDLK_v: {
-                    if (ctrl_pressed && SDL_HasClipboardText()) {
-//                        auto text = SDL_GetClipboardText();
-                        //insert_text(text);
-                    }
-                    break;
-                }
-                case SDLK_x: {
-                    if (ctrl_pressed) {
-//                        std::stringstream stream;
-//                        get_selected_text(stream);
-//                        SDL_SetClipboardText(stream.str().c_str());
-//                        delete_selection();
-                    }
-                    break;
-                }
-                case SDLK_RETURN: {
-                    if (_caret.mode() == core::caret::mode::insert) {
-                        //_document.split_line(_vrow, _vcol);
-                    }
-                    caret_down();
-                    caret_home();
-                    return true;
-                }
-                case SDLK_TAB: {
-                    if (shift_pressed) {
-                        if (_caret.column() == 0)
-                            return true;
-                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
-                        caret_left(spaces);
-//                        _document.shift_line_left(_vrow, _vcol, spaces);
-                    } else {
-                        auto spaces = static_cast<uint8_t>(4 - (_vcol % 4));
-//                        _document.shift_line_right(_vrow, _vcol, spaces);
-//                        for (auto col = _vcol; col < _vcol + spaces; col++)
-//                            _document.put(_vrow, col, core::element_t {0, _document.default_attr()});
-                        caret_right(spaces);
-                    }
-                    return true;
-                }
-                case SDLK_DELETE: {
-                    if (_selection.valid()) {
-                        delete_selection();
-                    } else {
-//                        if (_document.is_line_empty(_vrow)) {
-//                            _document.delete_line(_vrow);
-//                        } else {
-//                            _document.shift_line_left(_vrow, _vcol);
-//                        }
-                    }
-                    return true;
-                }
-                case SDLK_BACKSPACE: {
-//                    if (_document.is_line_empty(_vrow)) {
-//                        _document.delete_line(_vrow);
-//                    } else if (_caret.column() == 0) {
-//                        _document.delete_line(_vrow);
-//                        caret_up();
-//                    } else {
-//                        caret_left();
-//                        _document.shift_line_left(_vrow, _vcol);
-//                    }
-                    return true;
-                }
-                case SDLK_UP: {
-                    if (shift_pressed) {
-//                        auto line_end = _document.find_line_end(_vrow);
-//                        update_selection(line_end);
-//                        for (auto col = _vcol; col < line_end; col++) {
-//                            auto element = _document.get(_vrow, col);
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
-                    } else {
-                        end_selection();
-                    }
-                    caret_up();
-                    if (shift_pressed)
-                        caret_home();
-                    return true;
-                }
-                case SDLK_DOWN: {
-                    if (shift_pressed) {
-//                        auto line_end = _document.find_line_end(_vrow);
-//                        update_selection(line_end);
-//                        for (auto col = _vcol; col < line_end; col++) {
-//                            auto element = _document.get(_vrow, col);
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
-                    } else {
-                        end_selection();
-                    }
-                    caret_down();
-                    if (shift_pressed)
-                        caret_home();
-                    return true;
-                }
-                case SDLK_LEFT: {
-                    if (shift_pressed) {
-                        update_selection(_vcol);
-//                        auto element = _document.get(_vrow, _vcol);
-//                        if (element != nullptr)
-//                            element->attr.flags |= core::font::flags::reverse;
-                    } else {
-                        end_selection();
-                    }
-                    caret_left();
-                    return true;
-                }
-                case SDLK_RIGHT: {
-                    if (shift_pressed) {
-                        update_selection(_vcol);
-//                        auto element = _document.get(_vrow, _vcol);
-//                        if (element != nullptr)
-//                            element->attr.flags |= core::font::flags::reverse;
-                    } else {
-                        end_selection();
-                    }
-                    caret_right();
-                    return true;
-                }
-                case SDLK_HOME: {
-                    if (shift_pressed) {
-                        update_selection(_vcol);
-//                        for (auto col = _vcol; col >= 0; col--) {
-//                            auto element = _document.get(_vrow, col);
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
-                    } else {
-                        end_selection();
-                    }
-                    if (ctrl_pressed)
-                        first_page();
-                    else
-                        caret_home();
-                    return true;
-                }
-                case SDLK_END: {
-                    if (shift_pressed) {
-//                        auto line_end = _document.find_line_end(_vrow);
-//                        update_selection(line_end);
-//                        for (auto col = _vcol; col < line_end; col++) {
-//                            auto element = _document.get(_vrow, col);
-//                            if (element != nullptr)
-//                                element->attr.flags |= core::font::flags::reverse;
-//                        }
-                    } else {
-                        end_selection();
-                    }
-                    if (ctrl_pressed)
-                        last_page();
-                    else
-                        caret_end();
-                    return true;
-                }
-                case SDLK_PAGEDOWN: {
-                    page_down();
-                    return true;
-                }
-                case SDLK_PAGEUP: {
-                    page_up();
-                    return true;
-                }
-                case SDLK_INSERT: {
-                    if (_caret.mode() == core::caret::mode::insert)
-                        _caret.overwrite();
-                    else
-                        _caret.insert();
-                    return true;
-                }
-                default: {
-                    break;
-                }
+            byte_stream.str("");
+            ascii_stream.str("");
+            for (size_t col = 0; col < _metrics.page_width; col++) {
+                auto value = machine
+                        ->mapper()
+                        ->read_byte(static_cast<uint32_t>(_address + offset + col));
+                byte_stream << fmt::format("{:02x} ", value);
+                auto c = isprint(value) ? static_cast<char>(value) : '.';
+                ascii_stream << c;
             }
+
+            auto byte_stream_str = byte_stream.str();
+            if (bytes_text_width == 0) {
+                bytes_text_width = font_face()->measure_text(byte_stream_str);
+            }
+
+            surface.draw_text(
+                font_face(),
+                x,
+                y,
+                byte_stream_str,
+                text_color);
+
+            surface.draw_text(
+                font_face(),
+                x + bytes_text_width,
+                y,
+                ascii_stream.str(),
+                text_color);
+
+            offset += _metrics.page_width;
+            y += max_line_height;
         }
-        return false;
     }
 
-    void memory_editor::on_resize(const core::rect& context_bounds) {
-        core::view::on_resize(context_bounds);
-
-        calculate_page_metrics();
-
-        _caret.page_size(_metrics.page_height, _metrics.page_width);
-
-        update_virtual_position();
+    void memory_editor::caret_color(palette_index value) {
+        _caret.fg_color(value);
     }
 
-    void memory_editor::initialize(uint32_t rows, uint16_t columns) {
-        _metrics.line_number_width = font_face()->measure_chars(5) + 2;
+    void memory_editor::address_color(palette_index value) {
+        _address_color = value;
+    }
 
-        _vcol = 0;
-        _vrow = 0;
-
-        _caret.palette(palette());
-        _caret.on_caret_changed([&]() {
-            raise_caret_changed();
-        });
-        _caret.font_family(font_family());
-        _caret.padding().left(_metrics.line_number_width);
-        _caret.initialize(0, 0);
-
-        add_child(&_caret);
-        margin({_metrics.left_padding, _metrics.right_padding, 5, 5});
+    void memory_editor::selection_color(palette_index value) {
+        _selection_color = value;
     }
 
     void memory_editor::on_caret_changed(const caret_changed_callable& callable) {

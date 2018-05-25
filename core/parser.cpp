@@ -137,6 +137,28 @@ namespace ryu::core {
             }
         },
         {
+            ">>",
+            {
+                operator_t::op::shift_right,
+                ">>",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
+            "<<",
+            {
+                operator_t::op::shift_left,
+                "<<",
+                8,
+                operator_t::op_type::binary,
+                operator_t::associativity_type::left,
+                operator_t::op_group::arithmetic
+            }
+        },
+        {
             ">",
             {
                 operator_t::op::greater_than,
@@ -276,17 +298,22 @@ namespace ryu::core {
         std::stringstream stream;
         stream << "\n";
         auto start_line = std::max<int32_t>(0, static_cast<int32_t>(_line) - 4);
-        auto stop_line = std::min<int32_t>(static_cast<int32_t>(_lines.size()), _line + 4);
-        for (auto i = start_line; i < stop_line; i++) {
-            if (i == _line - 1) {
+        auto stop_line = std::min<int32_t>(
+                static_cast<int32_t>(_input.source_lines.size()),
+                _line + 4);
+        for (int32_t i = start_line; i < stop_line; i++) {
+            if (i == static_cast<int32_t>(_line - 1)) {
                 stream << fmt::format("{:04d}: ", i + 1)
-                       << _lines[i] << "\n"
+                       << _input.source_lines[i] << "\n"
                        << std::setw(_column + 8)
-                       << "<red>^ " << message << "<>\n";
+                       << "<red>^ " << message << "<>";
             } else {
                 stream << fmt::format("{:04d}: ", i + 1)
-                       << _lines[i] << "\n";
+                       << _input.source_lines[i];
             }
+
+            if (i < static_cast<int32_t>(stop_line - 1))
+                stream << "\n";
         }
 
         _result.add_message(code, stream.str(), true);
@@ -297,7 +324,7 @@ namespace ryu::core {
             _token = nullptr;
         } else {
             _column++;
-            _token = &_input[_index];
+            _token = &_input.source[_index];
         }
         return _token;
     }
@@ -329,7 +356,7 @@ namespace ryu::core {
         _index = pos.index;
         _column = pos.column;
         if (_index < _input.length())
-            _token = &_input[_index];
+            _token = &_input.source[_index];
         else
             _token = nullptr;
         _position_stack.pop();
@@ -493,21 +520,14 @@ namespace ryu::core {
         return nullptr;
     }
 
-    void parser::reset(const std::string& input) {
+    void parser::reset(const parser_input_t& input) {
         _line = 1;
         _index = 0;
         _column = 1;
         _result = {};
         _input = input;
+        _token = nullptr;
         clear_stacks();
-
-        _lines.clear();
-        std::stringstream source;
-        source << _input << "\n";
-        std::string line;
-        while (std::getline(source, line)) {
-            _lines.push_back(line);
-        }
     }
 
     operator_t* parser::pop_operator() {
@@ -529,16 +549,19 @@ namespace ryu::core {
         if (token == nullptr)
             return nullptr;
 
+        push_position();
+
         std::vector<operator_t*> candidates;
         for (auto it = _operators.begin(); it != _operators.end(); ++it)
             candidates.push_back(&it->second);
 
-        auto index = 0;
+        size_t index = 0;
         operator_t* op = nullptr;
         std::vector<operator_t*> narrowed;
         while (true) {
             if (token == nullptr) {
                 error("P008", "unexpected end of operator");
+                pop_position();
                 return nullptr;
             }
 
@@ -579,19 +602,27 @@ namespace ryu::core {
             }
         }
 
+        if (op != nullptr)
+            forget_top_position();
+        else
+            pop_position();
+
         return op;
     }
 
     ast_node_shared_ptr parser::peek_operand() {
         if (_operand_stack.empty())
             return nullptr;
+
         return _operand_stack.top();
     }
 
     ast_node_shared_ptr parser::parse_comment() {
         auto token = current_token();
+
         if (token == nullptr)
             return nullptr;
+
         if (*token == '*' || *token == ';') {
             token = move_to_next_token();
             std::stringstream stream;
@@ -603,6 +634,7 @@ namespace ryu::core {
             comment->value = comment_t {stream.str()};
             return comment;
         }
+
         return nullptr;
     }
 
@@ -793,19 +825,26 @@ namespace ryu::core {
 
     ast_node_shared_ptr parser::parse_null_literal() {
         push_position();
+
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
+
         if (match_literal("null")) {
             forget_top_position();
             return create_ast_node(ast_node_t::tokens::null_literal);
         }
+
         pop_position();
+
         return nullptr;
     }
 
     ast_node_shared_ptr parser::parse_string_literal() {
         auto token = current_token();
+        if (token == nullptr)
+            return nullptr;
+
         std::stringstream stream;
         if (*token == '\"') {
             while (true) {
@@ -834,23 +873,29 @@ namespace ryu::core {
 
     ast_node_shared_ptr parser::parse_uninitialized() {
         push_position();
+
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
+
         if (*token == '?') {
             forget_top_position();
             move_to_next_token();
             return create_ast_node(ast_node_t::tokens::uninitialized_literal);
         }
+
         pop_position();
+
         return nullptr;
     }
 
     ast_node_shared_ptr parser::parse_boolean_literal() {
         push_position();
+
         auto token = current_token();
         if (token == nullptr)
             return nullptr;
+
         if (match_literal("true")) {
             forget_top_position();
             auto identifier_node = create_ast_node(ast_node_t::tokens::boolean_literal);
@@ -862,12 +907,17 @@ namespace ryu::core {
             identifier_node->value = boolean_literal_t {false};
             return identifier_node;
         }
+
         pop_position();
+
         return nullptr;
     }
 
     bool parser::operator_stack_has(operator_t* op) {
-        return std::find(_operator_stack.begin(), _operator_stack.end(), op) != _operator_stack.end();
+        return std::find(
+                _operator_stack.begin(),
+                _operator_stack.end(),
+                op) != _operator_stack.end();
     }
 
     void parser::symbol_table(core::symbol_table* value) {
@@ -899,7 +949,7 @@ namespace ryu::core {
 
     bool parser::match_literal(const std::string& literal) {
         auto token = current_token();
-        for (auto i = 0; i < literal.length(); ++i) {
+        for (size_t i = 0; i < literal.length(); ++i) {
             auto c = literal[i];
             if (token == nullptr) {
                 error("P008", "Unexpected end of input");
@@ -916,7 +966,7 @@ namespace ryu::core {
     std::vector<operator_t*> parser::find_matching_operators(
             std::vector<operator_t*> candidates,
             char token,
-            int index) {
+            size_t index) {
         std::vector<operator_t*> matches;
         for (auto it = candidates.begin(); it != candidates.end(); ++it) {
             auto op = *it;
@@ -955,7 +1005,7 @@ namespace ryu::core {
         return node;
     }
 
-    ast_node_shared_ptr parser::parse_expression(const std::string& input) {
+    ast_node_shared_ptr parser::parse_expression(const parser_input_t& input) {
         reset(input);
         return parse_expression();
     }

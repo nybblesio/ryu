@@ -10,11 +10,17 @@
 #include <map>
 #include <list>
 #include <stack>
+#include <functional>
 #include <fmt/format.h>
 #include <boost/variant.hpp>
 #include <common/SDL_FontCache.h>
 
 namespace ryu::core {
+
+    // --------------------
+    // id pool
+    // --------------------
+    using id_t = uint32_t;
 
     // --------------------
     // timers
@@ -39,7 +45,8 @@ namespace ryu::core {
 
     class project_file;
 
-    typedef std::vector<project_file> project_file_list;
+    using project_file_shared_ptr = std::shared_ptr<project_file>;
+    typedef std::vector<project_file_shared_ptr> project_file_list;
 
     // --------------------
     // context
@@ -48,7 +55,6 @@ namespace ryu::core {
     class context;
 
     typedef std::map<int, context*> context_dict;
-    typedef std::vector<SDL_Event> event_list;
 
     struct context_window {
         enum sizes {
@@ -68,15 +74,27 @@ namespace ryu::core {
     typedef std::map<std::string, std::string> blackboard;
 
     // --------------------
+    // colors & palettes
+    // --------------------
+    using palette_index = uint8_t;
+
+    // --------------------
     // view
     // --------------------
     class view;
 
-    typedef std::vector<view*> view_list;
+    using view_list = std::vector<view*>;
+
+    struct pick_list_option_t {
+        uint32_t key;
+        std::string text;
+    };
+
+    using option_list = std::vector<pick_list_option_t>;
 
     struct alignment {
         struct horizontal {
-            enum types {
+            enum types : uint8_t {
                 none,
                 left,
                 right,
@@ -85,7 +103,7 @@ namespace ryu::core {
         };
 
         struct vertical {
-            enum types {
+            enum types : uint8_t {
                 none,
                 top,
                 middle,
@@ -112,7 +130,7 @@ namespace ryu::core {
     };
 
     struct border {
-        enum types {
+        enum types : uint8_t {
             none,
             solid,
             dashed,
@@ -141,8 +159,35 @@ namespace ryu::core {
         int16_t right {};
     };
 
-    typedef std::vector<span_t> span_list;
-    typedef std::vector<vertex_t> vertex_list;
+    using border_type = uint8_t;
+    using dock_style = uint8_t;
+    using span_list = std::vector<span_t>;
+    using vertex_list = std::vector<vertex_t>;
+
+    // --------------------
+    // attributed text
+    // --------------------
+    struct attr_t {
+        palette_index color = 0;
+        uint8_t style = 0;
+        uint8_t flags = 0;
+        bool operator== (const attr_t& rhs) const {
+            return color == rhs.color && style == rhs.style && flags == rhs.flags;
+        }
+        bool operator!= (const attr_t& rhs) const {
+            return color != rhs.color || style != rhs.style || flags != rhs.flags;
+        }
+    };
+
+    struct attr_chunk_t {
+        attr_t attr;
+        std::string text {};
+    };
+
+    typedef std::vector<attr_chunk_t> attr_chunks;
+
+    using code_to_attr_callable = std::function<void (attr_t&)>;
+    typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
 
     // --------------------
     // data tables
@@ -157,7 +202,7 @@ namespace ryu::core {
         std::string text {};
         uint16_t min_width {};
         uint16_t max_width {};
-        alignment::horizontal::types alignment = alignment::horizontal::types::left;
+        core::alignment::horizontal::types alignment = core::alignment::horizontal::types::left;
         uint8_t padding = 1;
         uint8_t options = format_options::none;
         uint16_t width {};
@@ -174,23 +219,82 @@ namespace ryu::core {
         uint8_t line_spacing = 0;
     };
 
+    struct once_value_t {
+        bool show = true;
+        void add_once_column(
+                data_table_row_t& row,
+                const std::string& value) {
+            if (show) {
+                row.columns.push_back(value);
+                show = false;
+            } else {
+                row.columns.emplace_back("");
+            }
+        }
+    };
+
+    // --------------------
+    // ide
+    // --------------------
+    struct system_commands {
+        enum types {
+            unknown,
+
+            quit,
+            clear,
+            edit_source,
+            edit_memory,
+            list_machine,
+            edit_project,
+            edit_machine,
+            edit_component,
+            edit_tiles,
+            edit_sprites,
+            edit_backgrounds,
+            edit_music,
+            edit_sounds,
+            edit_palette,
+            edit_actor,
+            edit_cpu,
+
+            read_text,
+            write_text,
+            find_text,
+            goto_line,
+            save_project_file,
+            update_working_directory
+        };
+    };
+
     // --------------------
     // environment parameters
     // --------------------
-    typedef boost::variant<
-            data_table_t,
-            std::string,
-            uint32_t,
-            bool> parameter_variant_t;
+    using parameter_variant_t = boost::variant<data_table_t, std::string, uint32_t, bool, system_commands::types>;
 
     enum parameter_dict_types {
         table = 0,
         string,
         integer32,
-        boolean
+        boolean,
+        system_command
     };
 
-    typedef std::map<std::string, parameter_variant_t> parameter_dict;
-    typedef std::function<bool (const std::string&, const parameter_dict&)> state_transition_callable;
+    using state_transition_command = uint32_t;
+
+    using parameter_dict = std::map<std::string, parameter_variant_t>;
+    using state_transition_callable = std::function<bool (state_transition_command, const parameter_dict&)>;
+
+    using byte_list = std::vector<uint8_t>;
+    using address_list = std::vector<uint32_t>;
+
+    // --------------------
+    // observable types
+    // --------------------
+    struct observables {
+        enum types : uint32_t {
+            unknown = 0,
+            project
+        };
+    };
 
 };

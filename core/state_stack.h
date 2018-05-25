@@ -11,10 +11,10 @@
 
 #pragma once
 
-#include <SDL.h>
 #include <vector>
 #include "core_types.h"
 #include "renderer.h"
+#include "input_binding.h"
 
 namespace ryu::core {
 
@@ -28,9 +28,12 @@ namespace ryu::core {
             };
         };
 
-        void clear();
+        void draw(
+                uint32_t dt,
+                pending_event_list& events,
+                core::renderer& renderer);
 
-        void update();
+        void clear();
 
         int peek() const;
 
@@ -44,11 +47,11 @@ namespace ryu::core {
 
         core::state* find_state(int id);
 
+        void apply_pending_transition();
+
         void add_state(core::state* state);
 
         void remove_state(core::state* state);
-
-        void draw(uint32_t dt, core::renderer& renderer);
 
         void push(int id, const core::parameter_dict& params);
 
