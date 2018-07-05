@@ -15,10 +15,10 @@ else ()
 endif()
 
 # rpath setup
-SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-SET(CMAKE_INSTALL_RPATH "/usr/local/lib")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "/usr/local/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 set (ryu_version_major 1)
 set (ryu_version_minor 0)
@@ -46,25 +46,22 @@ add_custom_command(OUTPUT custom-output COMMAND ${CMAKE_COMMAND} -E echo DEPENDS
 add_custom_command(OUTPUT always-rebuild COMMAND ${CMAKE_COMMAND} -E echo)
 
 # 3rd party dependencies
-find_package(Boost 1.65.0 COMPONENTS system filesystem REQUIRED)
-find_package(FMT REQUIRED)
+find_package(fmt REQUIRED)
+find_package(sdl2 REQUIRED)
+find_package(catch2 REQUIRED)
 find_package(yaml-cpp REQUIRED)
-find_package(Log4cpp REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
-find_package(SDL2_ttf REQUIRED)
+find_package(sdl2_ttf REQUIRED)
+find_package(sdl2_image REQUIRED)
 find_package(RTTR CONFIG REQUIRED Core)
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+
+get_target_property(FMT_INCLUDE_DIR fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS ${FMT_INCLUDE_DIR})
 
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_SOURCE_DIR}
-    ${Boost_INCLUDE_DIRS}
-    ${YAML_CPP_INCLUDE_DIR}
-    ${FMT_INCLUDE_DIRS}
-    ${Log4cpp_INCLUDE_DIR}
-    ${SDL2_INCLUDE_DIR}
-    ${SDL2_IMAGE_INCLUDE_DIRS}
-    ${SDL2_TTF_INCLUDE_DIRS}
+    ${FMT_INCLUDE_DIR}
     RTTR::Core
 )
 
@@ -103,14 +100,12 @@ add_executable(
         .gitignore
         main.cpp
         layout.h
-        catch2.hpp
         ryu_types.h
         ryu.properties
         ryu_config.in.h
         taking_break.txt
         application.cpp application.h
         logger_factory.cpp logger_factory.h)
-
 target_link_libraries(
         ryu
         ide
@@ -118,13 +113,13 @@ target_link_libraries(
         hardware
         core
         common
-        ${SDL2_LIBRARY}
-        ${Boost_LIBRARIES}
-        ${LOG4CPP_LIBRARIES}
-        ${YAML_CPP_LIBRARIES}
-        ${SDL2_TTF_LIBRARIES}
-        ${SDL2_IMAGE_LIBRARIES}
+        sdl2
+        yaml-cpp
+        sdl2_image
+        sdl2_ttf
         fmt::fmt
+        boost_system
+        boost_filesystem
         RTTR::Core
 )
 

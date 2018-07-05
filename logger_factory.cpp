@@ -8,8 +8,7 @@
 // this source code file.
 //
 
-#include <log4cpp/Category.hh>
-#include <log4cpp/PropertyConfigurator.hh>
+#include <SDL2/SDL_log.h>
 #include "logger_factory.h"
 
 namespace ryu {
@@ -30,7 +29,6 @@ namespace ryu {
     }
 
     void logger_factory::initialize(const std::string& path) {
-        log4cpp::PropertyConfigurator::configure(path);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -39,71 +37,38 @@ namespace ryu {
             const std::string& name,
             logger::level::types level) : _level(level),
                                           _name(name) {
-        auto category = &log4cpp::Category::getInstance(name);
-        _category = category;
-        switch (_level) {
-            case level::emergency:
-                category->setPriority(log4cpp::Priority::EMERG);
-                break;
-            case level::fatal:
-                category->setPriority(log4cpp::Priority::FATAL);
-                break;
-            case level::alert:
-                category->setPriority(log4cpp::Priority::ALERT);
-                break;
-            case level::critical:
-                category->setPriority(log4cpp::Priority::CRIT);
-                break;
-            case level::error:
-                category->setPriority(log4cpp::Priority::ERROR);
-                break;
-            case level::warn:
-                category->setPriority(log4cpp::Priority::WARN);
-                break;
-            case level::notice:
-                category->setPriority(log4cpp::Priority::NOTICE);
-                break;
-            case level::info:
-                category->setPriority(log4cpp::Priority::INFO);
-                break;
-            case level::debug:
-                category->setPriority(log4cpp::Priority::DEBUG);
-                break;
-        }
     }
 
     void logger::info(const std::string& msg) {
-        auto category = std::any_cast<log4cpp::Category*>(_category);
-        category->info(msg);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, msg.c_str());
     }
 
     void logger::warn(const std::string& msg) {
-        auto category = std::any_cast<log4cpp::Category*>(_category);
-        category->warn(msg);
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, msg.c_str());
     }
 
     void logger::error(const std::string& msg) {
-        auto category = std::any_cast<log4cpp::Category*>(_category);
-        category->error(msg);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, msg.c_str());
     }
 
     void logger::fatal(const std::string& msg) {
-        auto category = std::any_cast<log4cpp::Category*>(_category);
-        category->fatal(msg);
+        SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION, msg.c_str());
     }
 
     void logger::result(const core::result& result) {
-        auto category = std::any_cast<log4cpp::Category*>(_category);
-
         for (auto& message : result.messages()) {
             if (message.is_error()) {
-                category->error(fmt::format("{}: {}", message.code(), message.message()));
+                SDL_LogError(
+                    SDL_LOG_CATEGORY_APPLICATION,
+                    fmt::format("{}: {}", message.code(), message.message()).c_str());
                 if (!message.details().empty())
-                    category->error(message.details());
+                    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, message.details().c_str());
             } else {
-                category->warn(fmt::format("{}: {}", message.code(), message.message()));
+                SDL_LogWarn(
+                    SDL_LOG_CATEGORY_APPLICATION,
+                    fmt::format("{}: {}", message.code(), message.message()).c_str());
                 if (!message.details().empty())
-                    category->warn(message.details());
+                    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, message.details().c_str());
             }
         }
     }
