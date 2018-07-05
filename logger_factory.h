@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <any>
 #include <string>
 #include <vector>
 #include <core/result.h>
@@ -53,7 +52,6 @@ namespace ryu {
     private:
         level::types _level;
         std::string _name;
-        std::any _category;
     };
 
     class logger_factory {

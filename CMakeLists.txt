@@ -16,10 +16,10 @@ else ()
 endif()
 
 # rpath setup
-SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-SET(CMAKE_INSTALL_RPATH "/usr/local/lib")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+set(CMAKE_INSTALL_RPATH "/usr/local/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 set (ryu_version_major 1)
 set (ryu_version_minor 0)
@@ -41,23 +41,23 @@ add_custom_target(dummy-target ALL DEPENDS custom-output)
 add_custom_command(OUTPUT custom-output COMMAND ${CMAKE_COMMAND} -E echo DEPENDS always-rebuild)
 add_custom_command(OUTPUT always-rebuild COMMAND ${CMAKE_COMMAND} -E echo)
 
-# conan configuration
-set(CONAN_DISABLE_CHECK_COMPILER true)
-include(conanbuildinfo.cmake)
-conan_basic_setup(KEEP_RPATHS true)
-
 # 3rd party dependencies
-find_package(Boost 1.65.0 COMPONENTS system filesystem REQUIRED)
-find_package(Log4cpp REQUIRED)
-find_package(SDL2_ttf REQUIRED)
+find_package(fmt REQUIRED)
+find_package(sdl2 REQUIRED)
+find_package(catch2 REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(sdl2_ttf REQUIRED)
+find_package(sdl2_image REQUIRED)
 find_package(RTTR CONFIG REQUIRED Core)
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+
+get_target_property(FMT_INCLUDE_DIR fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS ${FMT_INCLUDE_DIR})
 
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_SOURCE_DIR}
-    ${Boost_INCLUDE_DIRS}
-    ${Log4cpp_INCLUDE_DIR}
-    ${SDL2_TTF_INCLUDE_DIRS}
+    ${FMT_INCLUDE_DIR}
     RTTR::Core
 )
 
@@ -102,7 +102,7 @@ add_executable(
         taking_break.txt
         application.cpp application.h
         logger_factory.cpp logger_factory.h)
-
+set_target_properties(ryu PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 target_link_libraries(
         ryu
         ide
@@ -110,10 +110,13 @@ target_link_libraries(
         hardware
         core
         common
-        ${CONAN_LIBS}
-        ${Boost_LIBRARIES}
-        ${LOG4CPP_LIBRARIES}
-        ${SDL2_TTF_LIBRARIES}
+        sdl2
+        yaml-cpp
+        sdl2_image
+        sdl2_ttf
+        fmt::fmt
+        boost_system
+        boost_filesystem
         RTTR::Core
 )
 
@@ -121,7 +124,7 @@ add_custom_target(ryu-configured DEPENDS dummy-target ryu)
 add_dependencies(ryu-configured all-unit-tests)
 add_custom_command(
         TARGET ryu-configured
-        COMMAND ${CMAKE_COMMAND} -E echo "make_directory: ${PROJECT_BINARY_DIR}/bin/logs"
+        COMMAND ${CMAKE_COMMAND} -E echo  "make_directory: ${PROJECT_BINARY_DIR}/bin/logs"
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/bin/logs
 
         COMMAND ${CMAKE_COMMAND} -E echo "copy: ${PROJECT_SOURCE_DIR}/ryu.properties"
