@@ -1,5 +1,7 @@
+project(core)
+
 add_library(
-        core
+        ${PROJECT_NAME}
         result.h
         size.cpp size.h
         rect.cpp rect.h

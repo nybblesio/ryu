@@ -1,3 +1,5 @@
+project(ide)
+
 add_subdirectory(hex_editor)
 add_subdirectory(console_editor)
 add_subdirectory(component_editor)
@@ -15,7 +17,7 @@ add_subdirectory(tile_editor)
 add_subdirectory(sprite_editor)
 
 add_library(
-        ide
+        ${PROJECT_NAME}
         hex_editor
         source_editor
         console_editor
@@ -34,7 +36,7 @@ add_library(
         ide_types.h
         ide_context.cpp ide_context.h)
 target_link_libraries(
-        ide
+        ${PROJECT_NAME}
         hex_editor
         console_editor
         component_editor

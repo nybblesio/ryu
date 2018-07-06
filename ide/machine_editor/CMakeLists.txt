@@ -1,3 +1,5 @@
+project(machine_editor)
+
 add_library(
-        machine_editor
+        ${PROJECT_NAME}
         controller.cpp controller.h)

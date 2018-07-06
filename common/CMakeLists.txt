@@ -1,5 +1,7 @@
+project(common)
+
 add_library(
-        common
+        ${PROJECT_NAME}
         bytes.h
         IntervalTree.h
         SDL_FontCache.c SDL_FontCache.h

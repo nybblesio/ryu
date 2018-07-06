@@ -1,4 +1,6 @@
+project(emulator)
+
 add_library(
-        emulator
+        ${PROJECT_NAME}
         controller.cpp controller.h
         emulator_context.cpp emulator_context.h)

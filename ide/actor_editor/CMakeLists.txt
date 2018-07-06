@@ -1,3 +1,5 @@
+project(actor_editor)
+
 add_library(
-        actor_editor
+        ${PROJECT_NAME}
         controller.cpp controller.h)

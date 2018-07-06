@@ -1,3 +1,5 @@
+project(hex_editor)
+
 add_library(
-        hex_editor
+        ${PROJECT_NAME}
         controller.cpp controller.h)

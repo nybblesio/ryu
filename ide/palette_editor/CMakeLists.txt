@@ -1,3 +1,5 @@
+project(palette_editor)
+
 add_library(
-        palette_editor
+        ${PROJECT_NAME}
         controller.cpp controller.h)

@@ -1,5 +1,7 @@
+project(hardware)
+
 add_library(
-        hardware
+        ${PROJECT_NAME}
         hardware.h
         ram.cpp ram.h
         rom.cpp rom.h

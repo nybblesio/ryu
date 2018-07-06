@@ -1,3 +1,5 @@
+project(component_editor)
+
 add_library(
-        component_editor
+        ${PROJECT_NAME}
         controller.cpp controller.h)

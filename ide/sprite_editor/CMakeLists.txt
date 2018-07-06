@@ -1,3 +1,5 @@
+project(sprite_editor)
+
 add_library(
-        sprite_editor
+        ${PROJECT_NAME}
         controller.cpp controller.h)

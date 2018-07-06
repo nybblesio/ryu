@@ -1,3 +1,5 @@
+project(preferences_editor)
+
 add_library(
-        preferences_editor
+        ${PROJECT_NAME}
         controller.cpp controller.h)
