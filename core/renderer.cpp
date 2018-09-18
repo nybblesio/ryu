@@ -8,7 +8,7 @@
 // this source code file.
 //
 
-#include <common/SDL_FontCache.h>
+#include <ext/SDL_FontCache/SDL_FontCache.h>
 #include "renderer.h"
 
 namespace ryu::core {

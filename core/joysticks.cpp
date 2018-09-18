@@ -9,7 +9,7 @@
 //
 
 #include <algorithm>
-#include <SDL2/SDL_joystick.h>
+#include <SDL_joystick.h>
 #include "joysticks.h"
 
 namespace ryu::core {

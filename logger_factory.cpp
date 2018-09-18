@@ -8,7 +8,7 @@
 // this source code file.
 //
 
-#include <SDL2/SDL_log.h>
+#include <SDL_log.h>
 #include "logger_factory.h"
 
 namespace ryu {

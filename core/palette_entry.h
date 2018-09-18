@@ -11,7 +11,7 @@
 #pragma once
 
 #include <cstdint>
-#include <SDL2/SDL_pixels.h>
+#include <SDL_pixels.h>
 
 namespace ryu::core {
 

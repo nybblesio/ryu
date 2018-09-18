@@ -11,7 +11,7 @@
 #pragma once
 
 #include <cstdint>
-#include <SDL2/SDL_rect.h>
+#include <SDL_rect.h>
 #include "padding.h"
 #include "size.h"
 

@@ -5,7 +5,7 @@
 // All Rights Reserved.
 //
 
-#include <SDL2/SDL_timer.h>
+#include <SDL_timer.h>
 #include "timer.h"
 #include "id_pool.h"
 #include "timer_pool.h"

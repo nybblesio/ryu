@@ -1,0 +1,1 @@
+cmd='/Users/jeff/src/nybbles/ryu/ext/freetype-2.9/autogen.sh;&&;/Users/jeff/src/nybbles/ryu/ext/freetype-2.9/configure;--prefix=/Users/jeff/src/nybbles/ryu/ext/SDL2_ttf-2.0.14/external/freetype-2.4.12/install;--enable-static=yes;--enable-shared=no;--without-zlib;--without-bzip2'

@@ -5,11 +5,10 @@
 // All Rights Reserved.
 //
 
+#include <SDL.h>
 #include <algorithm>
-#include <SDL2/SDL.h>
 #include <fmt/format.h>
-#include <SDL2/SDL_image.h>
-#include <common/SDL_FontCache.h>
+#include <SDL_FontCache.h>
 #include <common/string_support.h>
 #include "state.h"
 #include "engine.h"

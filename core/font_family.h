@@ -12,7 +12,7 @@
 
 #include <map>
 #include <string>
-#include <common/SDL_FontCache.h>
+#include <SDL_FontCache.h>
 #include <common/string_support.h>
 #include <boost/filesystem/path.hpp>
 

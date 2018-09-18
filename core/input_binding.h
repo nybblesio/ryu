@@ -14,7 +14,7 @@
 #include <string>
 #include <memory>
 #include <cstdint>
-#include <SDL2/SDL_events.h>
+#include <SDL_events.h>
 #include "joystick.h"
 
 namespace ryu::core {

@@ -15,8 +15,8 @@
 #include <vector>
 #include <cstdint>
 #include <functional>
+#include <SDL_events.h>
 #include <yaml-cpp/yaml.h>
-#include <SDL2/SDL_events.h>
 #include "result.h"
 #include "input_binding.h"
 

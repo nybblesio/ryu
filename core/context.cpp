@@ -8,8 +8,8 @@
 // this source code file.
 //
 
+#include <SDL.h>
 #include <utility>
-#include <SDL2/SDL.h>
 #include "state.h"
 #include "timer.h"
 #include "engine.h"

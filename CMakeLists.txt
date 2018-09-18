@@ -1,9 +1,12 @@
 cmake_minimum_required (VERSION 3.11)
 project (ryu)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+include(ExternalProject)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "-Wall -Wno-unused-private-field -Wno-unknown-pragmas -Wno-inconsistent-missing-override" CACHE STRING "compile flags" FORCE)
@@ -14,12 +17,6 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
 else ()
     message(STATUS "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
 endif()
-
-# rpath setup
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-set(CMAKE_INSTALL_RPATH "/usr/local/lib")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 set (ryu_version_major 1)
 set (ryu_version_minor 0)
@@ -41,24 +38,84 @@ add_custom_target(dummy-target ALL DEPENDS custom-output)
 add_custom_command(OUTPUT custom-output COMMAND ${CMAKE_COMMAND} -E echo DEPENDS always-rebuild)
 add_custom_command(OUTPUT always-rebuild COMMAND ${CMAKE_COMMAND} -E echo)
 
-# 3rd party dependencies
-find_package(fmt REQUIRED)
-find_package(sdl2 REQUIRED)
-find_package(catch2 REQUIRED)
-find_package(yaml-cpp REQUIRED)
-find_package(sdl2_ttf REQUIRED)
-find_package(sdl2_image REQUIRED)
-find_package(RTTR CONFIG REQUIRED Core)
-find_package(Boost COMPONENTS system filesystem REQUIRED)
+# libfmt
+add_subdirectory(ext/fmt-5.1.0 EXCLUDE_FROM_ALL)
+include_directories(ext/fmt-5.1.0/include)
 
-get_target_property(FMT_INCLUDE_DIR fmt::fmt INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS ${FMT_INCLUDE_DIR})
+# dyncall
+add_subdirectory(ext/dyncall-1.0 EXCLUDE_FROM_ALL)
+include_directories(ext/dyncall-1.0)
 
+# boost
+include_directories(ext/boost-1.67.0)
+
+if (WIN32)
+    add_definitions("-DBOOST_ALL_NO_LIB")
+endif()
+
+# boost system library
+add_library(boost-system ext/boost-1.67.0/libs/system/src/error_code.cpp)
+
+# boost filesystem library
+set(
+    BOOST_FILESYSTEM_SOURCES
+    ext/boost-1.67.0/libs/filesystem/src/codecvt_error_category.cpp
+    ext/boost-1.67.0/libs/filesystem/src/operations.cpp
+    ext/boost-1.67.0/libs/filesystem/src/path.cpp
+    ext/boost-1.67.0/libs/filesystem/src/path_traits.cpp
+    ext/boost-1.67.0/libs/filesystem/src/portability.cpp
+    ext/boost-1.67.0/libs/filesystem/src/unique_path.cpp
+    ext/boost-1.67.0/libs/filesystem/src/utf8_codecvt_facet.cpp
+)
+if (WIN32)
+    set(
+        BOOST_FILESYSTEM_SOURCES
+        ${BOOST_FILESYSTEM_SOURCES}
+        ext/boost-1.67.0/libs/filesystem/src/windows_file_codecvt.cpp
+    )
+endif()
+add_library(boost-filesystem ${BOOST_FILESYSTEM_SOURCES})
+
+# yaml-cpp
+option(YAML_CPP_BUILD_TESTS "" OFF)
+option(YAML_CPP_BUILD_TOOLS "" OFF)
+add_subdirectory(ext/yaml-cpp-0.6.2)
+include_directories(ext/yaml-cpp-0.6.2/include)
+
+# freetype
+add_subdirectory(ext/freetype-2.9)
+include_directories(ext/freetype-2.9/include)
+
+# sdl2
+set(SDL_SHARED OFF)
+add_subdirectory(ext/SDL2-2.0.8)
+include_directories(ext/SDL2-2.0.8/include)
+
+# sdl2_ttf
+add_subdirectory(ext/SDL2_ttf-2.0.14)
+include_directories(ext/SDL2_ttf-2.0.14)
+
+# sdl2_image
+# sdl2_mixer
+
+# catch2
+include_directories(ext/catch2-2.3.0/include)
+
+# rttr
+add_subdirectory(ext/rttr-0.9.7)
+include_directories(RTTR::Core)
+
+# SDL_FontCache
+add_library(
+    SDL_FontCache
+    ext/SDL_FontCache/SDL_FontCache.c
+    ext/SDL_FontCache/SDL_FontCache.h)
+include_directories(ext/SDL_FontCache)
+
+#
 include_directories(
     ${PROJECT_BINARY_DIR}
     ${PROJECT_SOURCE_DIR}
-    ${FMT_INCLUDE_DIR}
-    RTTR::Core
 )
 
 # project libraries
@@ -73,66 +130,66 @@ get_property(test_targets GLOBAL PROPERTY UNIT_TEST_TARGETS)
 message(STATUS "UNIT_TEST_TARGETS=${test_targets}")
 add_custom_target(all-unit-tests ALL DEPENDS ${test_targets})
 add_custom_command(
-        TARGET all-unit-tests
-        COMMENT "Execute all unit tests"
-        POST_BUILD
-        COMMAND ctest -C $<CONFIGURATION> --output-on-failure
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    TARGET all-unit-tests
+    COMMENT "Execute all unit tests"
+    POST_BUILD
+    COMMAND ctest -C $<CONFIGURATION> --output-on-failure
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
 # target & linkage
 add_executable(
-        ryu
-        ide
-        assets
-        emulator
-        hardware
-        core
-        ide
-        common
-        LICENSE
-        todo.txt
-        main.cpp
-        layout.h
-        README.md
-        .gitignore
-        ryu_types.h
-        machines.yaml
-        ryu.properties
-        ryu_config.in.h
-        taking_break.txt
-        application.cpp application.h
-        logger_factory.cpp logger_factory.h)
-set_target_properties(ryu PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+    ryu
+    ide
+    assets
+    emulator
+    hardware
+    core
+    ide
+    common
+    LICENSE
+    todo.txt
+    main.cpp
+    README.md
+    .gitignore
+    ryu_types.h
+    machines.yaml
+    ryu.properties
+    ryu_config.in.h
+    ext/layout/layout.h
+    application.cpp application.h
+    logger_factory.cpp logger_factory.h
+)
 target_link_libraries(
-        ryu
-        ide
-        emulator
-        hardware
-        core
-        common
-        sdl2
-        yaml-cpp
-        sdl2_image
-        sdl2_ttf
-        fmt::fmt
-        boost_system
-        boost_filesystem
-        RTTR::Core
+    ryu
+    ide
+    emulator
+    hardware
+    core
+    common
+    yaml-cpp
+    boost-system
+    boost-filesystem
+    fmt::fmt
+    SDL2-static
+    SDL_FontCache
+    SDL2_ttf
+    freetype
+    RTTR::Core
 )
 
 add_custom_target(ryu-configured DEPENDS dummy-target ryu)
 add_dependencies(ryu-configured all-unit-tests)
 add_custom_command(
-        TARGET ryu-configured
-        COMMAND ${CMAKE_COMMAND} -E echo  "make_directory: ${PROJECT_BINARY_DIR}/bin/logs"
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/bin/logs
+    TARGET ryu-configured
+    COMMAND ${CMAKE_COMMAND} -E echo  "make_directory: ${PROJECT_BINARY_DIR}/bin/logs"
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/bin/logs
 
-        COMMAND ${CMAKE_COMMAND} -E echo "copy: ${PROJECT_SOURCE_DIR}/ryu.properties"
-        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/ryu.properties ${PROJECT_BINARY_DIR}/bin
+    COMMAND ${CMAKE_COMMAND} -E echo "copy: ${PROJECT_SOURCE_DIR}/ryu.properties"
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/ryu.properties ${PROJECT_BINARY_DIR}/bin
 
-        COMMAND ${CMAKE_COMMAND} -E echo "copy: ${PROJECT_SOURCE_DIR}/machines.yaml"
-        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/machines.yaml ${PROJECT_BINARY_DIR}/bin
+    COMMAND ${CMAKE_COMMAND} -E echo "copy: ${PROJECT_SOURCE_DIR}/machines.yaml"
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/machines.yaml ${PROJECT_BINARY_DIR}/bin
 
-        COMMAND ${CMAKE_COMMAND} -E echo "copy_directory: ${PROJECT_SOURCE_DIR}/assets to ${PROJECT_BINARY_DIR}/bin/assets"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${PROJECT_BINARY_DIR}/bin/assets
+    COMMAND ${CMAKE_COMMAND} -E echo "copy_directory: ${PROJECT_SOURCE_DIR}/assets to ${PROJECT_BINARY_DIR}/bin/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/assets ${PROJECT_BINARY_DIR}/bin/assets
 )
