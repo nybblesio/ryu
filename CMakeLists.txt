@@ -88,8 +88,8 @@ include_directories(ext/freetype-2.9/include)
 
 # sdl2
 set(SDL_SHARED OFF)
-add_subdirectory(ext/SDL2-2.0.8)
-include_directories(ext/SDL2-2.0.8/include)
+add_subdirectory(ext/SDL2-2.0.9)
+include_directories(ext/SDL2-2.0.9/include)
 
 # sdl2_ttf
 add_subdirectory(ext/SDL2_ttf-2.0.14)
