@@ -86,13 +86,6 @@ namespace ryu {
             "preferences default path: {}",
             _prefs.default_path().string()));
 
-        s_log->info("engine shutdown");
-        if (!_engine.shutdown(result, _prefs)) {
-            s_log->error("engine shutdown failed:");
-            s_log->result(result);
-            return false;
-        }
-
         auto ide_font_family = _ide_context.font_family();
         if (ide_font_family != nullptr) {
             _prefs.ide_font(std::make_pair(
@@ -113,6 +106,16 @@ namespace ryu {
         s_log->info("save preferences");
         if (!_prefs.save(result)) {
             s_log->error("preferences save failed:");
+            s_log->result(result);
+            return false;
+        }
+
+        s_log->info("release font cache resources");
+        core::font_book::instance()->shutdown();
+
+        s_log->info("engine shutdown");
+        if (!_engine.shutdown(result, _prefs)) {
+            s_log->error("engine shutdown failed:");
             s_log->result(result);
             return false;
         }

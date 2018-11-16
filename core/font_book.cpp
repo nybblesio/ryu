@@ -90,6 +90,11 @@ namespace ryu::core {
         return true;
     }
 
+    void font_book::shutdown() {
+        for (auto it : _font_families)
+            it.second.free_faces();
+    }
+
     core::font_family* font_book::add_font_family(
             const std::string& name,
             uint32_t size) {

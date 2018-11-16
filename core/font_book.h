@@ -22,15 +22,17 @@ namespace ryu::core {
     public:
         static font_book* instance();
 
-        void renderer(SDL_Renderer* value);
-
         bool load(
                 core::result& result,
                 const fs::path& path);
 
+        void shutdown();
+
         core::font_family* add_font_family(
                 const std::string& name,
                 uint32_t size);
+
+        void renderer(SDL_Renderer* value);
 
         core::font_family* find_font_family(
                 const std::string& name,

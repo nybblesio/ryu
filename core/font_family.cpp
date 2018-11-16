@@ -20,21 +20,6 @@ namespace ryu::core {
                                       _renderer(renderer) {
     }
 
-    font_family::~font_family() {
-        for (auto& it : _faces)
-            FC_FreeFont(it.second.glyph);
-    }
-
-    const font_t* font_family::find_style(uint8_t style) const {
-        auto it = _faces.find(style);
-        if (it == _faces.end()) {
-            it = _faces.find(font::styles::normal);
-            if (it == _faces.end())
-                return nullptr;
-        }
-        return &it->second;
-    }
-
     font_t* font_family::add_style(
             uint8_t style,
             const boost::filesystem::path& path) {
@@ -53,6 +38,21 @@ namespace ryu::core {
             return &(*it.first).second;
         }
         return nullptr;
+    }
+
+    void font_family::free_faces() {
+        for (auto& it : _faces)
+            FC_FreeFont(it.second.glyph);
+    }
+
+    const font_t* font_family::find_style(uint8_t style) const {
+        auto it = _faces.find(style);
+        if (it == _faces.end()) {
+            it = _faces.find(font::styles::normal);
+            if (it == _faces.end())
+                return nullptr;
+        }
+        return &it->second;
     }
 
 }

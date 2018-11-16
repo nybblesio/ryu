@@ -109,7 +109,7 @@ namespace ryu::core {
                 int32_t size,
                 SDL_Renderer* renderer);
 
-        ~font_family();
+        void free_faces();
 
         font_t* add_style(
                 uint8_t style,

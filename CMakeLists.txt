@@ -102,8 +102,13 @@ include_directories(ext/SDL2_ttf-2.0.14)
 include_directories(ext/catch2-2.3.0/include)
 
 # rttr
+option(BUILD_EXAMPLES "" OFF)
+option(BUILD_UNIT_TESTS "" OFF)
+option(BUILD_DOCUMENTATION "" OFF)
 add_subdirectory(ext/rttr-0.9.7)
-include_directories(RTTR::Core)
+include_directories(
+    ext/rttr-0.9.7/src
+    ${PROJECT_BINARY_DIR}/ext/rttr-0.9.7/src)
 
 # SDL_FontCache
 add_library(
