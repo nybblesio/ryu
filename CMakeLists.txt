@@ -158,7 +158,6 @@ add_executable(
     .gitignore
     ryu_types.h
     machines.yaml
-    ryu.properties
     ryu_config.in.h
     ext/layout/layout.h
     application.cpp application.h
@@ -188,9 +187,6 @@ add_custom_command(
     TARGET ryu-configured
     COMMAND ${CMAKE_COMMAND} -E echo  "make_directory: ${PROJECT_BINARY_DIR}/bin/logs"
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/bin/logs
-
-    COMMAND ${CMAKE_COMMAND} -E echo "copy: ${PROJECT_SOURCE_DIR}/ryu.properties"
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/ryu.properties ${PROJECT_BINARY_DIR}/bin
 
     COMMAND ${CMAKE_COMMAND} -E echo "copy: ${PROJECT_SOURCE_DIR}/machines.yaml"
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/machines.yaml ${PROJECT_BINARY_DIR}/bin

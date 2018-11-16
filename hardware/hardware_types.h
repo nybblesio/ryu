@@ -25,7 +25,7 @@ namespace ryu::hardware {
         std::string name {};
     };
 
-    typedef std::vector<integrated_circuit_type_t> ic_type_list;
+    using ic_type_list = std::vector<integrated_circuit_type_t>;
 
     static constexpr uint16_t category_circuit = 0;
     static constexpr uint16_t category_memory = 1;
@@ -48,8 +48,8 @@ namespace ryu::hardware {
 
     class machine;
 
-    typedef std::map<uint32_t, machine> machine_dict;
-    typedef std::vector<machine*> machine_list;
+    using machine_dict = std::map<uint32_t, machine>;
+    using machine_list = std::vector<machine*>;
 
     class display;
 
@@ -57,18 +57,18 @@ namespace ryu::hardware {
 
     class memory_map_entry;
 
-    typedef std::vector<Interval<memory_map_entry*>> mm_entry_interval_list;
+    using mm_entry_interval_list = std::vector<Interval<memory_map_entry*>>;
 
     class integrated_circuit;
 
-    typedef Interval<integrated_circuit*> ic_interval;
-    typedef std::vector<ic_interval> ic_interval_list;
-    typedef std::vector<integrated_circuit*> ic_list;
+    using ic_interval = Interval<integrated_circuit*>;
+    using ic_interval_list = std::vector<ic_interval>;
+    using ic_list = std::vector<integrated_circuit*>;
 
     class component;
 
-    typedef std::vector<component*> component_list;
-    typedef std::map<uint32_t, component*> component_dict;
+    using component_list = std::vector<component*>;
+    using component_dict = std::map<uint32_t, component*>;
 
-    typedef std::vector<display> display_list;
+    using display_list = std::vector<display>;
 };

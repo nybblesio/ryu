@@ -32,7 +32,7 @@ namespace ryu::core {
             address = 0b00010000
         };
 
-        typedef uint8_t row_flags_t;
+        using row_flags_t = uint8_t;
 
         assembly_listing();
 

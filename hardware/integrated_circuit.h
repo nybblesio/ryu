@@ -16,7 +16,7 @@
 
 namespace ryu::hardware {
 
-    typedef uint8_t access_type_flags;
+    using access_type_flags = uint8_t;
 
     class integrated_circuit {
     public:

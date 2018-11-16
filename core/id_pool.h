@@ -34,7 +34,7 @@ namespace ryu::core {
         boost::numeric::interval<id_t> _value;
     };
 
-    typedef std::set<id_interval> id_set;
+    using id_set = std::set<id_interval>;
 
     class id_pool {
     public:

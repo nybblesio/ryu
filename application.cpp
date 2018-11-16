@@ -23,7 +23,6 @@ namespace ryu {
     bool application::init(int argc, char** argv) {
         core::result result;
 
-        logger_factory::instance()->initialize("ryu.properties");
         s_log = logger_factory::instance()->create("ryu", logger::level::info);
         s_log->info("init start.");
 

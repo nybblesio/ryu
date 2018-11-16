@@ -47,9 +47,9 @@ template <class T, typename K = std::size_t>
 class IntervalTree {
 
 public:
-    typedef Interval<T,K> interval;
-    typedef std::vector<interval> intervalVector;
-    typedef IntervalTree<T,K> intervalTree;
+    using interval = Interval<T,K>;
+    using intervalVector = std::vector<interval>;
+    using intervalTree = IntervalTree<T,K>;
 
     intervalVector intervals;
     std::unique_ptr<intervalTree> left;

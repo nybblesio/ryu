@@ -82,7 +82,7 @@ namespace ryu::core {
         core::parameter_dict _params {};
     };
 
-    typedef std::vector <result_message> result_message_list;
+    using result_message_list = std::vector<result_message>;
 
 };
 

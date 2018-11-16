@@ -27,8 +27,8 @@ namespace ryu::core {
     // --------------------
     class timer;
 
-    typedef std::vector<timer*> timer_list;
-    typedef std::function<void (timer*)> timer_callable;
+    using timer_list = std::vector<timer*>;
+    using timer_callable = std::function<void (timer*)>;
 
     // --------------------
     // engine
@@ -40,13 +40,13 @@ namespace ryu::core {
     // --------------------
     class project;
 
-    typedef std::shared_ptr<core::project> project_shared_ptr;
-    typedef std::map<std::string, std::string> project_props_dict;
+    using project_shared_ptr = std::shared_ptr<core::project>;
+    using project_props_dict = std::map<std::string, std::string>;
 
     class project_file;
 
     using project_file_shared_ptr = std::shared_ptr<project_file>;
-    typedef std::vector<project_file_shared_ptr> project_file_list;
+    using project_file_list = std::vector<project_file_shared_ptr>;
 
     // --------------------
     // context
@@ -54,7 +54,7 @@ namespace ryu::core {
     // --------------------
     class context;
 
-    typedef std::map<int, context*> context_dict;
+    using context_dict = std::map<int, context*>;
 
     struct context_window {
         enum sizes {
@@ -70,8 +70,8 @@ namespace ryu::core {
         state* instance;
     };
 
-    typedef std::map<int, state_t> state_dict;
-    typedef std::map<std::string, std::string> blackboard;
+    using state_dict = std::map<int, state_t>;
+    using blackboard = std::map<std::string, std::string>;
 
     // --------------------
     // colors & palettes
@@ -184,10 +184,10 @@ namespace ryu::core {
         std::string text {};
     };
 
-    typedef std::vector<attr_chunk_t> attr_chunks;
+    using attr_chunks = std::vector<attr_chunk_t>;
 
     using code_to_attr_callable = std::function<void (attr_t&)>;
-    typedef std::map<std::string, code_to_attr_callable> code_to_attr_dict;
+    using code_to_attr_dict = std::map<std::string, code_to_attr_callable>;
 
     // --------------------
     // data tables

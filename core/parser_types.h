@@ -27,9 +27,9 @@ namespace ryu::core {
 
     struct ast_node_t;
 
-    typedef std::shared_ptr<ast_node_t> ast_node_shared_ptr;
-    typedef std::vector<ast_node_shared_ptr> ast_node_list;
-    typedef std::map<std::string, ast_node_shared_ptr> symbol_dict;
+    using ast_node_shared_ptr = std::shared_ptr<ast_node_t>;
+    using ast_node_list = std::vector<ast_node_shared_ptr>;
+    using symbol_dict = std::map<std::string, ast_node_shared_ptr>;
 
     struct command {
         enum types : uint8_t {
@@ -162,7 +162,7 @@ namespace ryu::core {
         qword = 0b00001000
     };
 
-    typedef uint8_t command_flags_t;
+    using command_flags_t = uint8_t;
 
     struct command_spec_t {
         command::types type {};
@@ -175,7 +175,7 @@ namespace ryu::core {
         std::string command_name;
     };
 
-    typedef std::vector<command_spec_t> command_spec_list;
+    using command_spec_list = std::vector<command_spec_t>;
 
     struct command_t {
         command_spec_t spec;
@@ -739,9 +739,9 @@ namespace ryu::core {
         }
     };
 
-    typedef std::map<std::string, operator_t> operator_dict;
+    using operator_dict = std::map<std::string, operator_t>;
 
-    typedef boost::variant<
+    using variant_t = boost::variant<
         radix_numeric_literal_t,
         numeric_literal_t,
         boolean_literal_t,
@@ -753,7 +753,7 @@ namespace ryu::core {
         comment_t,
         directive_t,
         label_t,
-        dup_literal_t> variant_t;
+        dup_literal_t>;
 
     struct ast_node_t {
         enum tokens {
@@ -909,8 +909,8 @@ namespace ryu::core {
         uint32_t column = 0;
     };
 
-    typedef std::vector<core::variant_t> variant_list;
-    typedef std::map<std::string, variant_list> command_parameter_dict;
+    using variant_list = std::vector<core::variant_t>;
+    using command_parameter_dict = std::map<std::string, variant_list>;
 
     struct command_handler_context_t {
         core::result& result;
@@ -936,7 +936,7 @@ namespace ryu::core {
 
     using command_handler_callable = std::function<bool (environment*, const command_handler_context_t&)>;
 
-    typedef std::map<uint8_t, command_handler_callable> command_handler_dict;
+    using command_handler_dict = std::map<uint8_t, command_handler_callable>;
 
     struct parser_input_t {
         static void split_to_lines(

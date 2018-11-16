@@ -132,7 +132,7 @@ namespace ryu::core {
         SDL_Renderer* _renderer = nullptr;
     };
 
-    typedef std::map<std::string, font_family> font_family_dict;
+    using font_family_dict = std::map<std::string, font_family>;
 
 };
 

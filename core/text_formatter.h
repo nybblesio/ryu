@@ -21,7 +21,7 @@ namespace ryu::core {
         std::string text {};
     };
 
-    typedef std::vector<formatted_text_span_t> formatted_text_span_list;
+    using formatted_text_span_list = std::vector<formatted_text_span_t>;
 
     struct formatted_text_t {
         uint32_t actual_length {};
@@ -29,7 +29,7 @@ namespace ryu::core {
         formatted_text_span_list spans {};
     };
 
-    typedef std::vector<formatted_text_t> formatted_text_list;
+    using formatted_text_list = std::vector<formatted_text_t>;
 
     class text_formatter {
     public:

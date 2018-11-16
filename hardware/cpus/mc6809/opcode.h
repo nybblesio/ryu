@@ -14,7 +14,7 @@
 
 namespace ryu::hardware::mc6809 {
 
-    typedef std::set<std::string> mnemonic_set;
+    using mnemonic_set = std::set<std::string>;
 
     class opcode {
     public:
@@ -59,5 +59,5 @@ namespace ryu::hardware::mc6809 {
         uint8_t _mode = address_modes::none;
     };
 
-    typedef std::map<uint16_t, opcode> opcode_dictionary;
+    using opcode_dictionary = std::map<uint16_t, opcode>;
 };
