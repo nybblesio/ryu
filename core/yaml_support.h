@@ -45,7 +45,7 @@ namespace ryu::core {
         const std::string& path);
 
     template <typename T>
-    bool get_optional(YAML::Node node, T& var) {
+    bool get_optional(const YAML::Node& node, T& var) {
         if (node == nullptr)
             return false;
         var = node.as<T>();
@@ -55,8 +55,8 @@ namespace ryu::core {
     template <typename T>
     bool get_constant(
             core::result& result,
-            YAML::Node root,
-            YAML::Node node,
+            const YAML::Node& root,
+            const YAML::Node& node,
             T& var) {
         if (!node.IsNull() && node.IsScalar()) {
             auto constant_result = get_constant_int(root["constants"], node.as<std::string>());

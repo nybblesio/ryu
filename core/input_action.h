@@ -41,7 +41,7 @@ namespace ryu::core {
             };
         };
 
-        struct type { ;
+        struct type {
             enum values : uint16_t {
                 none     = 0b00000000,
                 keyboard = 0b00000001,

@@ -55,15 +55,11 @@ namespace ryu::core {
 
         void draw(core::renderer& renderer);
 
-        core::layout_engine* layout_engine();
-
         void resize(const core::rect& bounds);
 
         inline core::context* context() const {
             return _context;
         }
-
-        void remove_change_listener(uint32_t id);
 
         bool operator< (const state& rhs) const {
             return _id < rhs._id;
@@ -77,11 +73,15 @@ namespace ryu::core {
             return _context->prefs();
         }
 
+        core::layout_engine* layout_engine() override;
+
+        void remove_change_listener(uint32_t id) override;
+
         void activate(const core::parameter_dict& params);
 
-        uint32_t add_change_listener(const state_change_callable& callable);
-
         void transition_callback(const state_transition_callable& callback);
+
+        uint32_t add_change_listener(const state_change_callable& callable) override;
 
     protected:
         void end_state();
