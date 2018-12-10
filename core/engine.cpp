@@ -262,10 +262,10 @@ namespace ryu::core {
         event_list events {};
 
         while (!_quit) {
-            timer_pool::instance()->update();
-
             auto current_time = SDL_GetTicks();
             auto dt = current_time - last_time;
+
+            timer_pool::instance()->update();
 
             auto fps_dt = last_time - last_fps_time;
             if (fps_dt >= 1000) {
@@ -356,7 +356,14 @@ namespace ryu::core {
             events.clear();
 
             ++frame_count;
+
+            auto frame_duration = SDL_GetTicks() - current_time;
+            if (frame_duration < 16) {
+                SDL_Delay(16 - frame_duration);
+            }
+
             last_time = current_time;
+
         }
 
         return !result.is_failed();
