@@ -142,27 +142,27 @@ namespace ryu::emulator {
         switch (_size) {
             case core::context_window::split:
                 bounds({
-                               (parent_bounds.width() / 2) + 1,
-                               0,
-                               (parent_bounds.width() / 2) - 1,
-                               parent_bounds.height()
-                       });
+                   (parent_bounds.width() / 2) + 1,
+                   0,
+                   (parent_bounds.width() / 2) - 1,
+                   parent_bounds.height()
+                });
                 break;
             case core::context_window::expanded:
                 bounds({
-                               16,
-                               0,
-                               parent_bounds.width(),
-                               parent_bounds.height()
-                       });
+                    16,
+                    0,
+                    parent_bounds.width(),
+                    parent_bounds.height()
+                });
                 break;
             case core::context_window::collapsed:
                 bounds({
-                               parent_bounds.right() - 16,
-                               0,
-                               parent_bounds.width(),
-                               parent_bounds.height()
-                       });
+                    parent_bounds.right() - 16,
+                    0,
+                    parent_bounds.width(),
+                    parent_bounds.height()
+                });
                 break;
         }
     }

@@ -96,6 +96,11 @@ namespace ryu::core {
             return false;
         }
 
+        int x, y;
+        SDL_GetWindowPosition(_window, &x, &y);
+        _window_rect.left(x);
+        _window_rect.top(y);
+
         SDL_SetWindowMinimumSize(_window, 1280, 1024);
         SDL_SetWindowOpacity(_window, 1.0f);
         _renderer = SDL_CreateRenderer(
@@ -112,6 +117,7 @@ namespace ryu::core {
         }
 
         _surface.sdl_renderer(_renderer);
+        _surface.set_clip_rect(_clip_rect);
 
         font_book::instance()->renderer(_renderer);
         font_book::instance()->load(result, _prefs->font_book_path());
@@ -363,7 +369,6 @@ namespace ryu::core {
             }
 
             last_time = current_time;
-
         }
 
         return !result.is_failed();

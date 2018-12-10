@@ -156,12 +156,7 @@ namespace ryu::core {
 
     core::rect preferences::window_position() const {
         if (_window_position.empty())
-            return {
-                    SDL_WINDOWPOS_CENTERED,
-                    SDL_WINDOWPOS_CENTERED,
-                    1920,
-                    1080
-            };
+            return {0, 0, 1280, 1024};
         return _window_position;
     }
 

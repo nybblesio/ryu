@@ -47,6 +47,10 @@ namespace ryu {
         }
 
         s_log->info("engine initialize");
+        _engine.on_resize([&](const core::rect& bounds) {
+            _ide_context.parent_resize(bounds);
+            _emulator_context.parent_resize(bounds);
+        });
         if (!_engine.initialize(result, &_prefs)) {
             s_log->error("engine initialization failed:");
             s_log->result(result);
@@ -66,11 +70,6 @@ namespace ryu {
             s_log->result(result);
             return false;
         }
-
-        _engine.on_resize([&](const core::rect& bounds) {
-            _ide_context.parent_resize(bounds);
-            _emulator_context.parent_resize(bounds);
-        });
 
         return true;
     }
@@ -98,6 +97,8 @@ namespace ryu {
                     emulator_font_family->name(),
                     emulator_font_family->size()));
         }
+
+        _prefs.window_position(_engine.window_position());
 
         _prefs.ide_window_size(_ide_context.size());
         _prefs.emulator_window_size(_emulator_context.size());
