@@ -1,4 +1,6 @@
-<img align="center" width="10%" height="10%" src="/assets/logo/logo-white-transparent.png" />
+<p align="center">
+    <img width="25%" height="25%" src="/assets/logo/logo-white-transparent.png" />
+</p>
 
 ## Ryu: The Arcade Construction Kit
 
