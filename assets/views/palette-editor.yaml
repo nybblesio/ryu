@@ -1,0 +1,80 @@
+!include assets/views/view-constants.yaml
+
+name: 'palette-editor'
+focus: 'palette-list-box'
+layout:
+  dock: view.layout.dock.fill
+  mode: view.layout.mode.flow
+  direction: view.layout.direction.column
+views:
+  - name: 'header-panel'
+    type: view.types.state-header
+    layout:
+      dock: view.layout.dock.top
+      direction: view.layout.direction.row
+    margin: [10, 50, 5, 5]
+    state: 'palette editor'
+    state_color: ide.colors.white
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+
+  - name: 'editor-panel'
+    type: view.types.panel
+    layout:
+      dock: view.layout.dock.fill
+      mode: view.layout.mode.flex
+      direction: view.layout.direction.row
+    margin: [10, 50, 10, 10]
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.transparent
+    views:
+      - name: 'left-panel'
+        type: view.types.panel
+        layout:
+          dock: view.layout.dock.left
+          direction: view.layout.direction.column
+        margin: [10, 10, 10, 10]
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.transparent
+        views:
+          - name: 'palette-list-box'
+            type: view.types.list-box
+            layout:
+              dock: view.layout.dock.fill
+            enabled: true
+            tab-stop: true
+            next: 'editor'
+            prev: 'editor'
+            colors:
+              fg: ide.colors.info-text
+              bg: ide.colors.fill-color
+            row-color: ide.colors.text
+            selection-color: ide.colors.info-text
+            border: view.border.solid
+
+      - name: 'right-panel'
+        type: view.types.panel
+        layout:
+          dock: view.layout.dock.fill
+          direction: view.layout.direction.row
+        margin: [10, 10, 10, 10]
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.transparent
+        views:
+          - name: 'editor'
+            type: view.types.palette-editor
+            layout:
+              wrap: true
+              dock: view.layout.dock.fill
+              mode: view.layout.mode.flex
+              direction: view.layout.direction.row
+            prev: 'palette-list-box'
+            colors:
+              fg: ide.colors.text
+              bg: ide.colors.fill-color
+            enabled: true
+            tab-stop: true

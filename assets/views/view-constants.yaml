@@ -1,0 +1,115 @@
+constants:
+  view:
+    input-filters:
+      none: 0
+      hex: 1
+      decimal: 2
+      identifier: 3
+      string: 4
+    types:
+      label: 0
+      button: 1
+      text-box: 2
+      text-editor: 3
+      pick-list: 4
+      column-pick-list: 5
+      panel: 6
+      unused-rename-when-needed: 7
+      notebook: 8
+      state-header: 9
+      check-box: 10
+      caret: 11
+      console: 12
+      document-footer: 13
+      loadable-view: 14
+      memory-editor: 15
+      palette-entry-editor: 16
+      palette-editor: 17
+      list-box: 18
+    border:
+      none: 0
+      solid: 1
+      dashed: 2
+      rounded: 3
+    layout:
+      mode:
+        flow: 0
+        flex: 1
+      dock:
+        none: 0
+        bottom: 1
+        fill: 2
+        left: 3
+        right: 4
+        top: 5
+      direction:
+        none: 0
+        row: 1
+        column: 2
+      justification:
+        start: 0
+        middle: 1
+        end: 2
+        full: 3
+
+    column:
+      formats:
+        none: 0
+        hex2: 1
+        hex4: 2
+        hex8: 3
+        binary2: 4
+        binary4: 5
+        binary8: 6
+        binary16: 7
+        binary32: 8
+
+      types:
+        value: 0
+        text-box: 1
+        check-box: 2
+        button: 3
+
+    alignments:
+      horizontal:
+        none: 0
+        left: 1
+        right: 2
+        center: 3
+      vertical:
+        none: 0
+        top: 1
+        middle: 2
+        bottom: 3
+
+  sources:
+    none: 0
+    displays: 1
+    components: 2
+    circuits: 3
+    machines: 4
+
+  ide:
+    colors:
+      black: 0
+      white: 1
+      grey: 2
+      blue: 3
+      fill-color: 3
+      red: 4
+      cyan: 5
+      purple: 6
+      green: 7
+      yellow: 8
+      orange: 9
+      brown: 10
+      pink: 11
+      dark-grey: 12
+      light-green: 13
+      light-blue: 14
+      selection: 14
+      caret: 14
+      text: 14
+      light-grey: 15
+      info-text: 15
+      transparent: 16

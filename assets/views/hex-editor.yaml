@@ -1,0 +1,71 @@
+!include assets/views/view-constants.yaml
+
+name: 'hex-editor'
+focus: 'memory-editor'
+layout:
+  dock: view.layout.dock.fill
+  mode: view.layout.mode.flow
+  direction: view.layout.direction.column
+views:
+  - name: 'header-panel'
+    type: view.types.state-header
+    layout:
+      dock: view.layout.dock.top
+      direction: view.layout.direction.row
+    margin: [10, 50, 5, 5]
+    state: 'memory editor'
+    state_color: ide.colors.white
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+
+  - name: 'command-line-text-box'
+    type: view.types.text-box
+    layout:
+      dock: view.layout.dock.top
+      direction: view.layout.direction.row
+    value: ''
+    size:
+      width: 60
+      length: 255
+    enabled: true
+    margin: [10, 50, 5, 5]
+    colors:
+      fg: ide.colors.text
+      bg: ide.colors.fill-color
+
+  - name: 'memory-editor'
+    type: view.types.memory-editor
+    layout:
+      dock: view.layout.dock.fill
+      direction: view.layout.direction.row
+    colors:
+      fg: ide.colors.text
+      bg: ide.colors.fill-color
+    caret-color: ide.colors.caret
+    selection-color: ide.colors.selection
+    address-color: ide.colors.info-text
+    enabled: true
+    margin: [10, 50, 5, 5]
+    padding: [10, 10, 10, 10]
+    border: view.border.dashed
+
+  - name: 'footer-panel'
+    type: view.types.panel
+    layout:
+      dock: view.layout.dock.bottom
+      direction: view.layout.direction.row
+    margin: [10, 50, 5, 5]
+    colors:
+      fg: ide.colors.info-text
+      bg: ide.colors.fill-color
+    bounds: [0, 0, 0, 32]
+    views:
+      - name: 'temp-label'
+        type: view.types.label
+        layout:
+          dock: view.layout.dock.left
+        value: 'footer place holder'
+        colors:
+          fg: ide.colors.info-text
+          bg: ide.colors.fill-color
