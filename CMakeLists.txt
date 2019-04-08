@@ -105,6 +105,7 @@ include_directories(
 add_executable(
     ryu
     assets
+    ext
     LICENSE
     main.cpp
     README.md
